@@ -1,6 +1,3 @@
-/*
-  (c) Copyright 2018, 2019 Phasmid Software
- */
 package edu.neu.coe.huskySort.sort;
 
 import java.lang.reflect.Array;
@@ -42,8 +39,7 @@ public class Helper<X extends Comparable<X>> {
 
     /**
      * Swap the elements of array a at indices i and j.
-     *
-     * @param a   the array.
+     *  @param a   the array.
      * @param lo  the lowest index of interest (only used for checking).
      * @param hi  one more than the highest index of interest (only used for checking).
      * @param i   one of the indices.
@@ -63,9 +59,17 @@ public class Helper<X extends Comparable<X>> {
         return true;
     }
 
+    public int inversions(X[] a, int from, int to) {
+        int result = 0;
+        for (int i = from; i < to; i++)
+            for (int j = i + 1; j < to; j++)
+                if (a[i].compareTo(a[j]) > 0) result++;
+        return result;
+    }
+
     public X[] random(int n, Class<X> clazz, Function<Random, X> f) {
         setN(n);
-        X[] result = (X[]) Array.newInstance(clazz, n);
+        @SuppressWarnings("unchecked") X[] result = (X[]) Array.newInstance(clazz, n);
         for (int i = 0; i < n; i++) result[i] = f.apply(random);
         return result;
     }
@@ -90,72 +94,4 @@ public class Helper<X extends Comparable<X>> {
     private int n;
     private final String description;
     private final Random random;
-
-    public long getInversions(X xs[])
-    {
-        int array_size = xs.length;
-        X aux[] = (X[]) new Object[array_size];
-        return _mergeSort(xs, aux, 0, array_size - 1);
-    }
-
-    /* An auxiliary recursive method that sorts the input array and
-      returns the number of inversions in the array. */
-    private long _mergeSort(X xs[], X aux[], int left, int right)
-    {
-        int mid;
-        long inv_count = 0;
-        if (right > left) {
-            /* Divide the array into two parts and call _mergeSortAndCountInv()
-           for each of the parts */
-            mid = (right + left) / 2;
-
-            /* Inversion count will be sum of inversions in left-part, right-part
-          and number of inversions in merging */
-            inv_count = _mergeSort(xs, aux, left, mid);
-            inv_count += _mergeSort(xs, aux, mid + 1, right);
-
-            /*Merge the two parts*/
-            inv_count += merge(xs, aux, left, mid + 1, right);
-        }
-        return inv_count;
-    }
-
-    /* This method merges two sorted arrays and returns inversion count in
-       the arrays.*/
-    private long merge(X xs[], X aux[], int left, int mid, int right)
-    {
-        int i, j, k;
-        long inv_count = 0;
-
-        i = left; /* i is index for left subarray*/
-        j = mid; /* j is index for right subarray*/
-        k = left; /* k is index for resultant merged subarray*/
-        while ((i <= mid - 1) && (j <= right)) {
-            if (xs[i].compareTo(xs[j]) <= 0) {
-                aux[k++] = xs[i++];
-            }
-            else {
-                aux[k++] = xs[j++];
-
-                /*this is tricky -- see above explanation/diagram for merge()*/
-                inv_count = inv_count + (mid - i);
-            }
-        }
-
-        /* Copy the remaining elements of left subarray
-       (if there are any) to temp*/
-        while (i <= mid - 1)
-            aux[k++] = xs[i++];
-
-        /* Copy the remaining elements of right subarray
-       (if there are any) to temp*/
-        while (j <= right)
-            aux[k++] = xs[j++];
-
-        /*Copy back the merged elements to original array*/
-        for (i = left; i <= right; i++)
-            xs[i] = aux[i];
-
-        return inv_count;
-    }
 }
