@@ -5,9 +5,13 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import java.math.BigInteger;
 import java.nio.LongBuffer;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class HuskySortHelper {
 
@@ -102,11 +106,11 @@ public class HuskySortHelper {
         return stringToLong(str, 9, 7);
     }
 
-    static long unicodeToLong(String str) {
+    public static long unicodeToLong(String str) {
         return stringToLong(str, 4, 16) >>> 1;
     }
 
-    static long utf8ToLong(String str) {
+    public static long utf8ToLong(String str) {
         return longArrayToLong(toUTF8Array(str), 8, 8) >>> 1;
     }
 
@@ -162,6 +166,41 @@ public class HuskySortHelper {
         long[] result = new long[count];
         byteBuffer.rewind();
         byteBuffer.get(result);
+        return result;
+    }
+
+    public static double checkUnidentified(String[] words, int offcut) {
+        int total = words.length;
+        int count = 0;
+        Set<String> exist = new HashSet<>();
+        for (String word : words) {
+            if (word.length() >= offcut) {
+                String temp = word.substring(0, offcut);
+                if (exist.contains(temp)) {
+                    count++;
+                } else {
+                    exist.add(temp);
+                }
+            }
+        }
+        return (double) count / (double) total * 100.0;
+    }
+
+    public static Date[] generateRandomDateArray(int number) {
+        Date[] result = new Date[number];
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < number; i++) {
+            result[i] = new Date(random.nextLong(new Date().getTime()));
+        }
+        return result;
+    }
+
+    public static LocalDateTime[] generateRandomLocalDateTimeArray(int number) {
+        LocalDateTime[] result = new LocalDateTime[number];
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < number; i++) {
+            result[i] = LocalDateTime.ofEpochSecond(random.nextLong(new Date().getTime()), random.nextInt(0, 1000000000), ZoneOffset.UTC);
+        }
         return result;
     }
 }

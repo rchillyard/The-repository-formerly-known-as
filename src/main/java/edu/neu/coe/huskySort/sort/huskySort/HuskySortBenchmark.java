@@ -5,6 +5,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.IntroSort;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
@@ -16,6 +17,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,10 +29,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 
-public class HuskySortTest {
+public class HuskySortBenchmark {
 
     public static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
         List<String> words = new ArrayList<>();
@@ -50,32 +53,32 @@ public class HuskySortTest {
     }
 
     public static void main(String[] args) throws IOException {
-//        LocalDateTime[] LocalDateTimeArray = generateRandomLocalDateTimeArray(100000);
-//        // Test on date using pure tim sort.
-//        Benchmark<LocalDateTime[]> benchmarkPureTimSortOnDate = new Benchmark<>(
-//                (xs) -> { return Arrays.copyOf(xs, xs.length); },
-//                Arrays::sort
-//        );
-//        System.out.println("Sort dates using pure tim sort: \t" + benchmarkPureTimSortOnDate.run(LocalDateTimeArray, 100) + "ms");
-//
-//        // Test on date using husky sort.
-//        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySort = new QuickHuskySort<>();
-//        final Helper<ChronoLocalDateTime<?>> dateHelper = dateHuskySort.getHelper();
-//        Benchmark<LocalDateTime[]> benchmarkHuskySortOnDate = new Benchmark<>(
-//                (xs) -> Arrays.copyOf(xs, xs.length),
-//                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder),
-//                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
-//        );
-//        System.out.println("Sort dates using husky sort: \t" + benchmarkHuskySortOnDate.run(LocalDateTimeArray, 100) + "ms");
-//
-//        // Test on date using husky sort with insertion sort.
-//        InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>();
-//        Benchmark<LocalDateTime[]> benchmarkHuskySortWithInsertionSortOnDate = new Benchmark<>(
-//                (xs) -> Arrays.copyOf(xs, xs.length),
-//                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder, (xs2) -> insertionSort.sort(xs2, false)),
-//                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
-//        );
-//        System.out.println("Sort dates using husky sort: \t" + benchmarkHuskySortWithInsertionSortOnDate.run(LocalDateTimeArray, 100) + "ms");
+        LocalDateTime[] LocalDateTimeArray = generateRandomLocalDateTimeArray(100000);
+        // Test on date using pure tim sort.
+        Benchmark<LocalDateTime[]> benchmarkPureTimSortOnDate = new Benchmark<>(
+                (xs) -> { return Arrays.copyOf(xs, xs.length); },
+                Arrays::sort
+        );
+        System.out.println("Sort dates using pure tim sort: \t" + benchmarkPureTimSortOnDate.run(LocalDateTimeArray, 100) + "ms");
+
+        // Test on date using husky sort.
+        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySort = new QuickHuskySort<>();
+        final Helper<ChronoLocalDateTime<?>> dateHelper = dateHuskySort.getHelper();
+        Benchmark<LocalDateTime[]> benchmarkHuskySortOnDate = new Benchmark<>(
+                (xs) -> Arrays.copyOf(xs, xs.length),
+                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder),
+                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
+        );
+        System.out.println("Sort dates using husky sort: \t" + benchmarkHuskySortOnDate.run(LocalDateTimeArray, 100) + "ms");
+
+        // Test on date using husky sort with insertion sort.
+        InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>();
+        Benchmark<LocalDateTime[]> benchmarkHuskySortWithInsertionSortOnDate = new Benchmark<>(
+                (xs) -> Arrays.copyOf(xs, xs.length),
+                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder, (xs2) -> insertionSort.sort(xs2, false)),
+                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
+        );
+        System.out.println("Sort dates using husky sort: \t" + benchmarkHuskySortWithInsertionSortOnDate.run(LocalDateTimeArray, 100) + "ms");
 
         final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
         benchmark(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
@@ -110,14 +113,17 @@ public class HuskySortTest {
     private static void benchmark(String[] words, int nWords, int nRuns) {
         out.println("Testing with " + nRuns + " runs of sorting " + nWords + " words");
         Benchmark<String[]> benchmark;
-        Function<Double, Double> normalizer = (time) -> time / nWords / Math.log(nWords) * 1e6;
-//        Function<Double, Double> normalizer = Function.identity();
+        String normalizePrefix = "Normalized time per run: ";
+        String identityPrefix = "Time per run in sec: ";
+        Function<Double, Double> normalizeNormalizer = (time) -> time / nWords / Math.log(nWords) * 1e6;
+        Function<Double, Double> identityNormalizer = Function.identity();
 
         out.println(LocalDateTime.now() + ": Starting Timsort test");
         benchmark = new Benchmark<>(Arrays::sort);
-        showNormalizedTime(
+        showTime(
                 benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizer
+                normalizePrefix,
+                normalizeNormalizer
         );
 
         System.out.println(LocalDateTime.now() + ": Starting Quicksort test");
@@ -125,9 +131,10 @@ public class HuskySortTest {
         benchmark = new Benchmark<>(
                 (xs) -> quickSort.sort(xs, false)
         );
-        showNormalizedTime(
+        showTime(
                 benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizer
+                normalizePrefix,
+                normalizeNormalizer
         );
 
         System.out.println(LocalDateTime.now() + ": Starting IntroSort test");
@@ -140,9 +147,10 @@ public class HuskySortTest {
                     if (!introSort.getHelper().sorted(xs)) System.err.println("not sorted");
                 }
         );
-        showNormalizedTime(
+        showTime(
                 benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizer
+                normalizePrefix,
+                normalizeNormalizer
         );
 
 
@@ -157,9 +165,10 @@ public class HuskySortTest {
                     if (!helper.sorted(xs)) System.err.println("not sorted");
                 }
         );
-        showNormalizedTime(
+        showTime(
                 benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizer
+                normalizePrefix,
+                normalizeNormalizer
         );
 
         out.println(LocalDateTime.now() + ": Starting IntroHuskySort test");
@@ -169,9 +178,10 @@ public class HuskySortTest {
                     if (!helper.sorted(xs)) System.err.println("not sorted");
                 }
         );
-        showNormalizedTime(
+        showTime(
                 benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizer
+                normalizePrefix,
+                normalizeNormalizer
         );
 
         out.println(LocalDateTime.now() + ": Starting QuickHuskySort test with insertion sort.");
@@ -184,9 +194,10 @@ public class HuskySortTest {
                     if (!helper.sorted(xs)) System.err.println("not sorted");
                 }
         );
-        showNormalizedTime(
+        showTime(
                 benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizer
+                normalizePrefix,
+                normalizeNormalizer
         );
 
         out.println(LocalDateTime.now() + ": Starting IntroHuskySort test with insertion sort.");
@@ -198,9 +209,10 @@ public class HuskySortTest {
                     if (!helper.sorted(xs)) System.err.println("not sorted");
                 }
         );
-        showNormalizedTime(
+        showTime(
                 benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizer
+                normalizePrefix,
+                normalizeNormalizer
         );
 
         out.println(LocalDateTime.now() + ": Starting Husky sort test with printout inversions");
@@ -218,16 +230,12 @@ public class HuskySortTest {
         out.println();
     }
 
-    private static void showMeanTime(int nRuns, long start) {
-        out.println("Mean time per run (msecs): " + (nanoTime() - start) / 1000000.0 / nRuns);
+    private static void showTime(int nRuns, long start, String prefix, Function<Double, Double> normalizer) {
+        showTime((nanoTime() - start) / 1000000.0 / nRuns, prefix, normalizer);
     }
 
-    private static void showMeanTime(double time) {
-        out.println("Mean time per run (msecs): " + time);
-    }
-
-    private static void showNormalizedTime(double time, Function<Double, Double> normalizer) {
-        out.println("Normalized time per run: " + normalizer.apply(time));
+    private static void showTime(double time, String prefix, Function<Double, Double> normalizer) {
+        out.println(prefix + normalizer.apply(time));
     }
 
     private static String[] generateRandomStringArray(String[] lookupArray, int number) {
