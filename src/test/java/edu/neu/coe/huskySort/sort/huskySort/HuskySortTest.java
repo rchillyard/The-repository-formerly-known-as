@@ -17,11 +17,11 @@ import java.util.regex.Pattern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class HuskySortTestCases {
+public class HuskySortTest {
 
     @Test
     public void testGetWords() {
-        final PrivateMethodTester tester = new PrivateMethodTester(HuskySortTest.class);
+        final PrivateMethodTester tester = new PrivateMethodTester(HuskySortBenchmark.class);
         final List<String> words = (List<String>) tester.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
         assertEquals(8, words.size());
     }
@@ -98,13 +98,12 @@ public class HuskySortTestCases {
         assertTrue(sorter.getHelper().sorted(xs));
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testSortOldDate() {
         Date[] xs = {new Date(2018, 11, 9), new Date(2018, 11, 6), new Date(2018, 10, 31), new Date(2018, 1, 1)};
-        Sort<Date> sorter = new edu.neu.coe.huskySort.sort.huskySortUtils.HuskySort<>(HuskySortHelper.dateCoder);
-        Date[] sorted = sorter.sort(xs, false);
-        assertTrue(sorter.getHelper().sorted(sorted));
+        AbstractHuskySort<Date> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<Date>();
+        sorter.sort(xs, HuskySortHelper.dateCoder);
+        assertTrue(sorter.getHelper().sorted(xs));
     }
 
     @Test
@@ -115,8 +114,8 @@ public class HuskySortTestCases {
         ChronoLocalDateTime<?> d4 = LocalDateTime.of(2018, 10, 31, 22, 3, 15);
         ChronoLocalDateTime<?> d5 = LocalDateTime.of(2018, 1, 1, 0, 0, 0);
         ChronoLocalDateTime<?>[] xs = {d1, d2, d3, d4, d5};
-        Sort<ChronoLocalDateTime<?>> sorter = new edu.neu.coe.huskySort.sort.huskySortUtils.HuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder);
-        ChronoLocalDateTime<?>[] sorted = sorter.sort(xs, false);
-        assertTrue(sorter.getHelper().sorted(sorted));
+        QuickHuskySort<ChronoLocalDateTime<?>> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<>();
+        sorter.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder);
+        assertTrue(sorter.getHelper().sorted(xs));
     }
 }
