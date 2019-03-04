@@ -11,75 +11,32 @@ import edu.neu.coe.huskySort.sort.simple.IntroSort;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
 import edu.neu.coe.huskySort.util.Benchmark;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.regex.Matcher;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.*;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 
 public class HuskySortBenchmark {
 
-    public static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
-        List<String> words = new ArrayList<>();
-        FileReader fr = new FileReader(getFile(resource, QuickHuskySort.class));
-        for (Object line : new BufferedReader(fr).lines().toArray()) words.addAll(getStrings.apply((String) line));
-        words = words.stream().distinct().collect(Collectors.toList());
-        out.println("Testing with words: " + words.size() + " from " + resource);
-        String[] result = new String[words.size()];
-        result = words.toArray(result);
-        return result;
-    }
-
-    private static String getFile(String resource, Class<?> clazz) throws FileNotFoundException {
-        final URL url = clazz.getClassLoader().getResource(resource);
-        if (url != null) return url.getFile();
-        throw new FileNotFoundException(resource + " in " + clazz);
-    }
-
     public static void main(String[] args) throws IOException {
-        LocalDateTime[] LocalDateTimeArray = generateRandomLocalDateTimeArray(100000);
-        // Test on date using pure tim sort.
-        Benchmark<LocalDateTime[]> benchmarkPureTimSortOnDate = new Benchmark<>(
-                (xs) -> { return Arrays.copyOf(xs, xs.length); },
-                Arrays::sort
-        );
-        System.out.println("Sort dates using pure tim sort: \t" + benchmarkPureTimSortOnDate.run(LocalDateTimeArray, 100) + "ms");
+        benchmarkLocalDateTime();
+        benchmarkString();
+    }
 
-        // Test on date using husky sort.
-        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySort = new QuickHuskySort<>();
-        final Helper<ChronoLocalDateTime<?>> dateHelper = dateHuskySort.getHelper();
-        Benchmark<LocalDateTime[]> benchmarkHuskySortOnDate = new Benchmark<>(
-                (xs) -> Arrays.copyOf(xs, xs.length),
-                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder),
-                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
-        );
-        System.out.println("Sort dates using husky sort: \t" + benchmarkHuskySortOnDate.run(LocalDateTimeArray, 100) + "ms");
-
-        // Test on date using husky sort with insertion sort.
-        InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>();
-        Benchmark<LocalDateTime[]> benchmarkHuskySortWithInsertionSortOnDate = new Benchmark<>(
-                (xs) -> Arrays.copyOf(xs, xs.length),
-                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder, (xs2) -> insertionSort.sort(xs2, false)),
-                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
-        );
-        System.out.println("Sort dates using husky sort: \t" + benchmarkHuskySortWithInsertionSortOnDate.run(LocalDateTimeArray, 100) + "ms");
-
+    private static void benchmarkString() throws IOException {
         final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
         benchmark(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
 
@@ -100,14 +57,35 @@ public class HuskySortBenchmark {
         benchmark(getWords("zho-simp-tw_web_2014_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 5000, 1000);
     }
 
-    private static List<String> getWords(Pattern regex, String line) {
-        final Matcher matcher = regex.matcher(line);
-        if (matcher.find()) {
-            final String word = matcher.group(1);
-            final String[] strings = word.split("[\\s\\p{Punct}\\uFF0C]");
-            return Arrays.asList(strings);
-        } else
-            return new ArrayList<>();
+    private static void benchmarkLocalDateTime() {
+        Supplier<LocalDateTime[]> LocalDateTimeSupplier = () -> generateRandomLocalDateTimeArray(100000);
+        // Test on date using pure tim sort.
+        Benchmark<LocalDateTime[]> benchmark;
+        benchmark = new Benchmark<>(
+                (xs) -> { return Arrays.copyOf(xs, xs.length); },
+                Arrays::sort
+        );
+        out.println("Sort LocalDateTimes using TimSort: \t" + benchmark.run(LocalDateTimeSupplier, 100) + "ms");
+
+        // Test on date using husky sort.
+        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySort = new QuickHuskySort<>();
+        final Helper<ChronoLocalDateTime<?>> dateHelper = dateHuskySort.getHelper();
+        benchmark = new Benchmark<>(
+                (xs) -> Arrays.copyOf(xs, xs.length),
+                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder),
+                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
+        );
+        out.println("Sort LocalDateTimes using huskySort with TimSort: \t" + benchmark.run(LocalDateTimeSupplier, 100) + "ms");
+
+        // Test on date using husky sort with insertion sort.
+        InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>();
+        benchmark = new Benchmark<>(
+                (xs) -> Arrays.copyOf(xs, xs.length),
+                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder, (xs2) -> insertionSort.sort(xs2, false)),
+                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
+        );
+        out.println("Sort LocalDateTimes using huskySort with insertionSort: \t" + benchmark.run(LocalDateTimeSupplier, 100) + "ms");
+        out.println();
     }
 
     private static void benchmark(String[] words, int nWords, int nRuns) {
@@ -228,22 +206,5 @@ public class HuskySortBenchmark {
         out.println("Mean inversions after first part: " + inversions);
 
         out.println();
-    }
-
-    private static void showTime(int nRuns, long start, String prefix, Function<Double, Double> normalizer) {
-        showTime((nanoTime() - start) / 1000000.0 / nRuns, prefix, normalizer);
-    }
-
-    private static void showTime(double time, String prefix, Function<Double, Double> normalizer) {
-        out.println(prefix + normalizer.apply(time));
-    }
-
-    private static String[] generateRandomStringArray(String[] lookupArray, int number) {
-        Random r = new Random();
-        String[] result = new String[number];
-        for (int i = 0; i < number; i++) {
-            result[i] = lookupArray[r.nextInt(lookupArray.length)];
-        }
-        return result;
     }
 }
