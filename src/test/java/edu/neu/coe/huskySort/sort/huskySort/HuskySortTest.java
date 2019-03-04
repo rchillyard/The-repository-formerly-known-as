@@ -3,7 +3,6 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
-import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
 import org.junit.Test;
 
@@ -21,7 +20,7 @@ public class HuskySortTest {
 
     @Test
     public void testGetWords() {
-        final PrivateMethodTester tester = new PrivateMethodTester(HuskySortBenchmark.class);
+        final PrivateMethodTester tester = new PrivateMethodTester(HuskySortBenchmarkHelper.class);
         final List<String> words = (List<String>) tester.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
         assertEquals(8, words.size());
     }
