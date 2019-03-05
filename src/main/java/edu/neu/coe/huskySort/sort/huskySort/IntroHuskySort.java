@@ -3,14 +3,31 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
+import edu.neu.coe.huskySort.sort.simple.InsertionSort;
+
+import java.util.function.Consumer;
+
 public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
+
+    public IntroHuskySort(HuskyCoder<X> huskyCoder) {
+        super("IntroHuskySort", 0, huskyCoder, (xs2) -> new InsertionSort<X>().sort(xs2, false));
+    }
+
+//    @Override
+//    protected void preSort(X[] objects, long[] longs, int from, int to) {
+//        quickSort(objects, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
+//    }
+
     @Override
-    protected void preSort(Object[] objects, long[] longs, int from, int to) {
-        quickSort(objects, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
+    public void sort(X[] xs, int from, int to) {
+        long[] longs = getHelper().getLongs();
+        quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
     }
 
     @SuppressWarnings({"UnnecessaryLocalVariable", "Duplicates"})
-    private void quickSort(Object[] objects, long[] longs, int from, int to, int depthThreshold) {
+    private void quickSort(X[] objects, long[] longs, int from, int to, int depthThreshold) {
         int lo = from;
         int hi = to;
         if (hi <= lo) return;
@@ -28,14 +45,14 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     @SuppressWarnings("Duplicates")
-    private Partition partition(Object[] objects, long[] longs, int lo, int hi) {
+    private Partition partition(X[] objects, long[] longs, int lo, int hi) {
         int lt = lo, gt = hi;
-        if (longs[lo] > longs[hi]) swap(objects, longs, lo, hi);
+        if (longs[lo] > longs[hi]) swap(objects, lo, hi);
         long v = longs[lo];
         int i = lo + 1;
         while (i <= gt) {
-            if (longs[i] < v) swap(objects, longs, lt++, i++);
-            else if (longs[i] > v) swap(objects, longs, i, gt--);
+            if (longs[i] < v) swap(objects, lt++, i++);
+            else if (longs[i] > v) swap(objects, i, gt--);
             else i++;
         }
         return new Partition(lt, gt);
@@ -52,20 +69,20 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     // HeapSort
-    private void heapSort(Object[] objects, long[] longs, int from, int to) {
+    private void heapSort(X[] objects, long[] longs, int from, int to) {
         int n = to - from + 1;
         for (int i = n / 2; i >= 1; i = i - 1) {
             downHeap(objects, longs, i, n, from);
         }
         for (int i = n; i > 1; i = i - 1) {
-            swap(objects, longs, from, from + i - 1);
+            swap(objects, from, from + i - 1);
             downHeap(objects, longs, 1, i - 1, from);
         }
     }
 
-    private void downHeap(Object[] objects, long[] longs, int i, int n, int lo) {
+    private void downHeap(X[] objects, long[] longs, int i, int n, int lo) {
         long d = longs[lo + i - 1];
-        Object od = objects[lo + i - 1];
+        X od = objects[lo + i - 1];
         int child;
         while (i <= n / 2) {
             child = 2 * i;
@@ -80,10 +97,10 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     // InsertionSort
-    private void insertionSort(Object[] objects, long[] longs, int from, int to) {
+    private void insertionSort(X[] objects, long[] longs, int from, int to) {
         for(int i = from + 1; i <= to; i++)
             for (int j = i; j > from && longs[j] < longs[j - 1]; j--)
-                swap(objects, longs, j, j - 1);
+                swap(objects, j, j - 1);
     }
 
     private static int floor_lg(int a) {

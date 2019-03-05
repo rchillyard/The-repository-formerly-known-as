@@ -5,6 +5,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.IntroSort;
@@ -68,20 +69,21 @@ public class HuskySortBenchmark {
         out.println("Sort LocalDateTimes using TimSort: \t" + benchmark.run(LocalDateTimeSupplier, 100) + "ms");
 
         // Test on date using husky sort.
-        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySort = new QuickHuskySort<>();
-        final Helper<ChronoLocalDateTime<?>> dateHelper = dateHuskySort.getHelper();
+        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort = new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder);
+        final HuskyHelper<ChronoLocalDateTime<?>> dateHelper = dateHuskySortSystemSort.getHelper();
         benchmark = new Benchmark<>(
                 (xs) -> Arrays.copyOf(xs, xs.length),
-                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder),
+                (xs) -> dateHuskySortSystemSort.sort(xs),
                 (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
         );
         out.println("Sort LocalDateTimes using huskySort with TimSort: \t" + benchmark.run(LocalDateTimeSupplier, 100) + "ms");
 
         // Test on date using husky sort with insertion sort.
         InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>();
+        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortInsertionSort = new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder, (xs2) -> insertionSort.sort(xs2, false));
         benchmark = new Benchmark<>(
                 (xs) -> Arrays.copyOf(xs, xs.length),
-                (xs) -> dateHuskySort.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder, (xs2) -> insertionSort.sort(xs2, false)),
+                (xs) -> dateHuskySortInsertionSort.sort(xs),
                 (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
         );
         out.println("Sort LocalDateTimes using huskySort with insertionSort: \t" + benchmark.run(LocalDateTimeSupplier, 100) + "ms");
@@ -132,13 +134,13 @@ public class HuskySortBenchmark {
         );
 
 
-        QuickHuskySort<String> quickHuskySort = new QuickHuskySort<>();
-        IntroHuskySort<String> introHuskySort = new IntroHuskySort<>();
+        QuickHuskySort<String> quickHuskySortSys = new QuickHuskySort<>(UNICODE_CODER);
+        IntroHuskySort<String> introHuskySort = new IntroHuskySort<>(UNICODE_CODER);
         Helper<String> helper = new Helper<>("StringHelper", nWords, nanoTime());
 
         out.println(LocalDateTime.now() + ": Starting QuickHuskySort test");
         benchmark = new Benchmark<>(
-                (Consumer<String[]>) xs1 -> quickHuskySort.sort(xs1, UNICODE_CODER),
+                (Consumer<String[]>) xs1 -> quickHuskySortSys.sort(xs1),
                 (xs) -> {
                     if (!helper.sorted(xs)) System.err.println("not sorted");
                 }
@@ -151,7 +153,7 @@ public class HuskySortBenchmark {
 
         out.println(LocalDateTime.now() + ": Starting IntroHuskySort test");
         benchmark = new Benchmark<>(
-                (Consumer<String[]>) xs1 -> introHuskySort.sort(xs1, UNICODE_CODER),
+                (Consumer<String[]>) xs1 -> introHuskySort.sort(xs1),
                 (xs) -> {
                     if (!helper.sorted(xs)) System.err.println("not sorted");
                 }
@@ -164,9 +166,11 @@ public class HuskySortBenchmark {
 
         out.println(LocalDateTime.now() + ": Starting QuickHuskySort test with insertion sort.");
         InsertionSort<String> insertionSort = new InsertionSort<>();
+        QuickHuskySort<String> quickHuskySortInsertion = new QuickHuskySort<>(UNICODE_CODER, (xs2) -> insertionSort.sort(xs2, false));
+        // TODO replace some of these lambdas with method references? Probably no way to do that in Java.
         benchmark = new Benchmark<>(
                 (xs) -> {
-                    quickHuskySort.sort(xs, UNICODE_CODER, (xs2) -> insertionSort.sort(xs2, false));
+                    quickHuskySortInsertion.sort(xs);
                 },
                 (xs) -> {
                     if (!helper.sorted(xs)) System.err.println("not sorted");
@@ -181,7 +185,7 @@ public class HuskySortBenchmark {
         out.println(LocalDateTime.now() + ": Starting IntroHuskySort test with insertion sort.");
         benchmark = new Benchmark<>(
                 (xs) -> {
-                    introHuskySort.sort(xs, UNICODE_CODER, (xs2) -> insertionSort.sort(xs2, false));
+                    introHuskySort.sort(xs);
                 },
                 (xs) -> {
                     if (!helper.sorted(xs)) System.err.println("not sorted");
@@ -194,12 +198,13 @@ public class HuskySortBenchmark {
         );
 
         out.println(LocalDateTime.now() + ": Starting Husky sort test with printout inversions");
+        QuickHuskySort<String> quickHuskySortNone = new QuickHuskySort<>(UNICODE_CODER, (xs2) -> {
+            // do nothing, so we can count inversions.
+        });
         long inversions = 0;
         for (int i = 0; i < nRuns; i++) {
             String[] xs = generateRandomStringArray(words, nWords);
-            quickHuskySort.sort(xs, UNICODE_CODER, (xs2) -> {
-                // do nothing, so we can count inversions.
-            });
+            quickHuskySortNone.sort(xs);
             inversions += InversionCounter.getInversions(xs);
         }
         inversions = inversions / nRuns;

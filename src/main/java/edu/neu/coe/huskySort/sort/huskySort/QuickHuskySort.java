@@ -3,14 +3,34 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
+
+import java.util.Arrays;
+import java.util.function.Consumer;
+
 public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
-    @Override
-    protected void preSort(Object[] objects, long[] longs, int from, int to) {
-        quickSort(objects, longs, 0, objects.length - 1);
+//    @Override
+//    protected void preSort(X[] objects, int from, int to) {
+//        quickSort(objects, longs, 0, objects.length - 1);
+//    }
+
+    public QuickHuskySort(HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
+        super("QuickHuskySort", 0, huskyCoder, postSorter);
     }
 
+    public QuickHuskySort(HuskyCoder<X> huskyCoder) {
+        this(huskyCoder, Arrays::sort);
+    }
+
+    @Override
+    public void sort(X[] xs, int from, int to) {
+        quickSort(xs, getHelper().getLongs(), from, to-1);
+    }
+
+    // CONSIDER inlining this private method
     @SuppressWarnings({"UnnecessaryLocalVariable", "Duplicates"})
-    private void quickSort(Object[] objects, long[] longs, int from, int to) {
+    private void quickSort(X[] objects, long[] longs, int from, int to) {
         int lo = from, hi = to;
         if (hi <= lo) return;
         Partition partition = partition(objects, longs, lo, hi);
@@ -19,14 +39,15 @@ public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     @SuppressWarnings("Duplicates")
-    private Partition partition(Object[] objects, long[] longs, int lo, int hi) {
+    private Partition partition(X[] objects, long[] longs, int lo, int hi) {
+        // CONSIDER creating a method less in order to avoid having direct access to the longs.
         int lt = lo, gt = hi;
-        if (longs[lo] > longs[hi]) swap(objects, longs, lo, hi);
+        if (longs[lo] > longs[hi]) swap(objects, lo, hi);
         long v = longs[lo];
         int i = lo + 1;
         while (i <= gt) {
-            if (longs[i] < v) swap(objects, longs, lt++, i++);
-            else if (longs[i] > v) swap(objects, longs, i, gt--);
+            if (longs[i] < v) swap(objects, lt++, i++);
+            else if (longs[i] > v) swap(objects, i, gt--);
             else i++;
         }
         return new Partition(lt, gt);

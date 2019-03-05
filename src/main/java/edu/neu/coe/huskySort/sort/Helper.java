@@ -11,16 +11,31 @@ import java.util.function.Function;
  */
 public class Helper<X extends Comparable<X>> {
 
+    /**
+     * Constructor to create a Helper
+     * @param description the description of this Helper (for humans).
+     * @param n the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param seed the seed for the random number generator
+     */
     public Helper(String description, int n, long seed) {
         this.n = n;
         this.description = description;
         this.random = new Random(seed);
     }
 
+    /**
+     * Constructor to create a Helper with a random seed.
+     * @param description the description of this Helper (for humans).
+     * @param n the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     */
     public Helper(String description, int n) {
         this(description, n, System.currentTimeMillis());
     }
 
+    /**
+     * Constructor to create a Helper with a random seed and an n value of 0.
+     * @param description the description of this Helper (for humans).
+     */
     public Helper(String description) {
         this(description, 0);
     }
@@ -91,7 +106,7 @@ public class Helper<X extends Comparable<X>> {
     private int compares = 0;
     private int swaps = 0;
 
-    private int n;
+    protected int n;
     private final String description;
     private final Random random;
 }

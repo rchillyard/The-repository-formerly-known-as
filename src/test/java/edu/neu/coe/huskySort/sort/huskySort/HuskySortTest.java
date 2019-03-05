@@ -74,8 +74,7 @@ public class HuskySortTest {
     @Test
     public void testSortPerson() {
         Person[] xs = {new Person("Robin", "Hillyard"), new Person("Yunlu", "Liao Zheng"), new Person("Miranda", "Hillyard"), new Person("William", "Hillyard"), new Person("Ella", "Hillyard"), new Person("Paul", "Hillyard"), new Person("Mia", "Hillyard")};
-        QuickHuskySort<Person> sorter = new QuickHuskySort<>();
-        sorter.sort(xs, new HuskyCoder<Person>() {
+        QuickHuskySort<Person> sorter = new QuickHuskySort<>(new HuskyCoder<Person>() {
             @Override
             public long huskyEncode(Person person) {
                 return person.huskyCode();
@@ -86,23 +85,22 @@ public class HuskySortTest {
                 return true;
             }
         });
-        assertTrue(sorter.getHelper().sorted(xs));
+        Person[] sorted = sorter.sort(xs);
+        assertTrue("sorted", sorter.getHelper().sorted(sorted));
     }
 
     @Test
     public void testSortString() {
         String[] xs = {"Hello", "Goodbye", "Ciao", "Welkommen"};
-        QuickHuskySort<String> sorter = new QuickHuskySort<>();
-        sorter.sort(xs, HuskySortHelper.asciiCoder);
-        assertTrue(sorter.getHelper().sorted(xs));
+        QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskySortHelper.asciiCoder);
+        assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));
     }
 
     @Test
     public void testSortOldDate() {
         Date[] xs = {new Date(2018, 11, 9), new Date(2018, 11, 6), new Date(2018, 10, 31), new Date(2018, 1, 1)};
-        AbstractHuskySort<Date> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<Date>();
-        sorter.sort(xs, HuskySortHelper.dateCoder);
-        assertTrue(sorter.getHelper().sorted(xs));
+        AbstractHuskySort<Date> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<>(HuskySortHelper.dateCoder);
+        assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));
     }
 
     @Test
@@ -113,8 +111,7 @@ public class HuskySortTest {
         ChronoLocalDateTime<?> d4 = LocalDateTime.of(2018, 10, 31, 22, 3, 15);
         ChronoLocalDateTime<?> d5 = LocalDateTime.of(2018, 1, 1, 0, 0, 0);
         ChronoLocalDateTime<?>[] xs = {d1, d2, d3, d4, d5};
-        QuickHuskySort<ChronoLocalDateTime<?>> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<>();
-        sorter.sort(xs, HuskySortHelper.chronoLocalDateTimeCoder);
-        assertTrue(sorter.getHelper().sorted(xs));
+        QuickHuskySort<ChronoLocalDateTime<?>> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder);
+        assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));
     }
 }
