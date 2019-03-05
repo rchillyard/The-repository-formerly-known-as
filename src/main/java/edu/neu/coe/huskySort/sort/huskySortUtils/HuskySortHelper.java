@@ -106,12 +106,12 @@ public class HuskySortHelper {
         return stringToLong(str, 9, 7);
     }
 
-    public static long unicodeToLong(String str) {
-        return stringToLong(str, 4, 16) >>> 1;
+    static long utf8ToLong(String str) {
+        return longArrayToLong(toUTF8Array(str), 8, 8) >>> 1;
     }
 
-    public static long utf8ToLong(String str) {
-        return longArrayToLong(toUTF8Array(str), 8, 8) >>> 1;
+    private static long unicodeToLong(String str) {
+        return stringToLong(str, 4, 16) >>> 1;
     }
 
     private static long stringToLong(String str, int maxLength, int bitWidth) {
@@ -169,13 +169,13 @@ public class HuskySortHelper {
         return result;
     }
 
-    public static double checkUnidentified(String[] words, int offcut) {
+    public static double checkUnidentified(String[] words, int offset) {
         int total = words.length;
         int count = 0;
         Set<String> exist = new HashSet<>();
         for (String word : words) {
-            if (word.length() >= offcut) {
-                String temp = word.substring(0, offcut);
+            if (word.length() >= offset) {
+                String temp = word.substring(0, offset);
                 if (exist.contains(temp)) {
                     count++;
                 } else {

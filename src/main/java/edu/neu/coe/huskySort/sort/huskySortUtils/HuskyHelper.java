@@ -13,10 +13,11 @@ public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
 
     /**
      * Constructor to create a Helper
+     *
      * @param description the description of this Helper (for humans).
-     * @param n the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     * @param seed the seed for the random number generator
-     * @param makeCopy explicit setting of the makeCopy value used in sort(X[] xs)
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param seed        the seed for the random number generator
+     * @param makeCopy    explicit setting of the makeCopy value used in sort(X[] xs)
      */
     public HuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, long seed, boolean makeCopy) {
         super(description, n, seed);
@@ -28,8 +29,9 @@ public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
 
     /**
      * Constructor to create a Helper with random seed.
+     *
      * @param description the description of this Helper (for humans).
-     * @param n the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      */
     public HuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter) {
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
@@ -45,7 +47,7 @@ public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
 
     @Override
     public void setN(int n) {
-        if (n!=this.n) longs = new long[n];
+        if (n != this.n) longs = new long[n];
         super.setN(n);
     }
 
@@ -65,23 +67,20 @@ public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
         xs[j] = temp2;
     }
 
-    private final HuskyCoder<X> coder;
-    private long[] longs;
-
     public Consumer<X[]> getPostSorter() {
         return postSorter;
     }
-
-    private final Consumer<X[]> postSorter;
 
     public boolean isMakeCopy() {
         return makeCopy;
     }
 
-    private final boolean makeCopy;
-
-
     public long[] getLongs() {
         return longs;
     }
+
+    private final HuskyCoder<X> coder;
+    private long[] longs;
+    private final Consumer<X[]> postSorter;
+    private final boolean makeCopy;
 }

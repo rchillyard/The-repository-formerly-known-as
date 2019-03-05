@@ -4,21 +4,13 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
-
-import java.util.function.Consumer;
 
 public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     public IntroHuskySort(HuskyCoder<X> huskyCoder) {
         super("IntroHuskySort", 0, huskyCoder, (xs2) -> new InsertionSort<X>().sort(xs2, false));
     }
-
-//    @Override
-//    protected void preSort(X[] objects, long[] longs, int from, int to) {
-//        quickSort(objects, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
-//    }
 
     @Override
     public void sort(X[] xs, int from, int to) {
@@ -35,7 +27,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             insertionSort(objects, longs, from, to);
             return;
         }
-        if(depthThreshold == 0 ) {
+        if (depthThreshold == 0) {
             heapSort(objects, longs, from, to);
             return;
         }
@@ -98,7 +90,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     // InsertionSort
     private void insertionSort(X[] objects, long[] longs, int from, int to) {
-        for(int i = from + 1; i <= to; i++)
+        for (int i = from + 1; i <= to; i++)
             for (int j = i; j > from && longs[j] < longs[j - 1]; j--)
                 swap(objects, j, j - 1);
     }

@@ -5,17 +5,15 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 public class InversionCounter {
 
-    static long getInversions(Comparable arr[])
-    {
+    static long getInversions(Comparable[] arr) {
         int array_size = arr.length;
-        Comparable temp[] = new Comparable[array_size];
+        Comparable[] temp = new Comparable[array_size];
         return _mergeSort(arr, temp, 0, array_size - 1);
     }
 
     /* An auxiliary recursive method that sorts the input array and
       returns the number of inversions in the array. */
-    private static long _mergeSort(Comparable arr[], Comparable temp[], int left, int right)
-    {
+    private static long _mergeSort(Comparable[] arr, Comparable[] temp, int left, int right) {
         int mid;
         long inv_count = 0;
         if (right > left) {
@@ -36,8 +34,7 @@ public class InversionCounter {
 
     /* This method merges two sorted arrays and returns inversion count in
        the arrays.*/
-    private static long merge(Comparable arr[], Comparable temp[], int left, int mid, int right)
-    {
+    private static long merge(Comparable[] arr, Comparable[] temp, int left, int mid, int right) {
         int i, j, k;
         long inv_count = 0;
 
@@ -47,8 +44,7 @@ public class InversionCounter {
         while ((i <= mid - 1) && (j <= right)) {
             if (arr[i].compareTo(arr[j]) <= 0) {
                 temp[k++] = arr[i++];
-            }
-            else {
+            } else {
                 temp[k++] = arr[j++];
 
                 /*this is tricky -- see above explanation/diagram for merge()*/

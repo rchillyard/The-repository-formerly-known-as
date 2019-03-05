@@ -10,7 +10,7 @@ public interface Sort<X extends Comparable<X>> {
     /**
      * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
      *
-     * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
+     * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
      * @param makeCopy if set to true, we make a copy first and sort that.
      */
     default X[] sort(X[] xs, boolean makeCopy) {
@@ -40,6 +40,7 @@ public interface Sort<X extends Comparable<X>> {
 
     /**
      * Get the Helper associated with this Sort.
+     *
      * @return the Helper
      */
     Helper<X> getHelper();

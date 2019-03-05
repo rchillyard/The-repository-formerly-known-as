@@ -23,9 +23,9 @@ public class InsertionSort<X extends Comparable<X>> implements Sort<X> {
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        for(int i = from + 1; i < to; i++){
-            for(int j = i; j > from && helper.less(xs[j], xs[j - 1]); j--) {
-                helper.swap(xs, from, to, j, j-1);
+        for (int i = from + 1; i < to; i++) {
+            for (int j = i; j > from && helper.less(xs[j], xs[j - 1]); j--) {
+                helper.swap(xs, from, to, j, j - 1);
             }
         }
     }

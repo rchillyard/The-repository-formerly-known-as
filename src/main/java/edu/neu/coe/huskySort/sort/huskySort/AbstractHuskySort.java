@@ -3,7 +3,6 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
@@ -37,7 +36,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort
         return sort(xs, helper.isMakeCopy());
     }
 
-    final protected HuskyHelper<X> helper;
+    private final HuskyHelper<X> helper;
 
     static final HuskyCoder<String> UNICODE_CODER = HuskySortHelper.unicodeCoder;
 
@@ -45,20 +44,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort
         return helper;
     }
 
-    protected void swap(X[] objects, int i, int j) {
+    void swap(X[] objects, int i, int j) {
         helper.swap(objects, i, j);
     }
-
-
-
-//    protected abstract void preSort(Object[] objects, long[] longs, int from, int to);
-
-//    protected static void swap(Object[] objects, long[] longs, int i, int j) {
-//        long temp1 = longs[i];
-//        longs[i] = longs[j];
-//        longs[j] = temp1;
-//        Object temp2 = objects[i];
-//        objects[i] = objects[j];
-//        objects[j] = temp2;
-//    }
 }

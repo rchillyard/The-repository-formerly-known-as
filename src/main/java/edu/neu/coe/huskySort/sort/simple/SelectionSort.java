@@ -23,10 +23,10 @@ public class SelectionSort<X extends Comparable<X>> implements Sort<X> {
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        for(int i = from; i < to; i++) {
+        for (int i = from; i < to; i++) {
             int min = i;
-            for(int j = i + 1; j < to; j++)
-                if(helper.less(xs[j], xs[min]))
+            for (int j = i + 1; j < to; j++)
+                if (helper.less(xs[j], xs[min]))
                     min = j;
             helper.swap(xs, from, to, i, min);
         }

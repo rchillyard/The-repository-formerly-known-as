@@ -23,7 +23,7 @@ public class QuickSort_3way<X extends Comparable<X>> implements Sort<X> {
         final int lt;
         final int gt;
 
-        public Partition(int lt, int gt) {
+        Partition(int lt, int gt) {
             this.lt = lt;
             this.gt = gt;
         }
@@ -50,7 +50,7 @@ public class QuickSort_3way<X extends Comparable<X>> implements Sort<X> {
 
     public Partition partition(X[] a, int lo, int hi) {
         int lt = lo, gt = hi;
-        if (a[lo].compareTo(a[hi])>0) swap(a, lo,hi);
+        if (a[lo].compareTo(a[hi]) > 0) swap(a, lo, hi);
         X v = a[lo];
         int i = lo + 1;
         while (i <= gt) {
@@ -62,16 +62,16 @@ public class QuickSort_3way<X extends Comparable<X>> implements Sort<X> {
         return new Partition(lt, gt);
     }
 
-    // exchange a[i] and a[j]
-    public static void swap(Object[] a, int i, int j) {
-        Object temp = a[i];
-        a[i] = a[j];
-        a[j] = temp;
-    }
-
     @Override
     public Helper<X> getHelper() {
         return helper;
+    }
+
+    // exchange a[i] and a[j]
+    private static void swap(Object[] a, int i, int j) {
+        Object temp = a[i];
+        a[i] = a[j];
+        a[j] = temp;
     }
 
     private final Helper<X> helper;

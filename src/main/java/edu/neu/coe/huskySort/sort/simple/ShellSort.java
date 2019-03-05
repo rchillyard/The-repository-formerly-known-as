@@ -18,11 +18,11 @@ public class ShellSort<X extends Comparable<X>> implements Sort<X> {
     /**
      * Constructor for ShellSort
      *
-     * @param m the "gap" (h) sequence to follow:
-     *          1: ordinary insertion sort;
-     *          2: use powers of two less one;
-     *          3: use the sequence based on 3 (the one in the book): 1, 4, 13, etc.
-     *          4: Sedgewick's sequence (not implemented).
+     * @param m      the "gap" (h) sequence to follow:
+     *               1: ordinary insertion sort;
+     *               2: use powers of two less one;
+     *               3: use the sequence based on 3 (the one in the book): 1, 4, 13, etc.
+     *               4: Sedgewick's sequence (not implemented).
      * @param helper an explicit instance of Helper to be used.
      */
     public ShellSort(int m, Helper<X> helper) {
@@ -156,6 +156,7 @@ public class ShellSort<X extends Comparable<X>> implements Sort<X> {
 
     /**
      * An example main program.
+     *
      * @param args the command-line args (ignored).
      */
     public static void main(String[] args) {

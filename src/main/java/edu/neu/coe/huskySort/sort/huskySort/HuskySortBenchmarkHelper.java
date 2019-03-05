@@ -17,7 +17,9 @@ import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 
 class HuskySortBenchmarkHelper {
-    private HuskySortBenchmarkHelper() {}
+    // private constructor (singleton pattern)
+    private HuskySortBenchmarkHelper() {
+    }
 
     static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
         List<String> words = new ArrayList<>();
@@ -40,12 +42,6 @@ class HuskySortBenchmarkHelper {
             return new ArrayList<>();
     }
 
-    static String getFile(String resource, Class<?> clazz) throws FileNotFoundException {
-        final URL url = clazz.getClassLoader().getResource(resource);
-        if (url != null) return url.getFile();
-        throw new FileNotFoundException(resource + " in " + clazz);
-    }
-
     static void showTime(int nRuns, long start, String prefix, Function<Double, Double> normalizer) {
         showTime((nanoTime() - start) / 1000000.0 / nRuns, prefix, normalizer);
     }
@@ -62,4 +58,11 @@ class HuskySortBenchmarkHelper {
         }
         return result;
     }
+
+    private static String getFile(String resource, Class<?> clazz) throws FileNotFoundException {
+        final URL url = clazz.getClassLoader().getResource(resource);
+        if (url != null) return url.getFile();
+        throw new FileNotFoundException(resource + " in " + clazz);
+    }
+
 }

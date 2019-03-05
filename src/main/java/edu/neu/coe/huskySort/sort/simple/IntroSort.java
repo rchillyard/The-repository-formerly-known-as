@@ -26,7 +26,7 @@ public class IntroSort<X extends Comparable<X>> implements Sort<X> {
         final int lt;
         final int gt;
 
-        public Partition(int lt, int gt) {
+        Partition(int lt, int gt) {
             this.lt = lt;
             this.gt = gt;
         }
@@ -56,7 +56,7 @@ public class IntroSort<X extends Comparable<X>> implements Sort<X> {
             insertionSort(a, from, to);
             return;
         }
-        if(depthThreshold == 0 ) {
+        if (depthThreshold == 0) {
             heapSort(a, from, to);
             return;
         }
@@ -110,21 +110,21 @@ public class IntroSort<X extends Comparable<X>> implements Sort<X> {
      * Insertion sort algorithm
      */
     private void insertionSort(X[] xs, int from, int to) {
-        for(int i = from + 1; i <= to; i++)
+        for (int i = from + 1; i <= to; i++)
             for (int j = i; j > from && helper.less(xs[j], xs[j - 1]); j--)
                 helper.swap(xs, from, to, j, j - 1);
-    }
-
-    // exchange a[i] and a[j]
-    public static void swap(Object[] a, int i, int j) {
-        Object temp = a[i];
-        a[i] = a[j];
-        a[j] = temp;
     }
 
     @Override
     public Helper<X> getHelper() {
         return helper;
+    }
+
+    // exchange a[i] and a[j]
+    private static void swap(Object[] a, int i, int j) {
+        Object temp = a[i];
+        a[i] = a[j];
+        a[j] = temp;
     }
 
     private static int floor_lg(int a) {

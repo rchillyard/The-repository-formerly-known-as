@@ -4,16 +4,11 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
-//    @Override
-//    protected void preSort(X[] objects, int from, int to) {
-//        quickSort(objects, longs, 0, objects.length - 1);
-//    }
 
     public QuickHuskySort(HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
         super("QuickHuskySort", 0, huskyCoder, postSorter);
@@ -25,7 +20,7 @@ public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        quickSort(xs, getHelper().getLongs(), from, to-1);
+        quickSort(xs, getHelper().getLongs(), from, to - 1);
     }
 
     // CONSIDER inlining this private method
