@@ -37,6 +37,7 @@ public class HuskySortBenchmark {
     }
 
     private static void benchmarkString() throws IOException {
+        out.println("Beginning String sorts");
         final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
         benchmark(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
 
@@ -58,6 +59,7 @@ public class HuskySortBenchmark {
     }
 
     private static void benchmarkLocalDateTime() {
+        out.println("Beginning LocalDateTime sorts");
         Supplier<LocalDateTime[]> LocalDateTimeSupplier = () -> generateRandomLocalDateTimeArray(100000);
         // Test on date using pure tim sort.
         Benchmark<LocalDateTime[]> benchmark;
@@ -81,7 +83,7 @@ public class HuskySortBenchmark {
 
         // Test on date using husky sort with insertion sort.
         InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>();
-        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortInsertionSort = new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder, (xs2) -> insertionSort.sort(xs2, false));
+        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortInsertionSort = new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder, insertionSort::mutatingSort);
         benchmark = new Benchmark<>(
                 (xs) -> Arrays.copyOf(xs, xs.length),
                 dateHuskySortInsertionSort::sort,
@@ -109,7 +111,7 @@ public class HuskySortBenchmark {
         System.out.println(LocalDateTime.now() + ": Starting Quicksort test");
         Sort<String> quickSort = new QuickSort_3way<>();
         benchmark = new Benchmark<>(
-                (xs) -> quickSort.sort(xs, false)
+                quickSort::mutatingSort
         );
         showTime(
                 benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
@@ -120,9 +122,7 @@ public class HuskySortBenchmark {
         System.out.println(LocalDateTime.now() + ": Starting IntroSort test");
         Sort<String> introSort = new IntroSort<>();
         benchmark = new Benchmark<>(
-                (xs) -> {
-                    introSort.sort(xs, false);
-                },
+                introSort::mutatingSort,
                 introSort.getHelper()::checkSorted
         );
         showTime(
@@ -133,7 +133,6 @@ public class HuskySortBenchmark {
 
 
         QuickHuskySort<String> quickHuskySortSys = new QuickHuskySort<>(UNICODE_CODER);
-        IntroHuskySort<String> introHuskySort = new IntroHuskySort<>(UNICODE_CODER);
         Helper<String> helper = new Helper<>("StringHelper", nWords, nanoTime());
 
         out.println(LocalDateTime.now() + ": Starting QuickHuskySort test");
@@ -147,6 +146,19 @@ public class HuskySortBenchmark {
                 normalizeNormalizer
         );
 
+        HuskyBucketSort<String> huskyBucketSort = new HuskyBucketSort<>(nWords / 10, UNICODE_CODER);
+        out.println(LocalDateTime.now() + ": Starting HuskyBucketSort test");
+        benchmark = new Benchmark<>(
+                (Consumer<String[]>) huskyBucketSort::sort,
+                helper::checkSorted
+        );
+        showTime(
+                benchmark.run(() -> generateRandomStringArray(words, nWords), nRuns),
+                normalizePrefix,
+                normalizeNormalizer
+        );
+
+        IntroHuskySort<String> introHuskySort = new IntroHuskySort<>(UNICODE_CODER);
         out.println(LocalDateTime.now() + ": Starting IntroHuskySort test");
         benchmark = new Benchmark<>(
                 (Consumer<String[]>) introHuskySort::sort,
@@ -160,7 +172,7 @@ public class HuskySortBenchmark {
 
         out.println(LocalDateTime.now() + ": Starting QuickHuskySort test with insertion sort.");
         InsertionSort<String> insertionSort = new InsertionSort<>();
-        QuickHuskySort<String> quickHuskySortInsertion = new QuickHuskySort<>(UNICODE_CODER, (xs2) -> insertionSort.sort(xs2, false));
+        QuickHuskySort<String> quickHuskySortInsertion = new QuickHuskySort<>(UNICODE_CODER, insertionSort::mutatingSort);
         // TODO replace some of these lambdas with method references? Probably no way to do that in Java.
         benchmark = new Benchmark<>(
                 (Consumer<String[]>) quickHuskySortInsertion::sort,

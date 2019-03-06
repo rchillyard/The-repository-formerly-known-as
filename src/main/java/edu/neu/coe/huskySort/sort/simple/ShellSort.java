@@ -163,7 +163,7 @@ public class ShellSort<X extends Comparable<X>> implements Sort<X> {
         ShellSort<Integer> s = new ShellSort<>(2);
         Integer[] array = {5, 3, 0, 2, 4, 1, 0, 5, 2, 3, 1, 4};
         System.out.println("Before:\t\t\t\t\t" + Arrays.toString(array));
-        s.sort(array, false);
+        s.mutatingSort(array);
         System.out.println("After:\t\t\t\t\t" + Arrays.toString(array));
     }
 }

@@ -28,11 +28,13 @@ public class HuskySortHelper {
     };
 
     public final static HuskyCoder<String> unicodeCoder = new HuskyCoder<String>() {
+        // TODO this needes to be unit-tested
         @Override
         public long huskyEncode(String str) {
             return unicodeToLong(str);
         }
 
+        // TODO this needes to be unit-tested
         @Override
         public boolean imperfect() {
             return true;
@@ -40,11 +42,13 @@ public class HuskySortHelper {
     };
 
     public final static HuskyCoder<String> utf8Coder = new HuskyCoder<String>() {
+        // TODO this needes to be unit-tested
         @Override
         public long huskyEncode(String str) {
             return utf8ToLong(str);
         }
 
+        // TODO this needes to be unit-tested
         @Override
         public boolean imperfect() {
             return true;
@@ -79,9 +83,23 @@ public class HuskySortHelper {
 
     // This is used only by testSortDouble1
     public final static HuskyCoder<Double> doubleCoder = new HuskyCoder<Double>() {
+        // TODO this needes to be unit-tested
         @Override
         public long huskyEncode(Double aDouble) {
             return Double.doubleToLongBits(aDouble);
+        }
+
+        // TODO this needes to be unit-tested
+        @Override
+        public boolean imperfect() {
+            return true;
+        }
+    };
+
+    public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<Integer>() {
+        @Override
+        public long huskyEncode(Integer integer) {
+            return integer.longValue();
         }
 
         @Override
@@ -91,11 +109,13 @@ public class HuskySortHelper {
     };
 
     public final static HuskyCoder<BigInteger> bigIntegerCoder = new HuskyCoder<BigInteger>() {
+        // TODO this needes to be unit-tested
         @Override
         public long huskyEncode(BigInteger bigInteger) {
             return bigInteger.longValue();
         }
 
+        // TODO this needes to be unit-tested
         @Override
         public boolean imperfect() {
             return true;
@@ -106,10 +126,12 @@ public class HuskySortHelper {
         return stringToLong(str, 9, 7);
     }
 
+    // TODO this needes to be unit-tested
     static long utf8ToLong(String str) {
         return longArrayToLong(toUTF8Array(str), 8, 8) >>> 1;
     }
 
+    // TODO this needes to be unit-tested
     private static long unicodeToLong(String str) {
         return stringToLong(str, 4, 16) >>> 1;
     }
@@ -126,6 +148,7 @@ public class HuskySortHelper {
         return result;
     }
 
+    // TODO this needes to be unit-tested
     private static long longArrayToLong(long[] utf8, int maxLength, int bitWidth) {
         int length = Math.min(utf8.length, maxLength);
         long result = 0;
@@ -134,6 +157,7 @@ public class HuskySortHelper {
         return result;
     }
 
+    // TODO this needes to be unit-tested
     private static long[] toUTF8Array(String str) {
         int length = str.length();
         LongBuffer byteBuffer = LongBuffer.allocate(length << 2);
@@ -169,6 +193,7 @@ public class HuskySortHelper {
         return result;
     }
 
+    // TODO this needes to be unit-tested
     public static double checkUnidentified(String[] words, int offset) {
         int total = words.length;
         int count = 0;
@@ -186,6 +211,7 @@ public class HuskySortHelper {
         return (double) count / (double) total * 100.0;
     }
 
+    // TODO this needes to be unit-tested
     public static Date[] generateRandomDateArray(int number) {
         Date[] result = new Date[number];
         ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -195,6 +221,7 @@ public class HuskySortHelper {
         return result;
     }
 
+    // TODO this needes to be unit-tested
     public static LocalDateTime[] generateRandomLocalDateTimeArray(int number) {
         LocalDateTime[] result = new LocalDateTime[number];
         ThreadLocalRandom random = ThreadLocalRandom.current();

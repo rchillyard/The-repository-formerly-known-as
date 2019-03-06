@@ -30,6 +30,16 @@ public interface Sort<X extends Comparable<X>> {
     }
 
     /**
+     * Generic, mutating sort method.
+     * Note that there is no return value.
+     *
+     * @param xs the array to be sorted.
+     */
+    default void mutatingSort(X[] xs) {
+        sort(xs, false);
+    }
+
+    /**
      * Generic, mutating sort method which operates on a sub-array
      *
      * @param xs   sort the array xs from "from" to "to".

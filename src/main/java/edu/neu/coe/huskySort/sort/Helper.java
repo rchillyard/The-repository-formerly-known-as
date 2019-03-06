@@ -89,14 +89,16 @@ public class Helper<X extends Comparable<X>> {
     /**
      * Method to check that an array is sorted.
      *
-     * @param xs     the array to be tested.
-     *               TODO log the message
-     *               TODO show the number of inversions
+     * @param xs the array to be tested.
+     *           TODO log the message
+     *           TODO show the number of inversions
      */
+    // TODO this needes to be unit-tested
     public void checkSorted(X[] xs) {
         if (!sorted(xs)) System.err.println("array is not sorted");
     }
 
+    // TODO this needes to be unit-tested
     public X[] random(Class<X> clazz, Function<Random, X> f) {
         return random(n, clazz, f);
     }
@@ -111,6 +113,7 @@ public class Helper<X extends Comparable<X>> {
         else throw new RuntimeException("Helper: n is already set to a different value");
     }
 
+    // TODO this needes to be unit-tested
     private X[] random(int n, Class<X> clazz, Function<Random, X> f) {
         setN(n);
         @SuppressWarnings("unchecked") X[] result = (X[]) Array.newInstance(clazz, n);

@@ -36,7 +36,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort
         return sort(xs, helper.isMakeCopy());
     }
 
-    private final HuskyHelper<X> helper;
+    protected final HuskyHelper<X> helper;
 
     static final HuskyCoder<String> UNICODE_CODER = HuskySortHelper.unicodeCoder;
 

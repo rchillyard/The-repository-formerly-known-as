@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,11 +22,19 @@ class HuskySortBenchmarkHelper {
     private HuskySortBenchmarkHelper() {
     }
 
+    // TODO this needes to be unit-tested
     static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
         List<String> words = new ArrayList<>();
         FileReader fr = new FileReader(getFile(resource, QuickHuskySort.class));
         for (Object line : new BufferedReader(fr).lines().toArray()) words.addAll(getStrings.apply((String) line));
-        words = words.stream().distinct().collect(Collectors.toList());
+        words = words.stream().distinct().filter(new Predicate<String>() {
+            private static final int MINIMUM_LENGTH = 2;
+
+            @Override
+            public boolean test(String s) {
+                return s.length() >= MINIMUM_LENGTH;
+            }
+        }).collect(Collectors.toList());
         out.println("Testing with words: " + words.size() + " from " + resource);
         String[] result = new String[words.size()];
         result = words.toArray(result);
@@ -42,14 +51,17 @@ class HuskySortBenchmarkHelper {
             return new ArrayList<>();
     }
 
+    // TODO this needes to be unit-tested
     static void showTime(int nRuns, long start, String prefix, Function<Double, Double> normalizer) {
         showTime((nanoTime() - start) / 1000000.0 / nRuns, prefix, normalizer);
     }
 
+    // TODO this needes to be unit-tested
     static void showTime(double time, String prefix, Function<Double, Double> normalizer) {
         out.println(prefix + normalizer.apply(time));
     }
 
+    // TODO this needes to be unit-tested
     static String[] generateRandomStringArray(String[] lookupArray, int number) {
         Random r = new Random();
         String[] result = new String[number];
@@ -59,6 +71,7 @@ class HuskySortBenchmarkHelper {
         return result;
     }
 
+    // TODO this needes to be unit-tested
     private static String getFile(String resource, Class<?> clazz) throws FileNotFoundException {
         final URL url = clazz.getClassLoader().getResource(resource);
         if (url != null) return url.getFile();

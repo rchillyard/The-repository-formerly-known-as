@@ -20,7 +20,7 @@ public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        quickSort(xs, getHelper().getLongs(), from, to - 1);
+        quickSort(xs, helper.getLongs(), from, to - 1);
     }
 
     // CONSIDER inlining this private method

@@ -40,5 +40,9 @@ public class InsertionSort<X extends Comparable<X>> implements Sort<X> {
         return helper;
     }
 
+    public static <Y extends Comparable<Y>> void mutatingInsertionSort(Y[] ys) {
+        new InsertionSort<Y>().mutatingSort(ys);
+    }
+
     private final Helper<X> helper;
 }

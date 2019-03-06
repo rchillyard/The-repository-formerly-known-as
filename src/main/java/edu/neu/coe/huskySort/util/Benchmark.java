@@ -143,9 +143,10 @@ public class Benchmark<T> {
         }
     }
 
+    // TODO this needes to be unit-tested
     private static void benchmarkSort(Integer[] array, String name, Sort<Integer> sorter, int m) {
         UnaryOperator<Integer[]> preFunction = (xs) -> Arrays.copyOf(array, array.length);
-        Consumer<Integer[]> sortFunction = (xs) -> sorter.sort(xs, false);
+        Consumer<Integer[]> sortFunction = sorter::mutatingSort;
         final Helper<Integer> helper = sorter.getHelper();
         Consumer<Integer[]> cleanupFunction = (xs) -> {
             if (!helper.sorted(xs)) throw new RuntimeException("not sorted");
