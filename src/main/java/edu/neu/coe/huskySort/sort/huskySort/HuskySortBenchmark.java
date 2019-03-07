@@ -11,7 +11,7 @@ import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.IntroSort;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
 import edu.neu.coe.huskySort.util.Benchmark;
-import edu.neu.coe.huskySort.util.SortBenchmark;
+import edu.neu.coe.huskySort.util.StringSortBenchmark;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -19,7 +19,6 @@ import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -130,63 +129,28 @@ public class HuskySortBenchmark {
 
         Helper<String> helper = new Helper<>("StringHelper", nWords, nanoTime());
 
-        final SortBenchmark<String> sortBenchmark = new SortBenchmark<>(words, nRuns, normalizePrefix, normalizeNormalizer);
+        final StringSortBenchmark stringSortBenchmark = new StringSortBenchmark(words, nRuns);
 
-        sortBenchmark.run(nWords, new QuickHuskySort<>(UNICODE_CODER));
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(UNICODE_CODER);
+        stringSortBenchmark.run(sorter, nWords);
 
         // CONSIDER reinstating this when HuskyBucketSort is faster.
-//        sortBenchmark.run(nWords, new HuskyBucketSort<>(nWords / 10, UNICODE_CODER));
+//        stringSortBenchmark.run(nWords, new HuskyBucketSort<>(nWords / 10, UNICODE_CODER));
 
-        sortBenchmark.run(nWords, new IntroHuskySort<>(UNICODE_CODER));
+        final IntroHuskySort<String> sorter1 = new IntroHuskySort<>(UNICODE_CODER);
+        stringSortBenchmark.run(sorter1, nWords);
 
-        out.println(LocalDateTime.now() + ": Starting " + "QuickHuskySort" + " test with insertion sort.");
-        Sort<String> quickHuskySortInsertion = new QuickHuskySort<>("QuickHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
-        showTime(
-                new Benchmark<>(
-                        (Consumer<String[]>) quickHuskySortInsertion::sort,
-                        helper::checkSorted
-                ).run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizePrefix,
-                normalizeNormalizer
-        );
+        final QuickHuskySort<String> sorter2 = new QuickHuskySort<>("QuickHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
+        stringSortBenchmark.run(sorter2, nWords);
 
-        out.println(LocalDateTime.now() + ": Starting " + "IntroHuskySort" + " test with insertion sort.");
-        Sort<String> introHuskySortInsertion = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
-        showTime(
-                new Benchmark<>(
-                        (Consumer<String[]>) introHuskySortInsertion::sort,
-                        helper::checkSorted
-                ).run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizePrefix,
-                normalizeNormalizer
-        );
+        final IntroHuskySort<String> sorter3 = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
+        stringSortBenchmark.run(sorter3, nWords);
 
-        out.println(LocalDateTime.now() + ": Starting " + "QuickHuskySort" + " test with printout inversions");
-        Sort<String> quickHuskySortNone = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
+        stringSortBenchmark.runWithInversionCount(nWords, new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
             // do nothing, so we can count inversions.
-        });
-        long inversions = 0;
-        for (int i = 0; i < nRuns; i++) {
-            String[] xs = generateRandomStringArray(words, nWords);
-            quickHuskySortNone.sort(xs);
-            inversions += InversionCounter.getInversions(xs);
-        }
-        inversions = inversions / nRuns;
-        out.println("Mean inversions after first part: " + inversions);
-        out.println("Normalized mean inversions: " + inversions / Math.log(nWords));
+        }));
 
         out.println();
     }
 
-    private static void doStdSortBenchmark(String[] words, int nWords, int nRuns, String normalizePrefix, Function<Double, Double> normalizeNormalizer, Sort<String> sorter) {
-        out.println(LocalDateTime.now() + ": Starting " + sorter + " test");
-        showTime(
-                new Benchmark<>(
-                        (Consumer<String[]>) sorter::sort,
-                        sorter.getHelper()::checkSorted
-                ).run(() -> generateRandomStringArray(words, nWords), nRuns),
-                normalizePrefix,
-                normalizeNormalizer
-        );
-    }
 }
