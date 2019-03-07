@@ -143,7 +143,7 @@ public class Benchmark<T> {
         }
     }
 
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     private static void benchmarkSort(Integer[] array, String name, Sort<Integer> sorter, int m) {
         UnaryOperator<Integer[]> preFunction = (xs) -> Arrays.copyOf(array, array.length);
         Consumer<Integer[]> sortFunction = sorter::mutatingSort;

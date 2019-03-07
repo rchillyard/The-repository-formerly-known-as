@@ -12,27 +12,25 @@ import java.lang.reflect.Array;
 
 public class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
-    private final int buckets;
-
     public HuskyBucketSort(int buckets, HuskyCoder<X> huskyCoder) {
         super("HuskyBucketSort", 0, huskyCoder, InsertionSort::mutatingInsertionSort);
         //noinspection unchecked
-        this.buckets = buckets;
+        bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
+        for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
     }
 
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        final Bag<X>[] bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
-        for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
         long[] longs = helper.getLongs();
+        for (Bag<X> bag : bucket) bag.clear();
 //        System.out.println("inversions: " + helper.inversions(xs, from, to));
         // Determine the min, max and gap.
         long min = Long.MAX_VALUE;
         long max = Long.MIN_VALUE;
         for (int i = from; i < to; i++) {
             if (longs[i] < min) min = longs[i];
-            if (max < longs[i]) max = longs[i];
+            else if (max < longs[i]) max = longs[i];
         }
         long gap = (max - min + 1) / bucket.length;
 
@@ -57,4 +55,6 @@ public class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<
     public String toString() {
         return helper.toString();
     }
+
+    private final Bag<X>[] bucket;
 }

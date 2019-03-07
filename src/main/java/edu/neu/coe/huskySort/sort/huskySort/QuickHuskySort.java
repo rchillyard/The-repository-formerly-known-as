@@ -10,12 +10,12 @@ import java.util.function.Consumer;
 
 public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
-    public QuickHuskySort(HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
-        super("QuickHuskySort", 0, huskyCoder, postSorter);
+    public QuickHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
+        super(name, 0, huskyCoder, postSorter);
     }
 
     public QuickHuskySort(HuskyCoder<X> huskyCoder) {
-        this(huskyCoder, Arrays::sort);
+        this("QuickHuskySort/System", huskyCoder, Arrays::sort);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     // CONSIDER inlining this private method
-    @SuppressWarnings({"UnnecessaryLocalVariable", "Duplicates"})
+    @SuppressWarnings({"UnnecessaryLocalVariable"})
     private void quickSort(X[] objects, long[] longs, int from, int to) {
         int lo = from, hi = to;
         if (hi <= lo) return;

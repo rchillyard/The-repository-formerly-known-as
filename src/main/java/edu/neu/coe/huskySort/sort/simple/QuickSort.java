@@ -25,7 +25,7 @@ public class QuickSort<X extends Comparable<X>> implements Sort<X> {
     }
 
     @Override
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     public void sort(X[] xs, int from, int to) {
         Arrays.sort(xs, from, to);
 //        for (int i = from; i < to; i++)

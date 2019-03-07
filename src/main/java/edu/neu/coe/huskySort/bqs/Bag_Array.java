@@ -30,6 +30,11 @@ public class Bag_Array<Item> implements Bag<Item> {
     }
 
     @Override
+    public void clear() {
+        count = 0;
+    }
+
+    @Override
     public boolean contains(Item item) {
         for (Item i : items) {
             if (i != null && i.equals(item))
@@ -62,7 +67,7 @@ public class Bag_Array<Item> implements Bag<Item> {
     @Override
     public String toString() {
         return "Bag_Array{" +
-                "items=" + Arrays.toString(items) +
+                "items=" + Arrays.toString(asArray()) +
                 ", count=" + count +
                 '}';
     }

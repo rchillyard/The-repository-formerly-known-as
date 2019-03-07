@@ -14,7 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 
 class HuskySortBenchmarkHelper {
@@ -22,7 +21,7 @@ class HuskySortBenchmarkHelper {
     private HuskySortBenchmarkHelper() {
     }
 
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
         List<String> words = new ArrayList<>();
         FileReader fr = new FileReader(getFile(resource, QuickHuskySort.class));
@@ -51,17 +50,17 @@ class HuskySortBenchmarkHelper {
             return new ArrayList<>();
     }
 
-    // TODO this needes to be unit-tested
-    static void showTime(int nRuns, long start, String prefix, Function<Double, Double> normalizer) {
-        showTime((nanoTime() - start) / 1000000.0 / nRuns, prefix, normalizer);
-    }
+//    // TODO this needs to be unit-tested
+//    static void showTime(int nRuns, long start, String prefix, Function<Double, Double> normalizer) {
+//        showTime((nanoTime() - start) / 1000000.0 / nRuns, prefix, normalizer);
+//    }
 
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     static void showTime(double time, String prefix, Function<Double, Double> normalizer) {
         out.println(prefix + normalizer.apply(time));
     }
 
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     static String[] generateRandomStringArray(String[] lookupArray, int number) {
         Random r = new Random();
         String[] result = new String[number];
@@ -71,7 +70,7 @@ class HuskySortBenchmarkHelper {
         return result;
     }
 
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     private static String getFile(String resource, Class<?> clazz) throws FileNotFoundException {
         final URL url = clazz.getClassLoader().getResource(resource);
         if (url != null) return url.getFile();

@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort<X> {
 
     public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
+        this.name = name;
         helper = new HuskyHelper<>(name, n, huskyCoder, postSorter);
     }
 
@@ -47,4 +48,13 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort
     void swap(X[] objects, int i, int j) {
         helper.swap(objects, i, j);
     }
+
+    // CONSIDER showing coder and postSorter (would need extra String for that).
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    private final String name;
+
 }

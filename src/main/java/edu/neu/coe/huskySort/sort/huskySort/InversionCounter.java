@@ -5,7 +5,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 public class InversionCounter {
 
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     static long getInversions(Comparable[] arr) {
         int array_size = arr.length;
         Comparable[] temp = new Comparable[array_size];

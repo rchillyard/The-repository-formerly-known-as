@@ -37,12 +37,12 @@ public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
     }
 
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     public HuskyCoder<X> getCoder() {
         return coder;
     }
 
-    // TODO this needes to be unit-tested
+    // TODO this needs to be unit-tested
     public int getN() {
         return n;
     }

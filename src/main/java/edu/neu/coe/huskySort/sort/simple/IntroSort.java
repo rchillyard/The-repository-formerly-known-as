@@ -56,7 +56,7 @@ public class IntroSort<X extends Comparable<X>> implements Sort<X> {
             insertionSort(a, from, to);
             return;
         }
-        // TODO this needes to be unit-tested
+        // TODO this needs to be unit-tested
         if (depthThreshold == 0) {
             heapSort(a, from, to);
             return;
