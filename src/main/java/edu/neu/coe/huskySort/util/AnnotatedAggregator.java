@@ -9,7 +9,7 @@ import java.util.function.Supplier;
  * In an annotated aggregator, the run method invokes the run method of the underlying aggregator, but takes the result and formats it appropriately, sending the resulting String to the annotator.
  * The run method itself returns void.
  *
- * @param <T> the underlying type of the Benchmark.
+ * @param <T> the underlying type of the Aggregator.
  */
 public class AnnotatedAggregator<T> {
 

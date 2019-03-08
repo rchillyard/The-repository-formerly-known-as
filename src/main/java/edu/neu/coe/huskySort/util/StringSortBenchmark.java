@@ -1,9 +1,9 @@
 package edu.neu.coe.huskySort.util;
 
 import edu.neu.coe.huskySort.sort.Sort;
-import edu.neu.coe.huskySort.sort.huskySort.InversionCounter;
 
 import java.util.Random;
+import java.util.function.Function;
 
 import static java.lang.System.out;
 
@@ -19,32 +19,21 @@ public class StringSortBenchmark {
     public void run(Sort<String> sorter, int nWords) {
         final AnnotatedBenchmark<String[]> annotatedBenchmark = new AnnotatedBenchmark<>(
                 out::println,
-                "StringSortBenchmark starting at %tD %<tT: " + sorter + " with " + nWords + " words",
+                "StringSortBenchmark.run starting at %tD %<tT: " + sorter + " with " + nWords + " words",
                 new CheckedSortBenchmark<>(sorter),
                 "Normalized time per run: %f",
                 (time) -> time / nWords / Math.log(nWords) * 1e6);
         annotatedBenchmark.run(() -> generateRandomStringArray(words, nWords), nRuns);
     }
 
-    public void runWithInversionCount(int nWords, Sort<String> sorter) {
-        class Inversions {
-            long inversions = 0;
-
-            public void increment(long increment) {
-                inversions += increment;
-            }
-        }
-
-        final Inversions inversions = new Inversions();
-        Aggregator<String[]> aggregator = new Aggregator<>(sorter::mutatingSort, xs -> inversions.increment(InversionCounter.getInversions(xs)));
-
+    public void runAggregate(Counter counter, int nWords, Sort<String> sorter, Function<String[], Long> getIncrement) {
         final AnnotatedAggregator<String[]> annotatedAggregator = new AnnotatedAggregator<>(
                 out::println,
-                "StringSortBenchmark starting inversion count %tD %<tT: " + sorter + " with " + nWords + " words",
-                aggregator,
-                "Mean inversions after first part: %f");
+                "StringSortBenchmark.runAggregate starting at %tD %<tT: " + sorter + " with " + nWords + " words",
+                new Aggregator<>(counter, sorter::mutatingSort, getIncrement),
+                "Mean value: %f");
 
-        annotatedAggregator.run(() -> generateRandomStringArray(words, nWords), nRuns, () -> 1.0 * inversions.inversions / nRuns);
+        annotatedAggregator.run(() -> generateRandomStringArray(words, nWords), nRuns, () -> 1.0 * counter.get() / nRuns);
 
 //        out.println("Normalized mean inversions: " + inversions.inversions / Math.log(nWords) / nRuns);
     }

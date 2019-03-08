@@ -10,64 +10,40 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 /**
- * @param <T> The generic type T is that of the input to the function f which you will pass in to the constructor.
+ * @param <T> The generic type T is that of the input to the function f (or fRun) which you will pass in to the constructor.
  */
 public class Aggregator<T> {
 
     /**
-     * Constructor for a Benchmark with option of specifying all three functions.
+     * Constructor for a Aggregator with option of specifying all three functions.
      *
+     * @param counter a counter object which will be incremented by the result of calling fPost.
      * @param fPre  a function of T => T.
      *              Function fPre is run before each invocation of fRun (but with the clock stopped).
      *              The result of fPre (if any) is passed to fRun.
      * @param fRun  a Consumer function (i.e. a function of T => Void).
      *              Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      *              When you create a lambda defining fRun, you must return "null."
-     * @param fPost a Consumer function (i.e. a function of T => Void).
-     *              Function fPost is run after each invocation of fRun (but with the clock stopped).
+     * @param fPost a Function which takes a T and generates a Long which is then used to increment the Counter.
      */
-    public Aggregator(UnaryOperator<T> fPre, Consumer<T> fRun, Consumer<T> fPost) {
+    public Aggregator(Counter counter, UnaryOperator<T> fPre, Consumer<T> fRun, Function<T, Long> fPost) {
+        this.counter = counter;
         this.fPre = fPre;
         this.fRun = fRun;
         this.fPost = fPost;
     }
 
-    /**
-     * Constructor for a Benchmark with option of specifying all three functions.
-     *
-     * @param fPre a function of T => T.
-     *             Function fPre is run before each invocation of fRun (but with the clock stopped).
-     *             The result of fPre (if any) is passed to fRun.
-     * @param fRun a Consumer function (i.e. a function of T => Void).
-     *             Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
-     *             When you create a lambda defining fRun, you must return "null."
-     */
-    public Aggregator(UnaryOperator<T> fPre, Consumer<T> fRun) {
-        this(fPre, fRun, null);
-    }
 
     /**
-     * Constructor for a Benchmark with only fRun and fPost Consumer parameters.
-     *
+     * Constructor for a Aggregator with only fRun and fPost Consumer parameters.
+     * @param counter a counter object which will be incremented by the result of calling fPost.
      * @param fRun  a Consumer function (i.e. a function of T => Void).
      *              Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      *              When you create a lambda defining fRun, you must return "null."
      * @param fPost a Consumer function (i.e. a function of T => Void).
-     *              Function fPost is run after each invocation of fRun (but with the clock stopped).
      */
-    public Aggregator(Consumer<T> fRun, Consumer<T> fPost) {
-        this(null, fRun, fPost);
-    }
-
-    /**
-     * Constructor for a Benchmark where only the (timed) run function is specified.
-     *
-     * @param f a Consumer function (i.e. a function of T => Void).
-     *          Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
-     *          When you create a lambda defining f, you must return "null."
-     */
-    public Aggregator(Consumer<T> f) {
-        this(null, f, null);
+    public Aggregator(Counter counter, Consumer<T> fRun, Function<T, Long> fPost) {
+        this(counter, null, fRun, fPost);
     }
 
     /**
@@ -93,11 +69,12 @@ public class Aggregator<T> {
     private void doRun(T t) {
         T t1 = fPre != null ? fPre.apply(t) : t;
         fRun.accept(t1);
-        if (fPost != null) fPost.accept(t1);
+        counter.increment(fPost.apply(t1));
     }
 
+    private final Counter counter;
     private final Function<T, T> fPre;
     private final Consumer<T> fRun;
-    private final Consumer<T> fPost;
+    private final Function<T, Long> fPost;
 
 }

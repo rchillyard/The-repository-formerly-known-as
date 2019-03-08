@@ -11,6 +11,7 @@ import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.IntroSort;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
 import edu.neu.coe.huskySort.util.Benchmark;
+import edu.neu.coe.huskySort.util.SimpleCounter;
 import edu.neu.coe.huskySort.util.StringSortBenchmark;
 
 import java.io.IOException;
@@ -146,9 +147,9 @@ public class HuskySortBenchmark {
         final IntroHuskySort<String> sorter3 = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
         stringSortBenchmark.run(sorter3, nWords);
 
-        stringSortBenchmark.runWithInversionCount(nWords, new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
+        stringSortBenchmark.runAggregate(new SimpleCounter(), nWords, new QuickHuskySort<>("QuickHuskySort/count inversions", UNICODE_CODER, (xs2) -> {
             // do nothing, so we can count inversions.
-        }));
+        }), InversionCounter::getInversions);
 
         out.println();
     }
