@@ -75,5 +75,10 @@ public class QuickSort_3way<X extends Comparable<X>> implements Sort<X> {
     }
 
     private final Helper<X> helper;
+
+    @Override
+    public String toString() {
+        return helper.toString();
+    }
 }
 

@@ -94,7 +94,7 @@ public class HuskySortBenchmark {
         out.println();
     }
 
-    private static void benchmark(String[] words, int nWords, int nRuns) {
+    static void benchmark(String[] words, int nWords, int nRuns) {
         out.println("Testing with " + nRuns + " runs of sorting " + nWords + " words");
         String normalizePrefix = "Normalized time per run: ";
         Function<Double, Double> normalizeNormalizer = (time) -> time / nWords / Math.log(nWords) * 1e6;
