@@ -128,8 +128,6 @@ public class HuskySortBenchmark {
         );
 
 
-        Helper<String> helper = new Helper<>("StringHelper", nWords, nanoTime());
-
         final StringSortBenchmark stringSortBenchmark = new StringSortBenchmark(words, nRuns);
 
         final QuickHuskySort<String> sorter = new QuickHuskySort<>(UNICODE_CODER);
