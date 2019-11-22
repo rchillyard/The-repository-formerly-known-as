@@ -10,24 +10,24 @@ import java.lang.reflect.Array;
 public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
 
     private final Helper<X> helper;
-    private final Bag<X>[] bucket;
+    private Bag<X>[] bucket;
+    private final int buckets;
     private final InsertionSort<X> insertionSort;
 
-    BucketSort(int buckets, Helper<X> helper) {
-        //noinspection unchecked
-        bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
-        for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
+    public BucketSort(int buckets, Helper<X> helper) {
+        this.buckets = buckets;
+        this.init();
         this.helper = helper;
         insertionSort = new InsertionSort<>();
     }
 
-    BucketSort(int buckets) {
+    public BucketSort(int buckets) {
         this(buckets, new Helper<>("Bucket Sort"));
     }
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        System.out.println(helper.inversions(xs, from, to));
+//        System.out.println(helper.inversions(xs, from, to));
         // Determine the min, max and gap.
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
@@ -51,12 +51,18 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
             for (X x : bucket[i]) xs[index++] = x;
         }
 
-        System.out.println(helper.inversions(xs, from, to));
+//        System.out.println(helper.inversions(xs, from, to));
 
         insertionSort.sort(xs, from, to);
-        System.out.println(insertionSort.toString());
+//        System.out.println(insertionSort.toString());
 
-        System.out.println(helper.inversions(xs, from, to));
+//        System.out.println(helper.inversions(xs, from, to));
+    }
+
+    public void init() {
+        //noinspection unchecked
+        this.bucket = (Bag<X>[]) Array.newInstance(Bag.class, this.buckets);
+        for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
     }
 
     @Override

@@ -6,6 +6,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.sort.simple.BucketSort;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.IntroSort;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
@@ -25,15 +26,18 @@ import java.util.regex.Pattern;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.*;
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomDoubleArray;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 
+@SuppressWarnings("Duplicates")
 public class HuskySortBenchmark {
 
     public static void main(String[] args) throws IOException {
-        benchmarkLocalDateTime();
-        benchmarkString();
+        benchmarkDouble();
+//        benchmarkLocalDateTime();
+//        benchmarkString();
     }
 
     private static void benchmarkString() throws IOException {
@@ -85,6 +89,48 @@ public class HuskySortBenchmark {
                 (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
         );
         out.println("Sort LocalDateTimes using huskySort with insertionSort: \t" + benchmark.run(LocalDateTimeSupplier, 100) + "ms");
+        out.println();
+    }
+
+    private static void benchmarkDouble() {
+        Supplier<Double[]> doubleSupplier = () -> generateRandomDoubleArray(1000000);
+
+        // Test on double using pure tim sort.
+        Benchmark<Double[]> benchmark;
+        benchmark = new Benchmark<>(
+                Arrays::sort
+        );
+        out.println("Sort Doubles using TimSort: \t" + benchmark.run(doubleSupplier, 100) + "ms");
+
+        // Test on double using bucket sort.
+        BucketSort<Double> bucketSort = new BucketSort<>(1000);
+        benchmark = new Benchmark<>(
+                (xs) -> {
+                    bucketSort.init();
+                    return xs;
+                },
+                (xs) -> { bucketSort.sort(xs, false); }
+        );
+        out.println("Sort Doubles using BucketSort: \t" + benchmark.run(doubleSupplier, 100) + "ms");
+
+        // Test on double using husky sort.
+        QuickHuskySort<Double> doubleHuskySort = new QuickHuskySort<>();
+        final Helper<Double> dateHelper = doubleHuskySort.getHelper();
+        benchmark = new Benchmark<>(
+                (xs) -> xs,
+                (xs) -> doubleHuskySort.sort(xs, HuskySortHelper.doubleCoder),
+                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
+        );
+        out.println("Sort Doubles using huskySort with TimSort: \t" + benchmark.run(doubleSupplier, 100) + "ms");
+
+        // Test on double using husky sort with insertion sort.
+        InsertionSort<Double> insertionSort = new InsertionSort<>();
+        benchmark = new Benchmark<>(
+                (xs) -> xs,
+                (xs) -> doubleHuskySort.sort(xs, HuskySortHelper.doubleCoder, (xs2) -> insertionSort.sort(xs2, false)),
+                (xs) -> { if (!dateHelper.sorted(xs)) System.err.println("not sorted"); }
+        );
+        out.println("Sort Doubles using huskySort with insertionSort: \t" + benchmark.run(doubleSupplier, 100) + "ms");
         out.println();
     }
 

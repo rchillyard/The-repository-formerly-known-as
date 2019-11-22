@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+@SuppressWarnings("Duplicates")
 public class HuskySortHelper {
 
     public final static HuskyCoder<String> asciiCoder = new HuskyCoder<String>() {
@@ -200,6 +201,15 @@ public class HuskySortHelper {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < number; i++) {
             result[i] = LocalDateTime.ofEpochSecond(random.nextLong(new Date().getTime()), random.nextInt(0, 1000000000), ZoneOffset.UTC);
+        }
+        return result;
+    }
+
+    public static Double[] generateRandomDoubleArray(int number) {
+        Double[] result = new Double[number];
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < number; i++) {
+            result[i] = (random.nextDouble() - 0.5) * Double.MAX_VALUE;
         }
         return result;
     }
