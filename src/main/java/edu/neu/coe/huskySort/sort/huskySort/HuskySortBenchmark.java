@@ -170,7 +170,7 @@ public class HuskySortBenchmark {
         for (int i = 0; i < nRuns; i++) {
             String[] xs = generateRandomStringArray(words, nWords);
             quickHuskySortNone.sort(xs);
-            inversions += InversionCounter.getInversions(xs);
+            inversions += new InversionCounter(xs).getInversions();
         }
         inversions = inversions / nRuns;
         out.println("Mean inversions after first part: " + inversions);
@@ -179,6 +179,7 @@ public class HuskySortBenchmark {
         out.println();
     }
 
+    // NOTE: not currently used
     private static void doStdSortBenchmark(String[] words, int nWords, int nRuns, String normalizePrefix, Function<Double, Double> normalizeNormalizer, Sort<String> sorter) {
         out.println(LocalDateTime.now() + ": Starting " + sorter + " test");
         showTime(

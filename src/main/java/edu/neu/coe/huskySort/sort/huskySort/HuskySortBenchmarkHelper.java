@@ -64,11 +64,10 @@ class HuskySortBenchmarkHelper {
 
     // TODO this needs to be unit-tested
     static String[] generateRandomStringArray(String[] lookupArray, int number) {
+        if (lookupArray.length == 0) throw new SortException("lookupArray is empty");
         Random r = new Random();
         String[] result = new String[number];
-        for (int i = 0; i < number; i++) {
-            result[i] = lookupArray[r.nextInt(lookupArray.length)];
-        }
+        for (int i = 0; i < number; i++) result[i] = getRandomElement(lookupArray, r);
         return result;
     }
 
@@ -79,4 +78,11 @@ class HuskySortBenchmarkHelper {
         throw new FileNotFoundException(resource + " in " + clazz);
     }
 
+    private static String getRandomElement(String[] strings, int length, Random r) {
+        return strings[r.nextInt(length)];
+    }
+
+    private static String getRandomElement(String[] strings, Random r) {
+        return getRandomElement(strings, strings.length, r);
+    }
 }
