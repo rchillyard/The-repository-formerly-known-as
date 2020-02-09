@@ -8,7 +8,10 @@ import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.SelectionSort;
+import org.apache.log4j.Logger;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -153,6 +156,14 @@ public class Benchmark<T> {
         };
         Benchmark<Integer[]> bm = new Benchmark<>(preFunction, sortFunction, cleanupFunction);
         double x = bm.run(array, m);
-        System.out.println(name + ": " + x + " millisecs");
+        logger.info(name + ": " + x + " millisecs");
     }
+
+    public static String formatLocalDateTime() {
+        return dateTimeFormatter.format(LocalDateTime.now());
+    }
+
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("ss.SSSSSS");
+
+    final static Logger logger = Logger.getLogger(Benchmark.class);
 }

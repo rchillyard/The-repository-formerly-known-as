@@ -4,6 +4,7 @@ import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
+import org.apache.log4j.Logger;
 
 import java.lang.reflect.Array;
 
@@ -27,7 +28,7 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        System.out.println(helper.inversions(xs, from, to));
+        logger.info(helper.inversions(xs, from, to));
         // Determine the min, max and gap.
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
@@ -47,16 +48,16 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
         // Copy the buckets back into array
         int index = 0;
         // TODO consider replacing with foreach
-        for (int i = 0; i < bucket.length; i++) {
-            for (X x : bucket[i]) xs[index++] = x;
+        for (Bag<X> xes : bucket) {
+            for (X x : xes) xs[index++] = x;
         }
 
-        System.out.println(helper.inversions(xs, from, to));
+        logger.info(helper.inversions(xs, from, to));
 
         insertionSort.sort(xs, from, to);
-        System.out.println(insertionSort.toString());
+        logger.info(insertionSort.toString());
 
-        System.out.println(helper.inversions(xs, from, to));
+        logger.info(helper.inversions(xs, from, to));
     }
 
     @Override
@@ -69,4 +70,5 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
         return helper;
     }
 
+    final static Logger logger = Logger.getLogger(BucketSort.class);
 }

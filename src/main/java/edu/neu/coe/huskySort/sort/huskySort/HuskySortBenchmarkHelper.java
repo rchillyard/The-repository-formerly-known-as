@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.SortException;
+import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -16,13 +17,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.lang.System.out;
-
+/**
+ * Singleton class HuskySortBenchmarkHelper
+ */
 class HuskySortBenchmarkHelper {
-    // private constructor (singleton pattern)
-    private HuskySortBenchmarkHelper() {
-    }
-
     // TODO this needs to be unit-tested
     static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
         List<String> words = new ArrayList<>();
@@ -36,7 +34,7 @@ class HuskySortBenchmarkHelper {
                 return s.length() >= MINIMUM_LENGTH;
             }
         }).collect(Collectors.toList());
-        out.println("Testing with words: " + words.size() + " from " + resource);
+        logger.info("Testing with words: " + words.size() + " from " + resource);
         String[] result = new String[words.size()];
         result = words.toArray(result);
         return result;
@@ -52,14 +50,9 @@ class HuskySortBenchmarkHelper {
             return new ArrayList<>();
     }
 
-//    // TODO this needs to be unit-tested
-//    static void showTime(int nRuns, long start, String prefix, Function<Double, Double> normalizer) {
-//        showTime((nanoTime() - start) / 1000000.0 / nRuns, prefix, normalizer);
-//    }
-
     // TODO this needs to be unit-tested
-    static void showTime(double time, String prefix, Function<Double, Double> normalizer) {
-        out.println(prefix + normalizer.apply(time));
+    static void logNormalizedTime(double time, String prefix, Function<Double, Double> normalizer) {
+        logger.info(prefix + normalizer.apply(time));
     }
 
     // TODO this needs to be unit-tested
@@ -85,4 +78,11 @@ class HuskySortBenchmarkHelper {
     private static String getRandomElement(String[] strings, Random r) {
         return getRandomElement(strings, strings.length, r);
     }
+
+    // private constructor (singleton pattern)
+    private HuskySortBenchmarkHelper() {
+    }
+
+    // NOTE: we share the logger with HuskySortBenchmark
+    final static Logger logger = Logger.getLogger(HuskySortBenchmark.class);
 }

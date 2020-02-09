@@ -1,13 +1,13 @@
 package edu.neu.coe.huskySort.util;
 
 import edu.neu.coe.huskySort.sort.Sort;
+import org.apache.log4j.Logger;
 
-import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static java.lang.System.out;
+import static edu.neu.coe.huskySort.util.Benchmark.formatLocalDateTime;
 
 public class SortBenchmark<T> {
     private final String[] words;
@@ -20,12 +20,12 @@ public class SortBenchmark<T> {
         this.nRuns = nRuns;
         this.normalizePrefix = normalizePrefix;
         this.normalizeNormalizer = normalizeNormalizer;
-        out.println("Instantiated " + this);
+        logger.info("Instantiated " + this);
     }
 
     public void run(int nWords, Sort<String> sorter) {
-        out.println("SortBenchmark" + LocalDateTime.now() + ": starting " + sorter + " with " + nWords + " words");
-        out.println(normalizePrefix + normalizeNormalizer.apply(new Benchmark<>(
+        logger.info("SortBenchmark" + formatLocalDateTime() + ": starting " + sorter + " with " + nWords + " words");
+        logger.info(normalizePrefix + normalizeNormalizer.apply(new Benchmark<>(
                 (Consumer<String[]>) sorter::sort,
                 sorter.getHelper()::checkSorted
         ).run(() -> generateRandomStringArray(words, nWords), nRuns)));
@@ -42,4 +42,6 @@ public class SortBenchmark<T> {
     public String toString() {
         return "SortBenchmark with " + words.length + " words and " + nRuns + " runs";
     }
+
+    final static Logger logger = Logger.getLogger(SortBenchmark.class);
 }

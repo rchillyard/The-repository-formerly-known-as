@@ -6,8 +6,6 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
 
-import java.util.Arrays;
-
 /**
  * Class to implement Shell Sort.
  *
@@ -154,16 +152,16 @@ public class ShellSort<X extends Comparable<X>> implements Sort<X> {
         }
     }
 
-    /**
-     * An example main program.
-     *
-     * @param args the command-line args (ignored).
-     */
-    public static void main(String[] args) {
-        ShellSort<Integer> s = new ShellSort<>(2);
-        Integer[] array = {5, 3, 0, 2, 4, 1, 0, 5, 2, 3, 1, 4};
-        System.out.println("Before:\t\t\t\t\t" + Arrays.toString(array));
-        s.mutatingSort(array);
-        System.out.println("After:\t\t\t\t\t" + Arrays.toString(array));
-    }
+//    /**
+//     * An example main program.
+//     *
+//     * @param args the command-line args (ignored).
+//     */
+//    public static void main(String[] args) {
+//        ShellSort<Integer> s = new ShellSort<>(2);
+//        Integer[] array = {5, 3, 0, 2, 4, 1, 0, 5, 2, 3, 1, 4};
+//        System.out.println("Before:\t\t\t\t\t" + Arrays.toString(array));
+//        s.mutatingSort(array);
+//        System.out.println("After:\t\t\t\t\t" + Arrays.toString(array));
+//    }
 }
