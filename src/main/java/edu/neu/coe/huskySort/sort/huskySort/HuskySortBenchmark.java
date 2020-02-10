@@ -33,7 +33,7 @@ import static java.lang.System.out;
 public class HuskySortBenchmark {
 
     public static void main(String[] args) throws IOException {
-        benchmarkLocalDateTime();
+//        benchmarkLocalDateTime();
         benchmarkString();
     }
 
@@ -96,8 +96,8 @@ public class HuskySortBenchmark {
 
     static void benchmark(String[] words, int nWords, int nRuns) {
         out.println("Testing with " + nRuns + " runs of sorting " + nWords + " words");
-        String normalizePrefix = "Normalized time per run: ";
-        Function<Double, Double> normalizeNormalizer = (time) -> time / nWords / Math.log(nWords) * 1e6;
+        String normalizePrefix = "Raw time per run: ";
+        Function<Double, Double> normalizeNormalizer = (time) -> time;
 
         out.println(LocalDateTime.now() + ": Starting Timsort test");
         showTime(
