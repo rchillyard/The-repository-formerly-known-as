@@ -103,7 +103,7 @@ public class HuskySortIntegrationTest {
         public MyBenchmark(Sort<String> sorter, double k) {
             this.sorter = sorter;
             this.k = k;
-            this.benchmark = new Benchmark<>(sorter::sort);
+            this.benchmark = new Benchmark<>("HuskySortIntegrationTest", sorter::sort);
         }
 
         /**

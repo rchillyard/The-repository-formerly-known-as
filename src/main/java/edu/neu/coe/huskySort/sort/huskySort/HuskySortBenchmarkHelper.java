@@ -1,7 +1,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.SortException;
-import org.apache.log4j.Logger;
+import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -83,6 +83,6 @@ class HuskySortBenchmarkHelper {
     private HuskySortBenchmarkHelper() {
     }
 
-    // NOTE: we share the logger with HuskySortBenchmark
-    final static Logger logger = Logger.getLogger(HuskySortBenchmark.class);
+    // NOTE: we share the logger with HuskySortBenchmark. Why?
+    final static LazyLogger logger = new LazyLogger(HuskySortBenchmark.class);
 }

@@ -8,7 +8,6 @@ import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.SelectionSort;
-import org.apache.log4j.Logger;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,16 +26,17 @@ public class Benchmark<T> {
     /**
      * Constructor for a Benchmark with option of specifying all three functions.
      *
-     * @param fPre  a function of T => T.
-     *              Function fPre is run before each invocation of fRun (but with the clock stopped).
-     *              The result of fPre (if any) is passed to fRun.
-     * @param fRun  a Consumer function (i.e. a function of T => Void).
-     *              Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
-     *              When you create a lambda defining fRun, you must return "null."
-     * @param fPost a Consumer function (i.e. a function of T => Void).
-     *              Function fPost is run after each invocation of fRun (but with the clock stopped).
+     * @param description the description of the benchmark.
+     * @param fPre        a function of T => T.
+     *                    Function fPre is run before each invocation of fRun (but with the clock stopped).
+     *                    The result of fPre (if any) is passed to fRun.
+     * @param fRun        a Consumer function (i.e. a function of T => Void).
+     *                    Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
+     *                    When you create a lambda defining fRun, you must return "null."
+     * @param fPost       a Consumer function (i.e. a function of T => Void).
      */
-    public Benchmark(UnaryOperator<T> fPre, Consumer<T> fRun, Consumer<T> fPost) {
+    public Benchmark(String description, UnaryOperator<T> fPre, Consumer<T> fRun, Consumer<T> fPost) {
+        this.description = description;
         this.fPre = fPre;
         this.fRun = fRun;
         this.fPost = fPost;
@@ -45,39 +45,39 @@ public class Benchmark<T> {
     /**
      * Constructor for a Benchmark with option of specifying all three functions.
      *
-     * @param fPre a function of T => T.
-     *             Function fPre is run before each invocation of fRun (but with the clock stopped).
-     *             The result of fPre (if any) is passed to fRun.
-     * @param fRun a Consumer function (i.e. a function of T => Void).
-     *             Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
-     *             When you create a lambda defining fRun, you must return "null."
+     * @param description the description of the benchmark.
+     * @param fPre        a function of T => T.
+     *                    Function fPre is run before each invocation of fRun (but with the clock stopped).
+     *                    The result of fPre (if any) is passed to fRun.
+     * @param fRun        a Consumer function (i.e. a function of T => Void).
+     *                    Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      */
-    public Benchmark(UnaryOperator<T> fPre, Consumer<T> fRun) {
-        this(fPre, fRun, null);
+    public Benchmark(String description, UnaryOperator<T> fPre, Consumer<T> fRun) {
+        this(description, fPre, fRun, null);
     }
 
     /**
      * Constructor for a Benchmark with only fRun and fPost Consumer parameters.
      *
-     * @param fRun  a Consumer function (i.e. a function of T => Void).
-     *              Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
-     *              When you create a lambda defining fRun, you must return "null."
-     * @param fPost a Consumer function (i.e. a function of T => Void).
-     *              Function fPost is run after each invocation of fRun (but with the clock stopped).
+     * @param description the description of the benchmark.
+     * @param fRun        a Consumer function (i.e. a function of T => Void).
+     *                    Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
+     *                    When you create a lambda defining fRun, you must return "null."
+     * @param fPost       a Consumer function (i.e. a function of T => Void).
      */
-    public Benchmark(Consumer<T> fRun, Consumer<T> fPost) {
-        this(null, fRun, fPost);
+    public Benchmark(String description, Consumer<T> fRun, Consumer<T> fPost) {
+        this(description, null, fRun, fPost);
     }
 
     /**
      * Constructor for a Benchmark where only the (timed) run function is specified.
      *
+     * @param description the description of the benchmark.
      * @param f a Consumer function (i.e. a function of T => Void).
      *          Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
-     *          When you create a lambda defining f, you must return "null."
      */
-    public Benchmark(Consumer<T> f) {
-        this(null, f, null);
+    public Benchmark(String description, Consumer<T> f) {
+        this(description, null, f, null);
     }
 
     /**
@@ -99,6 +99,7 @@ public class Benchmark<T> {
      * @return the average number of milliseconds taken for each run of function f.
      */
     public double run(Supplier<T> supplier, int m) {
+        logger.info("Beginning benchmark "+description+" with "+m+" runs");
         // Warmup phase
         int warmupRuns = Integer.min(2, Integer.max(10, m / 10));
         for (int i = 0; i < warmupRuns; i++) doRun(supplier.get(), true);
@@ -121,6 +122,7 @@ public class Benchmark<T> {
         return nanos;
     }
 
+    private final String description;
     private final Function<T, T> fPre;
     private final Consumer<T> fRun;
     private final Consumer<T> fPost;
@@ -139,22 +141,22 @@ public class Benchmark<T> {
         for (int k = 0; k < 5; k++) {
             Integer[] array = new Integer[n];
             for (int i = 0; i < n; i++) array[i] = random.nextInt();
-            benchmarkSort(array, "InsertionSort: " + n, new InsertionSort<>(), m);
-            benchmarkSort(array, "SelectionSort: " + n, new SelectionSort<>(), m);
-//        benchmarkSort(array, "ShellSort    ", new ShellSort<>(3), m);
+            benchmarkSort("InsertionSort", array, "InsertionSort: " + n, new InsertionSort<>(), m);
+            benchmarkSort("SelectionSort", array, "SelectionSort: " + n, new SelectionSort<>(), m);
+//        benchmarkSort("ShellSort", array, "ShellSort    ", new ShellSort<>(3), m);
             n = n * 2;
         }
     }
 
     // TODO this needs to be unit-tested
-    private static void benchmarkSort(Integer[] array, String name, Sort<Integer> sorter, int m) {
+    private static void benchmarkSort(String description, Integer[] array, String name, Sort<Integer> sorter, int m) {
         UnaryOperator<Integer[]> preFunction = (xs) -> Arrays.copyOf(array, array.length);
         Consumer<Integer[]> sortFunction = sorter::mutatingSort;
         final Helper<Integer> helper = sorter.getHelper();
         Consumer<Integer[]> cleanupFunction = (xs) -> {
             if (!helper.sorted(xs)) throw new RuntimeException("not sorted");
         };
-        Benchmark<Integer[]> bm = new Benchmark<>(preFunction, sortFunction, cleanupFunction);
+        Benchmark<Integer[]> bm = new Benchmark<>(description, preFunction, sortFunction, cleanupFunction);
         double x = bm.run(array, m);
         logger.info(name + ": " + x + " millisecs");
     }
@@ -165,5 +167,5 @@ public class Benchmark<T> {
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("ss.SSSSSS");
 
-    final static Logger logger = Logger.getLogger(Benchmark.class);
+    final static LazyLogger logger = new LazyLogger(Benchmark.class);
 }

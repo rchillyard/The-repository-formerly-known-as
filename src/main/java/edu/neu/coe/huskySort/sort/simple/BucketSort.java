@@ -4,7 +4,7 @@ import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
-import org.apache.log4j.Logger;
+import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.lang.reflect.Array;
 
@@ -70,5 +70,5 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
         return helper;
     }
 
-    final static Logger logger = Logger.getLogger(BucketSort.class);
+    final static LazyLogger logger = new LazyLogger(BucketSort.class);
 }

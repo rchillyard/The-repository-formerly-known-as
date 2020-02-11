@@ -4,13 +4,7 @@
 
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.simple.InsertionSort;
-import edu.neu.coe.huskySort.sort.simple.SelectionSort;
-import edu.neu.coe.huskySort.sort.Sort;
 import org.junit.Test;
-
-import java.util.Random;
-import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,10 +20,10 @@ public class BenchmarkTest {
         int nRuns = 2;
         int warmups = 2;
         Benchmark<Boolean> bm = new Benchmark<>(
-                b -> {
-                    GoToSleep(100L, -1);
-                    return null;
-                },
+                "testWaitPeriods", b -> {
+            GoToSleep(100L, -1);
+            return null;
+        },
                 b -> {
                     GoToSleep(200L, 0);
                 },

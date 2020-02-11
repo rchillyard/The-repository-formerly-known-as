@@ -1,7 +1,6 @@
 package edu.neu.coe.huskySort.util;
 
 import edu.neu.coe.huskySort.sort.Sort;
-import org.apache.log4j.Logger;
 
 import java.util.Random;
 import java.util.function.Consumer;
@@ -24,9 +23,9 @@ public class SortBenchmark<T> {
     }
 
     public void run(int nWords, Sort<String> sorter) {
-        logger.info("SortBenchmark" + formatLocalDateTime() + ": starting " + sorter + " with " + nWords + " words");
+        logger.info("SortBenchmark: " + formatLocalDateTime() + ": starting " + sorter + " with " + nWords + " words");
         logger.info(normalizePrefix + normalizeNormalizer.apply(new Benchmark<>(
-                (Consumer<String[]>) sorter::sort,
+                sorter.toString(), (Consumer<String[]>) sorter::sort,
                 sorter.getHelper()::checkSorted
         ).run(() -> generateRandomStringArray(words, nWords), nRuns)));
     }
@@ -43,5 +42,5 @@ public class SortBenchmark<T> {
         return "SortBenchmark with " + words.length + " words and " + nRuns + " runs";
     }
 
-    final static Logger logger = Logger.getLogger(SortBenchmark.class);
+    final static LazyLogger logger = new LazyLogger(SortBenchmark.class);
 }
