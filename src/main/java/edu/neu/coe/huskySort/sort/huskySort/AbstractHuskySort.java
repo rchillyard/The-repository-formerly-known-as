@@ -55,6 +55,6 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort
         return name;
     }
 
-    private final String name;
+    protected final String name;
 
 }

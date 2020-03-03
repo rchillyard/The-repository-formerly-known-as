@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
@@ -141,6 +142,11 @@ public class HuskySortBenchmark {
         Sort<String> introHuskySortInsertion = new IntroHuskySort<>(sIntroHuskySortInsertion, UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
         performSortAndLogNormalizedTime(sIntroHuskySortInsertion, words, nWords, nRuns, normalizePrefix, normalizeNormalizer, introHuskySortInsertion::sort, helper::checkSorted);
 
+        logger.info(formatLocalDateTime() + ": Starting " + "HuskyBucketSort" + " test with insertion sort.");
+        String sHuskyBucketSort = "HuskyBucketSort/Insertion";
+        Sort<String> introHuskyBucketSort = new HuskyBucketSort<>(1000, UNICODE_CODER);
+        performSortWithPreambleAndLogNormalizedTime(sHuskyBucketSort, words, nWords, nRuns, normalizePrefix, normalizeNormalizer, introHuskyBucketSort::init, introHuskyBucketSort::sort, helper::checkSorted);
+
         logger.info(formatLocalDateTime() + ": Starting " + "QuickHuskySort" + " test with printout inversions");
         Sort<String> quickHuskySortNone = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
             // do nothing, so we can count inversions.
@@ -154,6 +160,14 @@ public class HuskySortBenchmark {
         inversions = inversions / nRuns;
         logger.info("Mean inversions after first part: " + inversions);
         logger.info("Normalized mean inversions: " + inversions / Math.log(nWords));
+    }
+
+    private static void performSortWithPreambleAndLogNormalizedTime(String description, String[] words, int nWords, int nRuns, String prefix, Function<Double, Double> normalizer, UnaryOperator<String[]> preambleFunction, Consumer<String[]> sortFunction, Consumer<String[]> checkFunction) {
+        logNormalizedTime(
+                new Benchmark<>(description, preambleFunction, sortFunction, checkFunction).run(generateRandomStringArray(words, nWords), nRuns),
+                prefix,
+                normalizer
+        );
     }
 
     private static void performSortAndLogNormalizedTime(String description, String[] words, int nWords, int nRuns, String prefix, Function<Double, Double> normalizer, Consumer<String[]> sortFunction, Consumer<String[]> checkFunction) {

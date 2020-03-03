@@ -14,6 +14,7 @@ public interface Sort<X extends Comparable<X>> {
      * @param makeCopy if set to true, we make a copy first and sort that.
      */
     default X[] sort(X[] xs, boolean makeCopy) {
+        // CONSIDER doing this as part of init method.
         getHelper().setN(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         sort(result, 0, result.length);
@@ -54,4 +55,14 @@ public interface Sort<X extends Comparable<X>> {
      * @return the Helper
      */
     Helper<X> getHelper();
+
+    /**
+     * Perform initializing step for this Sort.
+     *
+     * @param xs the elements to be pre-processed.
+     */
+    default X[] init(X[] xs) {
+        getHelper().setN(xs.length);
+        return xs;
+    }
 }

@@ -4,9 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
-import edu.neu.coe.huskySort.sort.simple.BucketSort;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -27,6 +25,7 @@ public class HuskyBucketSortTest {
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
         HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(2, HuskySortHelper.integerCoder);
+        sorter.init(xs);
         Integer[] ys = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys));
         System.out.println(sorter.toString());
@@ -38,24 +37,27 @@ public class HuskyBucketSortTest {
         Integer[] xs = new Integer[N];
         Random random = new Random();
         for (int i = 0; i < N; i++) xs[i] = random.nextInt(10000);
-        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(100, HuskySortHelper.integerCoder);
+        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder);
+        sorter.init(xs);
         Integer[] ys = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys));
         System.out.println(sorter.toString());
     }
 
+    // NOTE: this test makes no sense because we build the buckets twice
     @Test
     public void doubleSortN() throws Exception {
-        int N = 10000;
+        int N = 10240;
         Integer[] xs = new Integer[N];
         Random random = new Random();
         for (int i = 0; i < N; i++) xs[i] = random.nextInt(10000);
-        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(100, HuskySortHelper.integerCoder);
+        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder);
+        sorter.init(xs);
         Integer[] ys1 = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys1));
+        sorter.init(xs);
         Integer[] ys2 = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys2));
     }
-
 
 }
