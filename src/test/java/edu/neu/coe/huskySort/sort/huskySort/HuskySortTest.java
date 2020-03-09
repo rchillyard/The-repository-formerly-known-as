@@ -16,16 +16,17 @@ import java.util.regex.Pattern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@SuppressWarnings("MagicConstant")
 public class HuskySortTest {
 
     @Test
     public void testGetWords() {
         final PrivateMethodTester tester = new PrivateMethodTester(HuskySortBenchmarkHelper.class);
-        final List<String> words = (List<String>) tester.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
+        @SuppressWarnings("unchecked") final List<String> words = (List<String>) tester.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
         assertEquals(8, words.size());
     }
 
-    class Person implements HuskySortable<Person> {
+    static class Person implements HuskySortable<Person> {
 
         Person(String firstName, String lastName) {
             this.lastName = lastName;
@@ -34,7 +35,7 @@ public class HuskySortTest {
 
         @Override
         public long huskyCode() {
-            if (huskycode==0L)
+            if (huskycode == 0L)
                 huskycode = HuskySortHelper.asciiToLong(lastName);
             return huskycode;
         }
@@ -91,7 +92,7 @@ public class HuskySortTest {
 
     @Test
     public void testSortString() {
-        String[] xs = {"Hello", "Goodbye", "Ciao", "Welkommen"};
+        String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
         QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskySortHelper.asciiCoder);
         assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));
     }

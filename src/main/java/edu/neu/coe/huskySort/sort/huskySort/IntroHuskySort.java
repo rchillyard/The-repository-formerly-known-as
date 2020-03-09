@@ -23,7 +23,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     // TODO this needs to be unit-tested
     @Override
     public void sort(X[] xs, int from, int to) {
-        long[] longs = helper.getLongs();
+        long[] longs = getHelper().getLongs();
         quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
     }
 
@@ -61,7 +61,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         return new Partition(lt, gt);
     }
 
-    private class Partition {
+    private static class Partition {
         final int lt;
         final int gt;
 

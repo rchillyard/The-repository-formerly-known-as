@@ -4,9 +4,9 @@
 package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 
-public class SelectionSort<X extends Comparable<X>> implements Sort<X> {
+public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**
      * Constructor for SelectionSort
@@ -14,7 +14,7 @@ public class SelectionSort<X extends Comparable<X>> implements Sort<X> {
      * @param helper an explicit instance of Helper to be used.
      */
     public SelectionSort(Helper<X> helper) {
-        this.helper = helper;
+        super(helper);
     }
 
     public SelectionSort() {
@@ -23,6 +23,7 @@ public class SelectionSort<X extends Comparable<X>> implements Sort<X> {
 
     @Override
     public void sort(X[] xs, int from, int to) {
+        final Helper<X> helper = getHelper();
         for (int i = from; i < to; i++) {
             int min = i;
             for (int j = i + 1; j < to; j++)
@@ -31,15 +32,4 @@ public class SelectionSort<X extends Comparable<X>> implements Sort<X> {
             helper.swap(xs, from, to, i, min);
         }
     }
-
-    @Override
-    public String toString() {
-        return helper.toString();
-    }
-
-    public Helper<X> getHelper() {
-        return helper;
-    }
-
-    private final Helper<X> helper;
 }

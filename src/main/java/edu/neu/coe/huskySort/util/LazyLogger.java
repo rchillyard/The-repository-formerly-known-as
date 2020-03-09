@@ -1,6 +1,5 @@
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -13,12 +12,12 @@ import java.util.Enumeration;
 import java.util.ResourceBundle;
 import java.util.function.Supplier;
 
+@SuppressWarnings("rawtypes")
 public class LazyLogger extends Logger {
 
     public LazyLogger(Class<?> clazz) {
         super("LazyLogger");
-        // NOTE: arbitrarily choose HuskySortBenchmark
-        logger = Logger.getLogger(HuskySortBenchmark.class);
+        logger = Logger.getLogger(clazz);
     }
 
     public void trace(Supplier<String> fMessage) {

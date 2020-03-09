@@ -83,6 +83,5 @@ class HuskySortBenchmarkHelper {
     private HuskySortBenchmarkHelper() {
     }
 
-    // NOTE: we share the logger with HuskySortBenchmark. Why?
-    final static LazyLogger logger = new LazyLogger(HuskySortBenchmark.class);
+    final static LazyLogger logger = new LazyLogger(HuskySortBenchmarkHelper.class);
 }

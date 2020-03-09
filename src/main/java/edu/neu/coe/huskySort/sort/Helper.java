@@ -108,6 +108,10 @@ public class Helper<X extends Comparable<X>> {
         return "Helper for " + description + " with " + n + " elements: compares=" + compares + ", swaps=" + swaps;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public void setN(int n) {
         if (this.n == 0 || this.n == n) this.n = n;
         else throw new RuntimeException("Helper: n is already set to a different value");
@@ -125,6 +129,7 @@ public class Helper<X extends Comparable<X>> {
     private int swaps = 0;
 
     protected int n;
+
     private final String description;
     private final Random random;
 }

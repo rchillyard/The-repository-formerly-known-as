@@ -59,10 +59,19 @@ public interface Sort<X extends Comparable<X>> {
     /**
      * Perform initializing step for this Sort.
      *
+     * @param n the number of elements to be sorted.
+     */
+    default void init(int n) {
+        getHelper().setN(n);
+    }
+
+    /**
+     * Perform pre-processing step for this Sort.
+     *
      * @param xs the elements to be pre-processed.
      */
-    default X[] init(X[] xs) {
-        getHelper().setN(xs.length);
+    default X[] preProcess(X[] xs) {
+        init(xs.length);
         return xs;
     }
 }

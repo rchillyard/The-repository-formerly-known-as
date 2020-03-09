@@ -4,25 +4,25 @@
 package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 
 import java.util.Arrays;
 
-public class IntroSort<X extends Comparable<X>> implements Sort<X> {
+public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for InsertionSort
      *
      * @param helper an explicit instance of Helper to be used.
      */
     public IntroSort(Helper<X> helper) {
-        this.helper = helper;
+        super(helper);
     }
 
     public IntroSort() {
         this(new Helper<>("IntroSort"));
     }
 
-    class Partition {
+    static class Partition {
         final int lt;
         final int gt;
 
@@ -111,14 +111,11 @@ public class IntroSort<X extends Comparable<X>> implements Sort<X> {
      * Insertion sort algorithm
      */
     private void insertionSort(X[] xs, int from, int to) {
-        for (int i = from + 1; i <= to; i++)
+        final Helper<X> helper = getHelper();
+        for (int i = from + 1; i <= to; i++) {
             for (int j = i; j > from && helper.less(xs[j], xs[j - 1]); j--)
                 helper.swap(xs, from, to, j, j - 1);
-    }
-
-    @Override
-    public Helper<X> getHelper() {
-        return helper;
+        }
     }
 
     // exchange a[i] and a[j]
@@ -131,8 +128,6 @@ public class IntroSort<X extends Comparable<X>> implements Sort<X> {
     private static int floor_lg(int a) {
         return (int) (Math.floor(Math.log(a) / Math.log(2)));
     }
-
-    private final Helper<X> helper;
 
     private static final int sizeThreshold = 16;
 }

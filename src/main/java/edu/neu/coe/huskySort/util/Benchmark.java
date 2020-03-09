@@ -99,7 +99,7 @@ public class Benchmark<T> {
      * @return the average number of milliseconds taken for each run of function f.
      */
     public double run(Supplier<T> supplier, int m) {
-        logger.info("Beginning benchmark "+description+" with "+m+" runs");
+        logger.info("Beginning run " + description + " with " + m + " runs");
         // Warmup phase
         int warmupRuns = Integer.min(2, Integer.max(10, m / 10));
         for (int i = 0; i < warmupRuns; i++) doRun(supplier.get(), true);

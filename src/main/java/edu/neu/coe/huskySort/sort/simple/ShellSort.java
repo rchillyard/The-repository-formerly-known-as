@@ -4,14 +4,14 @@
 package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 
 /**
  * Class to implement Shell Sort.
  *
  * @param <X> the type of element on which we will be sorting (must implement Comparable).
  */
-public class ShellSort<X extends Comparable<X>> implements Sort<X> {
+public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**
      * Constructor for ShellSort
@@ -24,8 +24,8 @@ public class ShellSort<X extends Comparable<X>> implements Sort<X> {
      * @param helper an explicit instance of Helper to be used.
      */
     public ShellSort(int m, Helper<X> helper) {
+        super(helper);
         this.m = m;
-        this.helper = helper;
     }
 
     /**
@@ -59,16 +59,6 @@ public class ShellSort<X extends Comparable<X>> implements Sort<X> {
         }
     }
 
-    @Override
-    public Helper<X> getHelper() {
-        return helper;
-    }
-
-    @Override
-    public String toString() {
-        return helper.toString();
-    }
-
     /**
      * Private method to h-sort an array.
      * TODO use private method tester to test this
@@ -79,6 +69,7 @@ public class ShellSort<X extends Comparable<X>> implements Sort<X> {
      * @param to   one plus the last index to be considered in array xs.
      */
     private void hSort(int h, X[] xs, int from, int to) {
+        final Helper<X> helper = getHelper();
         for (int i = h + from; i < to; i++)
             for (int j = i; j >= h + from && helper.less(xs[j], xs[j - h]); j -= h) {
                 helper.swap(xs, from, to, j, j - h);
@@ -86,7 +77,6 @@ public class ShellSort<X extends Comparable<X>> implements Sort<X> {
     }
 
     private final int m;
-    private final Helper<X> helper;
 
     /**
      * Private inner class to provide h (gap) values.

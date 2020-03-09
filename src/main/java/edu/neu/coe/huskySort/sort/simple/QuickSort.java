@@ -8,6 +8,11 @@ import edu.neu.coe.huskySort.sort.Sort;
 
 import java.util.Arrays;
 
+/**
+ * Currently unused.
+ *
+ * @param <X>
+ */
 public class QuickSort<X extends Comparable<X>> implements Sort<X> {
     private final Helper<X> helper;
 

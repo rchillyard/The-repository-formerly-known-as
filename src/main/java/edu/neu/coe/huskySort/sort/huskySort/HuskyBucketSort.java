@@ -20,7 +20,7 @@ public class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<
     }
 
     @Override
-    public X[] init(X[] xs) {
+    public X[] preProcess(X[] xs) {
         bucketHelper = new HuskyBucketHelper<>(name, bucketSize, xs.length, getHelper().getCoder(), getHelper().getPostSorter());
         return xs;
     }
@@ -40,10 +40,5 @@ public class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<
     @Override
     public void sort(X[] xs, int from, int to) {
         throw new RuntimeException("logic error not implemented");
-    }
-
-    @Override
-    public String toString() {
-        return helper.toString();
     }
 }

@@ -3,7 +3,6 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
@@ -11,9 +10,10 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.InversionCounter;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.IntroSort;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
+import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.util.Benchmark;
 import edu.neu.coe.huskySort.util.LazyLogger;
-import edu.neu.coe.huskySort.util.SortBenchmark;
+import edu.neu.coe.huskySort.util.SorterBenchmark;
 import org.ini4j.Configurable;
 import org.ini4j.Ini;
 
@@ -36,7 +36,6 @@ import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_COD
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.*;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static edu.neu.coe.huskySort.util.Benchmark.formatLocalDateTime;
-import static java.lang.System.nanoTime;
 
 public class HuskySortBenchmark {
 
@@ -79,22 +78,23 @@ public class HuskySortBenchmark {
         logger.info("Beginning LocalDateTime sorts");
         Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(100000);
         // Test on date using pure tim sort.
-        logger.info(getBenchmark("Sort LocalDateTimes using TimSort", Arrays::sort, null).run(localDateTimeSupplier, 100) + "ms");
+        logger.info(benchmarkFactory("Sort LocalDateTimes using TimSort", Arrays::sort, null).run(localDateTimeSupplier, 100) + "ms");
 
         // Test on date using husky sort.
         QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort = new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder);
         final HuskyHelper<ChronoLocalDateTime<?>> dateHelper = dateHuskySortSystemSort.getHelper();
-        logger.info(getBenchmark("Sort LocalDateTimes using huskySort with TimSort", dateHuskySortSystemSort::sort, dateHelper::checkSorted).run(localDateTimeSupplier, 100) + "ms");
+        logger.info(benchmarkFactory("Sort LocalDateTimes using huskySort with TimSort", dateHuskySortSystemSort::sort, dateHelper::checkSorted).run(localDateTimeSupplier, 100) + "ms");
 
         // Test on date using husky sort with insertion sort.
         InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>();
         QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortInsertionSort = new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, insertionSort::mutatingSort);
-        logger.info(getBenchmark("Sort LocalDateTimes using huskySort with insertionSort", dateHuskySortInsertionSort::sort, dateHelper::checkSorted).run(localDateTimeSupplier, 100) + "ms");
+        logger.info(benchmarkFactory("Sort LocalDateTimes using huskySort with insertionSort", dateHuskySortInsertionSort::sort, dateHelper::checkSorted).run(localDateTimeSupplier, 100) + "ms");
     }
 
-    private Benchmark<LocalDateTime[]> getBenchmark(String description, Consumer<LocalDateTime[]> sorter, Consumer<LocalDateTime[]> checker) {
+    private static Benchmark<LocalDateTime[]> benchmarkFactory(String description, Consumer<LocalDateTime[]> sorter, Consumer<LocalDateTime[]> checker) {
         return new Benchmark<>(
-                description, (xs) -> Arrays.copyOf(xs, xs.length),
+                description,
+                (xs) -> Arrays.copyOf(xs, xs.length),
                 sorter,
                 checker
         );
@@ -109,46 +109,30 @@ public class HuskySortBenchmark {
         String rawPrefix = "Raw time per run: ";
         Function<Double, Double> rawNormalizer = (time) -> time;
 
-        String sTimsort = "Timsort";
-        logger.info(formatLocalDateTime() + ": Starting " + sTimsort + " test");
-        performSortAndLogNormalizedTime(sTimsort, words, nWords, nRuns, normalizePrefix, normalizeNormalizer, Arrays::sort, null);
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, new TimSort<>(), null);
 
-        final String sQuicksort = "Quicksort";
-        logger.info(formatLocalDateTime() + ": Starting " + sQuicksort + " test");
-        performSortAndLogNormalizedTime(sQuicksort, words, nWords, nRuns, normalizePrefix, normalizeNormalizer, new QuickSort_3way<String>()::mutatingSort, null);
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, new QuickSort_3way<>(), null);
 
-        final String sIntroSort = "IntroSort";
-        logger.info(formatLocalDateTime() + ": Starting " + sIntroSort + " test");
-        performSortAndLogNormalizedTime(sIntroSort, words, nWords, nRuns, normalizePrefix, normalizeNormalizer, new IntroSort<String>()::mutatingSort, ((Sort<String>) new IntroSort<String>()).getHelper()::checkSorted);
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, new IntroSort<>(), null);
 
-        Helper<String> helper = new Helper<>("StringHelper", nWords, nanoTime());
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, new QuickHuskySort<>(UNICODE_CODER), null);
 
-        final SortBenchmark<String> sortBenchmark = new SortBenchmark<>(words, nRuns, normalizePrefix, normalizeNormalizer);
+        final Sort<String> stringHuskyBucketSort = new HuskyBucketSort<>(16, UNICODE_CODER);
+        final UnaryOperator<String[]> stringHuskyBucketSortPreProcess = stringHuskyBucketSort::preProcess;
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, stringHuskyBucketSort, stringHuskyBucketSortPreProcess);
 
-        sortBenchmark.run(nWords, new QuickHuskySort<>(UNICODE_CODER));
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, new IntroHuskySort<>(UNICODE_CODER), null);
 
-        // CONSIDER reinstating this when HuskyBucketSort is faster.
-//        sortBenchmark.run(nWords, new HuskyBucketSort<>(nWords / 10, UNICODE_CODER));
+        final Sort<String> quickHuskySortInsertion = new QuickHuskySort<>("QuickHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, quickHuskySortInsertion, quickHuskySortInsertion::preProcess);
 
-        sortBenchmark.run(nWords, new IntroHuskySort<>(UNICODE_CODER));
+        final Sort<String> introHuskySortInsertion = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, introHuskySortInsertion, introHuskySortInsertion::preProcess);
 
-        logger.info(formatLocalDateTime() + ": Starting " + "QuickHuskySort" + " test with insertion sort.");
-        String sQuickHuskySortInsertion = "QuickHuskySort/Insertion";
-        Sort<String> quickHuskySortInsertion = new QuickHuskySort<>(sQuickHuskySortInsertion, UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
-        performSortAndLogNormalizedTime(sQuickHuskySortInsertion, words, nWords, nRuns, normalizePrefix, normalizeNormalizer, quickHuskySortInsertion::sort, helper::checkSorted);
+        final Sort<String> introHuskyBucketSort = new HuskyBucketSort<>(1000, UNICODE_CODER);
+        runBenchmark(words, nWords, nRuns, normalizePrefix, normalizeNormalizer, introHuskyBucketSort, introHuskyBucketSort::preProcess);
 
-        logger.info(formatLocalDateTime() + ": Starting " + "IntroHuskySort" + " test with insertion sort.");
-        String sIntroHuskySortInsertion = "IntroHuskySort/Insertion";
-        Sort<String> introHuskySortInsertion = new IntroHuskySort<>(sIntroHuskySortInsertion, UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
-        performSortAndLogNormalizedTime(sIntroHuskySortInsertion, words, nWords, nRuns, normalizePrefix, normalizeNormalizer, introHuskySortInsertion::sort, helper::checkSorted);
-
-        logger.info(formatLocalDateTime() + ": Starting " + "HuskyBucketSort" + " test with insertion sort.");
-        String sHuskyBucketSort = "HuskyBucketSort/Insertion";
-        Sort<String> introHuskyBucketSort = new HuskyBucketSort<>(1000, UNICODE_CODER);
-        performSortWithPreambleAndLogNormalizedTime(sHuskyBucketSort, words, nWords, nRuns, normalizePrefix, normalizeNormalizer, introHuskyBucketSort::init, introHuskyBucketSort::sort, helper::checkSorted);
-
-        logger.info(formatLocalDateTime() + ": Starting " + "QuickHuskySort" + " test with printout inversions");
-        Sort<String> quickHuskySortNone = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
+        final Sort<String> quickHuskySortNone = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
             // do nothing, so we can count inversions.
         });
         long inversions = 0;
@@ -162,20 +146,19 @@ public class HuskySortBenchmark {
         logger.info("Normalized mean inversions: " + inversions / Math.log(nWords));
     }
 
-    private static void performSortWithPreambleAndLogNormalizedTime(String description, String[] words, int nWords, int nRuns, String prefix, Function<Double, Double> normalizer, UnaryOperator<String[]> preambleFunction, Consumer<String[]> sortFunction, Consumer<String[]> checkFunction) {
-        logNormalizedTime(
-                new Benchmark<>(description, preambleFunction, sortFunction, checkFunction).run(generateRandomStringArray(words, nWords), nRuns),
-                prefix,
-                normalizer
-        );
+    private void runBenchmark(String[] words, int nWords, int nRuns, String normalizePrefix, Function<Double, Double> normalizeNormalizer, Sort<String> timSort, UnaryOperator<String[]> timSortPreProcessor) {
+        new SorterBenchmark<>(String.class, timSortPreProcessor, timSort, words, nRuns, normalizePrefix, normalizeNormalizer).run(nWords);
+    }
+
+    private static void logIt(String[] words, int nWords, int nRuns, String prefix, Function<Double, Double> normalizer, Benchmark<String[]> benchmark) {
+        final String[] wordSelection = generateRandomStringArray(words, nWords);
+        final double time = benchmark.run(wordSelection, nRuns);
+        logNormalizedTime(time, prefix, normalizer);
     }
 
     private static void performSortAndLogNormalizedTime(String description, String[] words, int nWords, int nRuns, String prefix, Function<Double, Double> normalizer, Consumer<String[]> sortFunction, Consumer<String[]> checkFunction) {
-        logNormalizedTime(
-                new Benchmark<>(description, sortFunction, checkFunction).run(generateRandomStringArray(words, nWords), nRuns),
-                prefix,
-                normalizer
-        );
+        final Benchmark<String[]> benchmark = new Benchmark<>(description, sortFunction, checkFunction);
+        logIt(words, nWords, nRuns, prefix, normalizer, benchmark);
     }
 
     private static List<String> lineAsList(String line) {

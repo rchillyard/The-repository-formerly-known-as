@@ -3,7 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
@@ -11,11 +11,16 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort<X> {
+public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWithHelper<X> {
+
+    private AbstractHuskySort(String name, HuskyHelper<X> helper) {
+        super(helper);
+        this.name = name;
+        this.huskyHelper = helper;
+    }
 
     public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
-        this.name = name;
-        helper = new HuskyHelper<>(name, n, huskyCoder, postSorter);
+        this(name, new HuskyHelper<>(name, n, huskyCoder, postSorter));
     }
 
     public AbstractHuskySort(int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
@@ -24,29 +29,23 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort
 
     @Override
     public X[] sort(X[] xs, boolean makeCopy) {
-        helper.setN(xs.length);
+        huskyHelper.setN(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-        helper.initLongArray(result);
+        huskyHelper.initLongArray(result);
         sort(result, 0, result.length);
-        getHelper().getPostSorter().accept(result);
+        huskyHelper.getPostSorter().accept(result);
         return result;
     }
 
     @Override
     public X[] sort(X[] xs) {
-        return sort(xs, helper.isMakeCopy());
+        return sort(xs, huskyHelper.isMakeCopy());
     }
-
-    protected final HuskyHelper<X> helper;
 
     static final HuskyCoder<String> UNICODE_CODER = HuskySortHelper.unicodeCoder;
 
-    public HuskyHelper<X> getHelper() {
-        return helper;
-    }
-
     void swap(X[] objects, int i, int j) {
-        helper.swap(objects, i, j);
+        huskyHelper.swap(objects, i, j);
     }
 
     // CONSIDER showing coder and postSorter (would need extra String for that).
@@ -57,4 +56,10 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> implements Sort
 
     protected final String name;
 
+    @Override
+    public HuskyHelper<X> getHelper() {
+        return huskyHelper;
+    }
+
+    private final HuskyHelper<X> huskyHelper;
 }

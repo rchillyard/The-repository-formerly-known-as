@@ -1,25 +1,25 @@
 package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 
 import java.util.Arrays;
 
-public class QuickSort_3way<X extends Comparable<X>> implements Sort<X> {
+public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for InsertionSort
      *
      * @param helper an explicit instance of Helper to be used.
      */
     public QuickSort_3way(Helper<X> helper) {
-        this.helper = helper;
+        super(helper);
     }
 
     public QuickSort_3way() {
         this(new Helper<>("3-way QuickSort"));
     }
 
-    class Partition {
+    static class Partition {
         final int lt;
         final int gt;
 
@@ -62,11 +62,6 @@ public class QuickSort_3way<X extends Comparable<X>> implements Sort<X> {
         return new Partition(lt, gt);
     }
 
-    @Override
-    public Helper<X> getHelper() {
-        return helper;
-    }
-
     // exchange a[i] and a[j]
     private static void swap(Object[] a, int i, int j) {
         Object temp = a[i];
@@ -74,11 +69,5 @@ public class QuickSort_3way<X extends Comparable<X>> implements Sort<X> {
         a[j] = temp;
     }
 
-    private final Helper<X> helper;
-
-    @Override
-    public String toString() {
-        return helper.toString();
-    }
 }
 
