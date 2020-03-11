@@ -10,7 +10,7 @@ public class SorterBenchmarkTest {
     @Before
     public void setUp() {
         String[] strings = {"Hello", "Goodbye", "Ciao", "Willkommen"};
-        benchmark = new SorterBenchmark<>(String.class, new InsertionSort<>(), strings, 100, "test", (x, n) -> x / n);
+        benchmark = new SorterBenchmark<>(String.class, new InsertionSort<>(), strings, 100, new TimeLogger[]{new TimeLogger("test", (x, n) -> x / n)});
     }
 
     @SuppressWarnings("EmptyMethod")

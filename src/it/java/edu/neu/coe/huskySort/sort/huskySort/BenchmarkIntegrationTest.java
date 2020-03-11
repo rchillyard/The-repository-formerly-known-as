@@ -4,6 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.util.TimeLogger;
 import org.ini4j.Configurable;
 import org.ini4j.Ini;
 import org.junit.Test;
@@ -37,11 +38,11 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void test10K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000, config, "Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6);
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000, config, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
     }
 
     @Test(timeout = 70000)
     public void test100K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, config, "Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6);
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, config, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
     }
 }

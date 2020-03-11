@@ -14,6 +14,7 @@ import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.util.Benchmark;
 import edu.neu.coe.huskySort.util.LazyLogger;
 import edu.neu.coe.huskySort.util.SorterBenchmark;
+import edu.neu.coe.huskySort.util.TimeLogger;
 import org.ini4j.Configurable;
 import org.ini4j.Ini;
 
@@ -26,7 +27,6 @@ import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -71,10 +71,11 @@ public class HuskySortBenchmark {
     }
 
     private void doBenchmark(String[] words, int nWords, int nRuns) {
-        logger.info("perform string sorts with raw times");
-        benchmarkStringSorters(words, nWords, nRuns, config, "Raw time per run (mSec): ", (time, n) -> time);
-        logger.info("perform string sorts with normalized times");
-        benchmarkStringSorters(words, nWords, nRuns, config, "Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e5);
+        TimeLogger[] timeLoggers = {
+                new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
+                new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e5)
+        };
+        benchmarkStringSorters(words, nWords, nRuns, config, timeLoggers);
     }
 
     private void sortLocalDateTimes() {
@@ -103,31 +104,31 @@ public class HuskySortBenchmark {
         );
     }
 
-    void benchmarkStringSorters(String[] words, int nWords, int nRuns, Configurable config, String timePrefix, BiFunction<Double, Integer, Double> timeNormalizer) {
+    void benchmarkStringSorters(String[] words, int nWords, int nRuns, Configurable config, TimeLogger[] timeLoggers) {
         logger.info("Testing with " + nRuns + " runs of sorting " + nWords + " words");
 
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, new TimSort<>(), null);
+        runBenchmark(words, nWords, nRuns, new TimSort<>(), null, timeLoggers);
 
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, new QuickSort_3way<>(), null);
+        runBenchmark(words, nWords, nRuns, new QuickSort_3way<>(), null, timeLoggers);
 
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, new IntroSort<>(), null);
+        runBenchmark(words, nWords, nRuns, new IntroSort<>(), null, timeLoggers);
 
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, new QuickHuskySort<>(UNICODE_CODER), null);
+        runBenchmark(words, nWords, nRuns, new QuickHuskySort<>(UNICODE_CODER), null, timeLoggers);
 
         final Sort<String> stringHuskyBucketSort = new HuskyBucketSort<>(16, UNICODE_CODER);
         final UnaryOperator<String[]> stringHuskyBucketSortPreProcess = stringHuskyBucketSort::preProcess;
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, stringHuskyBucketSort, stringHuskyBucketSortPreProcess);
+        runBenchmark(words, nWords, nRuns, stringHuskyBucketSort, stringHuskyBucketSortPreProcess, timeLoggers);
 
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, new IntroHuskySort<>(UNICODE_CODER), null);
+        runBenchmark(words, nWords, nRuns, new IntroHuskySort<>(UNICODE_CODER), null, timeLoggers);
 
         final Sort<String> quickHuskySortInsertion = new QuickHuskySort<>("QuickHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, quickHuskySortInsertion, quickHuskySortInsertion::preProcess);
+        runBenchmark(words, nWords, nRuns, quickHuskySortInsertion, quickHuskySortInsertion::preProcess, timeLoggers);
 
         final Sort<String> introHuskySortInsertion = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort);
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, introHuskySortInsertion, introHuskySortInsertion::preProcess);
+        runBenchmark(words, nWords, nRuns, introHuskySortInsertion, introHuskySortInsertion::preProcess, timeLoggers);
 
         final Sort<String> introHuskyBucketSort = new HuskyBucketSort<>(1000, UNICODE_CODER);
-        runBenchmark(words, nWords, nRuns, timePrefix, timeNormalizer, introHuskyBucketSort, introHuskyBucketSort::preProcess);
+        runBenchmark(words, nWords, nRuns, introHuskyBucketSort, introHuskyBucketSort::preProcess, timeLoggers);
 
         final Sort<String> quickHuskySortNone = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
             // do nothing, so we can count inversions.
@@ -143,8 +144,8 @@ public class HuskySortBenchmark {
         logger.info("Normalized mean inversions: " + inversions / Math.log(nWords));
     }
 
-    private void runBenchmark(String[] words, int nWords, int nRuns, String timePrefix, BiFunction<Double, Integer, Double> timeNormalizer, Sort<String> sorter, UnaryOperator<String[]> preProcessor) {
-        new SorterBenchmark<>(String.class, preProcessor, sorter, words, nRuns, timePrefix, timeNormalizer).run(nWords);
+    private void runBenchmark(String[] words, int nWords, int nRuns, Sort<String> sorter, UnaryOperator<String[]> preProcessor, TimeLogger[] timeLoggers) {
+        new SorterBenchmark<>(String.class, preProcessor, sorter, words, nRuns, timeLoggers).run(nWords);
     }
 
     private static List<String> lineAsList(String line) {

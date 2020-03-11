@@ -100,6 +100,7 @@ public class Helper<X extends Comparable<X>> {
 
     // TODO this needs to be unit-tested
     public X[] random(Class<X> clazz, Function<Random, X> f) {
+        if (n <= 0) throw new SortException("Helper.random: not initialized");
         return random(n, clazz, f);
     }
 
