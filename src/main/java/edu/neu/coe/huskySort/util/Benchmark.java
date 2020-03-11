@@ -99,16 +99,23 @@ public class Benchmark<T> {
      * @return the average number of milliseconds taken for each run of function f.
      */
     public double run(Supplier<T> supplier, int m) {
-        logger.info("Beginning run " + description + " with " + m + " runs");
+        logger.info("Begin run: " + description + " with " + m + " runs");
         // Warmup phase
         int warmupRuns = Integer.min(2, Integer.max(10, m / 10));
         for (int i = 0; i < warmupRuns; i++) doRun(supplier.get(), true);
         // Timed phase
-        long totalTime = 0;
+        double totalTime = 0;
         for (int i = 0; i < m; i++) totalTime += doRun(supplier.get(), false);
-        return (double) totalTime / m / 1000000;
+        return totalTime / m / 1000000;
     }
 
+    /**
+     * https://www.youtube.com/watch?v=L0dikX80Ed8
+     *
+     * @param t      the value of t to be used for this run.
+     * @param warmup true if this is a warmup run (avoid timing).
+     * @return the elapsed nanoseconds.
+     */
     private long doRun(T t, boolean warmup) {
         T t1 = fPre != null ? fPre.apply(t) : t;
         if (warmup) {
@@ -119,6 +126,7 @@ public class Benchmark<T> {
         fRun.accept(t1);
         long nanos = System.nanoTime() - start;
         if (fPost != null) fPost.accept(t1);
+//        logger.trace(() -> "doRun: "+nanos+" nanos");
         return nanos;
     }
 

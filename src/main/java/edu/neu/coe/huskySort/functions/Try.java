@@ -28,8 +28,7 @@ public abstract class Try<V> {
     public abstract <U> Try<U> flatMap(Function<? super V, Try<U>> f);
 
     public static <V> Try<V> toTry(Optional<V> optionalV) {
-        if (optionalV.isPresent()) return success(optionalV.get());
-        else return failure(new NoSuchElementException());
+        return optionalV.map(Try::success).orElseGet(() -> failure(new NoSuchElementException()));
     }
 
     public static <V> Try<V> failure(Throwable t) {

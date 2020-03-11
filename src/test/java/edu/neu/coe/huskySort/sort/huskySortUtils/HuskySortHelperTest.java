@@ -35,7 +35,7 @@ public class HuskySortHelperTest {
         long[] codes = new long[6];
         int bitWidth = 8;
         long[] expected = {
-                0xE4B8ADE69687L << (1 * bitWidth),  // 中文
+                0xE4B8ADE69687L << (bitWidth),  // 中文
                 0xE5A4AAE995BFE7L,                  // 太长的中文
                 0x6173646667686AL,                  // asdfghjkl
                 0xC2A5L << (5 * bitWidth),          // ¥
@@ -53,7 +53,7 @@ public class HuskySortHelperTest {
                 0x6173646667686AL,                  // asdfghjkl
                 0x63L << (6 * bitWidth),            // c
                 0xC2A5L << (5 * bitWidth),          // ¥
-                0xE4B8ADE69687L << (1 * bitWidth),  // 中文
+                0xE4B8ADE69687L << (bitWidth),  // 中文
                 0xE5A4AAE995BFE7L,                  // 太长的中文
         };
         Assert.assertArrayEquals(sortedExpected, codes);
