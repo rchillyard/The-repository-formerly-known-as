@@ -25,11 +25,11 @@ public class TimerTest {
     }
 
     @Test
-    public void testPauseLap() {
+    public void testPauseAndLap() {
         final Timer timer = new Timer();
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(timer);
         GoToSleep(TENTH, 0);
-        timer.pauseLap();
+        timer.pauseAndLap();
         final Long ticks = (Long) privateMethodTester.invokePrivate("getTicks");
         assertEquals(TENTH_DOUBLE, ticks / 1e6, 12);
         assertFalse((Boolean) privateMethodTester.invokePrivate("isRunning"));
@@ -37,21 +37,21 @@ public class TimerTest {
     }
 
     @Test
-    public void testPauseLapResume0() {
+    public void testPauseAndLapResume0() {
         final Timer timer = new Timer();
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(timer);
         GoToSleep(TENTH, 0);
-        timer.pauseLap();
+        timer.pauseAndLap();
         timer.resume();
         assertTrue((Boolean) privateMethodTester.invokePrivate("isRunning"));
         assertEquals(1, privateMethodTester.invokePrivate("getLaps"));
     }
 
     @Test
-    public void testPauseLapResume1() {
+    public void testPauseAndLapResume1() {
         final Timer timer = new Timer();
         GoToSleep(TENTH, 0);
-        timer.pauseLap();
+        timer.pauseAndLap();
         GoToSleep(TENTH, 0);
         timer.resume();
         GoToSleep(TENTH, 0);
@@ -101,7 +101,7 @@ public class TimerTest {
             return null;
         });
         assertEquals(10, new PrivateMethodTester(timer).invokePrivate("getLaps"));
-        assertEquals(TENTH_DOUBLE / 10, mean, 5);
+        assertEquals(TENTH_DOUBLE / 10, mean, 6);
         assertEquals(10, run);
         assertEquals(0, pre);
         assertEquals(0, post);
@@ -134,7 +134,7 @@ public class TimerTest {
             return t;
         }, t -> GoToSleep(10, 1));
         assertEquals(10, new PrivateMethodTester(timer).invokePrivate("getLaps"));
-        assertEquals(zzz, mean, 5);
+        assertEquals(zzz, mean, 6);
         assertEquals(10, run);
         assertEquals(10, pre);
         assertEquals(10, post);

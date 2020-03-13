@@ -2,12 +2,31 @@ package edu.neu.coe.huskySort.util;
 
 import edu.neu.coe.huskySort.sort.Sort;
 
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
+/**
+ * Class to extend Benchmark for sorting an array of T values.
+ * The default implementation of run in this class randomly selects a subset of the array to be sorted.
+ * Each sort is preceded (optionally) by a preProcessor and succeeded (optionally) by a postProcessor.
+ *
+ * @param <T> the underlying type to be sorted.
+ */
 public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
 
-    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, Sort<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
-        super(sorter.toString(), preProcessor, sorter::mutatingSort, sorter.getHelper()::checkSorted);
+    /**
+     * Constructor for a SorterBenchmark where we provide the following parameters:
+     *
+     * @param tClass        the class of T.
+     * @param preProcessor  an optional pre-processor which is applied before each sort.
+     * @param sorter        the sorter.
+     * @param postProcessor an optional pre-processor which is applied before each sort.
+     * @param ts            the array of Ts.
+     * @param nRuns         the number of runs to perform in this benchmark.
+     * @param timeLoggers   the time-loggers.
+     */
+    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, Sort<T> sorter, Consumer<T[]> postProcessor, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
+        super(sorter.toString(), preProcessor, sorter::mutatingSort, postProcessor);
         this.sorter = sorter;
         this.tClass = tClass;
         this.ts = ts;
@@ -15,6 +34,32 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
         this.timeLoggers = timeLoggers;
     }
 
+    /**
+     * Constructor for a SorterBenchmark where we provide the following parameters:
+     * For this form of the constructor, the post-processor always checks that the sort was successful.
+     *
+     * @param tClass       the class of T.
+     * @param preProcessor an optional pre-processor which is applied before each sort.
+     * @param sorter       the sorter.
+     * @param ts           the array of Ts.
+     * @param nRuns        the number of runs to perform in this benchmark.
+     * @param timeLoggers  the time-loggers.
+     */
+    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, Sort<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
+        this(tClass, preProcessor, sorter, sorter.getHelper()::checkSorted, ts, nRuns, timeLoggers);
+    }
+
+    /**
+     * Constructor for a SorterBenchmark where we provide the following parameters:
+     * For this form of the constructor, the post-processor always checks that the sort was successful.
+     * For this form of the constructor, there is no pre-processor.
+     *
+     * @param tClass      the class of T.
+     * @param sorter      the sorter.
+     * @param ts          the array of Ts.
+     * @param nRuns       the number of runs to perform in this benchmark.
+     * @param timeLoggers the time-loggers.
+     */
     public SorterBenchmark(Class<T> tClass, Sort<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
         this(tClass, null, sorter, ts, nRuns, timeLoggers);
     }
@@ -26,27 +71,26 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
      *          Not to be confused with nRuns, an instance field, which specifies the number of repetitions of the function.
      */
     public void run(int N) {
-        logger.info(formatLocalDateTime() + ": run " + this + " with " + sorter.getHelper().getDescription());
+        logger.info("run: sort " + N + " elements using " + this);
         sorter.init(N);
-        logger.info("SorterBenchmark.run: " + formatLocalDateTime() + ": starting " + sorter + " with " + N + " words");
         final double time = super.run(() -> generateRandomArray(ts), nRuns);
         for (TimeLogger timeLogger : timeLoggers) timeLogger.log(time, N);
     }
 
     @Override
     public String toString() {
-        return "SorterBenchmark with " + ts.length + " words and " + nRuns + " runs";
+        return "SorterBenchmark on " + tClass + " with " + ts.length + " total elements and " + nRuns + " runs using sorter: " + sorter.getHelper().getDescription();
     }
 
     private T[] generateRandomArray(T[] lookupArray) {
         return sorter.getHelper().random(tClass, (r) -> lookupArray[r.nextInt(lookupArray.length)]);
     }
 
-    private final Sort<T> sorter;
+    protected final Sort<T> sorter;
     private final Class<T> tClass;
-    private final T[] ts;
-    private final int nRuns;
-    private final TimeLogger[] timeLoggers;
+    protected final T[] ts;
+    protected final int nRuns;
+    protected final TimeLogger[] timeLoggers;
 
     final static LazyLogger logger = new LazyLogger(SorterBenchmark.class);
 }

@@ -60,7 +60,7 @@ public class Timer {
             T t1 = preFunction != null ? preFunction.apply(t) : t;
             resume();
             U u = function.apply(t1);
-            pauseLap();
+            pauseAndLap();
             if (postFunction != null) postFunction.accept(u);
         }
         return meanLapTime();
@@ -73,7 +73,7 @@ public class Timer {
      * @throws TimerException if this Timer is not running.
      */
     public double stop() {
-        pauseLap();
+        pauseAndLap();
         return meanLapTime();
     }
 
@@ -94,7 +94,7 @@ public class Timer {
      *
      * @throws TimerException if this Timer is not running.
      */
-    public void pauseLap() {
+    public void pauseAndLap() {
         lap();
         ticks += getClock();
         running = false;
@@ -129,7 +129,7 @@ public class Timer {
      * @throws TimerException if this Timer is not running.
      */
     public void pause() {
-        pauseLap();
+        pauseAndLap();
         laps--;
     }
 
@@ -171,7 +171,6 @@ public class Timer {
     private boolean isRunning() {
         return running;
     }
-
 
     /**
      * Get the number of ticks from the system clock.
