@@ -19,12 +19,18 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
         this(tClass, null, sorter, ts, nRuns, timeLoggers);
     }
 
-    public void run(int nWords) {
+    /**
+     * Run a benchmark on a sorting problem with N elements.
+     *
+     * @param N the number of elements.
+     *          Not to be confused with nRuns, an instance field, which specifies the number of repetitions of the function.
+     */
+    public void run(int N) {
         logger.info(formatLocalDateTime() + ": run " + this + " with " + sorter.getHelper().getDescription());
-        sorter.init(nWords);
-        logger.info("SorterBenchmark.run: " + formatLocalDateTime() + ": starting " + sorter + " with " + nWords + " words");
+        sorter.init(N);
+        logger.info("SorterBenchmark.run: " + formatLocalDateTime() + ": starting " + sorter + " with " + N + " words");
         final double time = super.run(() -> generateRandomArray(ts), nRuns);
-        for (TimeLogger timeLogger : timeLoggers) timeLogger.log(time, nWords);
+        for (TimeLogger timeLogger : timeLoggers) timeLogger.log(time, N);
     }
 
     @Override
