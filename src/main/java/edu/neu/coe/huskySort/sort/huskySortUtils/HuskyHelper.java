@@ -5,7 +5,8 @@ import edu.neu.coe.huskySort.sort.Helper;
 import java.util.function.Consumer;
 
 /**
- * Helper class for sorting methods with special technique of HuskySort
+ * Helper class for sorting methods with special technique of HuskySort.
+ * IF you want to count compares and swaps then you need to extend InstrumentingHelper.
  *
  * @param <X> the underlying type (must be Comparable).
  */

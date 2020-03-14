@@ -4,20 +4,7 @@ import java.lang.reflect.Array;
 import java.util.Random;
 import java.util.function.Function;
 
-/**
- * Helper class for sorting methods.
- *
- * @param <X> the underlying type (must be Comparable).
- */
 public class Helper<X extends Comparable<X>> {
-
-    /**
-     * Constructor to create a Helper
-     *
-     * @param description the description of this Helper (for humans).
-     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     * @param seed        the seed for the random number generator
-     */
     public Helper(String description, int n, long seed) {
         this.n = n;
         this.description = description;
@@ -51,7 +38,6 @@ public class Helper<X extends Comparable<X>> {
      * @return true only if v is less than w.
      */
     public boolean less(X v, X w) {
-        compares++;
         return v.compareTo(w) < 0;
     }
 
@@ -65,9 +51,6 @@ public class Helper<X extends Comparable<X>> {
      * @param j  the other index.
      */
     public void swap(X[] a, int lo, int hi, int i, int j) {
-        swaps++;
-        if (i < lo) throw new RuntimeException("i is out of range: i; " + i + "; lo=" + lo);
-        if (j > hi) throw new RuntimeException("j is out of range: j; " + j + "; hi=" + hi);
         X temp = a[i];
         a[i] = a[j];
         a[j] = temp;
@@ -106,7 +89,7 @@ public class Helper<X extends Comparable<X>> {
 
     @Override
     public String toString() {
-        return "Helper for " + description + " with " + n + " elements: compares=" + compares + ", swaps=" + swaps;
+        return "Helper for " + description + " with " + n + " elements";
     }
 
     public String getDescription() {
@@ -126,11 +109,7 @@ public class Helper<X extends Comparable<X>> {
         return result;
     }
 
-    private int compares = 0;
-    private int swaps = 0;
-
+    protected final String description;
+    protected final Random random;
     protected int n;
-
-    private final String description;
-    private final Random random;
 }
