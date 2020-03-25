@@ -3,6 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 
@@ -16,6 +17,21 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for ShellSort
      *
+     * @param N            the number elements we expect to sort.
+     * @param instrumented whether or not we want an instrumented helper class.
+     */
+    public ShellSort(int m, int N, boolean instrumented) {
+        super(DESCRIPTION, N, instrumented);
+        this.m = m;
+    }
+
+    public ShellSort() {
+        this(3, new BaseHelper<>(DESCRIPTION));
+    }
+
+    /**
+     * Constructor for ShellSort
+     *
      * @param m      the "gap" (h) sequence to follow:
      *               1: ordinary insertion sort;
      *               2: use powers of two less one;
@@ -23,7 +39,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *               4: Sedgewick's sequence (not implemented).
      * @param helper an explicit instance of Helper to be used.
      */
-    public ShellSort(int m, Helper<X> helper) {
+    public ShellSort(int m, BaseHelper<X> helper) {
         super(helper);
         this.m = m;
     }
@@ -38,7 +54,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *          4: Sedgewick's sequence (not implemented).
      */
     public ShellSort(int m) {
-        this(m, new Helper<>("ShellSort"));
+        this(m, new BaseHelper<>(DESCRIPTION));
     }
 
     /**
@@ -58,6 +74,8 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
             h = hh.next();
         }
     }
+
+    public static final String DESCRIPTION = "Shell sort";
 
     /**
      * Private method to h-sort an array.

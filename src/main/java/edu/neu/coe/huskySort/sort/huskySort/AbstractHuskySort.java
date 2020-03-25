@@ -19,12 +19,9 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         this.huskyHelper = helper;
     }
 
-    public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
-        this(name, new HuskyHelper<>(name, n, huskyCoder, postSorter));
-    }
-
-    public AbstractHuskySort(int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
-        this("HuskySort Helper", n, huskyCoder, postSorter);
+    public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {
+        // CONSIDER doing this using a factory method (like is done for Helper).
+        this(name, instrumentation ? new HuskyHelper<>(name, n, huskyCoder, postSorter) : new HuskyHelper<>(name, n, huskyCoder, postSorter));
     }
 
     @Override

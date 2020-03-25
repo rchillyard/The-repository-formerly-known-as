@@ -4,13 +4,10 @@
 
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.TimeLogger;
-import org.ini4j.Configurable;
-import org.ini4j.Ini;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
@@ -28,7 +25,7 @@ import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getW
 @SuppressWarnings("ALL")
 public class BenchmarkIntegrationTest {
 
-    Configurable config = new Ini(new FileReader(new File("config.ini")));
+    Config config = new Config("config.ini");
     HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
 
     final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
@@ -38,11 +35,11 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void test10K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000, config, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
     }
 
     @Test(timeout = 70000)
     public void test100K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, config, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
     }
 }

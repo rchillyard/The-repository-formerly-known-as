@@ -1,22 +1,32 @@
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 
 import java.util.Arrays;
 
 public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
-     * Constructor for InsertionSort
+     * Constructor for QuickSort_3way
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public QuickSort_3way(Helper<X> helper) {
+    public QuickSort_3way(BaseHelper<X> helper) {
         super(helper);
     }
 
+    /**
+     * Constructor for QuickSort_3way
+     *
+     * @param N            the number elements we expect to sort.
+     * @param instrumented whether or not we want an instrumented helper class.
+     */
+    public QuickSort_3way(int N, boolean instrumented) {
+        super(DESCRIPTION, N, instrumented);
+    }
+
     public QuickSort_3way() {
-        this(new Helper<>("3-way QuickSort"));
+        this(new BaseHelper<>(DESCRIPTION));
     }
 
     static class Partition {
@@ -61,6 +71,8 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
         }
         return new Partition(lt, gt);
     }
+
+    public static final String DESCRIPTION = "QuickSort 3 way";
 
     // exchange a[i] and a[j]
     private static void swap(Object[] a, int i, int j) {

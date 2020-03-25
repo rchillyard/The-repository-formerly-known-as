@@ -3,6 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 
@@ -11,14 +12,24 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for InsertionSort
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param N            the number elements we expect to sort.
+     * @param instrumented whether or not we want an instrumented helper class.
      */
-    public InsertionSort(Helper<X> helper) {
-        super(helper);
+    public InsertionSort(int N, boolean instrumented) {
+        super(DESCRIPTION, N, instrumented);
     }
 
     public InsertionSort() {
-        this(new Helper<>("InsertionSort"));
+        this(new BaseHelper<>(DESCRIPTION));
+    }
+
+    /**
+     * Constructor for InsertionSort
+     *
+     * @param helper an explicit instance of Helper to be used.
+     */
+    public InsertionSort(BaseHelper<X> helper) {
+        super(helper);
     }
 
     @Override
@@ -34,4 +45,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
     public static <Y extends Comparable<Y>> void mutatingInsertionSort(Y[] ys) {
         new InsertionSort<Y>().mutatingSort(ys);
     }
+
+    public static final String DESCRIPTION = "Insertion sort";
+
 }

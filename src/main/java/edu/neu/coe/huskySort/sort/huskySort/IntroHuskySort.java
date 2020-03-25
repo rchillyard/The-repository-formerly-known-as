@@ -11,13 +11,13 @@ import java.util.function.Consumer;
 public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     // TODO this needs to be unit-tested
-    public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
-        super(name, 0, huskyCoder, postSorter);
+    public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {
+        super(name, 0, huskyCoder, postSorter, instrumentation);
     }
 
     // TODO this needs to be unit-tested
-    public IntroHuskySort(HuskyCoder<X> huskyCoder) {
-        this("IntroHuskySort", huskyCoder, Arrays::sort);
+    public IntroHuskySort(HuskyCoder<X> huskyCoder, boolean instrumentation) {
+        this("IntroHuskySort", huskyCoder, Arrays::sort, instrumentation);
     }
 
     // TODO this needs to be unit-tested

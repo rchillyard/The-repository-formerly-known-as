@@ -3,23 +3,35 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 
 import java.util.Arrays;
 
 public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
+
+    /**
+     * Constructor for IntroSort
+     *
+     * @param N            the number elements we expect to sort.
+     * @param instrumented whether or not we want an instrumented helper class.
+     */
+    public IntroSort(int N, boolean instrumented) {
+        super(DESCRIPTION, N, instrumented);
+    }
+
+    public IntroSort() {
+        this(new BaseHelper<>(DESCRIPTION));
+    }
+
     /**
      * Constructor for InsertionSort
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public IntroSort(Helper<X> helper) {
+    public IntroSort(BaseHelper<X> helper) {
         super(helper);
-    }
-
-    public IntroSort() {
-        this(new Helper<>("IntroSort"));
     }
 
     static class Partition {
@@ -67,6 +79,7 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     public Partition partition(X[] a, int lo, int hi) {
+        // CONSIDER using code from QuickSort_3way
         int lt = lo, gt = hi;
         if (a[lo].compareTo(a[hi]) > 0) swap(a, lo, hi);
         X v = a[lo];
@@ -79,6 +92,8 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
         }
         return new Partition(lt, gt);
     }
+
+    public static final String DESCRIPTION = "Intro sort";
 
     /*
      * Heapsort algorithm

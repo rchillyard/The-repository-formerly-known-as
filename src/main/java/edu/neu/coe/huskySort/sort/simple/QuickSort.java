@@ -3,8 +3,9 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 
 import java.util.Arrays;
 
@@ -13,20 +14,24 @@ import java.util.Arrays;
  *
  * @param <X>
  */
-public class QuickSort<X extends Comparable<X>> implements Sort<X> {
-    private final Helper<X> helper;
+public class QuickSort<X extends Comparable<X>> extends SortWithHelper<X> {
+
+    public QuickSort(Helper<X> helper) {
+        super(helper);
+    }
 
     /**
-     * Constructor for InsertionSort
+     * Constructor for QuickSort
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param N            the number elements we expect to sort.
+     * @param instrumented whether or not we want an instrumented helper class.
      */
-    public QuickSort(Helper<X> helper) {
-        this.helper = helper;
+    public QuickSort(int N, boolean instrumented) {
+        super(DESCRIPTION, N, instrumented);
     }
 
     public QuickSort() {
-        this(new Helper<>("QuickSort"));
+        this(new BaseHelper<>(DESCRIPTION));
     }
 
     @Override
@@ -41,9 +46,7 @@ public class QuickSort<X extends Comparable<X>> implements Sort<X> {
 //
     }
 
-    @Override
-    public Helper<X> getHelper() {
-        return helper;
-    }
+    public static final String DESCRIPTION = "Quick sort";
+
 }
 

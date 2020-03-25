@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.util.LazyLogger;
@@ -10,11 +11,7 @@ import java.lang.reflect.Array;
 
 public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
 
-    private final Helper<X> helper;
-    private final Bag<X>[] bucket;
-    private final InsertionSort<X> insertionSort;
-
-    BucketSort(int buckets, Helper<X> helper) {
+    BucketSort(int buckets, BaseHelper<X> helper) {
         //noinspection unchecked
         bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
         for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
@@ -23,7 +20,8 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
     }
 
     BucketSort(int buckets) {
-        this(buckets, new Helper<>("Bucket Sort"));
+        this(buckets, new BaseHelper<>(DESCRIPTION));
+        closeHelper = true;
     }
 
     @Override
@@ -70,5 +68,18 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
         return helper;
     }
 
+    @Override
+    public void close() {
+        if (closeHelper) helper.close();
+    }
+
     final static LazyLogger logger = new LazyLogger(BucketSort.class);
+
+    public static final String DESCRIPTION = "Bucket sort";
+
+    private final BaseHelper<X> helper;
+    private final Bag<X>[] bucket;
+    private final InsertionSort<X> insertionSort;
+    private boolean closeHelper = false;
+
 }

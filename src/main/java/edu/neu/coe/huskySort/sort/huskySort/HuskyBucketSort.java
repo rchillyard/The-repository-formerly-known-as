@@ -8,15 +8,20 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     private final int bucketSize;
     private HuskyBucketHelper<X> bucketHelper;
 
-    public HuskyBucketSort(int bucketSize, HuskyCoder<X> huskyCoder) {
-        super("HuskyBucketSort", 0, huskyCoder, InsertionSort::mutatingInsertionSort);
+    public HuskyBucketSort(String name, int bucketSize, HuskyCoder<X> huskyCoder, Consumer<X[]> sorter, boolean instrumentation) {
+        super(name, 0, huskyCoder, sorter, instrumentation);
         this.bucketSize = bucketSize;
+    }
+
+    public HuskyBucketSort(int bucketSize, HuskyCoder<X> huskyCoder, boolean instrumentation) {
+        this("HuskyBucketSort", bucketSize, huskyCoder, InsertionSort::mutatingInsertionSort, instrumentation);
     }
 
     @Override

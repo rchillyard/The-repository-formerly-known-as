@@ -4,12 +4,13 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("ALL")
 public class ShellSortTest {
@@ -61,7 +62,7 @@ public class ShellSortTest {
 
     //  TODO  @Test
     public void sort5() throws Exception {
-        Helper<Integer> helper = new Helper<>("ShellSort", 1000);
+        BaseHelper<Integer> helper = new BaseHelper<>("ShellSort", 1000);
         Integer[] xs = (Integer[]) helper.random(Integer.class, random -> random.nextInt());
         SelectionSort<Integer> sorter = new SelectionSort<Integer>(helper);
         Integer[] ys = sorter.sort(xs);

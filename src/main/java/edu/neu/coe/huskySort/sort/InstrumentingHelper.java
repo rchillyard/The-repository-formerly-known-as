@@ -1,12 +1,15 @@
 package edu.neu.coe.huskySort.sort;
 
+import edu.neu.coe.huskySort.util.LazyLogger;
+import edu.neu.coe.huskySort.util.StatPack;
+
 /**
  * Helper class for sorting methods with instrumentation of compares and swaps, and in addition, bounds checks.
  * This Helper class may be used for analyzing sort methods but will run at slightly slower speeds than the super-class.
  *
  * @param <X> the underlying type (must be Comparable).
  */
-public class InstrumentingHelper<X extends Comparable<X>> extends Helper<X> {
+public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     /**
      * Constructor to create a Helper
@@ -72,6 +75,39 @@ public class InstrumentingHelper<X extends Comparable<X>> extends Helper<X> {
     public String toString() {
         return "Helper for " + description + " with " + n + " elements: compares=" + compares + ", swaps=" + swaps;
     }
+
+    @Override
+    public void setN(int n) {
+        super.setN(n);
+        statPack = new StatPack(n, COMPARES, SWAPS);
+    }
+
+    /**
+     * Method to check that an array is sorted.
+     *
+     * @param xs the array to be tested.
+     *           TODO log the message
+     *           TODO show the number of inversions
+     */
+    @Override
+    public void postProcess(X[] xs) {
+        super.postProcess(xs);
+        if (statPack == null) throw new RuntimeException("InstrumentingHelper.postProcess: no StatPack");
+        statPack.add(COMPARES, compares);
+        statPack.add(SWAPS, swaps);
+    }
+
+    @Override
+    public void close() {
+        logger.debug(() -> "Closing Helper: " + description + " with statPack: " + statPack);
+        super.close();
+    }
+
+    final static LazyLogger logger = new LazyLogger(InstrumentingHelper.class);
+
+    public static final String SWAPS = "swaps";
+    public static final String COMPARES = "compares";
+    private StatPack statPack;
 
     private int compares = 0;
     private int swaps = 0;

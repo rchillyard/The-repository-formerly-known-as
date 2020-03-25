@@ -1,16 +1,84 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 
+import java.util.Random;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Helper class for sorting methods with special technique of HuskySort.
  * IF you want to count compares and swaps then you need to extend InstrumentingHelper.
+ * <p>
+ * CONSIDER using a delegation model for the Helper here. That would allow dynamic choice of InstrumentingHelper.
  *
  * @param <X> the underlying type (must be Comparable).
  */
-public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
+public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
+
+    // Delegate methods on helper
+
+    @Override
+    public boolean less(X v, X w) {
+        return helper.less(v, w);
+    }
+
+    @Override
+    public void swap(X[] a, int lo, int hi, int i, int j) {
+        helper.swap(a, lo, hi, i, j);
+    }
+
+    @Override
+    public boolean sorted(X[] a) {
+        return helper.sorted(a);
+    }
+
+    @Override
+    public int inversions(X[] a, int from, int to) {
+        return helper.inversions(a, from, to);
+    }
+
+    @Override
+    public void postProcess(X[] xs) {
+        helper.postProcess(xs);
+    }
+
+    @Override
+    public X[] random(Class<X> clazz, Function<Random, X> f) {
+        return helper.random(clazz, f);
+    }
+
+    @Override
+    public String getDescription() {
+        return helper.getDescription();
+    }
+
+    @Override
+    public int getN() {
+        return helper.getN();
+    }
+
+    @Override
+    public void close() {
+        helper.close();
+    }
+
+    /**
+     * Constructor to create a HuskyHelper
+     *
+     * @param helper the Helper.
+     * @param coder the coder to be used.
+     * @param postSorter the postSorter Consumer function.
+     * @param makeCopy    explicit setting of the makeCopy value used in sort(X[] xs)
+     */
+    public HuskyHelper(Helper<X> helper, HuskyCoder<X> coder, Consumer<X[]> postSorter, boolean makeCopy) {
+        this.helper = helper;
+        this.coder = coder;
+        longs = new long[helper.getN()];
+        this.postSorter = postSorter;
+        this.makeCopy = makeCopy;
+    }
 
     /**
      * Constructor to create a Helper
@@ -21,11 +89,7 @@ public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
      * @param makeCopy    explicit setting of the makeCopy value used in sort(X[] xs)
      */
     public HuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, long seed, boolean makeCopy) {
-        super(description, n, seed);
-        this.coder = coder;
-        longs = new long[n];
-        this.postSorter = postSorter;
-        this.makeCopy = makeCopy;
+        this(new BaseHelper<>(description, n, seed), coder, postSorter, makeCopy);
     }
 
     /**
@@ -43,15 +107,10 @@ public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
         return coder;
     }
 
-    // TODO this needs to be unit-tested
-    public int getN() {
-        return n;
-    }
-
     @Override
     public void setN(int n) {
-        if (n != this.n) longs = new long[n];
-        super.setN(n);
+        if (n != getN()) longs = new long[n];
+        helper.setN(n);
     }
 
     public void initLongArray(X[] array) {
@@ -83,7 +142,9 @@ public class HuskyHelper<X extends Comparable<X>> extends Helper<X> {
     }
 
     private final HuskyCoder<X> coder;
-    private long[] longs;
+    protected long[] longs;
     private final Consumer<X[]> postSorter;
     private final boolean makeCopy;
+    protected final Helper<X> helper;
+
 }

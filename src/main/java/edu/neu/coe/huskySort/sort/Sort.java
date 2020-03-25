@@ -74,4 +74,6 @@ public interface Sort<X extends Comparable<X>> {
         init(xs.length);
         return xs;
     }
+
+    void close();
 }

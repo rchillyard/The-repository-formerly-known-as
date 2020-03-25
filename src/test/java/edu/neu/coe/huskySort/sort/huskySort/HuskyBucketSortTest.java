@@ -24,7 +24,7 @@ public class HuskyBucketSortTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(2, HuskySortHelper.integerCoder);
+        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(2, HuskySortHelper.integerCoder, false);
         sorter.preProcess(xs);
         Integer[] ys = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys));
@@ -37,7 +37,7 @@ public class HuskyBucketSortTest {
         Integer[] xs = new Integer[N];
         Random random = new Random();
         for (int i = 0; i < N; i++) xs[i] = random.nextInt(10000);
-        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder);
+        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder, false);
         sorter.preProcess(xs);
         Integer[] ys = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys));
@@ -51,7 +51,7 @@ public class HuskyBucketSortTest {
         Integer[] xs = new Integer[N];
         Random random = new Random();
         for (int i = 0; i < N; i++) xs[i] = random.nextInt(10000);
-        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder);
+        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder, false);
         sorter.preProcess(xs);
         Integer[] ys1 = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys1));

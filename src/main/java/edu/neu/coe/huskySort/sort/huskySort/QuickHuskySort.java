@@ -10,12 +10,20 @@ import java.util.function.Consumer;
 
 public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
-    public QuickHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
-        super(name, 0, huskyCoder, postSorter);
+    public QuickHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {
+        super(name, 0, huskyCoder, postSorter, instrumentation);
     }
 
     public QuickHuskySort(HuskyCoder<X> huskyCoder) {
-        this("QuickHuskySort/System", huskyCoder, Arrays::sort);
+        this("QuickHuskySort/System", huskyCoder, Arrays::sort, false);
+    }
+
+    public QuickHuskySort(HuskyCoder<X> huskyCoder, boolean instrumentation) {
+        this("QuickHuskySort/System", huskyCoder, Arrays::sort, instrumentation);
+    }
+
+    public QuickHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {
+        super(name, n, huskyCoder, postSorter, instrumentation);
     }
 
     @Override

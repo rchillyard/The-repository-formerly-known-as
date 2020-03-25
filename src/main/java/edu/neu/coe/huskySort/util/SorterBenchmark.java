@@ -46,7 +46,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
      * @param timeLoggers  the time-loggers.
      */
     public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, Sort<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
-        this(tClass, preProcessor, sorter, sorter.getHelper()::checkSorted, ts, nRuns, timeLoggers);
+        this(tClass, preProcessor, sorter, sorter.getHelper()::postProcess, ts, nRuns, timeLoggers);
     }
 
     /**
