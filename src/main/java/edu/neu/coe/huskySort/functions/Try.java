@@ -56,39 +56,32 @@ public abstract class Try<V> {
             this.exception = new RuntimeException(t);
         }
 
-        @Override
         public Boolean isSuccess() {
             return false;
         }
 
-        @Override
         public void throwException() {
             throw this.exception;
         }
 
-        @Override
         public V get() {
             throw exception;
         }
 
-        @Override
         public Boolean isFailure() {
             return true;
         }
 
-        @Override
         public <U> Try<U> map(Function<? super V, ? extends U> f) {
             Objects.requireNonNull(f);
             return Try.failure(exception);
         }
 
-        @Override
         public <U> Try<U> flatMap(Function<? super V, Try<U>> f) {
             Objects.requireNonNull(f);
             return Try.failure(exception);
         }
 
-        @Override
         public Throwable getMessage() {
             return exception;
         }
@@ -104,26 +97,21 @@ public abstract class Try<V> {
             this.value = value;
         }
 
-        @Override
         public Boolean isSuccess() {
             return true;
         }
 
-        @Override
         public void throwException() {
         }
 
-        @Override
         public V get() {
             return value;
         }
 
-        @Override
         public Boolean isFailure() {
             return false;
         }
 
-        @Override
         public <U> Try<U> map(Function<? super V, ? extends U> f) {
             Objects.requireNonNull(f);
             try {
@@ -133,7 +121,6 @@ public abstract class Try<V> {
             }
         }
 
-        @Override
         public <U> Try<U> flatMap(Function<? super V, Try<U>> f) {
             Objects.requireNonNull(f);
             try {
@@ -143,7 +130,6 @@ public abstract class Try<V> {
             }
         }
 
-        @Override
         public Throwable getMessage() {
             throw new IllegalStateException("no messages when success");
         }

@@ -29,7 +29,6 @@ class HuskySortBenchmarkHelper {
         words = words.stream().distinct().filter(new Predicate<String>() {
             private static final int MINIMUM_LENGTH = 2;
 
-            @Override
             public boolean test(String s) {
                 return s.length() >= MINIMUM_LENGTH;
             }

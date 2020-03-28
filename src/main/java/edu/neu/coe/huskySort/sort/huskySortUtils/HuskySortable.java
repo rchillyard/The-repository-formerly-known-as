@@ -20,7 +20,6 @@ public interface HuskySortable<X> extends Comparable<X> {
      * @return an int according to the ordering of this and x
      */
     // TODO this needs to be unit-tested
-    @Override
     default int compareTo(X x) {
         if (HuskySortable.class.isAssignableFrom(x.getClass()))
             //noinspection unchecked

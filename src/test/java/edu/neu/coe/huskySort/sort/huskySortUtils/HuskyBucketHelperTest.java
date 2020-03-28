@@ -13,34 +13,28 @@ import static org.junit.Assert.assertTrue;
 public class HuskyBucketHelperTest {
 
     private final HuskyCoder<Integer> integerHuskyCoder = new HuskyCoder<Integer>() {
-        @Override
         public long huskyEncode(Integer o) {
             return o;
         }
 
-        @Override
         public boolean imperfect() {
             return false;
         }
     };
     private final HuskyCoder<Short> shortHuskyCoder = new HuskyCoder<Short>() {
-        @Override
         public long huskyEncode(Short o) {
             return o;
         }
 
-        @Override
         public boolean imperfect() {
             return false;
         }
     };
     private final HuskyCoder<Long> longHuskyCoder = new HuskyCoder<Long>() {
-        @Override
         public long huskyEncode(Long o) {
             return o;
         }
 
-        @Override
         public boolean imperfect() {
             return false;
         }

@@ -41,6 +41,10 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
         this(description, 0);
     }
 
+    public boolean instrumented() {
+        return true;
+    }
+
     /**
      * Method to determine if one X value is less than another.
      *
@@ -56,19 +60,26 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
     /**
      * Swap the elements of array a at indices i and j.
      *
-     * @param a  the array.
+     * @param xs the array.
      * @param lo the lowest index of interest (only used for checking).
      * @param hi one more than the highest index of interest (only used for checking).
      * @param i  one of the indices.
      * @param j  the other index.
      */
-    public void swap(X[] a, int lo, int hi, int i, int j) {
+    public void swap(X[] xs, int lo, int hi, int i, int j) {
         swaps++;
         if (i < lo) throw new RuntimeException("i is out of range: i; " + i + "; lo=" + lo);
         if (j > hi) throw new RuntimeException("j is out of range: j; " + j + "; hi=" + hi);
-        X temp = a[i];
-        a[i] = a[j];
-        a[j] = temp;
+        X temp = xs[i];
+        xs[i] = xs[j];
+        xs[j] = temp;
+    }
+
+    public int compare(X[] xs, int lo, int hi, int i, int j) {
+        compares++;
+        if (i < lo) throw new RuntimeException("i is out of range: i; " + i + "; lo=" + lo);
+        if (j > hi) throw new RuntimeException("j is out of range: j; " + j + "; hi=" + hi);
+        return xs[i].compareTo(xs[j]);
     }
 
     @Override
@@ -76,7 +87,6 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
         return "Helper for " + description + " with " + n + " elements: compares=" + compares + ", swaps=" + swaps;
     }
 
-    @Override
     public void setN(int n) {
         super.setN(n);
         statPack = new StatPack(n, COMPARES, SWAPS);
@@ -107,8 +117,22 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
 
     public static final String SWAPS = "swaps";
     public static final String COMPARES = "compares";
-    private StatPack statPack;
 
+    // NOTE: the following private methods are only for testing.
+
+    private StatPack getStatPack() {
+        return statPack;
+    }
+
+    private int getCompares() {
+        return compares;
+    }
+
+    private int getSwaps() {
+        return swaps;
+    }
+
+    private StatPack statPack;
     private int compares = 0;
     private int swaps = 0;
 

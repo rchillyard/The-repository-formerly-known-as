@@ -31,63 +31,79 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
+     * @return true
+     */
+    public boolean instrumented() {
+        return false;
+    }
+
+    /**
      * Method to determine if one X value is less than another.
      *
      * @param v the candidate element.
      * @param w the comparand element.
      * @return true only if v is less than w.
      */
-    @Override
     public boolean less(X v, X w) {
         return v.compareTo(w) < 0;
     }
 
     /**
+     * Compare elements i and j of xs within the subarray lo..hi
+     *
+     * @param xs the array.
+     * @param lo the lowest index of interest (only used for checking).
+     * @param hi one more than the highest index of interest (only used for checking).
+     * @param i  one of the indices.
+     * @param j  the other index.
+     * @return the result of comparing xs[i] to xs[j]
+     */
+    public int compare(X[] xs, int lo, int hi, int i, int j) {
+        return xs[i].compareTo(xs[j]);
+    }
+
+    /**
      * Swap the elements of array a at indices i and j.
      *
-     * @param a  the array.
+     * @param xs the array.
      * @param lo the lowest index of interest (only used for checking).
      * @param hi one more than the highest index of interest (only used for checking).
      * @param i  one of the indices.
      * @param j  the other index.
      */
-    @Override
-    public void swap(X[] a, int lo, int hi, int i, int j) {
-        X temp = a[i];
-        a[i] = a[j];
-        a[j] = temp;
+    public void swap(X[] xs, int lo, int hi, int i, int j) {
+        X temp = xs[i];
+        xs[i] = xs[j];
+        xs[j] = temp;
     }
 
-    @Override
-    public boolean sorted(X[] a) {
-        for (int i = 1; i < a.length; i++) if (a[i - 1].compareTo(a[i]) > 0) return false;
+    public boolean sorted(X[] xs) {
+        for (int i = 1; i < xs.length; i++) if (xs[i - 1].compareTo(xs[i]) > 0) return false;
         return true;
     }
 
-    @Override
-    public int inversions(X[] a, int from, int to) {
+    public int inversions(X[] xs, int from, int to) {
         int result = 0;
         for (int i = from; i < to; i++)
             for (int j = i + 1; j < to; j++)
-                if (a[i].compareTo(a[j]) > 0) result++;
+                if (xs[i].compareTo(xs[j]) > 0) result++;
         return result;
     }
 
     /**
-     * Method to check that an array is sorted.
+     * Method to post-process an array after sorting.
      *
-     * @param xs the array to be tested.
-     *           TODO log the message
-     *           TODO show the number of inversions
+     * In this implementation, the post-processing verifies that xs is sorted.
+     *
+     * @param xs the array to be post-processed.
+     *
+     * @throws SortException if the array xs is not sorted.
      */
-    // TODO this needs to be unit-tested
-    @Override
     public void postProcess(X[] xs) {
-        if (!sorted(xs)) System.err.println("array is not sorted");
+        if (!sorted(xs)) throw new SortException("Array is not sorted");
     }
 
     // TODO this needs to be unit-tested
-    @Override
     public X[] random(Class<X> clazz, Function<Random, X> f) {
         if (n <= 0) throw new SortException("Helper.random: not initialized");
         return random(n, clazz, f);
@@ -98,23 +114,19 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         return "Helper for " + description + " with " + n + " elements";
     }
 
-    @Override
     public String getDescription() {
         return description;
     }
 
-    @Override
     public void setN(int n) {
         if (this.n == 0 || this.n == n) this.n = n;
         else throw new RuntimeException("Helper: n is already set to a different value");
     }
 
-    @Override
     public int getN() {
         return n;
     }
 
-    @Override
     public void close() {
     }
 

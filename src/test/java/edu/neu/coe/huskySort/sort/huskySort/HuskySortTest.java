@@ -33,7 +33,6 @@ public class HuskySortTest {
             this.firstName = firstName;
         }
 
-        @Override
         public long huskyCode() {
             if (huskycode == 0L)
                 huskycode = HuskySortHelper.asciiToLong(lastName);

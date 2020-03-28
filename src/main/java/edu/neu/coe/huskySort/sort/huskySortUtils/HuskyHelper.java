@@ -11,7 +11,6 @@ import java.util.function.Function;
  * Helper class for sorting methods with special technique of HuskySort.
  * IF you want to count compares and swaps then you need to extend InstrumentingHelper.
  * <p>
- * CONSIDER using a delegation model for the Helper here. That would allow dynamic choice of InstrumentingHelper.
  *
  * @param <X> the underlying type (must be Comparable).
  */
@@ -19,58 +18,69 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
 
     // Delegate methods on helper
 
-    @Override
     public boolean less(X v, X w) {
         return helper.less(v, w);
     }
 
-    @Override
-    public void swap(X[] a, int lo, int hi, int i, int j) {
-        helper.swap(a, lo, hi, i, j);
+    public void swap(X[] xs, int lo, int hi, int i, int j) {
+        helper.swap(xs, lo, hi, i, j);
     }
 
-    @Override
-    public boolean sorted(X[] a) {
-        return helper.sorted(a);
+    public boolean sorted(X[] xs) {
+        return helper.sorted(xs);
     }
 
-    @Override
-    public int inversions(X[] a, int from, int to) {
-        return helper.inversions(a, from, to);
+    public int inversions(X[] xs, int from, int to) {
+        return helper.inversions(xs, from, to);
     }
 
-    @Override
     public void postProcess(X[] xs) {
         helper.postProcess(xs);
     }
 
-    @Override
     public X[] random(Class<X> clazz, Function<Random, X> f) {
         return helper.random(clazz, f);
     }
 
-    @Override
     public String getDescription() {
         return helper.getDescription();
     }
 
-    @Override
     public int getN() {
         return helper.getN();
     }
 
-    @Override
     public void close() {
         helper.close();
+    }
+
+    public boolean instrumented() {
+        return helper.instrumented();
+    }
+
+    public int compare(X[] xs, int lo, int hi, int i, int j) {
+        return helper.compare(xs, lo, hi, i, j);
+    }
+
+    /**
+     * Method to perform xs stable swap, i.e. between xs[i] and xs[i-1]
+     *
+     * @param xs the array of X elements.
+     * @param lo the low index of interest.
+     * @param hi one above the high index of interest.
+     * @param i  the index of the higher of the adjacent elements to be swapped.
+     */
+    public void swapStable(X[] xs, int lo, int hi, int i) {
+        helper.swapStable(xs, lo, hi, i);
     }
 
     /**
      * Constructor to create a HuskyHelper
      *
-     * @param helper the Helper.
-     * @param coder the coder to be used.
+     * @param helper     the Helper.
+     * @param coder      the coder to be used.
      * @param postSorter the postSorter Consumer function.
-     * @param makeCopy    explicit setting of the makeCopy value used in sort(X[] xs)
+     * @param makeCopy   explicit setting of the makeCopy value used in sort(X[] xs)
      */
     public HuskyHelper(Helper<X> helper, HuskyCoder<X> coder, Consumer<X[]> postSorter, boolean makeCopy) {
         this.helper = helper;
@@ -107,7 +117,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         return coder;
     }
 
-    @Override
     public void setN(int n) {
         if (n != getN()) longs = new long[n];
         helper.setN(n);

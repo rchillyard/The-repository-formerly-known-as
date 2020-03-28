@@ -16,7 +16,6 @@ import java.util.function.Consumer;
 public class InstrumentedHuskyHelper<X extends Comparable<X>> extends HuskyHelper<X> {
     // Delegate methods on helper
 
-    @Override
     public boolean less(X v, X w) {
         compares++;
         return super.less(v, w);
@@ -28,10 +27,9 @@ public class InstrumentedHuskyHelper<X extends Comparable<X>> extends HuskyHelpe
         super.swap(xs, i, j);
     }
 
-    @Override
-    public void swap(X[] a, int lo, int hi, int i, int j) {
+    public void swap(X[] xs, int lo, int hi, int i, int j) {
         swaps++;
-        super.swap(a, lo, hi, i, j);
+        super.swap(xs, lo, hi, i, j);
     }
 
     /**

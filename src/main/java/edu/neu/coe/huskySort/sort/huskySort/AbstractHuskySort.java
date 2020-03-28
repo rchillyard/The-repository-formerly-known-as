@@ -24,7 +24,6 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         this(name, instrumentation ? new HuskyHelper<>(name, n, huskyCoder, postSorter) : new HuskyHelper<>(name, n, huskyCoder, postSorter));
     }
 
-    @Override
     public X[] sort(X[] xs, boolean makeCopy) {
         huskyHelper.setN(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
@@ -34,7 +33,6 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         return result;
     }
 
-    @Override
     public X[] sort(X[] xs) {
         return sort(xs, huskyHelper.isMakeCopy());
     }
@@ -53,7 +51,6 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
 
     protected final String name;
 
-    @Override
     public HuskyHelper<X> getHelper() {
         return huskyHelper;
     }

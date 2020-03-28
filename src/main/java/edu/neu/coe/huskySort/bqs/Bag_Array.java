@@ -29,12 +29,10 @@ public class Bag_Array<Item> implements Bag<Item> {
         return count;
     }
 
-    @Override
     public void clear() {
         count = 0;
     }
 
-    @Override
     public boolean contains(Item item) {
         for (Item i : items) {
             if (i != null && i.equals(item))
@@ -43,7 +41,6 @@ public class Bag_Array<Item> implements Bag<Item> {
         return false;
     }
 
-    @Override
     public int multiplicity(Item item) {
         int result = 0;
         if (isEmpty()) return 0;

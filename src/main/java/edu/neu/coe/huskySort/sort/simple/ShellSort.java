@@ -64,7 +64,6 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *
      * @param xs an array of Xs to be sorted in place.
      */
-    @Override
     public void sort(X[] xs, int from, int to) {
         int N = to - from;
         H hh = new H(N);

@@ -16,12 +16,10 @@ import java.util.concurrent.ThreadLocalRandom;
 public class HuskySortHelper {
 
     public final static HuskyCoder<String> asciiCoder = new HuskyCoder<String>() {
-        @Override
         public long huskyEncode(String str) {
             return asciiToLong(str);
         }
 
-        @Override
         public boolean imperfect() {
             return true;
         }

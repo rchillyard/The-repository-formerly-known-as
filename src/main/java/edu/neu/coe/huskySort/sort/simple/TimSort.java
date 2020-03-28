@@ -39,7 +39,6 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
         this(new BaseHelper<>(DESCRIPTION));
     }
 
-    @Override
     public void sort(X[] xs, int from, int to) {
         Arrays.sort(xs, from, to);
     }

@@ -32,7 +32,6 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
         super(helper);
     }
 
-    @Override
     public void sort(X[] xs, int from, int to) {
         final Helper<X> helper = getHelper();
         for (int i = from + 1; i < to; i++) {

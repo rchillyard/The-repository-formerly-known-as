@@ -26,7 +26,6 @@ public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         super(name, n, huskyCoder, postSorter, instrumentation);
     }
 
-    @Override
     public void sort(X[] xs, int from, int to) {
         quickSort(xs, getHelper().getLongs(), from, to - 1);
     }
