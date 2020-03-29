@@ -51,7 +51,7 @@ public class InstrumentedHuskyHelper<X extends Comparable<X>> extends HuskyHelpe
      * @param makeCopy    explicit setting of the makeCopy value used in sort(X[] xs)
      */
     public InstrumentedHuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, long seed, boolean makeCopy) {
-        this(new InstrumentingHelper<>(description, n, seed), coder, postSorter, makeCopy);
+        this(new InstrumentedHelper<>(description, n, seed), coder, postSorter, makeCopy);
     }
 
     /**
