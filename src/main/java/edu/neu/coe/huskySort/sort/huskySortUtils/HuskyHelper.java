@@ -9,7 +9,7 @@ import java.util.function.Function;
 
 /**
  * Helper class for sorting methods with special technique of HuskySort.
- * IF you want to count compares and swaps then you need to extend InstrumentingHelper.
+ * IF you want to count compares and swaps then you need to extend InstrumentedHelper.
  * <p>
  *
  * @param <X> the underlying type (must be Comparable).

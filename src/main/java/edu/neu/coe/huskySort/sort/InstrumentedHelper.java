@@ -9,7 +9,7 @@ import edu.neu.coe.huskySort.util.StatPack;
  *
  * @param <X> the underlying type (must be Comparable).
  */
-public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> {
+public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     /**
      * Constructor to create a Helper
@@ -18,7 +18,7 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param seed        the seed for the random number generator
      */
-    public InstrumentingHelper(String description, int n, long seed) {
+    public InstrumentedHelper(String description, int n, long seed) {
         super(description, n, seed);
     }
 
@@ -28,7 +28,7 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      */
-    public InstrumentingHelper(String description, int n) {
+    public InstrumentedHelper(String description, int n) {
         this(description, n, System.currentTimeMillis());
     }
 
@@ -37,7 +37,7 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
      *
      * @param description the description of this Helper (for humans).
      */
-    public InstrumentingHelper(String description) {
+    public InstrumentedHelper(String description) {
         this(description, 0);
     }
 
@@ -95,7 +95,7 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
     @Override
     public void postProcess(X[] xs) {
         super.postProcess(xs);
-        if (statPack == null) throw new RuntimeException("InstrumentingHelper.postProcess: no StatPack");
+        if (statPack == null) throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
         statPack.add(COMPARES, compares);
         statPack.add(SWAPS, swaps);
     }
@@ -106,7 +106,7 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
         super.close();
     }
 
-    final static LazyLogger logger = new LazyLogger(InstrumentingHelper.class);
+    final static LazyLogger logger = new LazyLogger(InstrumentedHelper.class);
 
     public static final String SWAPS = "swaps";
     public static final String COMPARES = "compares";

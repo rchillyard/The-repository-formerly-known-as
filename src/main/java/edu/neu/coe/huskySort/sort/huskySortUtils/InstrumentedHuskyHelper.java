@@ -1,15 +1,15 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.InstrumentingHelper;
+import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 
 import java.util.function.Consumer;
 
 /**
  * Helper class for sorting methods with special technique of HuskySort.
- * IF you want to count compares and swaps then you need to extend InstrumentingHelper.
+ * IF you want to count compares and swaps then you need to extend InstrumentedHelper.
  * <p>
- * CONSIDER using a delegation model for the Helper here. That would allow dynamic choice of InstrumentingHelper.
+ * CONSIDER using a delegation model for the Helper here. That would allow dynamic choice of InstrumentedHelper.
  *
  * @param <X> the underlying type (must be Comparable).
  */
