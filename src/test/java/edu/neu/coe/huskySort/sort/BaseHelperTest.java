@@ -20,18 +20,18 @@ public class BaseHelperTest {
     public void compare() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new BaseHelper<>("test");
-        assertEquals(-1, helper.compare(xs, 0, 2, 0, 1));
-        assertEquals(0, helper.compare(xs, 0, 2, 0, 0));
-        assertEquals(1, helper.compare(xs, 0, 2, 1, 0));
+        assertEquals(-1, helper.compare(xs, 0, 1));
+        assertEquals(0, helper.compare(xs, 0, 0));
+        assertEquals(1, helper.compare(xs, 1, 0));
     }
 
     @Test
     public void swap() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new BaseHelper<>("test");
-        helper.swap(xs, 0, 2, 0, 1);
+        helper.swap(xs, 0, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
-        helper.swap(xs, 0, 2, 0, 1);
+        helper.swap(xs, 0, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
     }
 
@@ -40,7 +40,7 @@ public class BaseHelperTest {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new BaseHelper<>("test");
         assertTrue(helper.sorted(xs));
-        helper.swap(xs, 0, 2, 0, 1);
+        helper.swap(xs, 0, 1);
         assertFalse(helper.sorted(xs));
     }
 
@@ -48,9 +48,9 @@ public class BaseHelperTest {
     public void inversions() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new BaseHelper<>("test");
-        assertEquals(0, helper.inversions(xs, 0, 2));
-        helper.swap(xs, 0, 2, 0, 1);
-        assertEquals(1, helper.inversions(xs, 0, 2));
+        assertEquals(0, helper.inversions(xs));
+        helper.swap(xs, 0, 1);
+        assertEquals(1, helper.inversions(xs));
     }
 
     @Test
@@ -60,7 +60,7 @@ public class BaseHelperTest {
         helper.postProcess(xs);
     }
 
-    @Test(expected = SortException.class)
+    @Test(expected = BaseHelper.HelperException.class)
     public void postProcess2() {
         String[] xs = new String[]{"b", "a"};
         final Helper<String> helper = new BaseHelper<>("test");
@@ -113,9 +113,9 @@ public class BaseHelperTest {
     public void swapStable() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new BaseHelper<>("test");
-        helper.swapStable(xs, 0, 2, 1);
+        helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
-        helper.swapStable(xs, 0, 2, 1);
+        helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
     }
 
@@ -123,11 +123,11 @@ public class BaseHelperTest {
     public void fixInversion1() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new BaseHelper<>("test");
-        helper.fixInversion(xs, 0, 2, 1);
+        helper.fixInversion(xs, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
-        helper.swapStable(xs, 0, 2, 1);
+        helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
-        helper.fixInversion(xs, 0, 2, 1);
+        helper.fixInversion(xs, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
     }
 
@@ -135,11 +135,11 @@ public class BaseHelperTest {
     public void testFixInversion2() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new BaseHelper<>("test");
-        helper.fixInversion(xs, 0, 2, 0, 1);
+        helper.fixInversion(xs, 0, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
-        helper.swap(xs, 0, 2, 0, 1);
+        helper.swap(xs, 0, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
-        helper.fixInversion(xs, 0, 2, 0, 1);
+        helper.fixInversion(xs, 0, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
     }
 }

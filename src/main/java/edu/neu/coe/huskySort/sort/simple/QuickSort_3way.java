@@ -86,9 +86,9 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
             // NOTE: we are trying to avoid checking on instrumented for every time in the inner loop for performance reasons.
             if (helper.instrumented())
                 while (i <= gt) {
-                    int cmp = helper.compare(xs, lo, hi, i, lo);
-                    if (cmp < 0) helper.swap(xs, lo, hi, lt++, i++);
-                    else if (cmp > 0) helper.swap(xs, lo, hi, i, gt--);
+                    int cmp = helper.compare(xs, i, lo);
+                    if (cmp < 0) helper.swap(xs, lt++, i++);
+                    else if (cmp > 0) helper.swap(xs, i, gt--);
                     else i++;
                 }
             else
@@ -102,7 +102,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
         }
 
         private void swap(X[] a, int i, int j) {
-            if (helper != null) helper.swap(a, lo, hi, i, j);
+            if (helper != null) helper.swap(a, i, j);
             else {
                 X temp = a[i];
                 a[i] = a[j];

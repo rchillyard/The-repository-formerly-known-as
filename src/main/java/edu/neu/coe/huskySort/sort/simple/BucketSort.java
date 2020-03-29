@@ -26,7 +26,7 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        logger.info(helper.inversions(xs, from, to));
+        logger.info(helper.inversions(xs));
         // Determine the min, max and gap.
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
@@ -50,12 +50,12 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
             for (X x : xes) xs[index++] = x;
         }
 
-        logger.info(helper.inversions(xs, from, to));
+        logger.info(helper.inversions(xs));
 
         insertionSort.sort(xs, from, to);
         logger.info(insertionSort.toString());
 
-        logger.info(helper.inversions(xs, from, to));
+        logger.info(helper.inversions(xs));
     }
 
     @Override

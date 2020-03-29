@@ -19,13 +19,11 @@ public interface Helper<X extends Comparable<X>> {
      * Compare elements i and j of xs within the subarray lo..hi
      *
      * @param xs the array.
-     * @param lo the lowest index of interest (only used for checking).
-     * @param hi one more than the highest index of interest (only used for checking).
      * @param i  one of the indices.
      * @param j  the other index.
      * @return the result of comparing xs[i] to xs[j]
      */
-    int compare(X[] xs, int lo, int hi, int i, int j);
+    int compare(X[] xs, int i, int j);
 
     /**
      * Compare values v and w and return true if v is less than w.
@@ -38,50 +36,38 @@ public interface Helper<X extends Comparable<X>> {
 
     /**
      * Method to perform a general swap, i.e. between xs[i] and xs[j]
-     *
-     * @param xs the array of X elements.
-     * @param lo the low index of interest.
-     * @param hi one above the high index of interest.
+     *  @param xs the array of X elements.
      * @param i  the index of the lower of the elements to be swapped.
      * @param j  the index of the higher of the elements to be swapped.
      */
-    void swap(X[] xs, int lo, int hi, int i, int j);
+    void swap(X[] xs, int i, int j);
 
     /**
      * Method to perform xs stable swap, i.e. between xs[i] and xs[i-1]
-     *
-     * @param xs the array of X elements.
-     * @param lo the low index of interest.
-     * @param hi one above the high index of interest.
+     *  @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
-    default void swapStable(X[] xs, int lo, int hi, int i) {
-        swap(xs, lo, hi, i - 1, i);
+    default void swapStable(X[] xs, int i) {
+        swap(xs, i - 1, i);
     }
 
     /**
      * Method to fix a potentially unstable inversion.
-     *
-     * @param xs the array of X elements.
-     * @param lo the low index of interest.
-     * @param hi one above the high index of interest.
+     *  @param xs the array of X elements.
      * @param i  the index of the lower of the elements to be swapped.
      * @param j  the index of the higher of the elements to be swapped.
      */
-    default void fixInversion(X[] xs, int lo, int hi, int i, int j) {
-        if (less(xs[j], xs[i])) swap(xs, lo, hi, i, j);
+    default void fixInversion(X[] xs, int i, int j) {
+        if (less(xs[j], xs[i])) swap(xs, i, j);
     }
 
     /**
      * Method to fix a stable inversion.
-     *
-     * @param xs the array of X elements.
-     * @param lo the low index of interest.
-     * @param hi one above the high index of interest.
+     *  @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
-    default void fixInversion(X[] xs, int lo, int hi, int i) {
-        if (less(xs[i], xs[i - 1])) swapStable(xs, lo, hi, i);
+    default void fixInversion(X[] xs, int i) {
+        if (less(xs[i], xs[i - 1])) swapStable(xs, i);
     }
 
     /**
@@ -96,11 +82,9 @@ public interface Helper<X extends Comparable<X>> {
      * Count the number of inversions of this array.
      *
      * @param xs   an array of Xs.
-     * @param from the lower bound of the sub-array.
-     * @param to   the higher bound of the sub-array (i.e. the first element NOT included).
      * @return the number of inversions.
      */
-    int inversions(X[] xs, int from, int to);
+    int inversions(X[] xs);
 
     /**
      * Post-process the given array, i.e. after sorting has been completed.

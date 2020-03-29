@@ -43,7 +43,7 @@ public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
             for (int j = i + 1; j < to; j++)
                 if (helper.less(xs[j], xs[min]))
                     min = j;
-            helper.swap(xs, from, to, i, min);
+            helper.swap(xs, i, min);
         }
     }
 

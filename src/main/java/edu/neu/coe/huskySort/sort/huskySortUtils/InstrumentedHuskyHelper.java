@@ -27,10 +27,6 @@ public class InstrumentedHuskyHelper<X extends Comparable<X>> extends HuskyHelpe
         super.swap(xs, i, j);
     }
 
-    public void swap(X[] xs, int lo, int hi, int i, int j) {
-        swaps++;
-        super.swap(xs, lo, hi, i, j);
-    }
 
     /**
      * Constructor to create a HuskyHelper

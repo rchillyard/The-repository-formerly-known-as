@@ -59,26 +59,19 @@ public class InstrumentingHelper<X extends Comparable<X>> extends BaseHelper<X> 
 
     /**
      * Swap the elements of array a at indices i and j.
-     *
-     * @param xs the array.
-     * @param lo the lowest index of interest (only used for checking).
-     * @param hi one more than the highest index of interest (only used for checking).
+     *  @param xs the array.
      * @param i  one of the indices.
      * @param j  the other index.
      */
-    public void swap(X[] xs, int lo, int hi, int i, int j) {
+    public void swap(X[] xs, int i, int j) {
         swaps++;
-        if (i < lo) throw new RuntimeException("i is out of range: i; " + i + "; lo=" + lo);
-        if (j > hi) throw new RuntimeException("j is out of range: j; " + j + "; hi=" + hi);
         X temp = xs[i];
         xs[i] = xs[j];
         xs[j] = temp;
     }
 
-    public int compare(X[] xs, int lo, int hi, int i, int j) {
+    public int compare(X[] xs, int i, int j) {
         compares++;
-        if (i < lo) throw new RuntimeException("i is out of range: i; " + i + "; lo=" + lo);
-        if (j > hi) throw new RuntimeException("j is out of range: j; " + j + "; hi=" + hi);
         return xs[i].compareTo(xs[j]);
     }
 

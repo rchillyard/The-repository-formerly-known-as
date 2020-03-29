@@ -22,16 +22,12 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         return helper.less(v, w);
     }
 
-    public void swap(X[] xs, int lo, int hi, int i, int j) {
-        helper.swap(xs, lo, hi, i, j);
-    }
-
     public boolean sorted(X[] xs) {
         return helper.sorted(xs);
     }
 
-    public int inversions(X[] xs, int from, int to) {
-        return helper.inversions(xs, from, to);
+    public int inversions(X[] xs) {
+        return helper.inversions(xs);
     }
 
     public void postProcess(X[] xs) {
@@ -58,20 +54,17 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         return helper.instrumented();
     }
 
-    public int compare(X[] xs, int lo, int hi, int i, int j) {
-        return helper.compare(xs, lo, hi, i, j);
+    public int compare(X[] xs, int i, int j) {
+        return helper.compare(xs, i, j);
     }
 
     /**
      * Method to perform xs stable swap, i.e. between xs[i] and xs[i-1]
-     *
-     * @param xs the array of X elements.
-     * @param lo the low index of interest.
-     * @param hi one above the high index of interest.
+     *  @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
-    public void swapStable(X[] xs, int lo, int hi, int i) {
-        helper.swapStable(xs, lo, hi, i);
+    public void swapStable(X[] xs, int i) {
+        helper.swapStable(xs, i);
     }
 
     /**

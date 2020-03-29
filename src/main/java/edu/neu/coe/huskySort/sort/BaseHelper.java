@@ -52,26 +52,21 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * Compare elements i and j of xs within the subarray lo..hi
      *
      * @param xs the array.
-     * @param lo the lowest index of interest (only used for checking).
-     * @param hi one more than the highest index of interest (only used for checking).
      * @param i  one of the indices.
      * @param j  the other index.
      * @return the result of comparing xs[i] to xs[j]
      */
-    public int compare(X[] xs, int lo, int hi, int i, int j) {
+    public int compare(X[] xs, int i, int j) {
         return xs[i].compareTo(xs[j]);
     }
 
     /**
      * Swap the elements of array a at indices i and j.
-     *
-     * @param xs the array.
-     * @param lo the lowest index of interest (only used for checking).
-     * @param hi one more than the highest index of interest (only used for checking).
+     *  @param xs the array.
      * @param i  one of the indices.
      * @param j  the other index.
      */
-    public void swap(X[] xs, int lo, int hi, int i, int j) {
+    public void swap(X[] xs, int i, int j) {
         X temp = xs[i];
         xs[i] = xs[j];
         xs[j] = temp;
@@ -82,10 +77,10 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         return true;
     }
 
-    public int inversions(X[] xs, int from, int to) {
+    public int inversions(X[] xs) {
         int result = 0;
-        for (int i = from; i < to; i++)
-            for (int j = i + 1; j < to; j++)
+        for (int i = 0; i < xs.length; i++)
+            for (int j = i + 1; j < xs.length; j++)
                 if (xs[i].compareTo(xs[j]) > 0) result++;
         return result;
     }
@@ -97,15 +92,15 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      *
      * @param xs the array to be post-processed.
      *
-     * @throws SortException if the array xs is not sorted.
+     * @throws HelperException if the array xs is not sorted.
      */
     public void postProcess(X[] xs) {
-        if (!sorted(xs)) throw new SortException("Array is not sorted");
+        if (!sorted(xs)) throw new HelperException("Array is not sorted");
     }
 
     // TODO this needs to be unit-tested
     public X[] random(Class<X> clazz, Function<Random, X> f) {
-        if (n <= 0) throw new SortException("Helper.random: not initialized");
+        if (n <= 0) throw new HelperException("Helper.random: not initialized");
         return random(n, clazz, f);
     }
 
@@ -120,7 +115,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
 
     public void setN(int n) {
         if (this.n == 0 || this.n == n) this.n = n;
-        else throw new RuntimeException("Helper: n is already set to a different value");
+        else throw new HelperException("Helper: n is already set to a different value");
     }
 
     public int getN() {
@@ -141,4 +136,21 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     protected final String description;
     protected final Random random;
     protected int n;
+
+    static class HelperException extends RuntimeException {
+
+        public HelperException(String message) { super(message); }
+
+        public HelperException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public HelperException(Throwable cause) {
+            super(cause);
+        }
+
+        public HelperException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+            super(message, cause, enableSuppression, writableStackTrace);
+        }
+    }
 }

@@ -89,7 +89,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
         final Helper<X> helper = getHelper();
         for (int i = h + from; i < to; i++)
             for (int j = i; j >= h + from && helper.less(xs[j], xs[j - h]); j -= h) {
-                helper.swap(xs, from, to, j, j - h);
+                helper.swap(xs, j, j - h);
             }
     }
 

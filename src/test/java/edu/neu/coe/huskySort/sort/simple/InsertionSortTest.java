@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class InsertionSortTest {
 
     @Test
-    public void sort() throws Exception {
+    public void testSort() throws Exception {
         final List<Integer> list = new ArrayList<>();
         list.add(3);
         list.add(4);
@@ -30,4 +30,17 @@ public class InsertionSortTest {
         System.out.println(sorter.toString());
     }
 
+    @Test
+    public void testMutatingInsertionSort() {
+        final List<Integer> list = new ArrayList<>();
+        list.add(3);
+        list.add(4);
+        list.add(2);
+        list.add(1);
+        Integer[] xs = list.toArray(new Integer[0]);
+        BaseHelper<Integer> helper = new BaseHelper<>("InsertionSort", xs.length);
+        InsertionSort<Integer> sorter = new InsertionSort<Integer>(helper);
+        sorter.mutatingSort(xs);
+        assertTrue(helper.sorted(xs));
+    }
 }
