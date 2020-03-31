@@ -48,7 +48,6 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
             bucket[index].add(xs[i]);
         }
 
-        // TODO refactor this method
         HuskyBucketHelper.unloadBuckets(bucket, xs, helper);
 
         logger.info(insertionSort.toString());

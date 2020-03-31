@@ -7,7 +7,6 @@ import edu.neu.coe.huskySort.sort.Helper;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.function.Consumer;
 
 public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
@@ -82,7 +81,10 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
         return max - min;
     }
 
-    // TODO refactor this method
+    /**
+     * Method to unload the buckets.
+     * @param xs the array of Xs in which to unload the buckets.
+     */
     public void unloadBuckets(X[] xs) {
         unloadBuckets(buckets, xs, this);
     }
@@ -93,7 +95,14 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
         return getSpread();
     }
 
-    // TODO refactor this method
+    /**
+     * Method to unload and sort the buckets into the array xs.
+     * @param buckets an array of Bag of X elements.
+     * @param xs an array of X elements to be filled.
+     * @param helper a helper whose compare method we will use.
+     * @param <X> the underlying type of the array and the Helper.
+     */
+    @SuppressWarnings("unchecked")
     public static <X extends Comparable<X>> void unloadBuckets(Bag<X>[] buckets, X[] xs, final Helper<X> helper) {
         int index = 0;
         // TODO consider replacing with foreach
