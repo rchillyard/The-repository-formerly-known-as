@@ -36,7 +36,7 @@ public class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<
         int t = bucketHelper.loadBuckets(result);
         assert (t == n);
         bucketHelper.unloadBuckets(result);
-        getHelper().getPostSorter().accept(result);
+//        getHelper().getPostSorter().accept(result);
         return result;
     }
 

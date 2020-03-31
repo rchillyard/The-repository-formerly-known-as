@@ -32,6 +32,11 @@ public interface Bag<Item> extends SizedIterable<Item> {
     int multiplicity(Item item);
 
     /**
+     * @return this Bag as an array.
+     */
+    Item[] asArray();
+
+    /**
      * Empty out this Bag
      */
     void clear();

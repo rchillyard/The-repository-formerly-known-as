@@ -70,9 +70,39 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         xs[j] = temp;
     }
 
+    /**
+     * Method to perform a stable swap using half-exchanges,
+     * i.e. between xs[i] and xs[j] such that xs[j] is moved to index i,
+     * and xs[i] thru xs[j-1] are all moved up one.
+     * This type of swap is used by insertion sort.
+     *
+     * @param xs the array of Xs.
+     * @param i  the index of the destination of xs[j].
+     * @param j  the index of the right-most element to be involved in the swap.
+     */
+    @Override
+    public void swapInto(X[] xs, int i, int j) {
+        swaps += (j - i);
+        super.swapInto(xs, i, j);
+    }
+
     public int compare(X[] xs, int i, int j) {
+        // CONSIDER using the other compare method.
         compares++;
         return xs[i].compareTo(xs[j]);
+    }
+
+    /**
+     * Compare v and w
+     *
+     * @param v the first X.
+     * @param w the second X.
+     * @return the result of comparing v and w.
+     */
+    @Override
+    public int compare(X v, X w) {
+        compares++;
+        return v.compareTo(w);
     }
 
     @Override

@@ -2,9 +2,12 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
+import edu.neu.coe.huskySort.sort.Helper;
 
 import java.lang.reflect.Array;
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.function.Consumer;
 
 public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
@@ -79,9 +82,9 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
         return max - min;
     }
 
+    // TODO refactor this method
     public void unloadBuckets(X[] xs) {
-        int i = 0;
-        for (Bag<X> bucket : buckets) for (X x : bucket) xs[i++] = x;
+        unloadBuckets(buckets, xs, this);
     }
 
     final Bag<X>[] buckets;
@@ -89,4 +92,19 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
     public int checkBuckets() {
         return getSpread();
     }
+
+    // TODO refactor this method
+    public static <X extends Comparable<X>> void unloadBuckets(Bag<X>[] buckets, X[] xs, final Helper<X> helper) {
+        int index = 0;
+        // TODO consider replacing with foreach
+        for (Bag<X> xes : buckets) {
+            final Object[] objects = xes.asArray();
+            Arrays.sort(objects, (o, t1) -> helper.compare((X) o, (X) t1));
+            for (Object x : objects) {
+                xs[index++] = (X) x;
+            }
+        }
+    }
+
+
 }

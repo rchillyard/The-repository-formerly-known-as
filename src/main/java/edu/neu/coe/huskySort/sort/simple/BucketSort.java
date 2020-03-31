@@ -5,11 +5,15 @@ import edu.neu.coe.huskySort.bqs.Bag_Array;
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyBucketHelper;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.lang.reflect.Array;
 
-public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
+/**
+ * @param <X> the underlying type which must
+ */
+public class BucketSort<X extends Comparable<X>> implements Sort<X> {
 
     BucketSort(int buckets, BaseHelper<X> helper) {
         //noinspection unchecked
@@ -30,31 +34,24 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
         // Determine the min, max and gap.
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
+        Number[] ys = (Number[]) xs;
         for (int i = from; i < to; i++) {
-            if (xs[i].doubleValue() < min) min = xs[i].doubleValue();
-            if (max < xs[i].doubleValue()) max = xs[i].doubleValue();
+            if (ys[i].doubleValue() < min) min = ys[i].doubleValue();
+            if (max < ys[i].doubleValue()) max = ys[i].doubleValue();
         }
         double gap = (max - min) / bucket.length;
 
         // Assign the elements to buckets
         for (int i = from; i < to; i++) {
-            int index = (int) Math.floor((xs[i].doubleValue() - min) / gap);
+            int index = (int) Math.floor((ys[i].doubleValue() - min) / gap);
             if (index == bucket.length) index--;
             bucket[index].add(xs[i]);
         }
 
-        // Copy the buckets back into array
-        int index = 0;
-        // TODO consider replacing with foreach
-        for (Bag<X> xes : bucket) {
-            for (X x : xes) xs[index++] = x;
-        }
+        // TODO refactor this method
+        HuskyBucketHelper.unloadBuckets(bucket, xs, helper);
 
-        logger.info(helper.inversions(xs));
-
-        insertionSort.sort(xs, from, to);
         logger.info(insertionSort.toString());
-
         logger.info(helper.inversions(xs));
     }
 

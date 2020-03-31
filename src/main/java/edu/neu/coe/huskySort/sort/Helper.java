@@ -3,6 +3,8 @@ package edu.neu.coe.huskySort.sort;
 import java.util.Random;
 import java.util.function.Function;
 
+import static java.util.Arrays.binarySearch;
+
 /**
  * CONSIDER having the concept of current sub-array, then we could dispense with the lo, hi parameters.
  *
@@ -34,17 +36,21 @@ public interface Helper<X extends Comparable<X>> {
      */
     boolean less(X v, X w);
 
+    int compare(X v, X w);
+
     /**
      * Method to perform a general swap, i.e. between xs[i] and xs[j]
-     *  @param xs the array of X elements.
+     *
+     * @param xs the array of X elements.
      * @param i  the index of the lower of the elements to be swapped.
      * @param j  the index of the higher of the elements to be swapped.
      */
     void swap(X[] xs, int i, int j);
 
     /**
-     * Method to perform xs stable swap, i.e. between xs[i] and xs[i-1]
-     *  @param xs the array of X elements.
+     * Method to perform a stable swap, i.e. between xs[i] and xs[i-1]
+     *
+     * @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
     default void swapStable(X[] xs, int i) {
@@ -52,8 +58,36 @@ public interface Helper<X extends Comparable<X>> {
     }
 
     /**
+     * Method to perform a stable swap using half-exchanges,
+     * i.e. between xs[i] and xs[j] such that xs[j] is moved to index i,
+     * and xs[i] thru xs[j-1] are all moved up one.
+     * This type of swap is used by insertion sort.
+     *
+     * @param xs the array of Xs.
+     * @param i  the index of the destination of xs[j].
+     * @param j  the index of the right-most element to be involved in the swap.
+     */
+    void swapInto(X[] xs, int i, int j);
+
+    /**
+     * Method to perform a stable swap using half-exchanges, and binary search.
+     * i.e. x[i] is moved leftwards to its proper place and all elements from
+     * the destination of x[i] thru x[i-1] are moved up one place.
+     * This type of swap is used by insertion sort.
+     *
+     * @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
+     * @param i  the index of the higher of the adjacent elements to be swapped.
+     */
+    default void swapIntoSorted(X[] xs, int i) {
+        int j = binarySearch(xs, 0, i, xs[i]);
+        if (j < 0) j = -j - 1;
+        if (j < i) swapInto(xs, j, i);
+    }
+
+    /**
      * Method to fix a potentially unstable inversion.
-     *  @param xs the array of X elements.
+     *
+     * @param xs the array of X elements.
      * @param i  the index of the lower of the elements to be swapped.
      * @param j  the index of the higher of the elements to be swapped.
      */

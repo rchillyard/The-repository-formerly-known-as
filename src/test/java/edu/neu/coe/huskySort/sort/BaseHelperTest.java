@@ -142,4 +142,49 @@ public class BaseHelperTest {
         helper.fixInversion(xs, 0, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
     }
+
+    @Test
+    public void testSwapInto() {
+        String[] xs = new String[]{"a", "b", "c"};
+        final Helper<String> helper = new BaseHelper<>("test");
+        helper.swapInto(xs, 0, 2);
+        assertArrayEquals(new String[]{"c", "a", "b"}, xs);
+        helper.swapInto(xs, 0, 1);
+        assertArrayEquals(new String[]{"a", "c", "b"}, xs);
+        helper.swapInto(xs, 0, 0);
+        assertArrayEquals(new String[]{"a", "c", "b"}, xs);
+    }
+
+
+    @Test
+    public void testSwapIntoSorted0() {
+        String[] xs = new String[]{"a", "b", "c"};
+        final Helper<String> helper = new BaseHelper<>("test");
+        helper.swapIntoSorted(xs, 2);
+        assertArrayEquals(new String[]{"a", "b", "c"}, xs);
+    }
+
+    @Test
+    public void testSwapIntoSorted1() {
+        String[] xs = new String[]{"a", "c", "b"};
+        final Helper<String> helper = new BaseHelper<>("test");
+        helper.swapIntoSorted(xs, 2);
+        assertArrayEquals(new String[]{"a", "b", "c"}, xs);
+    }
+
+    @Test
+    public void testSwapIntoSorted2() {
+        String[] xs = new String[]{"a", "c", "b"};
+        final Helper<String> helper = new BaseHelper<>("test");
+        helper.swapIntoSorted(xs, 1);
+        assertArrayEquals(new String[]{"a", "c", "b"}, xs);
+    }
+
+    @Test
+    public void testSwapIntoSorted3() {
+        String[] xs = new String[]{"a", "c", "b"};
+        final Helper<String> helper = new BaseHelper<>("test");
+        helper.swapIntoSorted(xs, 0);
+        assertArrayEquals(new String[]{"a", "c", "b"}, xs);
+    }
 }
