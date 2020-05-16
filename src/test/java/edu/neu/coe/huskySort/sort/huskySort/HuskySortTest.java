@@ -98,6 +98,7 @@ public class HuskySortTest {
 
     @Test
     public void testSortOldDate() {
+        // TODO resolve the deprecated Date usage.
         Date[] xs = {new Date(2018, 11, 9), new Date(2018, 11, 6), new Date(2018, 10, 31), new Date(2018, 1, 1)};
         AbstractHuskySort<Date> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<>(HuskySortHelper.dateCoder);
         assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));

@@ -16,7 +16,7 @@ public class SorterBenchmarkTest {
     @SuppressWarnings("EmptyMethod")
     @After
     public void tearDown() {
-        // Nothing to do.
+        // NOTE: Nothing to do.
     }
 
     @Test

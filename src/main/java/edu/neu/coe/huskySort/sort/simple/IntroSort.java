@@ -133,7 +133,13 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
         }
     }
 
-    // exchange a[i] and a[j]
+    /**
+     * exchange a[i] and a[j]
+     *
+     * @param a the array.
+     * @param i one index.
+     * @param j other index.
+     */
     private static void swap(Object[] a, int i, int j) {
         Object temp = a[i];
         a[i] = a[j];

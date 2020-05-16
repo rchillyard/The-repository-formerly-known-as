@@ -7,6 +7,7 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -60,7 +61,7 @@ public class ShellSortTest {
         assertArrayEquals(zs, xs);
     }
 
-    //  TEST  @Test
+    @Ignore // TEST
     public void sort5() throws Exception {
         BaseHelper<Integer> helper = new BaseHelper<>("ShellSort", 1000);
         Integer[] xs = (Integer[]) helper.random(Integer.class, random -> random.nextInt());

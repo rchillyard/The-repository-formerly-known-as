@@ -109,9 +109,7 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
         for (Bag<X> xes : buckets) {
             final Object[] objects = xes.asArray();
             Arrays.sort(objects, (o, t1) -> helper.compare((X) o, (X) t1));
-            for (Object x : objects) {
-                xs[index++] = (X) x;
-            }
+            for (Object x : objects) xs[index++] = (X) x;
         }
     }
 

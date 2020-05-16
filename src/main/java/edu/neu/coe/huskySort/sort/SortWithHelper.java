@@ -12,8 +12,34 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
         closeHelper = true;
     }
 
+    /**
+     * Get the Helper associated with this Sort.
+     *
+     * @return the Helper
+     */
     public Helper<X> getHelper() {
         return helper;
+    }
+
+    /**
+     * Perform initializing step for this Sort.
+     *
+     * @param n the number of elements to be sorted.
+     */
+    @Override
+    public void init(int n) {
+        getHelper().setN(n);
+    }
+
+    /**
+     * Method to post-process an array after sorting.
+     * <p>
+     * In this implementation, we delegate the post-processing to the helper.
+     *
+     * @param xs the array to be post-processed.
+     */
+    public void postProcess(X[] xs) {
+        helper.postProcess(xs);
     }
 
     @Override

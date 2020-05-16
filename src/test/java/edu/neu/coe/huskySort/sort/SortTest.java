@@ -50,10 +50,23 @@ public class SortTest {
 
     @Test
     public void testSort3() {
-        final Sort<Integer> sorter = new SortWithHelper<Integer>("test", 100, true) {
+        final SortWithHelper<Integer> sorter = new SortWithHelper<Integer>("test", 100, true) {
             @Override
             public void sort(Integer[] xs, int from, int to) {
                 // Do nothing.
+            }
+
+            /**
+             * Method to post-process an array after sorting.
+             * <p>
+             * In this implementation, the post-processing verifies that xs is sorted.
+             *
+             * @param xs the array to be post-processed.
+             * @throws BaseHelper.HelperException if the array xs is not sorted.
+             */
+            @Override
+            public void postProcess(Integer[] xs) {
+                if (!getHelper().sorted(xs)) throw new BaseHelper.HelperException("Array is not sorted");
             }
         };
         final Helper<Integer> helper = sorter.getHelper();

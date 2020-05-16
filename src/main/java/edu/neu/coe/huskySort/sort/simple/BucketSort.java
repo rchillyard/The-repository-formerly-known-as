@@ -3,7 +3,6 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
 import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyBucketHelper;
 import edu.neu.coe.huskySort.util.LazyLogger;
@@ -59,9 +58,24 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
         return helper.toString();
     }
 
+    /**
+     * Perform initializing step for this Sort.
+     *
+     * @param n the number of elements to be sorted.
+     */
     @Override
-    public Helper<X> getHelper() {
-        return helper;
+    public void init(int n) {
+
+    }
+
+    /**
+     * Post-process the given array, i.e. after sorting has been completed.
+     *
+     * @param xs an array of Xs.
+     */
+    @Override
+    public void postProcess(X[] xs) {
+        helper.postProcess(xs);
     }
 
     @Override

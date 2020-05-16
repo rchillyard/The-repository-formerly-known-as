@@ -77,7 +77,7 @@ class HuskySortBenchmarkHelper {
         return getRandomElement(strings, strings.length, r);
     }
 
-    // private constructor (singleton pattern)
+    // NOTE private constructor (singleton pattern)
     private HuskySortBenchmarkHelper() {
     }
 

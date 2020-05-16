@@ -71,7 +71,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     // TEST
-    // HeapSort
     private void heapSort(X[] objects, long[] longs, int from, int to) {
         int n = to - from + 1;
         for (int i = n / 2; i >= 1; i = i - 1) {
@@ -101,7 +100,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     // TEST
-    // InsertionSort
     private void insertionSort(X[] objects, long[] longs, int from, int to) {
         for (int i = from + 1; i <= to; i++)
             for (int j = i; j > from && longs[j] < longs[j - 1]; j--)

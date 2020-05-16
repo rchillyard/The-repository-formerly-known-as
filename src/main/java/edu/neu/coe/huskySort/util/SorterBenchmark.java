@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -25,7 +25,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
      * @param nRuns         the number of runs to perform in this benchmark.
      * @param timeLoggers   the time-loggers.
      */
-    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, Sort<T> sorter, Consumer<T[]> postProcessor, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
+    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, SortWithHelper<T> sorter, Consumer<T[]> postProcessor, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
         super(sorter.toString(), preProcessor, sorter::mutatingSort, postProcessor);
         this.sorter = sorter;
         this.tClass = tClass;
@@ -45,8 +45,8 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
      * @param nRuns        the number of runs to perform in this benchmark.
      * @param timeLoggers  the time-loggers.
      */
-    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, Sort<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
-        this(tClass, preProcessor, sorter, sorter.getHelper()::postProcess, ts, nRuns, timeLoggers);
+    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, SortWithHelper<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
+        this(tClass, preProcessor, sorter, sorter::postProcess, ts, nRuns, timeLoggers);
     }
 
     /**
@@ -60,7 +60,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
      * @param nRuns       the number of runs to perform in this benchmark.
      * @param timeLoggers the time-loggers.
      */
-    public SorterBenchmark(Class<T> tClass, Sort<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
+    public SorterBenchmark(Class<T> tClass, SortWithHelper<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
         this(tClass, null, sorter, ts, nRuns, timeLoggers);
     }
 
@@ -86,7 +86,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
         return sorter.getHelper().random(tClass, (r) -> lookupArray[r.nextInt(lookupArray.length)]);
     }
 
-    protected final Sort<T> sorter;
+    protected final SortWithHelper<T> sorter;
     private final Class<T> tClass;
     protected final T[] ts;
     protected final int nRuns;

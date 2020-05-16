@@ -6,20 +6,42 @@ import static org.junit.Assert.*;
 
 public class BaseHelperTest {
 
+    static class BaseHelperWithSortedTest<X extends Comparable<X>> extends BaseHelper<X> {
+
+        public BaseHelperWithSortedTest() {
+            super("test");
+        }
+
+        public BaseHelperWithSortedTest(int i, long l) {
+            super("test", i, l);
+        }
+
+        /**
+         * Method to post-process the array xs after sorting.
+         * By default, this method does nothing.
+         *
+         * @param xs the array to be tested.
+         */
+        @Override
+        public void postProcess(X[] xs) {
+            if (!sorted(xs)) throw new BaseHelper.HelperException("Array is not sorted");
+        }
+    }
+
     @Test
     public void instrumented() {
-        assertFalse(new BaseHelper<String>("test").instrumented());
+        assertFalse(new BaseHelperWithSortedTest<String>().instrumented());
     }
 
     @Test
     public void less() {
-        assertTrue(new BaseHelper<String>("test").less("a", "b"));
+        assertTrue(new BaseHelperWithSortedTest<String>().less("a", "b"));
     }
 
     @Test
     public void compare() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new BaseHelper<>("test");
+        final Helper<String> helper = new BaseHelperWithSortedTest<>();
         assertEquals(-1, helper.compare(xs, 0, 1));
         assertEquals(0, helper.compare(xs, 0, 0));
         assertEquals(1, helper.compare(xs, 1, 0));
@@ -28,7 +50,7 @@ public class BaseHelperTest {
     @Test
     public void swap() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new BaseHelper<>("test");
+        final Helper<String> helper = new BaseHelperWithSortedTest<>();
         helper.swap(xs, 0, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.swap(xs, 0, 1);
@@ -38,7 +60,7 @@ public class BaseHelperTest {
     @Test
     public void sorted() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new BaseHelper<>("test");
+        final Helper<String> helper = new BaseHelperWithSortedTest<>();
         assertTrue(helper.sorted(xs));
         helper.swap(xs, 0, 1);
         assertFalse(helper.sorted(xs));
@@ -47,7 +69,7 @@ public class BaseHelperTest {
     @Test
     public void inversions() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new BaseHelper<>("test");
+        final Helper<String> helper = new BaseHelperWithSortedTest<>();
         assertEquals(0, helper.inversions(xs));
         helper.swap(xs, 0, 1);
         assertEquals(1, helper.inversions(xs));
@@ -56,21 +78,21 @@ public class BaseHelperTest {
     @Test
     public void postProcess1() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new BaseHelper<>("test");
+        final Helper<String> helper = new BaseHelperWithSortedTest<>();
         helper.postProcess(xs);
     }
 
     @Test(expected = BaseHelper.HelperException.class)
     public void postProcess2() {
         String[] xs = new String[]{"b", "a"};
-        final Helper<String> helper = new BaseHelper<>("test");
+        final Helper<String> helper = new BaseHelperWithSortedTest<>();
         helper.postProcess(xs);
     }
 
     @Test
     public void random() {
         String[] words = new String[]{"Hello", "World"};
-        final Helper<String> helper = new BaseHelper<>("test", 3, 0L);
+        final Helper<String> helper = new BaseHelperWithSortedTest<>(3, 0L);
         final String[] strings = helper.random(String.class, r -> words[r.nextInt(2)]);
         assertArrayEquals(new String[]{"World", "World", "Hello"}, strings);
     }

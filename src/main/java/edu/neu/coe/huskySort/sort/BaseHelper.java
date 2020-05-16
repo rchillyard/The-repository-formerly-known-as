@@ -117,22 +117,19 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         return result;
     }
 
-    /**
-     * Method to post-process an array after sorting.
-     *
-     * In this implementation, the post-processing verifies that xs is sorted.
-     *
-     * @param xs the array to be post-processed.
-     *
-     * @throws HelperException if the array xs is not sorted.
-     */
-    public void postProcess(X[] xs) {
-        if (!sorted(xs)) throw new HelperException("Array is not sorted");
-    }
-
     public X[] random(Class<X> clazz, Function<Random, X> f) {
         if (n <= 0) throw new HelperException("Helper.random: not initialized");
         return random(n, clazz, f);
+    }
+
+    /**
+     * Method to post-process the array xs after sorting.
+     * By default, this method does nothing.
+     *
+     * @param xs the array to be tested.
+     */
+    @Override
+    public void postProcess(X[] xs) {
     }
 
     @Override
@@ -167,9 +164,11 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     protected final Random random;
     protected int n;
 
-    static class HelperException extends RuntimeException {
+    public static class HelperException extends RuntimeException {
 
-        public HelperException(String message) { super(message); }
+        public HelperException(String message) {
+            super(message);
+        }
 
         public HelperException(String message, Throwable cause) {
             super(message, cause);

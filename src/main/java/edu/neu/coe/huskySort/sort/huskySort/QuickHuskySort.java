@@ -40,7 +40,6 @@ public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         quickSort(objects, longs, partition.gt + 1, hi);
     }
 
-    @SuppressWarnings("Duplicates")
     private Partition partition(X[] objects, long[] longs, int lo, int hi) {
         // CONSIDER creating a method less in order to avoid having direct access to the longs.
         int lt = lo, gt = hi;

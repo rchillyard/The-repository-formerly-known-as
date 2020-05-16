@@ -87,7 +87,7 @@ public class PrivateMethodTester {
             try {
                 return getPrivateMethod(name, classes, i, effectiveClasses);
             } catch (NoSuchMethodException e) {
-                // Ignore this exception: we keep looking in subsequent combinations of effective classes
+                // NOTE: Ignore this exception: we keep looking in subsequent combinations of effective classes
             }
         }
         throw new NoSuchMethodException("private method " + name + " with " + classes.length + " parameters");
@@ -104,7 +104,7 @@ public class PrivateMethodTester {
             try {
                 return findPrivateMethod(name, effectiveClasses);
             } catch (NoSuchMethodException nsme) {
-                // Ignore this exception: we keep looking with different effective classes
+                // NOTE: Ignore this exception: we keep looking with different effective classes
             }
         }
         throw new NoSuchMethodException("private method " + name + " with " + classes.length + " parameters for combination " + i);

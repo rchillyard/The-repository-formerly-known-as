@@ -121,9 +121,9 @@ public interface Helper<X extends Comparable<X>> {
     int inversions(X[] xs);
 
     /**
-     * Post-process the given array, i.e. after sorting has been completed.
+     * Method to post-process the array xs after sorting.
      *
-     * @param xs an array of Xs.
+     * @param xs the array that has been sorted.
      */
     void postProcess(X[] xs);
 
