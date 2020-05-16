@@ -7,7 +7,7 @@ public class HuskySortBenchmarkHelperTest {
     @SuppressWarnings("EmptyMethod")
     @Test
     public void testGetWords() {
-        // TODO test me
+        // TEST
     }
 
     @Test
@@ -18,6 +18,6 @@ public class HuskySortBenchmarkHelperTest {
     @SuppressWarnings("EmptyMethod")
     @Test
     public void testGenerateRandomStringArray() {
-        // TODO test me
+        // TEST
     }
 }

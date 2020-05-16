@@ -10,24 +10,24 @@ import java.util.function.Consumer;
 
 public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
-    // TODO this needs to be unit-tested
+    // TEST
     public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {
         super(name, 0, huskyCoder, postSorter, instrumentation);
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     public IntroHuskySort(HuskyCoder<X> huskyCoder, boolean instrumentation) {
         this("IntroHuskySort", huskyCoder, Arrays::sort, instrumentation);
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     @Override
     public void sort(X[] xs, int from, int to) {
         long[] longs = getHelper().getLongs();
         quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     @SuppressWarnings({"UnnecessaryLocalVariable"})
     private void quickSort(X[] objects, long[] longs, int from, int to, int depthThreshold) {
         int lo = from;
@@ -46,8 +46,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         quickSort(objects, longs, partition.gt + 1, hi, depthThreshold - 1);
     }
 
-    // TODO this needs to be unit-tested
-    @SuppressWarnings("Duplicates")
+    // TEST
     private Partition partition(X[] objects, long[] longs, int lo, int hi) {
         int lt = lo, gt = hi;
         if (longs[lo] > longs[hi]) swap(objects, lo, hi);
@@ -71,7 +70,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         }
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     // HeapSort
     private void heapSort(X[] objects, long[] longs, int from, int to) {
         int n = to - from + 1;
@@ -84,7 +83,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         }
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     private void downHeap(X[] objects, long[] longs, int i, int n, int lo) {
         long d = longs[lo + i - 1];
         X od = objects[lo + i - 1];
@@ -101,7 +100,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         objects[lo + i - 1] = od;
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     // InsertionSort
     private void insertionSort(X[] objects, long[] longs, int from, int to) {
         for (int i = from + 1; i <= to; i++)

@@ -92,16 +92,24 @@ public class Benchmark<T> {
     public double run(Supplier<T> supplier, int m) {
         logger.info("Begin run: " + description + " with " + m + " runs");
         // Warmup phase
-        // TODO sort this out...
-        int warmupRuns = Integer.min(2, Integer.max(10, m / 10));
         final Function<T, T> function = t -> {
             fRun.accept(t);
             return t;
         };
-        new Timer().repeat(warmupRuns, supplier, function, fPre, null);
+        new Timer().repeat(getWarmupRuns(m), supplier, function, fPre, null);
 
         // Timed phase
         return new Timer().repeat(m, supplier, function, fPre, fPost);
+    }
+
+    /**
+     * Calculate the appropriate number of warmup runs.
+     *
+     * @param m the number of runs.
+     * @return at least 2 and at most m/10.
+     */
+    static int getWarmupRuns(int m) {
+        return Integer.max(2, Integer.min(10, m / 10));
     }
 
     private final String description;

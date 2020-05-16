@@ -48,4 +48,13 @@ public class BenchmarkTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void getWarmupRuns() {
+        assertEquals(2, Benchmark.getWarmupRuns(0));
+        assertEquals(2, Benchmark.getWarmupRuns(20));
+        assertEquals(3, Benchmark.getWarmupRuns(30));
+        assertEquals(10, Benchmark.getWarmupRuns(100));
+        assertEquals(10, Benchmark.getWarmupRuns(1000));
+    }
 }

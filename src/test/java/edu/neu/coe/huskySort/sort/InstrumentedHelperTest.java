@@ -4,6 +4,7 @@ import edu.neu.coe.huskySort.sort.simple.MergeSortBasic;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
 import edu.neu.coe.huskySort.util.StatPack;
 import edu.neu.coe.huskySort.util.Statistics;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -187,7 +188,7 @@ public class InstrumentedHelperTest {
         assertTrue(compares <= 17 && compares >= 12);
     }
 
-    //    @Test
+    @Ignore // TODO fix this test
     public void testMergeSortMany() {
         int N = 8;
         int m = 10;

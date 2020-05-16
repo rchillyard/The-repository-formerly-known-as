@@ -19,7 +19,7 @@ public interface HuskySortable<X> extends Comparable<X> {
      * @param x the object to be compared
      * @return an int according to the ordering of this and x
      */
-    // TODO this needs to be unit-tested
+    // TEST
     default int compareTo(X x) {
         if (HuskySortable.class.isAssignableFrom(x.getClass()))
             //noinspection unchecked

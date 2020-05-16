@@ -60,7 +60,7 @@ public class ShellSortTest {
         assertArrayEquals(zs, xs);
     }
 
-    //  TODO  @Test
+    //  TEST  @Test
     public void sort5() throws Exception {
         BaseHelper<Integer> helper = new BaseHelper<>("ShellSort", 1000);
         Integer[] xs = (Integer[]) helper.random(Integer.class, random -> random.nextInt());

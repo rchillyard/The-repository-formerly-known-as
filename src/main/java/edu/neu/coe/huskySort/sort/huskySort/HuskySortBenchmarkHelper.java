@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * Singleton class HuskySortBenchmarkHelper
  */
 class HuskySortBenchmarkHelper {
-    // TODO this needs to be unit-tested
+    // TEST
     static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
         List<String> words = new ArrayList<>();
         FileReader fr = new FileReader(getFile(resource, QuickHuskySort.class));
@@ -49,12 +49,11 @@ class HuskySortBenchmarkHelper {
             return new ArrayList<>();
     }
 
-    // TODO this needs to be unit-tested
     static void logNormalizedTime(double time, String prefix, Function<Double, Double> normalizer) {
         logger.info(prefix + normalizer.apply(time));
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     static String[] generateRandomStringArray(String[] lookupArray, int number) {
         if (lookupArray.length == 0) throw new SortException("lookupArray is empty");
         Random r = new Random();
@@ -63,7 +62,7 @@ class HuskySortBenchmarkHelper {
         return result;
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     private static String getFile(String resource, Class<?> clazz) throws FileNotFoundException {
         final URL url = clazz.getClassLoader().getResource(resource);
         if (url != null) return url.getFile();

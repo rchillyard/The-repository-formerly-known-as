@@ -68,7 +68,7 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
             insertionSort(a, from, to);
             return;
         }
-        // TODO this needs to be unit-tested
+        // TEST
         if (depthThreshold == 0) {
             heapSort(a, from, to);
             return;

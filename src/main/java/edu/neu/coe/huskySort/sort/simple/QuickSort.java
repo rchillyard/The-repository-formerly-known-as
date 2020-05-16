@@ -34,7 +34,7 @@ public class QuickSort<X extends Comparable<X>> extends SortWithHelper<X> {
         this(new BaseHelper<>(DESCRIPTION));
     }
 
-    // TODO this needs to be unit-tested
+    // TEST
     public void sort(X[] xs, int from, int to) {
         Arrays.sort(xs, from, to);
 //        for (int i = from; i < to; i++)

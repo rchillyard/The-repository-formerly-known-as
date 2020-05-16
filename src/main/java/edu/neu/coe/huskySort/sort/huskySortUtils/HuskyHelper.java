@@ -125,7 +125,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
     }
 
-    // TODO this needs to be unit-tested
     public HuskyCoder<X> getCoder() {
         return coder;
     }

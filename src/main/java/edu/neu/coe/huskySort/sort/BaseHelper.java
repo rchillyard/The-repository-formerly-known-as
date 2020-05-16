@@ -130,7 +130,6 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         if (!sorted(xs)) throw new HelperException("Array is not sorted");
     }
 
-    // TODO this needs to be unit-tested
     public X[] random(Class<X> clazz, Function<Random, X> f) {
         if (n <= 0) throw new HelperException("Helper.random: not initialized");
         return random(n, clazz, f);
@@ -157,7 +156,6 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     public void close() {
     }
 
-    // TODO this needs to be unit-tested
     private X[] random(int n, Class<X> clazz, Function<Random, X> f) {
         setN(n);
         @SuppressWarnings("unchecked") X[] result = (X[]) Array.newInstance(clazz, n);
