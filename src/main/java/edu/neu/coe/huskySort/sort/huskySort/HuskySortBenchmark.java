@@ -8,10 +8,7 @@ import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.InversionCounter;
-import edu.neu.coe.huskySort.sort.simple.InsertionSort;
-import edu.neu.coe.huskySort.sort.simple.IntroSort;
-import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
-import edu.neu.coe.huskySort.sort.simple.TimSort;
+import edu.neu.coe.huskySort.sort.simple.*;
 import edu.neu.coe.huskySort.util.*;
 
 import java.io.FileNotFoundException;
@@ -40,12 +37,14 @@ public class HuskySortBenchmark {
     public static void main(String[] args) throws IOException {
         logger.info("HuskySortBenchmark.main");
         HuskySortBenchmark benchmark = new HuskySortBenchmark(new Config("config.ini"));
-        benchmark.sortLocalDateTimes();
         benchmark.sortStrings();
+        benchmark.sortLocalDateTimes();
     }
 
     private void sortStrings() throws IOException {
         logger.info("Beginning String sorts");
+
+        doLeipzigBenchmark("eng-uk_web_2002_10K-sentences.txt", 1000, 1000);
 
         doLeipzigBenchmark("eng-uk_web_2002_10K-sentences.txt", 10000, 1000);
 
@@ -92,9 +91,11 @@ public class HuskySortBenchmark {
     }
 
     void benchmarkStringSorters(String[] words, int nWords, int nRuns, TimeLogger[] timeLoggers) {
-        logger.info("Testing with " + nRuns + " runs of sorting " + nWords + " words");
-
         boolean instrumented = this.config.get("helper", "instrument", boolean.class);
+
+        logger.info("Testing with " + nRuns + " runs of sorting " + nWords + " words" + (instrumented ? " and instrumented" : ""));
+
+        runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(nWords, instrumented), null, timeLoggers);
 
         runStringSortBenchmark(words, nWords, nRuns, new TimSort<>(nWords, instrumented), null, timeLoggers);
 

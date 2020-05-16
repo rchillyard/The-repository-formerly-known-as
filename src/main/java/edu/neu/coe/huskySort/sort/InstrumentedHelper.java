@@ -116,7 +116,8 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     }
 
     /**
-     * Method to check that an array is sorted.
+     * Method to post-process the array xs after sorting.
+     * By default, this method checks that an array is sorted.
      *
      * @param xs the array to be tested.
      *           TODO log the message

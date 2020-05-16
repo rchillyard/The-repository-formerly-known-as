@@ -3,9 +3,25 @@
  */
 package edu.neu.coe.huskySort.sort;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 
 public interface Sort<X extends Comparable<X>> {
+
+    /**
+     * Method to take an AbstractCollection of X and return an Iterable of X which is sorted.
+     *
+     * @param xs the collection of X elements.
+     * @return a sorted iterable of X.
+     */
+    default Iterable<X> sort(Collection<X> xs) {
+        if (xs.isEmpty()) return xs;
+        final X[] array = asArray(xs);
+        mutatingSort(array);
+        return Arrays.asList(array);
+    }
 
     /**
      * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
@@ -76,4 +92,21 @@ public interface Sort<X extends Comparable<X>> {
     }
 
     void close();
+
+    /**
+     * There is really no good way that I could find to do this with library/language methods.
+     *
+     * @param xs  a collection of Xs.
+     * @param <X> the underlying type of X.
+     * @return an array X[].
+     */
+    static <X> X[] asArray(Collection<X> xs) {
+        if (xs.isEmpty()) throw new RuntimeException("xs may not be empty");
+        final Iterator<X> iterator = xs.iterator();
+        @SuppressWarnings("unchecked") X[] result = (X[]) Array.newInstance(xs.iterator().next().getClass(), xs.size());
+        int i = 0;
+        while (iterator.hasNext())
+            result[i++] = iterator.next();
+        return result;
+    }
 }

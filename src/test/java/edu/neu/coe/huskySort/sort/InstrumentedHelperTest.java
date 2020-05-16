@@ -1,6 +1,9 @@
 package edu.neu.coe.huskySort.sort;
 
+import edu.neu.coe.huskySort.sort.simple.MergeSortBasic;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.StatPack;
+import edu.neu.coe.huskySort.util.Statistics;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -169,5 +172,40 @@ public class InstrumentedHelperTest {
         assertArrayEquals(new String[]{"a", "b"}, xs);
         assertEquals(2, privateMethodTester.invokePrivate("getCompares"));
         assertEquals(2, privateMethodTester.invokePrivate("getSwaps"));
+    }
+
+    @Test
+    public void testMergeSort() {
+        int N = 8;
+        final Helper<Integer> helper = new InstrumentedHelper<>("test");
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        Sort<Integer> s = new MergeSortBasic<>(helper);
+        s.init(N);
+        final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
+        s.sort(xs);
+        final int compares = (Integer) privateMethodTester.invokePrivate("getCompares");
+        assertTrue(compares <= 17 && compares >= 12);
+    }
+
+    //    @Test
+    public void testMergeSortMany() {
+        int N = 8;
+        int m = 10;
+        final Helper<Integer> helper = new InstrumentedHelper<>("test");
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        Sort<Integer> s = new MergeSortBasic<>(helper);
+        s.init(N);
+        for (int i = 0; i < m; i++) {
+            final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
+            Integer[] ys = s.sort(xs);
+            helper.postProcess(ys);
+        }
+        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        final Statistics statistics = statPack.getStatistics("compares");
+        System.out.println(statistics);
+        final int compares = statPack.getCount("compares");
+        System.out.println(statPack);
+        assertTrue(12 <= compares && compares <= 17);
+//        assert
     }
 }

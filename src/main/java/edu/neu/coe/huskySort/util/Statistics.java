@@ -9,7 +9,8 @@ public class Statistics {
 
     public void add(double x) {
         if (count >= doubles.length) resize(2 * doubles.length);
-        doubles[count++] = x;
+        doubles[count] = x;
+        count = count + 1;
         stale();
     }
 

@@ -4,8 +4,6 @@
 
 package edu.neu.coe.huskySort.util;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -94,6 +92,7 @@ public class Benchmark<T> {
     public double run(Supplier<T> supplier, int m) {
         logger.info("Begin run: " + description + " with " + m + " runs");
         // Warmup phase
+        // TODO sort this out...
         int warmupRuns = Integer.min(2, Integer.max(10, m / 10));
         final Function<T, T> function = t -> {
             fRun.accept(t);
@@ -109,46 +108,6 @@ public class Benchmark<T> {
     private final UnaryOperator<T> fPre;
     private final Consumer<T> fRun;
     private final Consumer<T> fPost;
-
-//    /**
-//     * Everything below this point has to do with a particular example of running a Benchmark.
-//     * In this case, we time three types of simple sort on a random integer array of length 1000.
-//     * Each test is run 200 times.
-//     *
-//     * @param args the command-line arguments, of which none are significant.
-//     */
-//    public static void main(String[] args) {
-//        Random random = new Random();
-//        int m = 100; // This is the number of repetitions: sufficient to give a good mean value of timing
-//        int n = 100000; // This is the size of the array
-//        for (int k = 0; k < 5; k++) {
-//            Integer[] array = new Integer[n];
-//            for (int i = 0; i < n; i++) array[i] = random.nextInt();
-//            benchmarkSort("InsertionSort", array, "InsertionSort: " + n, new InsertionSort<>(), m);
-//            benchmarkSort("SelectionSort", array, "SelectionSort: " + n, new SelectionSort<>(), m);
-////        benchmarkSort("ShellSort", array, "ShellSort    ", new ShellSort<>(3), m);
-//            n = n * 2;
-//        }
-//    }
-//
-//    // TODO this needs to be unit-tested
-//    private static void benchmarkSort(String description, Integer[] array, String name, Sort<Integer> sorter, int m) {
-//        UnaryOperator<Integer[]> preFunction = (xs) -> Arrays.copyOf(array, array.length);
-//        Consumer<Integer[]> sortFunction = sorter::mutatingSort;
-//        final Helper<Integer> helper = sorter.getHelper();
-//        Consumer<Integer[]> cleanupFunction = (xs) -> {
-//            if (!helper.sorted(xs)) throw new RuntimeException("not sorted");
-//        };
-//        Benchmark<Integer[]> bm = new Benchmark<>(description, preFunction, sortFunction, cleanupFunction);
-//        double x = bm.run(array, m);
-//        logger.info(name + ": " + x + " millisecs");
-//    }
-
-    public static String formatLocalDateTime() {
-        return dateTimeFormatter.format(LocalDateTime.now());
-    }
-
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("ss.SSSSSS");
 
     final static LazyLogger logger = new LazyLogger(Benchmark.class);
 }
