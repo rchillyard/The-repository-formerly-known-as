@@ -1,6 +1,5 @@
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 
@@ -9,28 +8,29 @@ import java.util.Arrays;
 public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
 
     public static final String DESCRIPTION = "MergeSort";
+    public static final int CUTOFF = 7;
 
     /**
-     * Constructor for InsertionSort
+     * Constructor for MergeSort
+     * <p>
+     * NOTE this is used only by unit tests, using its own instrumented helper.
      *
      * @param helper an explicit instance of Helper to be used.
      */
     public MergeSortBasic(Helper<X> helper) {
         super(helper);
+        insertionSort = new InsertionSort<>(helper);
     }
 
     /**
-     * Constructor for QuickSort
+     * Constructor for MergeSort
      *
      * @param N            the number elements we expect to sort.
      * @param instrumented whether or not we want an instrumented helper class.
      */
     public MergeSortBasic(int N, boolean instrumented) {
         super(DESCRIPTION, N, instrumented);
-    }
-
-    public MergeSortBasic() {
-        this(new BaseHelper<>(DESCRIPTION));
+        insertionSort = new InsertionSort<>();
     }
 
     @Override
@@ -47,7 +47,10 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
     public void sort(X[] a, int from, int to) {
         @SuppressWarnings("UnnecessaryLocalVariable") int lo = from;
         int hi = to;
-        if (hi <= lo + 1) return;
+        if (hi <= lo + CUTOFF) {
+            insertionSort.sort(a, from, to);
+            return;
+        }
         int mid = from + (to - from) / 2;
         sort(a, lo, mid);
         sort(a, mid, hi);
@@ -67,5 +70,6 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     private X[] aux = null;
+    private final InsertionSort<X> insertionSort;
 }
 

@@ -28,17 +28,18 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public InsertionSort(BaseHelper<X> helper) {
+    public InsertionSort(Helper<X> helper) {
         super(helper);
     }
 
     public void sort(X[] xs, int from, int to) {
         final Helper<X> helper = getHelper();
         for (int i = from + 1; i < to; i++) {
-            helper.swapIntoSorted(xs, i);
-//            for (int j = i; j > from && helper.less(xs[j], xs[j - 1]); j--) {
-//                helper.swapStable(xs, j);
-//            }
+            // TODO implement using swapIntoSorted
+//            helper.swapIntoSorted(xs, i);
+            for (int j = i; j > from && helper.less(xs[j], xs[j - 1]); j--) {
+                helper.swapStable(xs, j);
+            }
         }
     }
 

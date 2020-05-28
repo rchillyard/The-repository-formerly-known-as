@@ -17,13 +17,11 @@ public class InstrumentedHuskyHelper<X extends Comparable<X>> extends HuskyHelpe
     // Delegate methods on helper
 
     public boolean less(X v, X w) {
-        compares++;
         return super.less(v, w);
     }
 
     // CONSIDER having a method less which compares the longs rather than having direct access to the longs array in sub-classes
     public void swap(X[] xs, int i, int j) {
-        swaps++;
         super.swap(xs, i, j);
     }
 
@@ -64,6 +62,4 @@ public class InstrumentedHuskyHelper<X extends Comparable<X>> extends HuskyHelpe
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
     }
 
-    private int swaps;
-    private int compares;
 }

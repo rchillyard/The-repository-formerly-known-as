@@ -87,9 +87,10 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     }
 
     public int compare(X[] xs, int i, int j) {
-        // CONSIDER using the other compare method.
-        compares++;
-        return xs[i].compareTo(xs[j]);
+        // CONSIDER using compareTo method if it improves performance.
+        return compare(xs[i], xs[j]);
+//        compares++;
+//        return xs[i].compareTo(xs[j]);
     }
 
     /**
@@ -111,6 +112,10 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     }
 
     public void setN(int n) {
+        compares = 0;
+        swaps = 0;
+        // NOTE: it's an error to reset the StatPack if we've been here before
+        if (n == this.n && statPack != null) return;
         super.setN(n);
         statPack = new StatPack(n, COMPARES, SWAPS);
     }

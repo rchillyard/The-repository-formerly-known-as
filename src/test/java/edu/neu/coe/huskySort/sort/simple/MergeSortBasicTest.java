@@ -22,7 +22,7 @@ public class MergeSortBasicTest {
         xs[1] = 4;
         xs[2] = 2;
         xs[3] = 1;
-        Sort<Integer> s = new MergeSortBasic<>();
+        Sort<Integer> s = new MergeSortBasic<>(xs.length, false);
         Integer[] ys = s.sort(xs);
         assertEquals(Integer.valueOf(1), ys[0]);
         assertEquals(Integer.valueOf(2), ys[1]);

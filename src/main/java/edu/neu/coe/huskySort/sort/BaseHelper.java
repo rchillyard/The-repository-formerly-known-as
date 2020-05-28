@@ -154,7 +154,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     private X[] random(int n, Class<X> clazz, Function<Random, X> f) {
-        setN(n);
+//        setN(n);
         @SuppressWarnings("unchecked") X[] result = (X[]) Array.newInstance(clazz, n);
         for (int i = 0; i < n; i++) result[i] = f.apply(random);
         return result;
