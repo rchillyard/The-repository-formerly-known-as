@@ -132,22 +132,22 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
         }
 
         public Partition getPartition(X[] xs, int lo, int hi) {
-            conditionalSwap(xs, lo, hi);
-            X v = xs[lo];
-            int i = lo + 1;
-            int lt = lo, gt = hi;
-            // NOTE: we are trying to avoid checking on instrumented for every time in the inner loop for performance reasons.
-            if (helper.instrumented())
-                while (i <= gt) {
-                    int cmp = helper.compare(xs[i], v);
-//                    int cmp = xs[i].compareTo(v);
-                    if (cmp < 0) helper.swap(xs, lt++, i++);
-                    else if (cmp > 0) helper.swap(xs, i, gt--);
-                    else i++;
-                }
-            else
-                while (i <= gt) {
-                    int cmp = xs[i].compareTo(v);
+						conditionalSwap(xs, lo, hi);
+						X v = xs[lo];
+						int i = lo + 1;
+						int lt = lo, gt = hi;
+						// NOTE: we are trying to avoid checking on instrumented for every time in the inner loop for performance reasons (probably a silly idea).
+						// NOTE: if we were using Scala, it would be easy to set up a comparer function and a swapper function. With java, it's possible but much messier.
+						if (helper.instrumented())
+								while (i <= gt) {
+										int cmp = helper.compare(xs[i], v);
+										if (cmp < 0) helper.swap(xs, lt++, i++);
+										else if (cmp > 0) helper.swap(xs, i, gt--);
+										else i++;
+								}
+						else
+								while (i <= gt) {
+										int cmp = xs[i].compareTo(v);
                     if (cmp < 0) swap(xs, lt++, i++);
                     else if (cmp > 0) swap(xs, i, gt--);
                     else i++;

@@ -38,7 +38,6 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
         getHelper().setN(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         aux = Arrays.copyOf(xs, xs.length); // TODO don't copy but just allocate
-        // TODO make this consistent with other uses of sort where the upper limit of the range is result.length
         sort(result, 0, result.length);
         return result;
     }

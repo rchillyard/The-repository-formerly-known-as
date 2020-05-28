@@ -22,6 +22,10 @@ public class Config {
         return t;
     }
 
+    public Boolean getBoolean(String sectionName, String optionName) {
+        return get(sectionName, optionName, boolean.class);
+    }
+
     public String getComment(Object key) {
         final String comment = ini.getComment(key);
         logger.debug(() -> "Config.getComment(" + key + ") = " + comment);
@@ -68,7 +72,11 @@ public class Config {
         this(new File(file));
     }
 
-    private final Ini ini;
+    public static Config load(final Class<?> clazz) throws IOException {
+        return new Config(clazz.getResource("/config.ini"));
+    }
 
     final static LazyLogger logger = new LazyLogger(Config.class);
+
+    private final Ini ini;
 }

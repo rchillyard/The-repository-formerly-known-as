@@ -25,7 +25,7 @@ import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getW
 @SuppressWarnings("ALL")
 public class BenchmarkIntegrationTest {
 
-    Config config = new Config("config.ini");
+    Config config = Config.load(getClass());
     HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
 
     final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
@@ -34,12 +34,22 @@ public class BenchmarkIntegrationTest {
     }
 
     @Test
-    public void test10K() throws Exception {
+    public void testtrings10K() throws Exception {
         benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
     }
 
-    @Test(timeout = 70000)
-    public void test100K() throws Exception {
+    @Test(timeout = 140000)
+    public void testStrings100K() throws Exception {
         benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
+    }
+
+    @Test
+    public void testDates10K() throws Exception {
+        benchmark.sortLocalDateTimes(10000);
+    }
+
+    @Test
+    public void testDates100K() throws Exception {
+        benchmark.sortLocalDateTimes(100000);
     }
 }

@@ -48,9 +48,10 @@ public class Statistics {
     }
 
     private void resize(int n) {
-        // TODO grow the array to size n
-        throw new RuntimeException("Statistics: resize: not implemented");
-    }
+				double[] result = new double[n];
+				System.arraycopy(doubles, 0, result, 0, doubles.length);
+				doubles = result;
+		}
 
     private void stale() {
         total = null;
@@ -60,7 +61,7 @@ public class Statistics {
     private Double total;
     private Double stdDev;
 
-    private int count = 0;
-    private final double[] doubles;
-    private final String property;
+		private int count = 0;
+		private double[] doubles;
+		private final String property;
 }

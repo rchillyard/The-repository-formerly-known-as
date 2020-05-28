@@ -4,9 +4,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.InversionCounter;
 import edu.neu.coe.huskySort.sort.simple.*;
@@ -37,9 +35,10 @@ public class HuskySortBenchmark {
 
     public static void main(String[] args) throws IOException {
         logger.info("HuskySortBenchmark.main");
-        HuskySortBenchmark benchmark = new HuskySortBenchmark(new Config("config.ini"));
+        Config config = Config.load(HuskySortBenchmark.class);
+        HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
         benchmark.sortStrings();
-        benchmark.sortLocalDateTimes();
+        benchmark.sortLocalDateTimes(100000);
     }
 
     private void sortStrings() throws IOException {
@@ -58,33 +57,39 @@ public class HuskySortBenchmark {
         doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", 5000, 1000);
     }
 
-    private void sortLocalDateTimes() {
+    public void sortLocalDateTimes(final int n) {
         logger.info("Beginning LocalDateTime sorts");
-        BaseHelper<ChronoLocalDateTime<?>> helper = new BaseHelper<>(null);
-        Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(100000);
-        // TODO Test on date using pure tim sort.
-        logger.info(benchmarkFactory("Sort LocalDateTimes using Arrays::sort (TimSort)", Arrays::sort, null).run(localDateTimeSupplier, 100) + "ms");
+        Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(n);
+        BaseHelper<ChronoLocalDateTime<?>> helper = new BaseHelper<>("DateTimeHelper");
+        final LocalDateTime[] localDateTimes = generateRandomLocalDateTimeArray(n);
+        final String configSectionDateSorters = "benchmarkdatesorters";
 
-        // NOTE: this is supposed to match the previous benchmark run exactly. I don't understand why it takes rather less time.
-        Sort<ChronoLocalDateTime<?>> timSort = new TimSort<>(helper);
-        logger.info(benchmarkFactory("Repeat Sort LocalDateTimes using timSort::mutatingSort", timSort::mutatingSort, null).run(localDateTimeSupplier, 100) + "ms");
-        final LocalDateTime[] localDateTimes = generateRandomLocalDateTimeArray(100000);
-        // NOTE: this is intended to replace the run two lines previous. It should take the exact same amount of time.
-        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, 100000, 100, 0);
+        // CONSIDER finding the common ground amongst these sorts and get them all working together.
 
-        // TODO Test on date using husky sort.
-        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort = new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder);
-        final HuskyHelper<ChronoLocalDateTime<?>> dateHelper = dateHuskySortSystemSort.getHelper();
-        logger.info(benchmarkFactory("Sort LocalDateTimes using huskySort with TimSort", dateHuskySortSystemSort::sort, dateHuskySortSystemSort::postProcess).run(localDateTimeSupplier, 100) + "ms");
+        // NOTE Test on date using pure tim sort.
+        if (config.getBoolean(configSectionDateSorters, "timsort"))
+            logger.info(benchmarkFactory("Sort LocalDateTimes using Arrays::sort (TimSort)", Arrays::sort, null).run(localDateTimeSupplier, 100) + "ms");
+
+        // NOTE this is supposed to match the previous benchmark run exactly. I don't understand why it takes rather less time.
+        if (config.getBoolean(configSectionDateSorters, "timsort")) {
+            logger.info(benchmarkFactory("Repeat Sort LocalDateTimes using timSort::mutatingSort", new TimSort<>(helper)::mutatingSort, null).run(localDateTimeSupplier, 100) + "ms");
+            // NOTE this is intended to replace the run two lines previous. It should take the exact same amount of time.
+            runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, n, 100, 0);
+        }
+
+        // NOTE Test on date using husky sort.
+        if (config.getBoolean(configSectionDateSorters, "quickhuskysort"))
+            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder), "Sort LocalDateTimes using huskySort with TimSort", 1);
+
+        // NOTE Test on date using husky sort with insertion sort.
+        if (config.getBoolean(configSectionDateSorters, "quickhuskyinsertionsort"))
+            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, new InsertionSort<>(helper)::mutatingSort, false), "Sort LocalDateTimes using huskySort with insertionSort", 2);
+    }
+
+    private void dateSortBenchmark(Supplier<LocalDateTime[]> localDateTimeSupplier, LocalDateTime[] localDateTimes, QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, String s, int i) {
+        logger.info(benchmarkFactory(s, dateHuskySortSystemSort::sort, dateHuskySortSystemSort::postProcess).run(localDateTimeSupplier, 100) + "ms");
         // NOTE: this is intended to replace the run in the previous line. It should take the exact same amount of time.
-        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, 100000, 100, 1);
-
-        // TODO Test on date using husky sort with insertion sort.
-        InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>(helper);
-        QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortInsertionSort = new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, insertionSort::mutatingSort, false);
-        logger.info(benchmarkFactory("Sort LocalDateTimes using huskySort with insertionSort", dateHuskySortInsertionSort::sort, dateHuskySortInsertionSort::postProcess).run(localDateTimeSupplier, 100) + "ms");
-        // NOTE: this is intended to replace the run in the previous line. It should take the exact same amount of time.
-        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, 100000, 100, 2);
+        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, 100000, 100, i);
     }
 
     private void doLeipzigBenchmark(String resource, int nWords, int nRuns) throws FileNotFoundException {
@@ -92,49 +97,64 @@ public class HuskySortBenchmark {
     }
 
     void benchmarkStringSorters(String[] words, int nWords, int nRuns, TimeLogger[] timeLoggers) {
-        boolean instrumented = this.config.get("helper", "instrument", boolean.class);
+        boolean instrumented = config.getBoolean("helper", "instrument");
 
         logger.info("Testing with " + nRuns + " runs of sorting " + nWords + " words" + (instrumented ? " and instrumented" : ""));
 
-        runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(nWords, instrumented), null, timeLoggers);
+        final String configSectionStringSorters = "benchmarktringsorters";
+        if (config.getBoolean(configSectionStringSorters, "mergesort"))
+            runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(nWords, instrumented), null, timeLoggers);
 
-        runStringSortBenchmark(words, nWords, nRuns, new TimSort<>(nWords, instrumented), null, timeLoggers);
+        if (config.getBoolean(configSectionStringSorters, "timsort"))
+            runStringSortBenchmark(words, nWords, nRuns, new TimSort<>(nWords, instrumented), null, timeLoggers);
 
-        runStringSortBenchmark(words, nWords, nRuns, new QuickSort_3way<>(nWords, instrumented), null, timeLoggers);
+        if (config.getBoolean(configSectionStringSorters, "quicksort3way"))
+            runStringSortBenchmark(words, nWords, nRuns, new QuickSort_3way<>(nWords, instrumented), null, timeLoggers);
 
-        runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, instrumented), null, timeLoggers);
+        if (config.getBoolean(configSectionStringSorters, "introsort"))
+            runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, instrumented), null, timeLoggers);
 
-        runStringSortBenchmark(words, nWords, nRuns / 10, new InsertionSort<>(nWords, instrumented), null, timeLoggersQuadratic);
+        if (config.getBoolean(configSectionStringSorters, "insertionsort"))
+            runStringSortBenchmark(words, nWords, nRuns / 10, new InsertionSort<>(nWords, instrumented), null, timeLoggersQuadratic);
 
-        runStringSortBenchmark(words, nWords, nRuns, new QuickHuskySort<>(UNICODE_CODER, instrumented), null, timeLoggers);
+        if (config.getBoolean(configSectionStringSorters, "quickhuskysort"))
+            runStringSortBenchmark(words, nWords, nRuns, new QuickHuskySort<>(UNICODE_CODER, instrumented), null, timeLoggers);
 
-        final SortWithHelper<String> stringHuskyBucketSort = new HuskyBucketSort<>(16, UNICODE_CODER, instrumented);
-        final UnaryOperator<String[]> stringHuskyBucketSortPreProcess = stringHuskyBucketSort::preProcess;
-        runStringSortBenchmark(words, nWords, nRuns, stringHuskyBucketSort, stringHuskyBucketSortPreProcess, timeLoggers);
-
-        runStringSortBenchmark(words, nWords, nRuns, new IntroHuskySort<>(UNICODE_CODER, instrumented), null, timeLoggers);
-
-        final SortWithHelper<String> quickHuskySortInsertion = new QuickHuskySort<>("QuickHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort, instrumented);
-        runStringSortBenchmark(words, nWords, nRuns, quickHuskySortInsertion, quickHuskySortInsertion::preProcess, timeLoggers);
-
-        final SortWithHelper<String> introHuskySortInsertion = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort, instrumented);
-        runStringSortBenchmark(words, nWords, nRuns, introHuskySortInsertion, introHuskySortInsertion::preProcess, timeLoggers);
-
-        final SortWithHelper<String> introHuskyBucketSort = new HuskyBucketSort<>(1000, UNICODE_CODER, instrumented);
-        runStringSortBenchmark(words, nWords, nRuns, introHuskyBucketSort, introHuskyBucketSort::preProcess, timeLoggers);
-
-        final SortWithHelper<String> quickHuskySortNone = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
-            // XXX do nothing, so we can count inversions.
-        }, instrumented);
-        long inversions = 0;
-        for (int i = 0; i < nRuns; i++) {
-            String[] xs = generateRandomStringArray(words, nWords);
-            quickHuskySortNone.sort(xs);
-            inversions += new InversionCounter(xs).getInversions();
+        if (config.getBoolean(configSectionStringSorters, "huskybucketsort")) {
+            final SortWithHelper<String> stringHuskyBucketSort = new HuskyBucketSort<>(16, UNICODE_CODER, instrumented);
+            final UnaryOperator<String[]> stringHuskyBucketSortPreProcess = stringHuskyBucketSort::preProcess;
+            runStringSortBenchmark(words, nWords, nRuns, stringHuskyBucketSort, stringHuskyBucketSortPreProcess, timeLoggers);
         }
-        inversions = inversions / nRuns;
-        logger.info("Mean inversions after first part: " + inversions);
-        logger.info("Normalized mean inversions: " + inversions / Math.log(nWords));
+
+        if (config.getBoolean(configSectionStringSorters, "introhuskysort"))
+            runStringSortBenchmark(words, nWords, nRuns, new IntroHuskySort<>(UNICODE_CODER, instrumented), null, timeLoggers);
+
+        if (config.getBoolean(configSectionStringSorters, "quickuskyinsertionsort")) {
+            final SortWithHelper<String> quickHuskySortInsertion = new QuickHuskySort<>("QuickHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort, instrumented);
+            runStringSortBenchmark(words, nWords, nRuns, quickHuskySortInsertion, quickHuskySortInsertion::preProcess, timeLoggers);
+        }
+        if (config.getBoolean(configSectionStringSorters, "introhuskyinsertionsort")) {
+            final SortWithHelper<String> introHuskySortInsertion = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort, instrumented);
+            runStringSortBenchmark(words, nWords, nRuns, introHuskySortInsertion, introHuskySortInsertion::preProcess, timeLoggers);
+        }
+        if (config.getBoolean(configSectionStringSorters, "huskybucketintrosort")) {
+            final SortWithHelper<String> introHuskyBucketSort = new HuskyBucketSort<>(1000, UNICODE_CODER, instrumented);
+            runStringSortBenchmark(words, nWords, nRuns, introHuskyBucketSort, introHuskyBucketSort::preProcess, timeLoggers);
+        }
+        if (config.getBoolean(configSectionStringSorters, "huskysortwithinversions")) {
+            final SortWithHelper<String> quickHuskySortNone = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
+                // XXX do nothing, so we can count inversions.
+            }, instrumented);
+            long inversions = 0;
+            for (int i = 0; i < nRuns; i++) {
+                String[] xs = generateRandomStringArray(words, nWords);
+                quickHuskySortNone.sort(xs);
+                inversions += new InversionCounter(xs).getInversions();
+            }
+            inversions = inversions / nRuns;
+            logger.info("Mean inversions after first part: " + inversions);
+            logger.info("Normalized mean inversions: " + inversions / Math.log(nWords));
+        }
     }
 
     /**
@@ -154,8 +174,7 @@ public class HuskySortBenchmark {
 
     @SuppressWarnings("SameParameterValue")
     private void runDateTimeSortBenchmark(Class<?> tClass, ChronoLocalDateTime<?>[] dateTimes, int N, int m, int whichSort) {
-        final InsertionSort<ChronoLocalDateTime<?>> insertionSort = new InsertionSort<>();
-        final SortWithHelper<ChronoLocalDateTime<?>> sorter = whichSort == 0 ? new TimSort<>() : whichSort == 1 ? new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder) : new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, insertionSort::mutatingSort, false);
+        final SortWithHelper<ChronoLocalDateTime<?>> sorter = whichSort == 0 ? new TimSort<>() : whichSort == 1 ? new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder) : new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, false);
         @SuppressWarnings("unchecked") final SorterBenchmark<ChronoLocalDateTime<?>> sorterBenchmark = new SorterBenchmark<>((Class<ChronoLocalDateTime<?>>) tClass, (xs) -> Arrays.copyOf(xs, xs.length), sorter, dateTimes, m, HuskySortBenchmark.timeLoggersLinearithmic);
         sorterBenchmark.run(N);
     }
