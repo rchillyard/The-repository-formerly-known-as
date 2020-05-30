@@ -80,7 +80,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     public X[] sort(X[] xs, boolean makeCopy) {
-        getHelper().setN(xs.length);
+        getHelper().init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         sort(result, 0, result.length);
         return result;
@@ -126,23 +126,18 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
             this.hi = hi;
         }
 
-        // CONSIDER inlining this
-        void conditionalSwap(X[] a, int lo, int hi) {
-            if (a[lo].compareTo(a[hi]) > 0) swap(a, lo, hi);
-        }
-
         public Partition getPartition(X[] xs, int lo, int hi) {
-						conditionalSwap(xs, lo, hi);
-						X v = xs[lo];
-						int i = lo + 1;
-						int lt = lo, gt = hi;
-						// NOTE: we are trying to avoid checking on instrumented for every time in the inner loop for performance reasons (probably a silly idea).
-						// NOTE: if we were using Scala, it would be easy to set up a comparer function and a swapper function. With java, it's possible but much messier.
-						if (helper.instrumented())
-								while (i <= gt) {
-										int cmp = helper.compare(xs[i], v);
-										if (cmp < 0) helper.swap(xs, lt++, i++);
-										else if (cmp > 0) helper.swap(xs, i, gt--);
+            helper.swapConditional(xs, lo, hi);
+            X v = xs[lo];
+            int i = lo + 1;
+            int lt = lo, gt = hi;
+            // NOTE: we are trying to avoid checking on instrumented for every time in the inner loop for performance reasons (probably a silly idea).
+            // NOTE: if we were using Scala, it would be easy to set up a comparer function and a swapper function. With java, it's possible but much messier.
+            if (helper.instrumented())
+                while (i <= gt) {
+                    int cmp = helper.compare(xs[i], v);
+                    if (cmp < 0) helper.swap(xs, lt++, i++);
+                    else if (cmp > 0) helper.swap(xs, i, gt--);
 										else i++;
 								}
 						else

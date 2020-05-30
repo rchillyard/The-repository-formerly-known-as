@@ -28,7 +28,17 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
      */
     @Override
     public void init(int n) {
-        getHelper().setN(n);
+        getHelper().init(n);
+    }
+
+    /**
+     * Perform pre-processing step for this Sort.
+     *
+     * @param xs the elements to be pre-processed.
+     */
+    @Override
+    public X[] preProcess(X[] xs) {
+        return helper.preProcess(xs);
     }
 
     /**

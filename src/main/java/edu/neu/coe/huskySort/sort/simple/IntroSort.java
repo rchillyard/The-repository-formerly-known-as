@@ -46,26 +46,28 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     @Override
     public X[] sort(X[] xs, boolean makeCopy) {
-        getHelper().setN(xs.length);
+        getHelper().init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-        // TODO make this consistent with other uses of sort where the upper limit of the range is result.length
-        int from = 0, to = result.length - 1;
-        sort(result, 0, result.length - 1, 2 * floor_lg(to - from));
+        int from = 0, to = result.length;
+        sort(result, from, to, 2 * floor_lg(to - from));
         return result;
     }
 
+    /**
+     * @param xs an array of Xs.
+     * @param from the index of the first element to sort.
+     * @param to   the index of the first element not to sort.
+     */
     @Override
-    public void sort(X[] a, int from, int to) {
-        sort(a, from, to, 2 * floor_lg(to - from));
+    public void sort(X[] xs, int from, int to) {
+        sort(xs, from, to, 2 * floor_lg(to - from));
     }
 
     @SuppressWarnings("UnnecessaryLocalVariable")
     private void sort(X[] a, int from, int to, int depthThreshold) {
-        int lo = from;
-        int hi = to;
-        if (hi <= lo) return;
-        if (hi - lo <= sizeThreshold) {
-            insertionSort(a, from, to);
+        if (to - from <= sizeThreshold) {
+            if (to > from + 1)
+                insertionSort(a, from, to);
             return;
         }
         // TEST
@@ -73,9 +75,11 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
             heapSort(a, from, to);
             return;
         }
+        int lo = from;
+        int hi = to - 1;
         Partition partition = partition(a, lo, hi);
-        sort(a, lo, partition.lt - 1, depthThreshold - 1);
-        sort(a, partition.gt + 1, hi, depthThreshold - 1);
+        sort(a, lo, partition.lt, depthThreshold - 1);
+        sort(a, partition.gt + 1, hi + 1, depthThreshold - 1);
     }
 
     public Partition partition(X[] a, int lo, int hi) {
@@ -99,7 +103,7 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * Heapsort algorithm
      */
     private void heapSort(X[] a, int from, int to) {
-        int n = to - from + 1;
+        int n = to - from;
         for (int i = n / 2; i >= 1; i = i - 1) {
             downHeap(a, i, n, from);
         }
@@ -127,7 +131,7 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
      */
     private void insertionSort(X[] xs, int from, int to) {
         final Helper<X> helper = getHelper();
-        for (int i = from + 1; i <= to; i++) {
+        for (int i = from + 1; i < to; i++) {
             for (int j = i; j > from && helper.less(xs[j], xs[j - 1]); j--)
                 helper.swap(xs, j, j - 1);
         }

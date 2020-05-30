@@ -78,7 +78,6 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**
      * Private method to h-sort an array.
-     * TODO use private method tester to test this
      *
      * @param h    the stride (gap) of the h-sort.
      * @param xs   the array to be sorted.
@@ -87,10 +86,10 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      */
     private void hSort(int h, X[] xs, int from, int to) {
         final Helper<X> helper = getHelper();
-        for (int i = h + from; i < to; i++)
-            for (int j = i; j >= h + from && helper.less(xs[j], xs[j - h]); j -= h) {
-                helper.swap(xs, j, j - h);
-            }
+        for (int i = h + from; i < to; i++) {
+            int j = i;
+            while (j >= h + from && helper.swapConditional(xs, j - h, j)) j -= h;
+        }
     }
 
     private final int m;
@@ -140,7 +139,6 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
             if (started) {
                 switch (m) {
                     case 1:
-                        // TO IMPLEMENT
                         return 0;
                     case 2:
                         h = (h + 1) / 2 - 1;

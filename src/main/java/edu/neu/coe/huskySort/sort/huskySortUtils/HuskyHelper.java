@@ -142,10 +142,10 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         return coder;
     }
 
-    public void setN(int n) {
-        if (n != getN()) longs = new long[n];
-        helper.setN(n);
-    }
+    public void init(int n) {
+				if (n != getN()) longs = new long[n];
+				helper.init(n);
+		}
 
     public void initLongArray(X[] array) {
         for (int i = 0; i < array.length; i++) longs[i] = coder.huskyEncode(array[i]);

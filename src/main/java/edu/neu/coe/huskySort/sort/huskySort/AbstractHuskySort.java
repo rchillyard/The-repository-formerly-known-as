@@ -25,7 +25,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     }
 
     public X[] sort(X[] xs, boolean makeCopy) {
-        huskyHelper.setN(xs.length);
+        huskyHelper.init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         huskyHelper.initLongArray(result);
         sort(result, 0, result.length);

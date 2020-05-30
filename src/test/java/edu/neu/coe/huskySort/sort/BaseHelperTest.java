@@ -113,7 +113,7 @@ public class BaseHelperTest {
     public void getSetN() {
         final Helper<String> helper = new BaseHelper<>("test", 3);
         assertEquals(3, helper.getN());
-        helper.setN(4);
+        helper.init(4);
         assertEquals(4, helper.getN());
     }
 
@@ -121,7 +121,7 @@ public class BaseHelperTest {
     public void getSetNBis() {
         final Helper<String> helper = new BaseHelper<>("test");
         assertEquals(0, helper.getN());
-        helper.setN(4);
+        helper.init(4);
         assertEquals(4, helper.getN());
     }
 

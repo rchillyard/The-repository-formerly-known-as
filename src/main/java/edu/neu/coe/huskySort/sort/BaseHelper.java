@@ -5,10 +5,28 @@ import java.util.Random;
 import java.util.function.Function;
 
 public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
-    public BaseHelper(String description, int n, long seed) {
+    /**
+     * Constructor for explicit random number generator.
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param random      a random number generator.
+     */
+    public BaseHelper(String description, int n, Random random) {
         this.n = n;
         this.description = description;
-        this.random = new Random(seed);
+        this.random = random;
+    }
+
+    /**
+     * Constructor for explicit seed.
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param seed        the seed for the random number generator.
+     */
+    public BaseHelper(String description, int n, long seed) {
+        this(description, n, new Random(seed));
     }
 
     /**
@@ -57,7 +75,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @return the result of comparing xs[i] to xs[j]
      */
     public int compare(X[] xs, int i, int j) {
-        // CONSIDER invoking the other compare signature.
+        // CONSIDER invoking the other compare signature
         return xs[i].compareTo(xs[j]);
     }
 
@@ -154,7 +172,11 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         return description;
     }
 
-    public void setN(int n) {
+    /**
+     * @param n the size to be managed.
+     * @throws HelperException if n is inconsistent.
+     */
+    public void init(int n) {
         if (this.n == 0 || this.n == n) this.n = n;
         else throw new HelperException("Helper: n is already set to a different value");
     }
@@ -167,7 +189,6 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     private X[] random(int n, Class<X> clazz, Function<Random, X> f) {
-//        setN(n);
         @SuppressWarnings("unchecked") X[] result = (X[]) Array.newInstance(clazz, n);
         for (int i = 0; i < n; i++) result[i] = f.apply(random);
         return result;

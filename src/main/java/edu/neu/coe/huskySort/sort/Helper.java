@@ -6,7 +6,11 @@ import java.util.function.Function;
 import static java.util.Arrays.binarySearch;
 
 /**
- * CONSIDER having the concept of current sub-array, then we could dispense with the lo, hi parameters.
+ * Helper interface.
+ * <p>
+ * A Helper provides all of the utilities that are needed by sort methods, for example, compare and swap.
+ * <p>
+ * CONSIDER having the concept of a current sub-array, then we could dispense with the lo, hi parameters.
  *
  * @param <X>
  */
@@ -36,6 +40,13 @@ public interface Helper<X extends Comparable<X>> {
      */
     boolean less(X v, X w);
 
+    /**
+     * Compare value v with value w.
+     *
+     * @param v the first value.
+     * @param w the second value.
+     * @return -1 if v is less than w; 1 if v is greater than w; otherwise 0.
+     */
     int compare(X v, X w);
 
     /**
@@ -55,6 +66,25 @@ public interface Helper<X extends Comparable<X>> {
      */
     default void swapStable(X[] xs, int i) {
         swap(xs, i - 1, i);
+    }
+
+    /**
+     * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
+     *
+     * @param xs the array of elements under consideration
+     * @param i  the index of the lower element.
+     * @param j  the index of the upper element.
+     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     */
+    default boolean swapConditional(X[] xs, int i, int j) {
+        final X v = xs[i];
+        final X w = xs[j];
+        boolean result = v.compareTo(w) > 0;
+        if (result) {
+            xs[i] = w;
+            xs[j] = v;
+        }
+        return result;
     }
 
     /**
@@ -81,6 +111,8 @@ public interface Helper<X extends Comparable<X>> {
      * and xs[i] thru xs[j-1] are all moved up one.
      * This type of swap is used by insertion sort.
      *
+     * TODO this method does not seem to work.
+     *
      * @param xs the array of Xs.
      * @param i  the index of the destination of xs[j].
      * @param j  the index of the right-most element to be involved in the swap.
@@ -94,7 +126,7 @@ public interface Helper<X extends Comparable<X>> {
      * This type of swap is used by insertion sort.
      *
      * @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
-     * @param i  the index of the higher of the adjacent elements to be swapped.
+     * @param i  the index of the element to be swapped into the ordered array xs[0..i-1].
      */
     default void swapIntoSorted(X[] xs, int i) {
         int j = binarySearch(xs, 0, i, xs[i]);
@@ -169,11 +201,11 @@ public interface Helper<X extends Comparable<X>> {
     String getDescription();
 
     /**
-     * Set the size of the array to be managed by this Helper.
+     * Initialize this Helper with the size of the array to be managed.
+     *
      * @param n the size to be managed.
-     * @throws RuntimeException if the size hasn't been set.
      */
-    void setN(int n);
+    void init(int n);
 
     /**
      * Get the current value of N.
@@ -194,5 +226,16 @@ public interface Helper<X extends Comparable<X>> {
      */
     default void incrementCopies(int i) {
         // do nothing.
+    }
+
+    /**
+     * Method to do any required preProcessing.
+     *
+     * @param xs the array to be sorted.
+     * @return the array after any pre-processing.
+     */
+    default X[] preProcess(X[] xs) {
+        // CONSIDER invoking init from here.
+        return xs;
     }
 }

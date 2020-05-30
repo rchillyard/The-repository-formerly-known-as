@@ -75,7 +75,7 @@ public class InstrumentedHelperTest {
     public void postProcess1() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new InstrumentedHelper<>("test");
-        helper.setN(3);
+        helper.init(3);
         helper.postProcess(xs);
     }
 
@@ -110,7 +110,7 @@ public class InstrumentedHelperTest {
     public void getSetN() {
         final Helper<String> helper = new InstrumentedHelper<>("test", 3);
         assertEquals(3, helper.getN());
-        helper.setN(4);
+        helper.init(4);
         assertEquals(4, helper.getN());
     }
 
@@ -118,7 +118,7 @@ public class InstrumentedHelperTest {
     public void getSetNBis() {
         final Helper<String> helper = new InstrumentedHelper<>("test");
         assertEquals(0, helper.getN());
-        helper.setN(4);
+        helper.init(4);
         assertEquals(4, helper.getN());
     }
 

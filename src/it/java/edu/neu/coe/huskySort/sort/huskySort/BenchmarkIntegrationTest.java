@@ -34,13 +34,13 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void testStrings10K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000, HuskySortBenchmark.timeLoggersLinearithmic);
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
     }
 
     @Test(timeout = 140000)
     public void testStrings100K() throws Exception {
         // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, HuskySortBenchmark.timeLoggersLinearithmic);
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200);
     }
 
     @Test

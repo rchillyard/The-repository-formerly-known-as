@@ -92,6 +92,28 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
      *
      * @param xs the array of elements under consideration
+     * @param i  the index of the lower element.
+     * @param j  the index of the upper element.
+     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     */
+    @Override
+    public boolean swapConditional(X[] xs, int i, int j) {
+        final X v = xs[i];
+        final X w = xs[j];
+        boolean result = v.compareTo(w) > 0;
+        compares++;
+        if (result) {
+            xs[i] = w;
+            xs[j] = v;
+            swaps++;
+        }
+        return result;
+    }
+
+    /**
+     * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
+     *
+     * @param xs the array of elements under consideration
      * @param i  the index of the upper element.
      * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
      */
@@ -157,13 +179,18 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         return "Helper for " + description + " with " + formatWhole(n) + " elements: compares=" + compares + ", swaps=" + swaps + ", copies=" + copies;
     }
 
-    public void setN(int n) {
+    /**
+     * Initialize this Helper.
+     *
+     * @param n the size to be managed.
+     */
+    public void init(int n) {
         compares = 0;
         swaps = 0;
         copies = 0;
         // NOTE: it's an error to reset the StatPack if we've been here before
         if (n == this.n && statPack != null) return;
-        super.setN(n);
+        super.init(n);
         statPack = new StatPack(n, COMPARES, SWAPS, COPIES);
     }
 

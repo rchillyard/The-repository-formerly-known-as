@@ -40,15 +40,15 @@ public class SortTest {
 
     @Test
     public void testSort2() {
-				final int N = 100;
-				final TestSorter sorter = new TestSorter("test", N, true);
-				final Helper<Integer> helper = sorter.getHelper();
-				helper.setN(N);
-				final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
-				sorter.sort(xs, 0, xs.length);
-				assertTrue(xs[0] < xs[1]);
-				helper.postProcess(xs); // test that xs is properly sorted.
-		}
+        final int N = 100;
+        final TestSorter sorter = new TestSorter("test", N, true);
+        final Helper<Integer> helper = sorter.getHelper();
+        helper.init(N);
+        final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
+        sorter.sort(xs, 0, xs.length);
+        assertTrue(xs[0] < xs[1]);
+        helper.postProcess(xs); // test that xs is properly sorted.
+    }
 
     @Test
     public void testSort3() {

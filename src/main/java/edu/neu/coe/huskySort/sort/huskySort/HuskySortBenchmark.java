@@ -53,7 +53,7 @@ public class HuskySortBenchmark {
 
         doLeipzigBenchmark("eng-uk_web_2002_1M-sentences.txt", 500000, 100);
 
-        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), 4000, 25000, HuskySortBenchmark.timeLoggersLinearithmic);
+        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), 4000, 25000);
 
         doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", 5000, 1000);
     }
@@ -87,74 +87,57 @@ public class HuskySortBenchmark {
             dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, new InsertionSort<>(helper)::mutatingSort, false), "Sort LocalDateTimes using huskySort with insertionSort", 2);
     }
 
-    private void dateSortBenchmark(Supplier<LocalDateTime[]> localDateTimeSupplier, LocalDateTime[] localDateTimes, QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, String s, int i) {
-        logger.info(benchmarkFactory(s, dateHuskySortSystemSort::sort, dateHuskySortSystemSort::postProcess).run(localDateTimeSupplier, 100) + "ms");
-        // NOTE: this is intended to replace the run in the previous line. It should take the exact same amount of time.
-        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, 100000, 100, i);
-    }
-
-    private void doLeipzigBenchmark(String resource, int nWords, int nRuns) throws FileNotFoundException {
-        benchmarkStringSorters(getWords(resource, HuskySortBenchmark::getLeipzigWords), nWords, nRuns, timeLoggersLinearithmic);
-    }
-
-    void benchmarkStringSorters(String[] words, int nWords, int nRuns, TimeLogger[] timeLoggers) {
+    void benchmarkStringSorters(String[] words, int nWords, int nRuns) {
         boolean instrumented = config.getBoolean("helper", "instrument");
 
         logger.info("Testing with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words" + (instrumented ? " and instrumented" : ""));
 
         final String configSectionStringSorters = "benchmarktringsorters";
         if (config.getBoolean(configSectionStringSorters, "mergesort"))
-            runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(nWords, instrumented), null, timeLoggers);
+            runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(nWords, instrumented), null, timeLoggersLinearithmic);
 
         if (config.getBoolean(configSectionStringSorters, "timsort"))
-            runStringSortBenchmark(words, nWords, nRuns, new TimSort<>(nWords, instrumented), null, timeLoggers);
+            runStringSortBenchmark(words, nWords, nRuns, new TimSort<>(nWords, instrumented), null, timeLoggersLinearithmic);
 
         if (config.getBoolean(configSectionStringSorters, "quicksort3way"))
-            runStringSortBenchmark(words, nWords, nRuns, new QuickSort_3way<>(nWords, instrumented), null, timeLoggers);
+            runStringSortBenchmark(words, nWords, nRuns, new QuickSort_3way<>(nWords, instrumented), null, timeLoggersLinearithmic);
 
         if (config.getBoolean(configSectionStringSorters, "introsort"))
-            runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, instrumented), null, timeLoggers);
+            runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, instrumented), null, timeLoggersLinearithmic);
 
         if (config.getBoolean(configSectionStringSorters, "insertionsort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new InsertionSort<>(nWords, instrumented), null, timeLoggersQuadratic);
 
         if (config.getBoolean(configSectionStringSorters, "quickhuskysort"))
-            runStringSortBenchmark(words, nWords, nRuns, new QuickHuskySort<>(UNICODE_CODER, instrumented), null, timeLoggers);
+            runStringSortBenchmark(words, nWords, nRuns, new QuickHuskySort<>(UNICODE_CODER, instrumented), null, timeLoggersLinearithmic);
 
         if (config.getBoolean(configSectionStringSorters, "huskybucketsort")) {
-            final SortWithHelper<String> stringHuskyBucketSort = new HuskyBucketSort<>(16, UNICODE_CODER, instrumented);
-            final UnaryOperator<String[]> stringHuskyBucketSortPreProcess = stringHuskyBucketSort::preProcess;
-            runStringSortBenchmark(words, nWords, nRuns, stringHuskyBucketSort, stringHuskyBucketSortPreProcess, timeLoggers);
+            final SortWithHelper<String> sorter = new HuskyBucketSort<>(16, UNICODE_CODER, instrumented);
+            sorter.init(nWords);
+            runStringSortBenchmark(words, nWords, nRuns, sorter, sorter::preProcess, timeLoggersLinearithmic);
         }
 
         if (config.getBoolean(configSectionStringSorters, "introhuskysort"))
-            runStringSortBenchmark(words, nWords, nRuns, new IntroHuskySort<>(UNICODE_CODER, instrumented), null, timeLoggers);
+            runStringSortBenchmark(words, nWords, nRuns, new IntroHuskySort<>(UNICODE_CODER, instrumented), null, timeLoggersLinearithmic);
 
         if (config.getBoolean(configSectionStringSorters, "quickuskyinsertionsort")) {
-            final SortWithHelper<String> quickHuskySortInsertion = new QuickHuskySort<>("QuickHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort, instrumented);
-            runStringSortBenchmark(words, nWords, nRuns, quickHuskySortInsertion, quickHuskySortInsertion::preProcess, timeLoggers);
+            final SortWithHelper<String> sorter = new QuickHuskySort<>("QuickHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort, instrumented);
+            runStringSortBenchmark(words, nWords, nRuns, sorter, sorter::preProcess, timeLoggersLinearithmic);
         }
+
         if (config.getBoolean(configSectionStringSorters, "introhuskyinsertionsort")) {
-            final SortWithHelper<String> introHuskySortInsertion = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort, instrumented);
-            runStringSortBenchmark(words, nWords, nRuns, introHuskySortInsertion, introHuskySortInsertion::preProcess, timeLoggers);
+            final SortWithHelper<String> sorter = new IntroHuskySort<>("IntroHuskySort/Insertion", UNICODE_CODER, new InsertionSort<String>()::mutatingSort, instrumented);
+            runStringSortBenchmark(words, nWords, nRuns, sorter, sorter::preProcess, timeLoggersLinearithmic);
         }
+
         if (config.getBoolean(configSectionStringSorters, "huskybucketintrosort")) {
-            final SortWithHelper<String> introHuskyBucketSort = new HuskyBucketSort<>(1000, UNICODE_CODER, instrumented);
-            runStringSortBenchmark(words, nWords, nRuns, introHuskyBucketSort, introHuskyBucketSort::preProcess, timeLoggers);
+            final SortWithHelper<String> sorter = new HuskyBucketSort<>(1000, UNICODE_CODER, instrumented);
+            runStringSortBenchmark(words, nWords, nRuns, sorter, sorter::preProcess, timeLoggersLinearithmic);
         }
+
         if (config.getBoolean(configSectionStringSorters, "huskysortwithinversions")) {
-            final SortWithHelper<String> quickHuskySortNone = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, (xs2) -> {
-                // XXX do nothing, so we can count inversions.
-            }, instrumented);
-            long inversions = 0;
-            for (int i = 0; i < nRuns; i++) {
-                String[] xs = generateRandomStringArray(words, nWords);
-                quickHuskySortNone.sort(xs);
-                inversions += new InversionCounter(xs).getInversions();
-            }
-            inversions = inversions / nRuns;
-            logger.info("Mean inversions after first part: " + formatWhole((int) inversions));
-            logger.info("Normalized mean inversions: " + inversions / Math.log(nWords));
+            final SortWithHelper<String> sorter = new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, DONOTHING, instrumented);
+            logInversions(words, nWords, nRuns, sorter);
         }
     }
 
@@ -173,10 +156,59 @@ public class HuskySortBenchmark {
         sorter.close();
     }
 
+    final static LazyLogger logger = new LazyLogger(HuskySortBenchmark.class);
+
+    final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+
+    /**
+     * This is based on log2(n!)
+     *
+     * @param n the number of elements.
+     * @return the minimum number of comparisons possible to sort n randomly ordered elements.
+     */
+    static double minComparisons(int n) {
+        double lgN = lg(n);
+        return n * (lgN - LgE) + lgN / 2 + 1.33;
+    }
+
+    /**
+     * This is the mean number of inversions in a randomly ordered set of n elements.
+     * For insertion sort, each (low-level) swap fixes one inversion, so on average there are this number of swaps.
+     * The minimum number of comparisons is slightly higher.
+     *
+     * @param n the number of elements
+     * @return one quarter n-squared more or less.
+     */
+    static double meanInversions(int n) {
+        return 0.25 * n * (n - 1);
+    }
+
+    private void logInversions(String[] words, int nWords, int nRuns, SortWithHelper<String> quickHuskySortNone) {
+        long inversions = 0;
+        for (int i = 0; i < nRuns; i++) {
+            String[] xs = generateRandomStringArray(words, nWords);
+            quickHuskySortNone.sort(xs);
+            inversions += new InversionCounter(xs).getInversions();
+        }
+        double meanInversions = inversions * 1.0 / nRuns;
+        logger.info("Mean inversions after first part: " + formatWhole((int) meanInversions));
+        logger.info("Normalized mean inversions: " + formatWhole((int) (meanInversions / Math.log(nWords))));
+    }
+
+    private void dateSortBenchmark(Supplier<LocalDateTime[]> localDateTimeSupplier, LocalDateTime[] localDateTimes, QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, String s, int i) {
+        logger.info(benchmarkFactory(s, dateHuskySortSystemSort::sort, dateHuskySortSystemSort::postProcess).run(localDateTimeSupplier, 100) + "ms");
+        // NOTE: this is intended to replace the run in the previous line. It should take the exact same amount of time.
+        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, 100000, 100, i);
+    }
+
+    private void doLeipzigBenchmark(String resource, int nWords, int nRuns) throws FileNotFoundException {
+        benchmarkStringSorters(getWords(resource, HuskySortBenchmark::getLeipzigWords), nWords, nRuns);
+    }
+
     @SuppressWarnings("SameParameterValue")
     private void runDateTimeSortBenchmark(Class<?> tClass, ChronoLocalDateTime<?>[] dateTimes, int N, int m, int whichSort) {
         final SortWithHelper<ChronoLocalDateTime<?>> sorter = whichSort == 0 ? new TimSort<>() : whichSort == 1 ? new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder) : new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, false);
-        @SuppressWarnings("unchecked") final SorterBenchmark<ChronoLocalDateTime<?>> sorterBenchmark = new SorterBenchmark<>((Class<ChronoLocalDateTime<?>>) tClass, (xs) -> Arrays.copyOf(xs, xs.length), sorter, dateTimes, m, HuskySortBenchmark.timeLoggersLinearithmic);
+        @SuppressWarnings("unchecked") final SorterBenchmark<ChronoLocalDateTime<?>> sorterBenchmark = new SorterBenchmark<>((Class<ChronoLocalDateTime<?>>) tClass, (xs) -> Arrays.copyOf(xs, xs.length), sorter, dateTimes, m, timeLoggersLinearithmic);
         sorterBenchmark.run(N);
     }
 
@@ -201,33 +233,6 @@ public class HuskySortBenchmark {
     }
 
     private final Config config;
-
-    final static LazyLogger logger = new LazyLogger(HuskySortBenchmark.class);
-
-    final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-
-    /**
-     * This is based on log2(n!)
-     *
-     * @param n the number of elements.
-     * @return the minimum number of comparisons possible to sort n randomly ordered elements.
-     */
-    static double minComparisons(int n) {
-        double lgN = lg(n);
-        return n * (lgN - lg(Math.E)) + lgN / 2 + 1.33;
-    }
-
-    /**
-     * This is the mean number of inversions in a randomly order set of n elements.
-     * For insertion sort, each (low-level) swap fixes one inversion, so on average there are this number of swaps.
-     * The minimum number of comparisons is slightly higher.
-     *
-     * @param n the number of elements
-     * @return one quarter n-squared more or less.
-     */
-    static double meanInversions(int n) {
-        return 0.25 * n * (n - 1);
-    }
 
     private static double lg(double n) {
         return Math.log(n) / Math.log(2);
@@ -255,5 +260,9 @@ public class HuskySortBenchmark {
             new TimeLogger("Normalized time per run (n^2): ", (time, n) -> time / meanInversions(n) / 6 * 1e6)
     };
 
+    private static final Consumer<String[]> DONOTHING = (xs2) -> {
+        // XXX do nothing.
+    };
 
+    private static final double LgE = lg(Math.E);
 }

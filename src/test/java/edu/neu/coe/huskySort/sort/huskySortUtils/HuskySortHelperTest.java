@@ -28,7 +28,7 @@ public class HuskySortHelperTest {
         assertEquals(6989586621679009792L, asciiToLong(word));
     }
 
-    // TODO fix what's wrong with this test
+    // FIXME fix what's wrong with this test
     @Ignore
     public void testUTF8ToLong() {
         String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a"};

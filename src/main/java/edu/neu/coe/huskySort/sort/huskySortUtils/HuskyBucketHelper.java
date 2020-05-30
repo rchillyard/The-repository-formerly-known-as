@@ -104,14 +104,20 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
      */
     @SuppressWarnings("unchecked")
     public static <X extends Comparable<X>> void unloadBuckets(Bag<X>[] buckets, X[] xs, final Helper<X> helper) {
-        int index = 0;
-        // TODO consider replacing with foreach
-        for (Bag<X> xes : buckets) {
+        Index index = new Index();
+        Arrays.stream(buckets).forEach(xes -> {
             final Object[] objects = xes.asArray();
             Arrays.sort(objects, (o, t1) -> helper.compare((X) o, (X) t1));
-            for (Object x : objects) xs[index++] = (X) x;
-        }
+            for (Object x : objects) xs[index.getNext()] = (X) x;
+        });
     }
 
+    static class Index {
+        int index = 0;
+
+        int getNext() {
+            return index++;
+        }
+    }
 
 }

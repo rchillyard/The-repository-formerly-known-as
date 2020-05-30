@@ -35,9 +35,10 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
 
     @Override
     public X[] sort(X[] xs, boolean makeCopy) {
-        getHelper().setN(xs.length);
+        getHelper().init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-        aux = Arrays.copyOf(xs, xs.length); // TODO don't copy but just allocate
+        // TODO don't copy but just allocate according to the xs/aux interchange optimization
+        aux = Arrays.copyOf(xs, xs.length);
         sort(result, 0, result.length);
         return result;
     }
@@ -45,24 +46,24 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
     @Override
     public void sort(X[] a, int from, int to) {
         @SuppressWarnings("UnnecessaryLocalVariable") int lo = from;
-        int hi = to;
-        if (hi <= lo + CUTOFF) {
+        if (to <= lo + CUTOFF) {
             insertionSort.sort(a, from, to);
             return;
         }
         int mid = from + (to - from) / 2;
         sort(a, lo, mid);
-        sort(a, mid, hi);
+        sort(a, mid, to);
         System.arraycopy(a, from, aux, from, to - from);
         getHelper().incrementCopies(to - from);
-        merge(aux, a, lo, mid, hi);
+        merge(aux, a, lo, mid, to);
     }
 
     private void merge(X[] aux, X[] a, int lo, int mid, int hi) {
         final Helper<X> helper = getHelper();
         int i = lo;
         int j = mid;
-        for (int k = lo; k < hi; k++)
+        int k = lo;
+        for (; k < hi; k++)
             if (i >= mid) helper.copy(aux, j++, a, k);
             else if (j >= hi) helper.copy(aux, i++, a, k);
             else if (helper.less(aux[j], aux[i])) helper.copy(aux, j++, a, k);

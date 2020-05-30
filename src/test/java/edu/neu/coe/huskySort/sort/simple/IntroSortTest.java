@@ -35,8 +35,8 @@ public class IntroSortTest {
         PrivateMethodTester t = new PrivateMethodTester(sorter);
         Integer[] xs = {15, 3, -1, 2, 4, 1, 0, 5, 8, 6, 1, 9, 17, 7, 11};
         Class[] classes = {Comparable[].class, int.class, int.class};
-        t.invokePrivateExplicit("heapSort", classes, xs, 0, xs.length - 1);
-        assertTrue(sorter.getHelper().sorted(xs));
+        t.invokePrivateExplicit("heapSort", classes, xs, 0, xs.length);
+				assertTrue(sorter.getHelper().sorted(xs));
     }
 
     @Test
@@ -45,8 +45,8 @@ public class IntroSortTest {
         PrivateMethodTester t = new PrivateMethodTester(sorter);
         Integer[] xs = {15, 3, -1, 2, 4, 1, 0, 5, 8, 6, 1, 9, 17, 7, 11};
         Class[] classes = {Comparable[].class, int.class, int.class};
-        t.invokePrivateExplicit("insertionSort", classes, xs, 0, xs.length - 1);
-        assertTrue(sorter.getHelper().sorted(xs));
+				t.invokePrivateExplicit("insertionSort", classes, xs, 0, xs.length);
+				assertTrue(sorter.getHelper().sorted(xs));
     }
 
     @Test
