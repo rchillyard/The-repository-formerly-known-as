@@ -58,6 +58,24 @@ public interface Helper<X extends Comparable<X>> {
     }
 
     /**
+     * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
+     *
+     * @param xs the array of elements under consideration
+     * @param i  the index of the upper element.
+     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     */
+    default boolean swapStableConditional(X[] xs, int i) {
+        final X v = xs[i];
+        final X w = xs[i - 1];
+        boolean result = v.compareTo(w) < 0;
+        if (result) {
+            xs[i] = w;
+            xs[i - 1] = v;
+        }
+        return result;
+    }
+
+    /**
      * Method to perform a stable swap using half-exchanges,
      * i.e. between xs[i] and xs[j] such that xs[j] is moved to index i,
      * and xs[i] thru xs[j-1] are all moved up one.
@@ -83,6 +101,16 @@ public interface Helper<X extends Comparable<X>> {
         if (j < 0) j = -j - 1;
         if (j < i) swapInto(xs, j, i);
     }
+
+    /**
+     * Copy the element at source[j] into target[i]
+     *
+     * @param source the source array.
+     * @param i      the target index.
+     * @param target the target array.
+     * @param j      the source index.
+     */
+    void copy(X[] source, int i, X[] target, int j);
 
     /**
      * Method to fix a potentially unstable inversion.
@@ -149,6 +177,7 @@ public interface Helper<X extends Comparable<X>> {
 
     /**
      * Get the current value of N.
+     *
      * @return the value of N.
      */
     int getN();
@@ -157,4 +186,13 @@ public interface Helper<X extends Comparable<X>> {
      * Close this Helper, freeing up any resources used.
      */
     void close();
+
+    /**
+     * If instrumenting, increment the number of copies by i.
+     *
+     * @param i the number of copies made.
+     */
+    default void incrementCopies(int i) {
+        // do nothing.
+    }
 }

@@ -9,15 +9,17 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
+
 /**
  * @param <T> The generic type T is that of the input to the function f which you will pass in to the constructor.
  */
 public class Benchmark<T> {
 
-    /**
-     * Constructor for a Benchmark with option of specifying all three functions.
-     *
-     * @param description the description of the benchmark.
+		/**
+		 * Constructor for a Benchmark with option of specifying all three functions.
+		 *
+		 * @param description the description of the benchmark.
      * @param fPre        a function of T => T.
      *                    Function fPre is run before each invocation of fRun (but with the clock stopped).
      *                    The result of fPre (if any) is passed to fRun.
@@ -90,7 +92,7 @@ public class Benchmark<T> {
      * @return the average number of milliseconds taken for each run of function f.
      */
     public double run(Supplier<T> supplier, int m) {
-        logger.info("Begin run: " + description + " with " + m + " runs");
+				logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
         // Warmup phase
         final Function<T, T> function = t -> {
             fRun.accept(t);

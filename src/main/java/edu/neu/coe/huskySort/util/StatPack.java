@@ -38,8 +38,12 @@ public class StatPack {
     @Override
     public String toString() {
         final StringBuilder stringBuilder = new StringBuilder("StatPack{");
-        for (String key : map.keySet()) stringBuilder.append(map.get(key).toString()).append(", ");
-        return stringBuilder.toString();
+        for (String key : map.keySet()) {
+            final Statistics statistics = map.get(key);
+            if (statistics.total() > 0)
+                stringBuilder.append(statistics.toString()).append("; ");
+        }
+        return stringBuilder.toString().replaceAll("; $", "}");
     }
 
     private final HashMap<String, Statistics> map;

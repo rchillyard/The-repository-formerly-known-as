@@ -77,25 +77,38 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * i.e. between xs[i] and xs[j] such that xs[j] is moved to index i,
      * and xs[i] thru xs[j-1] are all moved up one.
      * This type of swap is used by insertion sort.
-     *
-     * @param xs the array of Xs.
-     * @param i  the index of the destination of xs[j].
-     * @param j  the index of the right-most element to be involved in the swap.
-     */
-    @Override
-    public void swapInto(X[] xs, int i, int j) {
-        helper.swapInto(xs, i, j);
-    }
+		 *
+		 * @param xs the array of Xs.
+		 * @param i  the index of the destination of xs[j].
+		 * @param j  the index of the right-most element to be involved in the swap.
+		 */
+		@Override
+		public void swapInto(X[] xs, int i, int j) {
+				helper.swapInto(xs, i, j);
+		}
 
-    /**
-     * Constructor to create a HuskyHelper
-     *
-     * @param helper     the Helper.
-     * @param coder      the coder to be used.
-     * @param postSorter the postSorter Consumer function.
-     * @param makeCopy   explicit setting of the makeCopy value used in sort(X[] xs)
-     */
-    public HuskyHelper(Helper<X> helper, HuskyCoder<X> coder, Consumer<X[]> postSorter, boolean makeCopy) {
+		/**
+		 * Copy the element at source[j] into target[i]
+		 *
+		 * @param source the source array.
+		 * @param i      the target index.
+		 * @param target the target array.
+		 * @param j      the source index.
+		 */
+		@Override
+		public void copy(X[] source, int i, X[] target, int j) {
+				helper.copy(source, i, target, j);
+		}
+
+		/**
+		 * Constructor to create a HuskyHelper
+		 *
+		 * @param helper     the Helper.
+		 * @param coder      the coder to be used.
+		 * @param postSorter the postSorter Consumer function.
+		 * @param makeCopy   explicit setting of the makeCopy value used in sort(X[] xs)
+		 */
+		public HuskyHelper(Helper<X> helper, HuskyCoder<X> coder, Consumer<X[]> postSorter, boolean makeCopy) {
         this.helper = helper;
         this.coder = coder;
         longs = new long[helper.getN()];

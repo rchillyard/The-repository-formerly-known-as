@@ -26,6 +26,7 @@ import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_COD
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.generateRandomStringArray;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
+import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 
 public class HuskySortBenchmark {
 
@@ -99,7 +100,7 @@ public class HuskySortBenchmark {
     void benchmarkStringSorters(String[] words, int nWords, int nRuns, TimeLogger[] timeLoggers) {
         boolean instrumented = config.getBoolean("helper", "instrument");
 
-        logger.info("Testing with " + nRuns + " runs of sorting " + nWords + " words" + (instrumented ? " and instrumented" : ""));
+        logger.info("Testing with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words" + (instrumented ? " and instrumented" : ""));
 
         final String configSectionStringSorters = "benchmarktringsorters";
         if (config.getBoolean(configSectionStringSorters, "mergesort"))
@@ -152,7 +153,7 @@ public class HuskySortBenchmark {
                 inversions += new InversionCounter(xs).getInversions();
             }
             inversions = inversions / nRuns;
-            logger.info("Mean inversions after first part: " + inversions);
+            logger.info("Mean inversions after first part: " + formatWhole((int) inversions));
             logger.info("Normalized mean inversions: " + inversions / Math.log(nWords));
         }
     }
@@ -205,14 +206,53 @@ public class HuskySortBenchmark {
 
     final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
 
+    /**
+     * This is based on log2(n!)
+     *
+     * @param n the number of elements.
+     * @return the minimum number of comparisons possible to sort n randomly ordered elements.
+     */
+    static double minComparisons(int n) {
+        double lgN = lg(n);
+        return n * (lgN - lg(Math.E)) + lgN / 2 + 1.33;
+    }
+
+    /**
+     * This is the mean number of inversions in a randomly order set of n elements.
+     * For insertion sort, each (low-level) swap fixes one inversion, so on average there are this number of swaps.
+     * The minimum number of comparisons is slightly higher.
+     *
+     * @param n the number of elements
+     * @return one quarter n-squared more or less.
+     */
+    static double meanInversions(int n) {
+        return 0.25 * n * (n - 1);
+    }
+
+    private static double lg(double n) {
+        return Math.log(n) / Math.log(2);
+    }
+
+    /**
+     * For mergesort, the number of array accesses is actually 6 times the number of comparisons.
+     * That's because, in addition to each comparison, there will be approximately two copy operations.
+     * Thus, in the case where comparisons are based on primitives,
+     * the normalized time per run should approximate the time for one array access.
+     */
     final static TimeLogger[] timeLoggersLinearithmic = {
             new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
-            new TimeLogger("Normalized time per run (n log n): ", (time, n) -> time / Math.log(n.doubleValue()) / n * 1e5)
+            new TimeLogger("Normalized time per run (n log n): ", (time, n) -> time / minComparisons(n) / 6 * 1e6)
     };
 
+    /**
+     * For (basic) insertionsort, the number of array accesses is actually 6 times the number of comparisons.
+     * That's because, for each inversions, there will typically be one swap (four array accesses) and (at least) one comparision (two array accesses).
+     * Thus, in the case where comparisons are based on primitives,
+     * the normalized time per run should approximate the time for one array access.
+     */
     final static TimeLogger[] timeLoggersQuadratic = {
             new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
-            new TimeLogger("Normalized time per run (n^2): ", (time, n) -> 2 * time / n.doubleValue() / n * 1e5)
+            new TimeLogger("Normalized time per run (n^2): ", (time, n) -> time / meanInversions(n) / 6 * 1e6)
     };
 
 

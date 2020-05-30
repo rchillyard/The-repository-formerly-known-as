@@ -3,6 +3,8 @@ package edu.neu.coe.huskySort.sort;
 import edu.neu.coe.huskySort.util.LazyLogger;
 import edu.neu.coe.huskySort.util.StatPack;
 
+import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
+
 /**
  * Helper class for sorting methods with instrumentation of compares and swaps, and in addition, bounds checks.
  * This Helper class may be used for analyzing sort methods but will run at slightly slower speeds than the super-class.
@@ -86,11 +88,55 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         super.swapInto(xs, i, j);
     }
 
+    /**
+     * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
+     *
+     * @param xs the array of elements under consideration
+     * @param i  the index of the upper element.
+     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     */
+    @Override
+    public boolean swapStableConditional(X[] xs, int i) {
+        final X v = xs[i];
+        final X w = xs[i - 1];
+        boolean result = v.compareTo(w) < 0;
+        compares++;
+        if (result) {
+            xs[i] = w;
+            xs[i - 1] = v;
+            swaps++;
+        }
+        return result;
+
+    }
+
+    /**
+     * Copy the element at source[j] into target[i]
+     *
+     * @param source the source array.
+     * @param i      the target index.
+     * @param target the target array.
+     * @param j      the source index.
+     */
+    @Override
+    public void copy(X[] source, int i, X[] target, int j) {
+        copies++;
+        target[j] = source[i];
+    }
+
+    /**
+     * If instrumenting, increment the number of copies by i.
+     *
+     * @param i the number of copies made.
+     */
+    @Override
+    public void incrementCopies(int i) {
+        copies += i;
+    }
+
     public int compare(X[] xs, int i, int j) {
         // CONSIDER using compareTo method if it improves performance.
         return compare(xs[i], xs[j]);
-//        compares++;
-//        return xs[i].compareTo(xs[j]);
     }
 
     /**
@@ -108,16 +154,17 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     @Override
     public String toString() {
-        return "Helper for " + description + " with " + n + " elements: compares=" + compares + ", swaps=" + swaps;
+        return "Helper for " + description + " with " + formatWhole(n) + " elements: compares=" + compares + ", swaps=" + swaps + ", copies=" + copies;
     }
 
     public void setN(int n) {
         compares = 0;
         swaps = 0;
+        copies = 0;
         // NOTE: it's an error to reset the StatPack if we've been here before
         if (n == this.n && statPack != null) return;
         super.setN(n);
-        statPack = new StatPack(n, COMPARES, SWAPS);
+        statPack = new StatPack(n, COMPARES, SWAPS, COPIES);
     }
 
     /**
@@ -135,6 +182,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         if (statPack == null) throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
         statPack.add(COMPARES, compares);
         statPack.add(SWAPS, swaps);
+        statPack.add(COPIES, copies);
     }
 
     @Override
@@ -147,6 +195,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     public static final String SWAPS = "swaps";
     public static final String COMPARES = "compares";
+    private static final String COPIES = "copies";
 
     // NOTE: the following private methods are only for testing.
 
@@ -165,5 +214,6 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     private StatPack statPack;
     private int compares = 0;
     private int swaps = 0;
+    private int copies = 0;
 
 }

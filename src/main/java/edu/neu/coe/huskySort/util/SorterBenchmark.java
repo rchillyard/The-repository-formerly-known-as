@@ -5,6 +5,8 @@ import edu.neu.coe.huskySort.sort.SortWithHelper;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
+import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
+
 /**
  * Class to extend Benchmark for sorting an array of T values.
  * The default implementation of run in this class randomly selects a subset of the array to be sorted.
@@ -71,7 +73,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
      *          Not to be confused with nRuns, an instance field, which specifies the number of repetitions of the function.
      */
     public void run(int N) {
-        logger.info("run: sort " + N + " elements using " + this);
+        logger.info("run: sort " + formatWhole(N) + " elements using " + this);
         sorter.init(N);
         final double time = super.run(() -> generateRandomArray(ts), nRuns);
         for (TimeLogger timeLogger : timeLoggers) timeLogger.log(time, N);
@@ -79,7 +81,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
 
     @Override
     public String toString() {
-        return "SorterBenchmark on " + tClass + " with " + ts.length + " total elements and " + nRuns + " runs using sorter: " + sorter.getHelper().getDescription();
+        return "SorterBenchmark on " + tClass + " with " + formatWhole(ts.length) + " total elements and " + formatWhole(nRuns) + " runs using sorter: " + sorter.getHelper().getDescription();
     }
 
     private T[] generateRandomArray(T[] lookupArray) {

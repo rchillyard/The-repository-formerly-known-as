@@ -5,7 +5,6 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.TimeLogger;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,13 +33,14 @@ public class BenchmarkIntegrationTest {
     }
 
     @Test
-    public void testtrings10K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
+    public void testStrings10K() throws Exception {
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000, HuskySortBenchmark.timeLoggersLinearithmic);
     }
 
     @Test(timeout = 140000)
     public void testStrings100K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, new TimeLogger[]{new TimeLogger("Normalized time per run: ", (time, n) -> time / n / Math.log(n.doubleValue()) * 1e6)});
+        // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, HuskySortBenchmark.timeLoggersLinearithmic);
     }
 
     @Test

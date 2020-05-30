@@ -104,6 +104,19 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         }
     }
 
+    /**
+     * Copy the element at source[j] into target[i]
+     *
+     * @param source the source array.
+     * @param i      the target index.
+     * @param target the target array.
+     * @param j      the source index.
+     */
+    @Override
+    public void copy(X[] source, int i, X[] target, int j) {
+        target[j] = source[i];
+    }
+
     public boolean sorted(X[] xs) {
         for (int i = 1; i < xs.length; i++) if (xs[i - 1].compareTo(xs[i]) > 0) return false;
         return true;

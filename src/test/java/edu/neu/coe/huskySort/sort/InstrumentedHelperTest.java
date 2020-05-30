@@ -97,7 +97,7 @@ public class InstrumentedHelperTest {
     @Test
     public void testToString() {
         final Helper<String> helper = new InstrumentedHelper<>("test", 3);
-        assertEquals("Helper for test with 3 elements: compares=0, swaps=0", helper.toString());
+        assertEquals("Helper for test with 3 elements: compares=0, swaps=0, copies=0", helper.toString());
     }
 
     @Test
