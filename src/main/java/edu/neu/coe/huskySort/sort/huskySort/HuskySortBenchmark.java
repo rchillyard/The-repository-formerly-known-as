@@ -196,7 +196,7 @@ public class HuskySortBenchmark {
         }
         double meanInversions = inversions * 1.0 / nRuns;
         logger.info("Mean inversions after first part: " + formatWhole((int) meanInversions));
-        logger.info("Normalized mean inversions: " + formatWhole((int) (meanInversions / Math.log(nWords))));
+        logger.info("Normalized mean inversions: " + formatWhole((int) (meanInversions / nWords)));
     }
 
     private void dateSortBenchmark(Supplier<LocalDateTime[]> localDateTimeSupplier, LocalDateTime[] localDateTimes, QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, String s, int i) {
