@@ -4,6 +4,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -11,13 +12,13 @@ import java.util.function.Consumer;
 public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     // TEST
-    public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {
-        super(name, 0, huskyCoder, postSorter, instrumentation);
+    public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+        super(name, 0, huskyCoder, postSorter, getInstrumented(config));
     }
 
     // TEST
-    public IntroHuskySort(HuskyCoder<X> huskyCoder, boolean instrumentation) {
-        this("IntroHuskySort", huskyCoder, Arrays::sort, instrumentation);
+    public IntroHuskySort(HuskyCoder<X> huskyCoder, Config config) {
+        this("IntroHuskySort", huskyCoder, Arrays::sort, config);
     }
 
     // TEST

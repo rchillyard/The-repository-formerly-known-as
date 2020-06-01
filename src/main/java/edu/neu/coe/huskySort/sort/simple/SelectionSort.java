@@ -6,6 +6,7 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.Config;
 
 public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
@@ -13,15 +14,16 @@ public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
         super(helper);
     }
 
-    /**
-     * Constructor for SelectionSort
-     *
-     * @param N            the number elements we expect to sort.
-     * @param instrumented whether or not we want an instrumented helper class.
-     */
-    public SelectionSort(int N, boolean instrumented) {
-        super(DESCRIPTION, N, instrumented);
-    }
+		/**
+		 * Constructor for SelectionSort
+		 *
+		 * @param N            the number elements we expect to sort.
+		 * @param instrumented whether or not we want an instrumented helper class.
+		 * @param config       the configuration.
+		 */
+		public SelectionSort(int N, boolean instrumented, Config config) {
+				super(DESCRIPTION, N, instrumented, config);
+		}
 
     public SelectionSort() {
         this(new BaseHelper<>(DESCRIPTION));

@@ -4,22 +4,19 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
-    public QuickHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {
-        super(name, 0, huskyCoder, postSorter, instrumentation);
+    public QuickHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+        super(name, 0, huskyCoder, postSorter, getInstrumented(config));
     }
 
-    public QuickHuskySort(HuskyCoder<X> huskyCoder) {
-        this("QuickHuskySort/System", huskyCoder, Arrays::sort, false);
-    }
-
-    public QuickHuskySort(HuskyCoder<X> huskyCoder, boolean instrumentation) {
-        this("QuickHuskySort/System", huskyCoder, Arrays::sort, instrumentation);
+    public QuickHuskySort(HuskyCoder<X> huskyCoder, Config config) {
+        this("QuickHuskySort/System", huskyCoder, Arrays::sort, config);
     }
 
     public QuickHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {

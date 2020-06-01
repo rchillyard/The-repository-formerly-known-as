@@ -7,8 +7,11 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
 import edu.neu.coe.huskySort.util.Benchmark;
+import edu.neu.coe.huskySort.util.Config;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.regex.Pattern;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
@@ -27,10 +30,6 @@ import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("ALL")
 public class HuskySortIntegrationTest {
-
-    final MyBenchmark benchmarkHuskySort = new MyBenchmark(new QuickHuskySort<String>(UNICODE_CODER), 19.1);
-    final MyBenchmark benchmarkQuick3sort = new MyBenchmark(new QuickSort_3way<String>(), 20);
-//    final MyBenchmark benchmarkTimsort = new MyBenchmark((Consumer<String[]>) Arrays::sort, 20);
 
     @Test(timeout = 4000)
     public void testHusky10K() throws Exception {
@@ -114,14 +113,28 @@ public class HuskySortIntegrationTest {
         public double run(String[] words, int n, int m) {
             System.out.println("run benchmark: "+this+" (k = " +k+
                     " nanosec) with "+n+" words");
-            final double milliseconds = benchmark.run(() -> { return generateRandomStringArray(words, n); }, m);
-            return milliseconds/k * 1E6;
+            final double milliseconds = benchmark.run(() -> {
+                return generateRandomStringArray(words, n);
+            }, m);
+            return milliseconds / k * 1E6;
         }
 
         @Override
         public String toString() {
-            return "MyBenchmark on "+sorter;
+            return "MyBenchmark on " + sorter;
         }
     }
+
+
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        config = Config.load(HuskySortIntegrationTest.class);
+    }
+
+    private static Config config;
+
+    final MyBenchmark benchmarkHuskySort = new MyBenchmark(new QuickHuskySort<String>(UNICODE_CODER, config), 19.1);
+    final MyBenchmark benchmarkQuick3sort = new MyBenchmark(new QuickSort_3way<String>(), 20);
+//    final MyBenchmark benchmarkTimsort = new MyBenchmark((Consumer<String[]>) Arrays::sort, 20);
 
 }

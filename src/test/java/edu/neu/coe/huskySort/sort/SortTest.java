@@ -1,7 +1,11 @@
 package edu.neu.coe.huskySort.sort;
 
+import edu.neu.coe.huskySort.sort.simple.MergeSortBasicTest;
+import edu.neu.coe.huskySort.util.Config;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -11,8 +15,8 @@ import static org.junit.Assert.*;
 public class SortTest {
 
     static class TestSorter extends SortWithHelper<Integer> {
-        public TestSorter(String description, int N, boolean instrumenting) {
-            super(description, N, instrumenting);
+        public TestSorter(String description, int N, boolean instrumenting, Config config) {
+            super(description, N, instrumenting, config);
         }
 
         /**
@@ -30,7 +34,7 @@ public class SortTest {
 
     @Test
     public void testSort1() {
-        final TestSorter sorter = new TestSorter("test", 100, true);
+        final TestSorter sorter = new TestSorter("test", 100, true, config);
         final Helper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         final Integer[] ys = sorter.sort(xs);
@@ -41,7 +45,7 @@ public class SortTest {
     @Test
     public void testSort2() {
         final int N = 100;
-        final TestSorter sorter = new TestSorter("test", N, true);
+        final TestSorter sorter = new TestSorter("test", N, true, config);
         final Helper<Integer> helper = sorter.getHelper();
         helper.init(N);
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
@@ -51,8 +55,9 @@ public class SortTest {
     }
 
     @Test
-    public void testSort3() {
-        final SortWithHelper<Integer> sorter = new SortWithHelper<Integer>("test", 100, true) {
+    public void testSort3() throws IOException {
+        final Config config = Config.load(getClass());
+        final SortWithHelper<Integer> sorter = new SortWithHelper<Integer>("test", 100, true, config) {
             @Override
             public void sort(Integer[] xs, int from, int to) {
                 // Do nothing.
@@ -84,7 +89,7 @@ public class SortTest {
 
     @Test
     public void mutatingSort() {
-        final TestSorter sorter = new TestSorter("test", 100, true);
+        final TestSorter sorter = new TestSorter("test", 100, true, config);
         final Helper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         sorter.mutatingSort(xs);
@@ -94,7 +99,7 @@ public class SortTest {
 
     @Test
     public void testSort4() {
-        final TestSorter sorter = new TestSorter("test", 100, true);
+        final TestSorter sorter = new TestSorter("test", 100, true, config);
         final Helper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         final Integer[] ys = sorter.sort(xs, false);
@@ -105,7 +110,7 @@ public class SortTest {
 
     @Test
     public void testSort5() {
-        final TestSorter sorter = new TestSorter("test", 100, true);
+        final TestSorter sorter = new TestSorter("test", 100, true, config);
         final Helper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         final List<Integer> list = Arrays.asList(xs);
@@ -131,4 +136,12 @@ public class SortTest {
     @Test
     public void close() {
     }
+
+    private static Config config;
+
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        config = Config.load(MergeSortBasicTest.class);
+    }
+
 }

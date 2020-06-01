@@ -81,7 +81,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
 
     @Override
     public String toString() {
-        return "SorterBenchmark on " + tClass + " with " + formatWhole(ts.length) + " total elements and " + formatWhole(nRuns) + " runs using sorter: " + sorter.getHelper().getDescription();
+        return "SorterBenchmark on " + tClass + " from " + formatWhole(ts.length) + " total elements and " + formatWhole(nRuns) + " runs using sorter: " + sorter.getHelper().getDescription();
     }
 
     private T[] generateRandomArray(T[] lookupArray) {

@@ -1,7 +1,10 @@
 package edu.neu.coe.huskySort.sort;
 
+import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
 import edu.neu.coe.huskySort.util.StatPack;
+
+import java.util.Random;
 
 import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 
@@ -14,33 +17,54 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     /**
+     * Constructor for explicit random number generator.
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param random      a random number generator.
+     * @param config      the configuration.
+     */
+    public InstrumentedHelper(String description, int n, Random random, Config config) {
+        super(description, n, random);
+        this.countCopies = config.getBoolean("instrumenting", "copies");
+        this.countSwaps = config.getBoolean("instrumenting", "swaps");
+        this.countCompares = config.getBoolean("instrumenting", "compares");
+        this.countInversions = config.getInt("instrumenting", "inversions", 0);
+        this.countFixes = config.getBoolean("instrumenting", "fixes");
+    }
+
+    /**
      * Constructor to create a Helper
      *
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     * @param seed        the seed for the random number generator
+     * @param config      The configuration.
      */
-    public InstrumentedHelper(String description, int n, long seed) {
-        super(description, n, seed);
+    public InstrumentedHelper(String description, int n, Config config) {
+        this(description, n, getSeed(config), config);
     }
 
     /**
-     * Constructor to create a Helper with a random seed.
+     * Constructor to create a Helper
      *
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param seed        the seed for the random number generator.
+     * @param config        the configuration.
      */
-    public InstrumentedHelper(String description, int n) {
-        this(description, n, System.currentTimeMillis());
+    public InstrumentedHelper(String description, int n, long seed, Config config) {
+        this(description, n, new Random(seed), config);
     }
 
     /**
      * Constructor to create a Helper with a random seed and an n value of 0.
+     * <p>
+     * NOTE: this constructor is used only by unit tests
      *
      * @param description the description of this Helper (for humans).
      */
-    public InstrumentedHelper(String description) {
-        this(description, 0);
+    public InstrumentedHelper(String description, Config config) {
+        this(description, 0, config);
     }
 
     public boolean instrumented() {
@@ -55,7 +79,8 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @return true only if v is less than w.
      */
     public boolean less(X v, X w) {
-        compares++;
+        if (countCompares)
+            compares++;
         return v.compareTo(w) < 0;
     }
 
@@ -66,7 +91,10 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param j  the other index.
      */
     public void swap(X[] xs, int i, int j) {
-        swaps++;
+        if (countSwaps)
+            swaps++;
+        if (countFixes)
+            fixes += (j - i);
         X temp = xs[i];
         xs[i] = xs[j];
         xs[j] = temp;
@@ -84,7 +112,10 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      */
     @Override
     public void swapInto(X[] xs, int i, int j) {
-        swaps += (j - i);
+        if (countSwaps)
+            swaps += (j - i);
+        if (countFixes)
+            fixes += (j - i);
         super.swapInto(xs, i, j);
     }
 
@@ -101,11 +132,15 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         final X v = xs[i];
         final X w = xs[j];
         boolean result = v.compareTo(w) > 0;
-        compares++;
+        if (countCompares)
+            compares++;
         if (result) {
             xs[i] = w;
             xs[j] = v;
-            swaps++;
+            if (countSwaps)
+                swaps++;
+            if (countFixes)
+                fixes += (j - i);
         }
         return result;
     }
@@ -122,11 +157,15 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         final X v = xs[i];
         final X w = xs[i - 1];
         boolean result = v.compareTo(w) < 0;
-        compares++;
+        if (countCompares)
+            compares++;
         if (result) {
             xs[i] = w;
             xs[i - 1] = v;
-            swaps++;
+            if (countSwaps)
+                swaps++;
+            if (countFixes)
+                fixes++;
         }
         return result;
 
@@ -134,7 +173,6 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     /**
      * Copy the element at source[j] into target[i]
-     *
      * @param source the source array.
      * @param i      the target index.
      * @param target the target array.
@@ -142,18 +180,29 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      */
     @Override
     public void copy(X[] source, int i, X[] target, int j) {
-        copies++;
+        if (countCopies)
+            copies++;
         target[j] = source[i];
     }
 
     /**
-     * If instrumenting, increment the number of copies by i.
+     * If instrumenting, increment the number of copies by n.
      *
-     * @param i the number of copies made.
+     * @param n the number of copies made.
      */
     @Override
-    public void incrementCopies(int i) {
-        copies += i;
+    public void incrementCopies(int n) {
+        if (countCopies) copies += n;
+    }
+
+    /**
+     * If instrumenting, increment the number of fixes by n.
+     *
+     * @param n the number of copies made.
+     */
+    @Override
+    public void incrementFixes(int n) {
+        if (countFixes) fixes += n;
     }
 
     public int compare(X[] xs, int i, int j) {
@@ -170,13 +219,14 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      */
     @Override
     public int compare(X v, X w) {
+        if (countCompares)
         compares++;
         return v.compareTo(w);
     }
 
     @Override
     public String toString() {
-        return "Helper for " + description + " with " + formatWhole(n) + " elements: compares=" + compares + ", swaps=" + swaps + ", copies=" + copies;
+        return "Helper for " + description + " with " + formatWhole(n) + " elements";
     }
 
     /**
@@ -191,7 +241,24 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         // NOTE: it's an error to reset the StatPack if we've been here before
         if (n == this.n && statPack != null) return;
         super.init(n);
-        statPack = new StatPack(n, COMPARES, SWAPS, COPIES);
+        statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES);
+    }
+
+    /**
+     * Method to do any required preProcessing.
+     *
+     * @param xs the array to be sorted.
+     * @return the array after any pre-processing.
+     */
+    @Override
+    public X[] preProcess(X[] xs) {
+        final X[] result = super.preProcess(xs);
+        // NOTE: because counting inversions is so slow, we only do if for a (configured) number of samples.
+        if (countInversions-- > 0) {
+            if (statPack != null) statPack.add(INVERSIONS, inversions(result));
+            else throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
+        }
+        return result;
     }
 
     /**
@@ -207,9 +274,14 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         super.postProcess(xs);
         if (!sorted(xs)) throw new BaseHelper.HelperException("Array is not sorted");
         if (statPack == null) throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
-        statPack.add(COMPARES, compares);
-        statPack.add(SWAPS, swaps);
-        statPack.add(COPIES, copies);
+        if (countCompares)
+            statPack.add(COMPARES, compares);
+        if (countSwaps)
+            statPack.add(SWAPS, swaps);
+        if (countCopies)
+            statPack.add(COPIES, copies);
+        if (countFixes)
+            statPack.add(FIXES, fixes);
     }
 
     @Override
@@ -220,9 +292,15 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     final static LazyLogger logger = new LazyLogger(InstrumentedHelper.class);
 
-    public static final String SWAPS = "swaps";
-    public static final String COMPARES = "compares";
+    private static final String SWAPS = "swaps";
+    private static final String COMPARES = "compares";
     private static final String COPIES = "copies";
+    private static final String INVERSIONS = "inversions";
+    private static final String FIXES = "fixes";
+
+    private static long getSeed(Config config) {
+        return config.getLong("helper", "seed", System.currentTimeMillis());
+    }
 
     // NOTE: the following private methods are only for testing.
 
@@ -238,9 +316,18 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         return swaps;
     }
 
+    private int getFixes() {
+        return fixes;
+    }
+
     private StatPack statPack;
     private int compares = 0;
     private int swaps = 0;
     private int copies = 0;
-
+    private int fixes = 0;
+    private final boolean countCopies;
+    private final boolean countSwaps;
+    private final boolean countCompares;
+    private int countInversions;
+    private final boolean countFixes;
 }

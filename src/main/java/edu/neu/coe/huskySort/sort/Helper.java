@@ -136,7 +136,6 @@ public interface Helper<X extends Comparable<X>> {
 
     /**
      * Copy the element at source[j] into target[i]
-     *
      * @param source the source array.
      * @param i      the target index.
      * @param target the target array.
@@ -220,11 +219,20 @@ public interface Helper<X extends Comparable<X>> {
     void close();
 
     /**
-     * If instrumenting, increment the number of copies by i.
+     * If instrumenting, increment the number of copies by n.
      *
-     * @param i the number of copies made.
+     * @param n the number of copies made.
      */
-    default void incrementCopies(int i) {
+    default void incrementCopies(int n) {
+        // do nothing.
+    }
+
+    /**
+     * If instrumenting, increment the number of fixes by n.
+     *
+     * @param n the number of copies made.
+     */
+    default void incrementFixes(int n) {
         // do nothing.
     }
 

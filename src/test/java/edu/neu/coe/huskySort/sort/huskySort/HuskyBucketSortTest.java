@@ -5,8 +5,11 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.util.Config;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -24,7 +27,7 @@ public class HuskyBucketSortTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(2, HuskySortHelper.integerCoder, false);
+        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(2, HuskySortHelper.integerCoder, config);
         sorter.preProcess(xs);
         Integer[] ys = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys));
@@ -37,7 +40,7 @@ public class HuskyBucketSortTest {
         Integer[] xs = new Integer[N];
         Random random = new Random();
         for (int i = 0; i < N; i++) xs[i] = random.nextInt(10000);
-        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder, false);
+        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder, config);
         sorter.preProcess(xs);
         Integer[] ys = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys));
@@ -51,7 +54,7 @@ public class HuskyBucketSortTest {
         Integer[] xs = new Integer[N];
         Random random = new Random();
         for (int i = 0; i < N; i++) xs[i] = random.nextInt(10000);
-        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder, false);
+        HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskySortHelper.integerCoder, config);
         sorter.preProcess(xs);
         Integer[] ys1 = sorter.sort(xs);
         assertTrue(sorter.getHelper().sorted(ys1));
@@ -60,4 +63,11 @@ public class HuskyBucketSortTest {
         assertTrue(sorter.getHelper().sorted(ys2));
     }
 
+
+    @BeforeClass
+    public static void before() throws IOException {
+        config = Config.load(HuskyBucketSortTest.class);
+    }
+
+    private static Config config;
 }

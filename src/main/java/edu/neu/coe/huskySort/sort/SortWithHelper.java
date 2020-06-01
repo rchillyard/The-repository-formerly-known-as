@@ -1,5 +1,7 @@
 package edu.neu.coe.huskySort.sort;
 
+import edu.neu.coe.huskySort.util.Config;
+
 public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X> {
 
 
@@ -7,8 +9,8 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
         this.helper = helper;
     }
 
-    public SortWithHelper(String description, int N, boolean instrumenting) {
-        this(HelperFactory.create(description, N, instrumenting));
+    public SortWithHelper(String description, int N, boolean instrumenting, Config config) {
+        this(HelperFactory.create(description, N, instrumenting, config));
         closeHelper = true;
     }
 
@@ -59,6 +61,10 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
 
     public void close() {
         if (closeHelper) helper.close();
+    }
+
+    public static boolean getInstrumented(Config config) {
+        return config.getBoolean("helper", "instrument");
     }
 
     private final Helper<X> helper;

@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 
@@ -25,11 +26,11 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for MergeSort
      *
-     * @param N            the number elements we expect to sort.
-     * @param instrumented whether or not we want an instrumented helper class.
+     * @param N      the number elements we expect to sort.
+     * @param config the configuration.
      */
-    public MergeSortBasic(int N, boolean instrumented) {
-        super(DESCRIPTION, N, instrumented);
+    public MergeSortBasic(int N, Config config) {
+        super(DESCRIPTION, N, getInstrumented(config), config);
         insertionSort = new InsertionSort<>();
     }
 
@@ -66,8 +67,10 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
         for (; k < hi; k++)
             if (i >= mid) helper.copy(aux, j++, a, k);
             else if (j >= hi) helper.copy(aux, i++, a, k);
-            else if (helper.less(aux[j], aux[i])) helper.copy(aux, j++, a, k);
-            else helper.copy(aux, i++, a, k);
+            else if (helper.less(aux[j], aux[i])) {
+                helper.incrementFixes(j - i);
+                helper.copy(aux, j++, a, k);
+            } else helper.copy(aux, i++, a, k);
     }
 
 

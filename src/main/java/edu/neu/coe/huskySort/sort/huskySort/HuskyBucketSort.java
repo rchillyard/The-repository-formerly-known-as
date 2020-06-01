@@ -6,6 +6,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyBucketHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -20,9 +21,9 @@ public HuskyBucketSort(String name, int bucketSize, HuskyCoder<X> huskyCoder, Co
         this.bucketSize = bucketSize;
         }
 
-public HuskyBucketSort(int bucketSize, HuskyCoder<X> huskyCoder, boolean instrumentation) {
-        this("HuskyBucketSort", bucketSize, huskyCoder, InsertionSort::mutatingInsertionSort, instrumentation);
-        }
+		public HuskyBucketSort(int bucketSize, HuskyCoder<X> huskyCoder, Config config) {
+				this("HuskyBucketSort", bucketSize, huskyCoder, InsertionSort::mutatingInsertionSort, getInstrumented(config));
+		}
 
 public X[] preProcess(X[] xs) {
         bucketHelper = new HuskyBucketHelper<>(name, bucketSize, xs.length, getHelper().getCoder(), getHelper().getPostSorter());

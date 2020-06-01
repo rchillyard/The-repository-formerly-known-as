@@ -22,6 +22,8 @@ public interface Sort<X> extends GenericSort<X> {
 
     /**
      * Perform initializing step for this Sort.
+     * <p>
+     * CONSIDER merging this with preProcess logic.
      *
      * @param n the number of elements to be sorted.
      */

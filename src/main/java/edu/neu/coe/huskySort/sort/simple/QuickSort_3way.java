@@ -4,6 +4,7 @@ import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 
@@ -24,11 +25,11 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for QuickSort_3way
      *
-     * @param N            the number elements we expect to sort.
-     * @param instrumented whether or not we want an instrumented helper class.
+     * @param N      the number elements we expect to sort.
+     * @param config the configuration.
      */
-    public QuickSort_3way(int N, boolean instrumented) {
-        super(DESCRIPTION, N, instrumented);
+    public QuickSort_3way(int N, Config config) {
+        super(DESCRIPTION, N, getInstrumented(config), config);
     }
 
     /**
@@ -39,19 +40,8 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param N    the number of elements to be sorted.
      * @param seed the seed for the random number generator.
      */
-    public QuickSort_3way(int N, long seed) {
-        this(new InstrumentedHelper<>(DESCRIPTION, N, seed));
-    }
-
-    /**
-     * Constructor for QuickSort_3way which always uses an instrumented helper with a specific seed.
-     * <p>
-     * NOTE used by unit tests.
-     *
-     * @param N the number of elements to be sorted.
-     */
-    public QuickSort_3way(int N) {
-        this(new InstrumentedHelper<>(DESCRIPTION, N, System.currentTimeMillis()));
+    public QuickSort_3way(int N, long seed, Config config) {
+        this(new InstrumentedHelper<>(DESCRIPTION, N, config));
     }
 
     /**

@@ -1,11 +1,15 @@
 package edu.neu.coe.huskySort.sort;
 
 import edu.neu.coe.huskySort.sort.simple.MergeSortBasic;
+import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
 import edu.neu.coe.huskySort.util.StatPack;
 import edu.neu.coe.huskySort.util.Statistics;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.junit.Assert.*;
 
@@ -13,12 +17,12 @@ public class InstrumentedHelperTest {
 
     @Test
     public void instrumented() {
-        assertTrue(new InstrumentedHelper<String>("test").instrumented());
+        assertTrue(new InstrumentedHelper<String>("test", config).instrumented());
     }
 
     @Test
     public void less() {
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         assertTrue(helper.less("a", "b"));
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         assertEquals(1, privateMethodTester.invokePrivate("getCompares"));
@@ -28,7 +32,7 @@ public class InstrumentedHelperTest {
     @Test
     public void compare() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         assertEquals(-1, helper.compare(xs, 0, 1));
         assertEquals(0, helper.compare(xs, 0, 0));
         assertEquals(1, helper.compare(xs, 1, 0));
@@ -40,7 +44,7 @@ public class InstrumentedHelperTest {
     @Test
     public void swap() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         helper.swap(xs, 0, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.swap(xs, 0, 1);
@@ -53,7 +57,7 @@ public class InstrumentedHelperTest {
     @Test
     public void sorted() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         assertTrue(helper.sorted(xs));
         helper.swap(xs, 0, 1);
         assertFalse(helper.sorted(xs));
@@ -65,7 +69,7 @@ public class InstrumentedHelperTest {
     @Test
     public void inversions() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         assertEquals(0, helper.inversions(xs));
         helper.swap(xs, 0, 1);
         assertEquals(1, helper.inversions(xs));
@@ -74,7 +78,7 @@ public class InstrumentedHelperTest {
     @Test
     public void postProcess1() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         helper.init(3);
         helper.postProcess(xs);
     }
@@ -82,33 +86,33 @@ public class InstrumentedHelperTest {
     @Test(expected = BaseHelper.HelperException.class)
     public void postProcess2() {
         String[] xs = new String[]{"b", "a"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         helper.postProcess(xs);
     }
 
     @Test
     public void random() {
         String[] words = new String[]{"Hello", "World"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", 3, 0L);
+        final Helper<String> helper = new InstrumentedHelper<>("test", 3, 0L, config);
         final String[] strings = helper.random(String.class, r -> words[r.nextInt(2)]);
         assertArrayEquals(new String[]{"World", "World", "Hello"}, strings);
     }
 
     @Test
     public void testToString() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", 3);
-        assertEquals("Helper for test with 3 elements: compares=0, swaps=0, copies=0", helper.toString());
+        final Helper<String> helper = new InstrumentedHelper<>("test", 3, config);
+        assertEquals("Helper for test with 3 elements", helper.toString());
     }
 
     @Test
     public void getDescription() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", 3);
+        final Helper<String> helper = new InstrumentedHelper<>("test", 3, config);
         assertEquals("test", helper.getDescription());
     }
 
     @Test(expected = RuntimeException.class)
     public void getSetN() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", 3);
+        final Helper<String> helper = new InstrumentedHelper<>("test", 3, config);
         assertEquals(3, helper.getN());
         helper.init(4);
         assertEquals(4, helper.getN());
@@ -116,7 +120,7 @@ public class InstrumentedHelperTest {
 
     @Test
     public void getSetNBis() {
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         assertEquals(0, helper.getN());
         helper.init(4);
         assertEquals(4, helper.getN());
@@ -124,14 +128,14 @@ public class InstrumentedHelperTest {
 
     @Test
     public void close() {
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         helper.close();
     }
 
     @Test
     public void swapStable() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.swapStable(xs, 1);
@@ -144,7 +148,7 @@ public class InstrumentedHelperTest {
     @Test
     public void fixInversion1() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         helper.fixInversion(xs, 1);
         assertEquals(1, privateMethodTester.invokePrivate("getCompares"));
@@ -161,7 +165,7 @@ public class InstrumentedHelperTest {
     @Test
     public void testFixInversion2() {
         String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test");
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         helper.fixInversion(xs, 0, 1);
         assertEquals(1, privateMethodTester.invokePrivate("getCompares"));
@@ -178,7 +182,7 @@ public class InstrumentedHelperTest {
     @Test
     public void testMergeSort() {
         int N = 8;
-        final Helper<Integer> helper = new InstrumentedHelper<>("test");
+        final Helper<Integer> helper = new InstrumentedHelper<>("test", config);
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
@@ -193,7 +197,7 @@ public class InstrumentedHelperTest {
     public void testMergeSortMany() {
         int N = 8;
         int m = 10;
-        final Helper<Integer> helper = new InstrumentedHelper<>("test");
+        final Helper<Integer> helper = new InstrumentedHelper<>("test", config);
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
@@ -210,4 +214,12 @@ public class InstrumentedHelperTest {
         assertTrue(12 <= compares && compares <= 17);
 //        assert
     }
+
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        config = Config.load(InstrumentedHelperTest.class);
+    }
+
+    private static Config config;
+
 }

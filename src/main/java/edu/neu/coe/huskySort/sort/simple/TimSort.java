@@ -6,6 +6,7 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 
@@ -25,15 +26,15 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
         super(helper);
     }
 
-    /**
-     * Constructor for TimSort
-     *
-     * @param N            the number elements we expect to sort.
-     * @param instrumented whether or not we want an instrumented helper class.
-     */
-    public TimSort(int N, boolean instrumented) {
-        super(DESCRIPTION, N, instrumented);
-    }
+		/**
+		 * Constructor for TimSort
+		 *
+		 * @param N      the number elements we expect to sort.
+		 * @param config the configuration.
+		 */
+		public TimSort(int N, Config config) {
+				super(DESCRIPTION, N, getInstrumented(config), config);
+		}
 
     public TimSort() {
         this(new BaseHelper<>(DESCRIPTION));

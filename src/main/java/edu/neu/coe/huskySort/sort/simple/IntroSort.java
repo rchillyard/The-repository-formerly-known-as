@@ -6,6 +6,7 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 
@@ -14,11 +15,11 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for IntroSort
      *
-     * @param N            the number elements we expect to sort.
-     * @param instrumented whether or not we want an instrumented helper class.
+     * @param N      the number elements we expect to sort.
+     * @param config the configuration.
      */
-    public IntroSort(int N, boolean instrumented) {
-        super(DESCRIPTION, N, instrumented);
+    public IntroSort(int N, Config config) {
+        super(DESCRIPTION, N, config.getBoolean("helper", "instrument"), config);
     }
 
     public IntroSort() {

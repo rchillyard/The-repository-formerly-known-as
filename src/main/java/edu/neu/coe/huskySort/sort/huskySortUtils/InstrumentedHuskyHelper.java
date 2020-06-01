@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.InstrumentedHelper;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.function.Consumer;
 
@@ -45,11 +46,10 @@ public class InstrumentedHuskyHelper<X extends Comparable<X>> extends HuskyHelpe
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param coder       the HuskyCoder to be used
      * @param postSorter  the postSorter to use
-     * @param seed        the seed for the random number generator
      * @param makeCopy    explicit setting of the makeCopy value used in sort(X[] xs)
      */
-    public InstrumentedHuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, long seed, boolean makeCopy) {
-        this(new InstrumentedHelper<>(description, n, seed), coder, postSorter, makeCopy);
+    public InstrumentedHuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, Config config, boolean makeCopy) {
+        this(new InstrumentedHelper<>(description, n, config), coder, postSorter, makeCopy);
     }
 
     /**
@@ -57,9 +57,12 @@ public class InstrumentedHuskyHelper<X extends Comparable<X>> extends HuskyHelpe
      *
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param postSorter  the postProcessor.
+     * @param coder       the HuskyCoder.
+     * @param config      the configuration.
      */
-    public InstrumentedHuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter) {
-        this(description, n, coder, postSorter, System.currentTimeMillis(), false);
+    public InstrumentedHuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, Config config) {
+        this(description, n, coder, postSorter, config, false);
     }
 
 }
