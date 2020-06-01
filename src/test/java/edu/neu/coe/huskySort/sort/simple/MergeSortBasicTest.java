@@ -8,6 +8,9 @@ import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.HelperFactory;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.ConfigTest;
+import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.StatPack;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -36,13 +39,65 @@ public class MergeSortBasicTest {
 
     @Test
     public void testSort2() throws Exception {
-        int N = 100;
-        final Helper<Integer> helper = HelperFactory.create("merge sort", 100, true, config);
+        int k = 7;
+        int N = (int) Math.pow(2, k);
+        // NOTE this depends on the cutoff value for merge sort.
+        int levels = k - 2;
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Helper<Integer> helper = HelperFactory.create("merge sort", N, config);
+        System.out.println(helper);
         Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
+        assertEquals(Integer.valueOf(1360), xs[0]);
+        helper.preProcess(xs);
         Integer[] ys = s.sort(xs);
-        assertTrue(helper.sorted(ys));
+        helper.postProcess(ys);
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        System.out.println(statPack);
+        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int inversions = (int) statPack.getStatistics("inversions").mean();
+        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        final int swaps = (int) statPack.getStatistics("swaps").mean();
+        final int copies = (int) statPack.getStatistics("copies").mean();
+        final int worstCompares = N * k - N + 1;
+        assertTrue(compares <= worstCompares);
+        assertEquals(inversions, fixes);
+        assertEquals(levels * 2 * N, copies);
+    }
+
+    @Test
+    public void testSort3() throws Exception {
+        int k = 7;
+        int N = (int) Math.pow(2, k);
+        final Helper<Integer> helper1 = HelperFactory.create("insertion sort", N, ConfigTest.setupConfig("true", "0", "1", ""));
+        System.out.println(helper1);
+        final Integer[] xs = helper1.random(Integer.class, r -> r.nextInt(10000));
+        assertEquals(Integer.valueOf(1360), xs[0]);
+        new InsertionSort<Integer>(helper1).mutatingSort(xs);
+        helper1.postProcess(xs);
+        final Helper<Integer> helper2 = HelperFactory.create("merge sort", N, ConfigTest.setupConfig("true", "", "0", "1"));
+        System.out.println(helper2);
+        Sort<Integer> mergeSort = new MergeSortBasic<>(helper2);
+        mergeSort.init(N);
+        helper2.preProcess(xs);
+        Integer[] ys = mergeSort.sort(xs);
+        helper2.postProcess(ys);
+        final PrivateMethodTester privateMethodTester1 = new PrivateMethodTester(helper1);
+        final StatPack statPack1 = (StatPack) privateMethodTester1.invokePrivate("getStatPack");
+        final int inversions = (int) statPack1.getStatistics("inversions").mean();
+        final PrivateMethodTester privateMethodTester2 = new PrivateMethodTester(helper2);
+        final StatPack statPack2 = (StatPack) privateMethodTester2.invokePrivate("getStatPack");
+        System.out.println(statPack2);
+        final int compares = (int) statPack2.getStatistics("compares").mean();
+        final int fixes = (int) statPack2.getStatistics("fixes").mean();
+        final int swaps = (int) statPack2.getStatistics("swaps").mean();
+        final int copies = (int) statPack2.getStatistics("copies").mean();
+        final int expectedCompares = N * k / 2;
+        assertEquals(expectedCompares, compares);
+        assertEquals(inversions, fixes);
+        assertEquals(k * 2 * N, copies);
     }
 
     @BeforeClass

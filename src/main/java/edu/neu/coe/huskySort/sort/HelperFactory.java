@@ -8,4 +8,7 @@ public class HelperFactory {
 				return instrumented ? new InstrumentedHelper<>(description, nWords, config) : new BaseHelper<>(description, nWords);
 		}
 
+		public static Helper<Integer> create(String description, int nWords, Config config) {
+				return create(description, nWords, config.getBoolean("helper", "instrument"), config);
+		}
 }

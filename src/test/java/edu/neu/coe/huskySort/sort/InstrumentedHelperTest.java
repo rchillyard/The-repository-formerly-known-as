@@ -101,7 +101,7 @@ public class InstrumentedHelperTest {
     @Test
     public void testToString() {
         final Helper<String> helper = new InstrumentedHelper<>("test", 3, config);
-        assertEquals("Helper for test with 3 elements", helper.toString());
+        assertEquals("Instrumenting helper for test with 3 elements", helper.toString());
     }
 
     @Test

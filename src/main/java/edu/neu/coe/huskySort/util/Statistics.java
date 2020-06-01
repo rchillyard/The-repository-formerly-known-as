@@ -44,7 +44,7 @@ public class Statistics {
     @Override
     public String toString() {
         //noinspection StringBufferReplaceableByString
-        return new StringBuilder("stats for ").append(property).append(": mean=").append(Utilities.asInt(mean())).append("; stdDev=").append(Utilities.asInt(stdDev())).toString();
+        return new StringBuilder().append(property).append(": mean=").append(Utilities.asInt(mean())).append("; stdDev=").append(Utilities.asInt(stdDev())).toString();
     }
 
     private void resize(int n) {

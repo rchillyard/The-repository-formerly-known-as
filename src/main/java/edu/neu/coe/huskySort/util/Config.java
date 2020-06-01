@@ -25,19 +25,19 @@ public class Config {
         return t;
     }
 
-    public Boolean getBoolean(String sectionName, String optionName) {
+    public boolean getBoolean(String sectionName, String optionName) {
         return get(sectionName, optionName, boolean.class);
     }
 
     public int getInt(final String sectionName, final String optionName, final int defaultValue) {
         final String s = get(sectionName, optionName);
-        if (s.isEmpty()) return defaultValue;
+        if (s == null || s.isEmpty()) return defaultValue;
         return Integer.parseInt(s);
     }
 
     public long getLong(final String sectionName, final String optionName, final long defaultValue) {
         final String s = get(sectionName, optionName);
-        if (s.isEmpty()) return defaultValue;
+        if (s == null || s.isEmpty()) return defaultValue;
         return Long.parseLong(s);
     }
 
@@ -95,7 +95,7 @@ public class Config {
      * If clazz is null, or if the resource cannot be found relative to the class,
      * then we look in the root directory.
      *
-     * @param clazz the Class in which to look for the config.ini file.
+     * @param clazz the Class in which to look for the config.ini file (may be null).
      * @return a new Config.
      * @throws IOException if config.ini cannot be found using the locations described above.
      */

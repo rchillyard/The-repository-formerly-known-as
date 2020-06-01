@@ -22,7 +22,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param random      a random number generator.
-     * @param config      the configuration.
+     * @param config      the configuration (note that the seed value is ignored).
      */
     public InstrumentedHelper(String description, int n, Random random, Config config) {
         super(description, n, random);
@@ -31,6 +31,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         this.countCompares = config.getBoolean("instrumenting", "compares");
         this.countInversions = config.getInt("instrumenting", "inversions", 0);
         this.countFixes = config.getBoolean("instrumenting", "fixes");
+        this.cutoff = config.getInt("helper", "cutoff", 0);
     }
 
     /**
@@ -41,7 +42,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param config      The configuration.
      */
     public InstrumentedHelper(String description, int n, Config config) {
-        this(description, n, getSeed(config), config);
+        this(description, n, config.getLong("helper", "seed", System.currentTimeMillis()), config);
     }
 
     /**
@@ -205,6 +206,14 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         if (countFixes) fixes += n;
     }
 
+    /**
+     * Compare elements of an array.
+     *
+     * @param xs the array.
+     * @param i  one of the indices.
+     * @param j  the other index.
+     * @return the result of compare(xs[i], xs[j]).
+     */
     public int compare(X[] xs, int i, int j) {
         // CONSIDER using compareTo method if it improves performance.
         return compare(xs[i], xs[j]);
@@ -220,13 +229,24 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     @Override
     public int compare(X v, X w) {
         if (countCompares)
-        compares++;
+            compares++;
         return v.compareTo(w);
+    }
+
+    /**
+     * Get the configured cutoff value.
+     *
+     * @return a value for cutoff.
+     */
+    @Override
+    public int cutoff() {
+        // NOTE that a cutoff value of 0 or less will result in an infinite recursion for any recursive method that uses it.
+        return (cutoff >= 1) ? cutoff : super.cutoff();
     }
 
     @Override
     public String toString() {
-        return "Helper for " + description + " with " + formatWhole(n) + " elements";
+        return "Instrumenting helper for " + description + " with " + formatWhole(n) + " elements";
     }
 
     /**
@@ -298,9 +318,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     private static final String INVERSIONS = "inversions";
     private static final String FIXES = "fixes";
 
-    private static long getSeed(Config config) {
-        return config.getLong("helper", "seed", System.currentTimeMillis());
-    }
+    private final int cutoff;
 
     // NOTE: the following private methods are only for testing.
 

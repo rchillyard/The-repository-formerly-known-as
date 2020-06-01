@@ -9,7 +9,6 @@ import java.util.Arrays;
 public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
 
     public static final String DESCRIPTION = "MergeSort";
-    public static final int CUTOFF = 7;
 
     /**
      * Constructor for MergeSort
@@ -31,7 +30,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      */
     public MergeSortBasic(int N, Config config) {
         super(DESCRIPTION, N, getInstrumented(config), config);
-        insertionSort = new InsertionSort<>();
+        insertionSort = new InsertionSort<>(getHelper());
     }
 
     @Override
@@ -47,7 +46,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
     @Override
     public void sort(X[] a, int from, int to) {
         @SuppressWarnings("UnnecessaryLocalVariable") int lo = from;
-        if (to <= lo + CUTOFF) {
+        if (to <= lo + getHelper().cutoff()) {
             insertionSort.sort(a, from, to);
             return;
         }
@@ -68,7 +67,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
             if (i >= mid) helper.copy(aux, j++, a, k);
             else if (j >= hi) helper.copy(aux, i++, a, k);
             else if (helper.less(aux[j], aux[i])) {
-                helper.incrementFixes(j - i);
+                helper.incrementFixes(mid - i);
                 helper.copy(aux, j++, a, k);
             } else helper.copy(aux, i++, a, k);
     }

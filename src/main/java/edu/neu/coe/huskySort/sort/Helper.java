@@ -199,6 +199,10 @@ public interface Helper<X extends Comparable<X>> {
      */
     String getDescription();
 
+    default int cutoff() {
+        return 7;
+    }
+
     /**
      * Initialize this Helper with the size of the array to be managed.
      *
