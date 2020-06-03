@@ -9,8 +9,8 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
         this.helper = helper;
     }
 
-    public SortWithHelper(String description, int N, boolean instrumenting, Config config) {
-        this(HelperFactory.create(description, N, instrumenting, config));
+    public SortWithHelper(String description, int N, Config config) {
+        this(HelperFactory.create(description, N, config));
         closeHelper = true;
     }
 
@@ -61,10 +61,6 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
 
     public void close() {
         if (closeHelper) helper.close();
-    }
-
-    public static boolean getInstrumented(Config config) {
-        return config.getBoolean("helper", "instrument");
     }
 
     private final Helper<X> helper;

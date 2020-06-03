@@ -33,7 +33,7 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
 		 * @param config the configuration.
 		 */
 		public TimSort(int N, Config config) {
-				super(DESCRIPTION, N, getInstrumented(config), config);
+				super(DESCRIPTION, N, config);
 		}
 
     public TimSort() {

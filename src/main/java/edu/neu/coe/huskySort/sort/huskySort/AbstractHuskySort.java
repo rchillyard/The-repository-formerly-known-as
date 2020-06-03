@@ -7,6 +7,7 @@ import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -19,9 +20,8 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         this.huskyHelper = helper;
     }
 
-    public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, boolean instrumentation) {
-        // CONSIDER doing this using a factory method (like is done for Helper).
-        this(name, instrumentation ? new HuskyHelper<>(name, n, huskyCoder, postSorter) : new HuskyHelper<>(name, n, huskyCoder, postSorter));
+    public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+        this(name, createHelper(name, n, huskyCoder, postSorter, config.isInstrumented(), config));
     }
 
     public X[] sort(X[] xs, boolean makeCopy) {
@@ -53,6 +53,10 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
 
     public HuskyHelper<X> getHelper() {
         return huskyHelper;
+    }
+
+    private static <Y extends Comparable<Y>> HuskyHelper<Y> createHelper(String name, int n, HuskyCoder<Y> huskyCoder, Consumer<Y[]> postSorter, boolean instrumentation, Config config) {
+        return instrumentation ? new HuskyHelper<Y>(name, n, huskyCoder, postSorter) : new HuskyHelper<Y>(name, n, huskyCoder, postSorter);
     }
 
     private final HuskyHelper<X> huskyHelper;

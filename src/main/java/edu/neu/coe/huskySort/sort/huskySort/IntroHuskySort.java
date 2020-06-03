@@ -13,7 +13,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     // TEST
     public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
-        super(name, 0, huskyCoder, postSorter, getInstrumented(config));
+        super(name, 0, huskyCoder, postSorter, config);
     }
 
     // TEST

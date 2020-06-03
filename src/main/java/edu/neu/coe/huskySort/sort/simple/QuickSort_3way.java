@@ -29,7 +29,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param config the configuration.
      */
     public QuickSort_3way(int N, Config config) {
-        super(DESCRIPTION, N, getInstrumented(config), config);
+        super(DESCRIPTION, N, config);
     }
 
     /**

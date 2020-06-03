@@ -17,12 +17,11 @@ public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
 		/**
 		 * Constructor for SelectionSort
 		 *
-		 * @param N            the number elements we expect to sort.
-		 * @param instrumented whether or not we want an instrumented helper class.
-		 * @param config       the configuration.
+		 * @param N      the number elements we expect to sort.
+		 * @param config the configuration.
 		 */
-		public SelectionSort(int N, boolean instrumented, Config config) {
-				super(DESCRIPTION, N, instrumented, config);
+		public SelectionSort(int N, Config config) {
+				super(DESCRIPTION, N, config);
 		}
 
     public SelectionSort() {

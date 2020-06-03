@@ -17,7 +17,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param config the configuration.
      */
     public InsertionSort(int N, Config config) {
-        super(DESCRIPTION, N, getInstrumented(config), config);
+        super(DESCRIPTION, N, config);
     }
 
     public InsertionSort() {

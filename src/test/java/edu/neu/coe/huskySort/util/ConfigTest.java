@@ -11,17 +11,17 @@ public class ConfigTest {
 		@Test
 		public void testConfig() {
 				final Config config = setupConfig(TRUE, "0", "10", "");
-				assertTrue(config.getBoolean(HELPER, INSTRUMENT));
-				assertEquals(0L, config.getLong(HELPER, SEED, -1L));
+				assertTrue(config.isInstrumented());
+				assertEquals(0L, config.getLong(Config.HELPER, SEED, -1L));
 				assertEquals(10, config.getInt(INSTRUMENTING, INVERSIONS, 0));
 		}
 
 		public static Config setupConfig(final String instrumenting, final String seed, final String inversions, String cutoff) {
 				final Ini ini = new Ini();
 				final String sInstrumenting = INSTRUMENTING;
-				ini.put(HELPER, INSTRUMENT, instrumenting);
-				ini.put(HELPER, SEED, seed);
-				ini.put(HELPER, CUTOFF, cutoff);
+				ini.put(Config.HELPER, Config.INSTRUMENT, instrumenting);
+				ini.put(Config.HELPER, SEED, seed);
+				ini.put(Config.HELPER, CUTOFF, cutoff);
 				ini.put(sInstrumenting, INVERSIONS, inversions);
 				ini.put(sInstrumenting, SWAPS, instrumenting);
 				ini.put(sInstrumenting, COMPARES, instrumenting);
@@ -30,11 +30,9 @@ public class ConfigTest {
 				return new Config(ini);
 		}
 
-		public static final String HELPER = "helper";
 		public static final String TRUE = "true";
 		public static final String INSTRUMENTING = "instrumenting";
 		public static final String INVERSIONS = "inversions";
-		public static final String INSTRUMENT = "instrument";
 		public static final String SEED = "seed";
 		public static final String CUTOFF = "cutoff";
 		public static final String SWAPS = "swaps";

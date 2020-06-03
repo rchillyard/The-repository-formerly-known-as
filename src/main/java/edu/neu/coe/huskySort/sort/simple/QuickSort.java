@@ -20,7 +20,7 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 		protected Partitioner<X> partitioner;
 
 		public QuickSort(String description, int N, Config config) {
-				super(description, N, false, config);
+				super(description, N, config);
 				insertionSort = new InsertionSort<>(getHelper());
 		}
 

@@ -16,13 +16,13 @@ public class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<
 private final int bucketSize;
 private HuskyBucketHelper<X> bucketHelper;
 
-public HuskyBucketSort(String name, int bucketSize, HuskyCoder<X> huskyCoder, Consumer<X[]> sorter, boolean instrumentation) {
-        super(name, 0, huskyCoder, sorter, instrumentation);
+public HuskyBucketSort(String name, int bucketSize, HuskyCoder<X> huskyCoder, Consumer<X[]> sorter, Config config) {
+        super(name, 0, huskyCoder, sorter, config);
         this.bucketSize = bucketSize;
-        }
+}
 
 		public HuskyBucketSort(int bucketSize, HuskyCoder<X> huskyCoder, Config config) {
-				this("HuskyBucketSort", bucketSize, huskyCoder, InsertionSort::mutatingInsertionSort, getInstrumented(config));
+            this("HuskyBucketSort", bucketSize, huskyCoder, InsertionSort::mutatingInsertionSort, config);
 		}
 
 public X[] preProcess(X[] xs) {

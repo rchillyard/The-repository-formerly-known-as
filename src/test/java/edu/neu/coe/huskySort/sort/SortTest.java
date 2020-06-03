@@ -16,7 +16,7 @@ public class SortTest {
 
     static class TestSorter extends SortWithHelper<Integer> {
         public TestSorter(String description, int N, boolean instrumenting, Config config) {
-            super(description, N, instrumenting, config);
+            super(description, N, config);
         }
 
         /**
@@ -57,7 +57,7 @@ public class SortTest {
     @Test
     public void testSort3() throws IOException {
         final Config config = Config.load(getClass());
-        final SortWithHelper<Integer> sorter = new SortWithHelper<Integer>("test", 100, true, config) {
+        final SortWithHelper<Integer> sorter = new SortWithHelper<Integer>("test", 100, config) {
             @Override
             public void sort(Integer[] xs, int from, int to) {
                 // Do nothing.
@@ -79,12 +79,7 @@ public class SortTest {
         final Helper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         sorter.sort(xs, 0, xs.length);
-        try {
-            helper.postProcess(xs); // test that xs is properly sorted.
-            fail("array should not be sorted - except under extremely rare circumstances");
-        } catch (Exception e) {
-            // Everything is as expected
-        }
+        assertFalse("array should not be sorted - except under extremely rare circumstances", helper.sorted(xs));
     }
 
     @Test

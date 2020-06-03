@@ -19,7 +19,7 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param config the configuration.
      */
     public IntroSort(int N, Config config) {
-        super(DESCRIPTION, N, config.getBoolean("helper", "instrument"), config);
+        super(DESCRIPTION, N, config);
     }
 
     public IntroSort() {

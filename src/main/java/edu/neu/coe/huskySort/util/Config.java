@@ -89,6 +89,19 @@ public class Config {
     }
 
     /**
+     * Method to determine if this configuration has an instrumented helper.
+     * NOTE: we would prefer to place this logic in the Helper class but we put it here for now.
+     *
+     * @return true if helper is instrument
+     */
+    public boolean isInstrumented() {
+        return getBoolean(HELPER, INSTRUMENT);
+    }
+
+    public static final String HELPER = "helper";
+    public static final String INSTRUMENT = "instrument";
+
+    /**
      * Method to load the appropriate configuration.
      * <p>
      * If clazz is not null, then we look for config.ini relative to the given class.
