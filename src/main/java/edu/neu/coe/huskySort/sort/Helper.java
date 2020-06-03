@@ -144,23 +144,26 @@ public interface Helper<X extends Comparable<X>> {
     void copy(X[] source, int i, X[] target, int j);
 
     /**
-     * Method to fix a potentially unstable inversion.
-     *
-     * @param xs the array of X elements.
-     * @param i  the index of the lower of the elements to be swapped.
-     * @param j  the index of the higher of the elements to be swapped.
-     */
+		 * TODO eliminate this method as it has been superseded by swapConditional. However, maybe the latter is a better name.
+		 * Method to fix a potentially unstable inversion.
+		 *
+		 * @param xs the array of X elements.
+		 * @param i  the index of the lower of the elements to be swapped.
+		 * @param j  the index of the higher of the elements to be swapped.
+		 */
     default void fixInversion(X[] xs, int i, int j) {
-        if (less(xs[j], xs[i])) swap(xs, i, j);
+				swapConditional(xs, i, j);
     }
 
-    /**
-     * Method to fix a stable inversion.
-     *  @param xs the array of X elements.
-     * @param i  the index of the higher of the adjacent elements to be swapped.
-     */
+		/**
+		 * TODO eliminate this method as it has been superseded by swapStableConditional. However, maybe the latter is a better name.
+		 * Method to fix a stable inversion.
+		 *
+		 * @param xs the array of X elements.
+		 * @param i  the index of the higher of the adjacent elements to be swapped.
+		 */
     default void fixInversion(X[] xs, int i) {
-        if (less(xs[i], xs[i - 1])) swapStable(xs, i);
+				swapStableConditional(xs, i);
     }
 
     /**

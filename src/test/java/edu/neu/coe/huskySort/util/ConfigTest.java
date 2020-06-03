@@ -16,7 +16,6 @@ public class ConfigTest {
 				assertEquals(10, config.getInt(INSTRUMENTING, INVERSIONS, 0));
 		}
 
-		// TODO add cutoff value
 		public static Config setupConfig(final String instrumenting, final String seed, final String inversions, String cutoff) {
 				final Ini ini = new Ini();
 				final String sInstrumenting = INSTRUMENTING;

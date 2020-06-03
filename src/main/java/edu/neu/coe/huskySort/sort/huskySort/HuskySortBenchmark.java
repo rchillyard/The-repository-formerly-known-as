@@ -142,7 +142,7 @@ public class HuskySortBenchmark {
      * @param preProcessor the pre-processor function, if any.
      * @param timeLoggers  a set of timeLoggers to be used.
      */
-    void runStringSortBenchmark(String[] words, int nWords, int nRuns, SortWithHelper<String> sorter, UnaryOperator<String[]> preProcessor, TimeLogger[] timeLoggers) {
+    static void runStringSortBenchmark(String[] words, int nWords, int nRuns, SortWithHelper<String> sorter, UnaryOperator<String[]> preProcessor, TimeLogger[] timeLoggers) {
         new SorterBenchmark<>(String.class, preProcessor, sorter, words, nRuns, timeLoggers).run(nWords);
         sorter.close();
     }
@@ -156,7 +156,7 @@ public class HuskySortBenchmark {
      * @param sorter      the sorter to use--NOTE that this sorter will be closed at the end of this method.
      * @param timeLoggers a set of timeLoggers to be used.
      */
-    void runStringSortBenchmark(String[] words, int nWords, int nRuns, SortWithHelper<String> sorter, TimeLogger[] timeLoggers) {
+    public static void runStringSortBenchmark(String[] words, int nWords, int nRuns, SortWithHelper<String> sorter, TimeLogger[] timeLoggers) {
         runStringSortBenchmark(words, nWords, nRuns, sorter, sorter::preProcess, timeLoggers);
     }
 
@@ -248,7 +248,7 @@ public class HuskySortBenchmark {
      * Thus, in the case where comparisons are based on primitives,
      * the normalized time per run should approximate the time for one array access.
      */
-    final static TimeLogger[] timeLoggersLinearithmic = {
+    public final static TimeLogger[] timeLoggersLinearithmic = {
             new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
             new TimeLogger("Normalized time per run (n log n): ", (time, n) -> time / minComparisons(n) / 6 * 1e6)
     };

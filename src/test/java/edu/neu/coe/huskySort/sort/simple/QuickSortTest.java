@@ -4,14 +4,20 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.*;
 import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.ConfigTest;
+import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.StatPack;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
 
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.runStringSortBenchmark;
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.timeLoggersLinearithmic;
+import static edu.neu.coe.huskySort.util.Utilities.round;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -106,6 +112,83 @@ public class QuickSortTest {
         assertEquals(8, p.gt);
         assertEquals(Character.valueOf('A'), array[0]);
         assertEquals(Character.valueOf('X'), array[array.length - 1]);
+    }
+
+    // FIXME
+    @Ignore
+    public void testSortDetailed() throws Exception {
+        int k = 7;
+        int N = (int) Math.pow(2, k);
+        // NOTE this depends on the cutoff value for quick sort.
+        int levels = k - 2;
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("merge sort", N, config);
+        System.out.println(helper);
+        Sort<Integer> s = new QuickSort_3way<>(helper);
+        s.init(N);
+        final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
+        assertEquals(Integer.valueOf(1360), xs[0]);
+        helper.preProcess(xs);
+        Integer[] ys = s.sort(xs);
+        helper.postProcess(ys);
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        System.out.println(statPack);
+        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int inversions = (int) statPack.getStatistics("inversions").mean();
+        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        final int swaps = (int) statPack.getStatistics("swaps").mean();
+        final int copies = (int) statPack.getStatistics("copies").mean();
+        final int worstCompares = round(2.0 * N * Math.log(N));
+        System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
+        assertTrue(compares <= worstCompares);
+        assertEquals(inversions, fixes);
+        assertEquals(levels * 2 * N, copies);
+    }
+
+    // FIXME
+//    @Ignore
+//    public void testPartition1() {
+//        String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
+//        int n = xs.length;
+//        final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
+//        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+//        QuickSort_3way<String> sorter = new QuickSort_3way<>(helper);
+//        int inversions = n * (n - 1) / 2;
+//        assertEquals(inversions, helper.inversions(xs));
+//        Partitioner<String> partitioner = sorter.createPartitioner3Way(helper);
+//        List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
+//        assertEquals(23, privateMethodTester.invokePrivate("getFixes"));
+//        sorter.sort(0, xs, 0, partitions.get(0).to);
+//        assertEquals(23, privateMethodTester.invokePrivate("getFixes"));
+//        sorter.sort(0, xs, partitions.get(1).from + 1, n - 1);
+//        int fixes = (int) privateMethodTester.invokePrivate("getFixes");
+//        assertEquals(inversions, fixes);
+//        assertEquals(0, helper.inversions(xs));
+//        assertEquals(1, privateMethodTester.invokePrivate("getSwaps"));
+//    }
+
+    @Test
+    public void smallStringSort() throws IOException {
+        Config config = Config.load(null);
+        final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
+        int k = 20;
+        int n = k * k;
+        helper.init(n);
+        String[] words = setupWords(k);
+        String[] xs = helper.random(String.class, r -> words[r.nextInt(n)]);
+        SortWithHelper<String> sorter = new QuickSort_3way<>(helper);
+        runStringSortBenchmark(xs, n, 1, sorter, timeLoggersLinearithmic);
+    }
+
+    private static String[] setupWords(final int n) {
+        if (n > 36) throw new RuntimeException("cannot have n > 36");
+        String alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+        String[] words = new String[n * n];
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                words[i * n + j] = alphabet.substring(i, i + 1) + alphabet.substring(j, j + 1);
+        return words;
     }
 
     @BeforeClass

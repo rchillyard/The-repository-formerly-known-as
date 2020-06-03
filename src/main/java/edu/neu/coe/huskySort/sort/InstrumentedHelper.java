@@ -92,14 +92,23 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param j  the other index.
      */
     public void swap(X[] xs, int i, int j) {
-        if (countSwaps)
-            swaps++;
-        if (countFixes)
-            fixes += (j - i);
-        X temp = xs[i];
-        xs[i] = xs[j];
-        xs[j] = temp;
-    }
+				if (countSwaps)
+						swaps++;
+				X v = xs[i];
+				X w = xs[j];
+				if (countFixes) {
+						// We assume that this swap is actually fixing the inversion of i and j. Otherwise, the following line be incorrect.
+						fixes++;
+						for (int k = i + 1; k < j; k++) {
+								X x = xs[k];
+								int cf1 = Integer.signum(v.compareTo(x));
+								int cf2 = Integer.signum(x.compareTo(w));
+								fixes += (cf1 + cf2);
+						}
+				}
+				xs[i] = w;
+				xs[j] = v;
+		}
 
     /**
      * Method to perform a stable swap using half-exchanges,
@@ -130,21 +139,27 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      */
     @Override
     public boolean swapConditional(X[] xs, int i, int j) {
-        final X v = xs[i];
-        final X w = xs[j];
-        boolean result = v.compareTo(w) > 0;
-        if (countCompares)
-            compares++;
-        if (result) {
-            xs[i] = w;
-            xs[j] = v;
-            if (countSwaps)
-                swaps++;
-            if (countFixes)
-                fixes += (j - i);
-        }
-        return result;
-    }
+				if (countCompares)
+						compares++;
+				int cf = xs[i].compareTo(xs[j]);
+				if (cf > 0)
+						swap(xs, i, j);
+				return cf > 0;
+//        if (result) {
+//            if (countFixes) {
+//                for (int k = i + 1; k < j; k++) {
+//                    X x = xs[k];
+//                    int cf1 = Integer.signum(v.compareTo(x));
+//                    int cf2 = Integer.signum(x.compareTo(w));
+//                    fixes += (cf1 + cf2);
+//                }
+//            }
+//            xs[i] = w;
+//            xs[j] = v;
+//            if (countSwaps)
+//                swaps++;
+//        }
+		}
 
     /**
      * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
