@@ -98,8 +98,8 @@ public class HuskySortBenchmark {
 				if (config.getBoolean(configSectionStringSorters, "timsort"))
 						runStringSortBenchmark(words, nWords, nRuns, new TimSort<>(nWords, config), timeLoggersLinearithmic);
 
-				if (config.getBoolean(configSectionStringSorters, "quicksort3way"))
-						runStringSortBenchmark(words, nWords, nRuns, new QuickSort_3way<>(nWords, config), timeLoggersLinearithmic);
+        if (config.getBoolean(configSectionStringSorters, "quicksort3way"))
+            runStringSortBenchmark(words, nWords, nRuns, new QuickSort_3way<>(nWords, config), timeLoggersLinearithmic);
 
         if (config.getBoolean(configSectionStringSorters, "introsort"))
             runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, config), timeLoggersLinearithmic);

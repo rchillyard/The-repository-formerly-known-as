@@ -9,15 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<X> {
-		final static LazyLogger logger = new LazyLogger(QuickSort.class);
-		protected final InsertionSort<X> insertionSort;
-		private int level = 0;
-
-		public void setPartitioner(Partitioner<X> partitioner) {
-				this.partitioner = partitioner;
-		}
-
-		protected Partitioner<X> partitioner;
 
 		public QuickSort(String description, int N, Config config) {
 				super(description, N, config);
@@ -30,6 +21,24 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 				insertionSort = new InsertionSort<>(helper);
 		}
 
+		/**
+		 * Method to set the partitioner.
+		 *
+		 * NOTE: it would be much nicer if we could do this immutably but this isn't Scala, it's Java.
+		 *
+		 * @param partitioner
+		 */
+		public void setPartitioner(Partitioner<X> partitioner) {
+				this.partitioner = partitioner;
+		}
+
+		/**
+		 * Method to sort.
+		 *
+		 * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
+		 * @param makeCopy if set to true, we make a copy first and sort that.
+		 * @return the result (sorted version of xs).
+		 */
 		public X[] sort(X[] xs, boolean makeCopy) {
 				getHelper().init(xs.length);
 				X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
@@ -47,16 +56,34 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 		public void sort(X[] xs, int from, int to) {
 				@SuppressWarnings("UnnecessaryLocalVariable") int lo = from;
 				if (to <= lo + getHelper().cutoff()) {
-						logger.debug("insertionsort at level: " + level + " array length: " + xs.length + ", from " + from + " to " + to);
 						insertionSort.sort(xs, from, to);
 						return;
 				}
 
-				logger.debug("quicksort at level: " + level + " array length: " + xs.length + ", from " + from + " to " + to);
-				Partition<X> partition = new Partition<>(xs, from, to);
+				Partition<X> partition = createPartition(xs, from, to);
 				if (partitioner == null) throw new RuntimeException("partitioner not set");
 				List<Partition<X>> partitions = partitioner.partition(partition);
 				partitions.forEach(p -> sort(p.xs, p.from, p.to));
 		}
 
+		/**
+		 * Create a partition on ys from "from" to "to".
+		 * @param ys the array to partition
+		 * @param from the index of the first element to partition.
+		 * @param to the index of the first element NOT to partition.
+		 * @param <Y> the underlying type of ys.
+		 * @return a Partition of Y.
+		 */
+		public static <Y extends Comparable<Y>> Partition<Y> createPartition(Y[] ys, int from, int to) {
+				return new Partition<>(ys, from, to);
+		}
+
+		public static <Y extends Comparable<Y>> Partition<Y> createPartition(Y[] ys) {
+				return createPartition(ys, 0, ys.length);
+		}
+
+		protected final InsertionSort<X> insertionSort;
+		protected Partitioner<X> partitioner;
+
+		final static LazyLogger logger = new LazyLogger(QuickSort.class);
 }

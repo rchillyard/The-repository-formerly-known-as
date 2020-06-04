@@ -92,8 +92,9 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param j  the other index.
      */
     public void swap(X[] xs, int i, int j) {
-				if (countSwaps)
-						swaps++;
+        if (i == j) return;
+        if (countSwaps)
+            swaps++;
 				X v = xs[i];
 				X w = xs[j];
 				if (countFixes) {
@@ -145,20 +146,6 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 				if (cf > 0)
 						swap(xs, i, j);
 				return cf > 0;
-//        if (result) {
-//            if (countFixes) {
-//                for (int k = i + 1; k < j; k++) {
-//                    X x = xs[k];
-//                    int cf1 = Integer.signum(v.compareTo(x));
-//                    int cf2 = Integer.signum(x.compareTo(w));
-//                    fixes += (cf1 + cf2);
-//                }
-//            }
-//            xs[i] = w;
-//            xs[j] = v;
-//            if (countSwaps)
-//                swaps++;
-//        }
 		}
 
     /**

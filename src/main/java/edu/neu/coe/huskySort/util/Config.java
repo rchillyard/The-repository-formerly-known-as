@@ -122,6 +122,10 @@ public class Config {
         throw new IOException("resource " + name + " not found for " + clazz);
     }
 
+    public static Config load() throws IOException {
+        return load(null);
+    }
+
     private boolean getSetLogged(String s) {
         Boolean value = logged.get(s);
         if (value == null) {
