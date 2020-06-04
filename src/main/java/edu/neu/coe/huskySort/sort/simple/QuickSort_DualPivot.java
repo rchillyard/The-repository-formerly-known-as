@@ -8,21 +8,21 @@ import edu.neu.coe.huskySort.util.Config;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
+public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
 
-    public static final String DESCRIPTION = "QuickSort 3 way";
+    public static final String DESCRIPTION = "QuickSort dual pivot";
 
     /**
      * Constructor for QuickSort_3way
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public QuickSort_3way(Helper<X> helper) {
+    public QuickSort_DualPivot(Helper<X> helper) {
         super(null, helper);
         setPartitioner(createPartitioner());
     }
 
-    public QuickSort_3way() {
+    public QuickSort_DualPivot() {
         this(new BaseHelper<>(DESCRIPTION));
     }
 
@@ -32,7 +32,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public QuickSort_3way(int N, Config config) {
+    public QuickSort_DualPivot(int N, Config config) {
         super(DESCRIPTION, N, config);
         setPartitioner(createPartitioner());
     }
@@ -45,17 +45,18 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
      * @param N    the number of elements to be sorted.
      * @param seed the seed for the random number generator.
      */
-    public QuickSort_3way(int N, long seed, Config config) {
+    public QuickSort_DualPivot(int N, long seed, Config config) {
         this(new InstrumentedHelper<>(DESCRIPTION, N, config));
     }
 
+    @Override
     public Partitioner<X> createPartitioner() {
-        return new Partitioner_3Way(getHelper());
+        return new Partitioner_DualPivot(getHelper());
     }
 
-    class Partitioner_3Way implements Partitioner<X> {
+    class Partitioner_DualPivot implements Partitioner<X> {
 
-        public Partitioner_3Way(Helper<X> helper) {
+        public Partitioner_DualPivot(Helper<X> helper) {
             this.helper = helper;
         }
 
@@ -67,42 +68,45 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
          */
         public List<Partition<X>> partition(Partition<X> partition) {
 //            logger.debug("partition on " + partition);
-            X[] xs = partition.xs;
-            int lt = partition.from;
-            int gt = partition.to - 1;
-            helper.swapConditional(xs, lt, gt);
-            X v = xs[lt];
-            int i = lt + 1;
+            final X[] xs = partition.xs;
+            final int lo = partition.from;
+            final int hi = partition.to - 1;
+            helper.swapConditional(xs, lo, hi);
+            int lt = lo + 1;
+            int gt = hi - 1;
+            int i = lt;
             // NOTE: we are trying to avoid checking on instrumented for every time in the inner loop for performance reasons (probably a silly idea).
             // NOTE: if we were using Scala, it would be easy to set up a comparer function and a swapper function. With java, it's possible but much messier.
-            if (helper.instrumented())
+            if (helper.instrumented()) {
                 while (i <= gt) {
-                    int cmp = helper.compare(xs[i], v);
-                    if (cmp < 0) helper.swap(xs, lt++, i++);
-                    else if (cmp > 0) helper.swap(xs, i, gt--);
+                    if (helper.compare(xs, i, lo) < 0) helper.swap(xs, lt++, i++);
+                    else if (helper.compare(xs, i, hi) > 0) helper.swap(xs, i, gt--);
                     else i++;
                 }
-            else
+                helper.swap(xs, lo, --lt);
+                helper.swap(xs, hi, ++gt);
+            } else {
                 while (i <= gt) {
-                    int cmp = xs[i].compareTo(v);
-                    if (cmp < 0) swap(xs, lt++, i++);
-                    else if (cmp > 0) swap(xs, i, gt--);
+                    X x = xs[i];
+                    if (x.compareTo(xs[lo]) < 0) swap(xs, lt++, i++);
+                    else if (x.compareTo(xs[hi]) > 0) swap(xs, i, gt--);
                     else i++;
                 }
+                swap(xs, lo, --lt);
+                swap(xs, hi, ++gt);
+            }
 
             List<Partition<X>> partitions = new ArrayList<>();
-            partitions.add(new Partition<>(xs, partition.from, lt));
-            partitions.add(new Partition<>(xs, gt + 1, partition.to));
+            partitions.add(new Partition<>(xs, lo, lt));
+            partitions.add(new Partition<>(xs, lt + 1, gt));
+            partitions.add(new Partition<>(xs, gt + 1, hi + 1));
             return partitions;
         }
 
         private void swap(X[] ys, int i, int j) {
-            if (helper != null) helper.swap(ys, i, j);
-            else {
-                X temp = ys[i];
-                ys[i] = ys[j];
-                ys[j] = temp;
-            }
+            X temp = ys[i];
+            ys[i] = ys[j];
+            ys[j] = temp;
         }
 
         private final Helper<X> helper;

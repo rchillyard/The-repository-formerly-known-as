@@ -89,17 +89,20 @@ public class HuskySortBenchmark {
 
     void benchmarkStringSorters(String[] words, int nWords, int nRuns) {
 
-				logger.info("Testing with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words" + (config.isInstrumented() ? " and instrumented" : ""));
+        logger.info("Testing with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words" + (config.isInstrumented() ? " and instrumented" : ""));
 
-				final String configSectionStringSorters = "benchmarktringsorters";
-				if (config.getBoolean(configSectionStringSorters, "mergesort"))
-						runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(nWords, config), timeLoggersLinearithmic);
+        final String configSectionStringSorters = "benchmarktringsorters";
+        if (config.getBoolean(configSectionStringSorters, "mergesort"))
+            runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(nWords, config), timeLoggersLinearithmic);
 
-				if (config.getBoolean(configSectionStringSorters, "timsort"))
-						runStringSortBenchmark(words, nWords, nRuns, new TimSort<>(nWords, config), timeLoggersLinearithmic);
+        if (config.getBoolean(configSectionStringSorters, "timsort"))
+            runStringSortBenchmark(words, nWords, nRuns, new TimSort<>(nWords, config), timeLoggersLinearithmic);
 
-        if (config.getBoolean(configSectionStringSorters, "quicksort3way"))
+        if (config.getBoolean(configSectionStringSorters, "quicksort"))
             runStringSortBenchmark(words, nWords, nRuns, new QuickSort_3way<>(nWords, config), timeLoggersLinearithmic);
+
+        if (config.getBoolean(configSectionStringSorters, "quicksort"))
+            runStringSortBenchmark(words, nWords, nRuns, new QuickSort_DualPivot<>(nWords, config), timeLoggersLinearithmic);
 
         if (config.getBoolean(configSectionStringSorters, "introsort"))
             runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, config), timeLoggersLinearithmic);

@@ -100,7 +100,7 @@ public class QuickSort3WayTest {
     }
 
     @Test
-    public void testPartition() throws Exception {
+    public void testPartition1() throws Exception {
         String testString = "PBAXWPPVPCPDZY";
         char[] charArray = testString.toCharArray();
         Character[] array = new Character[charArray.length];
@@ -111,15 +111,38 @@ public class QuickSort3WayTest {
         List<Partition<Character>> partitions = partitioner.partition(QuickSort.createPartition(array));
         assertEquals(2, partitions.size());
         Partition<Character> p0 = partitions.get(0);
-        Partition<Character> p1 = partitions.get(1);
         assertEquals(0, p0.from);
         assertEquals(4, p0.to);
+        Partition<Character> p1 = partitions.get(1);
         assertEquals(9, p1.from);
         assertEquals(14, p1.to);
         char[] chars = new char[array.length];
         for (int i = 0; i < chars.length; i++) chars[i] = array[i];
         String partitionedString = new String(chars);
         assertEquals("BADCPPPPPVWZYX", partitionedString);
+    }
+
+    @Test
+    public void testPartition2() throws Exception {
+        String testString = "SEAYRLFVZQTCMK";
+        char[] charArray = testString.toCharArray();
+        Character[] array = new Character[charArray.length];
+        for (int i = 0; i < array.length; i++) array[i] = charArray[i];
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        QuickSort_3way<Character> sorter = new QuickSort_3way<Character>(array.length, config);
+        Partitioner<Character> partitioner = sorter.partitioner;
+        List<Partition<Character>> partitions = partitioner.partition(QuickSort.createPartition(array));
+        assertEquals(2, partitions.size());
+        Partition<Character> p0 = partitions.get(0);
+        assertEquals(0, p0.from);
+        assertEquals(4, p0.to);
+        Partition<Character> p1 = partitions.get(1);
+        assertEquals(5, p1.from);
+        assertEquals(14, p1.to);
+        char[] chars = new char[array.length];
+        for (int i = 0; i < chars.length; i++) chars[i] = array[i];
+        String partitionedString = new String(chars);
+        assertEquals("EACFKLVZQTRMSY", partitionedString);
     }
 
     @Test
@@ -137,6 +160,7 @@ public class QuickSort3WayTest {
         assertEquals(Integer.valueOf(1360), xs[0]);
         helper.preProcess(xs);
         Integer[] ys = s.sort(xs);
+        assertTrue(helper.sorted(ys));
         helper.postProcess(ys);
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
@@ -153,7 +177,7 @@ public class QuickSort3WayTest {
     }
 
     @Test
-    public void testPartition1() {
+    public void testPartitionWithSort() {
         String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
         int n = xs.length;
         final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
@@ -161,18 +185,19 @@ public class QuickSort3WayTest {
         QuickSort_3way<String> sorter = new QuickSort_3way<>(helper);
         int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
-        Partitioner<String> partitioner = sorter.createPartitioner3Way();
+        Partitioner<String> partitioner = sorter.createPartitioner();
         List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
         assertEquals(22, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(7, helper.inversions(xs));
         sorter.sort(xs, 0, partitions.get(0).to);
         assertEquals(22, privateMethodTester.invokePrivate("getFixes"));
-        sorter.sort(xs, partitions.get(1).from + 1, n - 1);
+        assertEquals(7, helper.inversions(xs));
+        sorter.sort(xs, partitions.get(1).from, n);
+        assertEquals(0, helper.inversions(xs));
         int fixes = (int) privateMethodTester.invokePrivate("getFixes");
         // NOTE: there are at least as many fixes as inversions -- sort methods aren't necessarily perfectly efficient in terms of swaps.
         assertTrue(inversions <= fixes);
-        // NOTE: at this point, we haven't actually sorted xs -- we merely partitioned it into two partitions.
-        assertEquals(4, helper.inversions(xs));
-        assertEquals(9, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(13, privateMethodTester.invokePrivate("getSwaps"));
     }
 
     @Test

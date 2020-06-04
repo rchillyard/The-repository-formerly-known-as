@@ -22,11 +22,18 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 		}
 
 		/**
-		 * Method to set the partitioner.
+		 * Method to create a Partitioner.
 		 *
+		 * @return a Partitioner of X which is suitable for the quicksort method being used.
+		 */
+		public abstract Partitioner<X> createPartitioner();
+
+		/**
+		 * Method to set the partitioner.
+		 * <p>
 		 * NOTE: it would be much nicer if we could do this immutably but this isn't Scala, it's Java.
 		 *
-		 * @param partitioner
+		 * @param partitioner the partitioner to be used.
 		 */
 		public void setPartitioner(Partitioner<X> partitioner) {
 				this.partitioner = partitioner;
