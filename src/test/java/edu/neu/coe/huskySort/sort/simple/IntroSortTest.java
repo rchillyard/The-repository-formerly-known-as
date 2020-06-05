@@ -62,5 +62,4 @@ public class IntroSortTest {
         assertEquals(Character.valueOf('A'), array[0]);
         assertEquals(Character.valueOf('X'), array[array.length - 1]);
     }
-
 }
