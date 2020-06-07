@@ -5,15 +5,23 @@ package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 
-public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
+public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
 
     /**
-     * Constructor for IntroSort
+     * Constructor for QuickSort_3way
+     *
+     * @param helper an explicit instance of Helper to be used.
+     */
+    public IntroSort(Helper<X> helper) {
+        super(helper);
+    }
+
+    /**
+     * Constructor for QuickSort_3way
      *
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
@@ -22,40 +30,35 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
         super(DESCRIPTION, N, config);
     }
 
+    /**
+     * Constructor for QuickSort_3way which always uses an instrumented helper with a specific seed.
+     * <p>
+     * NOTE used by unit tests.
+     *
+     * @param N      the number of elements to be sorted.
+     * @param seed   the seed for the random number generator.
+     * @param config the configuration for this sorter.
+     */
+    public IntroSort(int N, long seed, Config config) {
+        super(DESCRIPTION, N, config);
+    }
+
     public IntroSort() {
         this(new BaseHelper<>(DESCRIPTION));
-    }
-
-    /**
-     * Constructor for InsertionSort
-     *
-     * @param helper an explicit instance of Helper to be used.
-     */
-    public IntroSort(BaseHelper<X> helper) {
-        super(helper);
-    }
-
-    static class Partition {
-        final int lt;
-        final int gt;
-
-        Partition(int lt, int gt) {
-            this.lt = lt;
-            this.gt = gt;
-        }
     }
 
     @Override
     public X[] sort(X[] xs, boolean makeCopy) {
         getHelper().init(xs.length);
+        depthThreshold = 2 * floor_lg(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         int from = 0, to = result.length;
-        sort(result, from, to, 2 * floor_lg(to - from));
+        sort(result, from, to, 0);
         return result;
     }
 
     /**
-     * @param xs an array of Xs.
+     * @param xs   an array of Xs.
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
@@ -64,38 +67,42 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
         sort(xs, from, to, 2 * floor_lg(to - from));
     }
 
-    @SuppressWarnings("UnnecessaryLocalVariable")
-    private void sort(X[] a, int from, int to, int depthThreshold) {
+    /**
+     * Protected method to determine to terminate the recursion of this quick sort.
+     * NOTE that in this implementation, the depth is ignored.
+     *
+     * @param xs    the complete array from which this sub-array derives.
+     * @param from  the index of the first element to sort.
+     * @param to    the index of the first element not to sort.
+     * @param depth the current depth of the recursion.
+     * @return true if there is no further work to be done.
+     */
+    @Override
+    protected boolean terminator(X[] xs, int from, int to, int depth) {
         if (to - from <= sizeThreshold) {
             if (to > from + 1)
-                insertionSort(a, from, to);
-            return;
+                getInsertionSort().sort(xs, from, to);
+            return true;
         }
-        // TEST
-        if (depthThreshold == 0) {
-            heapSort(a, from, to);
-            return;
+
+        if (depth >= depthThreshold) {
+            heapSort(xs, from, to);
+            return true;
         }
-        int lo = from;
-        int hi = to - 1;
-        Partition partition = partition(a, lo, hi);
-        sort(a, lo, partition.lt, depthThreshold - 1);
-        sort(a, partition.gt + 1, hi + 1, depthThreshold - 1);
+
+        return false;
     }
 
-    public Partition partition(X[] a, int lo, int hi) {
-        // CONSIDER using code from QuickSort_3way
-        int lt = lo, gt = hi;
-        if (a[lo].compareTo(a[hi]) > 0) swap(a, lo, hi);
-        X v = a[lo];
-        int i = lo + 1;
-        while (i <= gt) {
-            int cmp = a[i].compareTo(v);
-            if (cmp < 0) swap(a, lt++, i++);
-            else if (cmp > 0) swap(a, i, gt--);
-            else i++;
-        }
-        return new Partition(lt, gt);
+    /**
+     * NOTE: This method looks like it can be removed.
+     * However, it is required so that it can be found by PrivateMethodTester in unit tests.
+     * Once, there is a workaround, we can safely remove this declaration.
+     *
+     * @return an instance of InsertionSort on X.
+     */
+    @Override
+    public InsertionSort<X> getInsertionSort() {
+        return super.getInsertionSort();
     }
 
     public static final String DESCRIPTION = "Intro sort";
@@ -104,38 +111,34 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * Heapsort algorithm
      */
     private void heapSort(X[] a, int from, int to) {
+        Helper<X> helper = getHelper();
         int n = to - from;
         for (int i = n / 2; i >= 1; i = i - 1) {
-            downHeap(a, i, n, from);
+            downHeap(a, i, n, from, helper);
         }
         for (int i = n; i > 1; i = i - 1) {
-            swap(a, from, from + i - 1);
-            downHeap(a, 1, i - 1, from);
+            helper.swap(a, from, from + i - 1);
+            downHeap(a, 1, i - 1, from, helper);
         }
     }
 
-    private void downHeap(X[] a, int i, int n, int lo) {
+    private void downHeap(X[] a, int i, int n, int lo, Helper<X> helper) {
         X d = a[lo + i - 1];
         int child;
         while (i <= n / 2) {
             child = 2 * i;
-            if (child < n && a[lo + child - 1].compareTo(a[lo + child]) < 0) child++;
-            if (d.compareTo(a[lo + child - 1]) >= 0) break;
+            if (helper.instrumented()) {
+                if (child < n && helper.compare(a, lo + child - 1, lo + child) < 0) child++;
+                if (helper.compare(d, a[lo + child - 1]) >= 0) break;
+            } else {
+                if (child < n && a[lo + child - 1].compareTo(a[lo + child]) < 0) child++;
+                if (d.compareTo(a[lo + child - 1]) >= 0) break;
+            }
+            helper.incrementFixes(1);
             a[lo + i - 1] = a[lo + child - 1];
             i = child;
         }
         a[lo + i - 1] = d;
-    }
-
-    /*
-     * Insertion sort algorithm
-     */
-    private void insertionSort(X[] xs, int from, int to) {
-        final Helper<X> helper = getHelper();
-        for (int i = from + 1; i < to; i++) {
-            for (int j = i; j > from && helper.less(xs[j], xs[j - 1]); j--)
-                helper.swap(xs, j, j - 1);
-        }
     }
 
     /**
@@ -154,6 +157,8 @@ public class IntroSort<X extends Comparable<X>> extends SortWithHelper<X> {
     private static int floor_lg(int a) {
         return (int) (Math.floor(Math.log(a) / Math.log(2)));
     }
+
+    private int depthThreshold = Integer.MAX_VALUE;
 
     private static final int sizeThreshold = 16;
 }

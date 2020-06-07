@@ -253,4 +253,11 @@ public interface Helper<X extends Comparable<X>> {
         // CONSIDER invoking init from here.
         return xs;
     }
+
+    default void registerDepth(int depth) {
+    }
+
+    default int maxDepth() {
+        return 0;
+    }
 }

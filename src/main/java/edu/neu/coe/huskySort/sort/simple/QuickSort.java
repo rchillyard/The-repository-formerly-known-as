@@ -15,9 +15,8 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 				insertionSort = new InsertionSort<>(getHelper());
 		}
 
-		public QuickSort(Partitioner<X> partitioner, Helper<X> helper) {
+		public QuickSort(Helper<X> helper) {
 				super(helper);
-				this.partitioner = partitioner;
 				insertionSort = new InsertionSort<>(helper);
 		}
 
@@ -49,8 +48,25 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 		public X[] sort(X[] xs, boolean makeCopy) {
 				getHelper().init(xs.length);
 				X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-				sort(result, 0, result.length);
+				sort(result, 0, result.length, 0);
 				return result;
+		}
+
+		/**
+		 * Sort the sub-array xs[from] .. xs[to-1]
+		 *
+		 * @param xs    the complete array from which this sub-array derives.
+		 * @param from  the index of the first element to sort.
+		 * @param to    the index of the first element not to sort.
+		 * @param depth the depth of the recursion.
+		 */
+		public void sort(X[] xs, int from, int to, int depth) {
+				if (terminator(xs, from, to, depth)) return;
+				getHelper().registerDepth(depth);
+				Partition<X> partition = createPartition(xs, from, to);
+				if (partitioner == null) throw new RuntimeException("partitioner not set");
+				List<Partition<X>> partitions = partitioner.partition(partition);
+				partitions.forEach(p -> sort(p.xs, p.from, p.to, depth + 1));
 		}
 
 		/**
@@ -61,24 +77,39 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 		 * @param to   the index of the first element not to sort.
 		 */
 		public void sort(X[] xs, int from, int to) {
+				throw new RuntimeException("This sort signature is not used for Quicksort");
+		}
+
+		/**
+		 * Protected method to determine to terminate the recursion of this quick sort.
+		 * NOTE that in this implementation, the depth is ignored.
+		 *
+		 * @param xs    the complete array from which this sub-array derives.
+		 * @param from  the index of the first element to sort.
+		 * @param to    the index of the first element not to sort.
+		 * @param depth the current depth of the recursion.
+		 * @return true if there is no further work to be done.
+		 */
+		protected boolean terminator(X[] xs, int from, int to, int depth) {
 				@SuppressWarnings("UnnecessaryLocalVariable") int lo = from;
 				if (to <= lo + getHelper().cutoff()) {
 						insertionSort.sort(xs, from, to);
-						return;
+						return true;
 				}
+				return false;
+		}
 
-				Partition<X> partition = createPartition(xs, from, to);
-				if (partitioner == null) throw new RuntimeException("partitioner not set");
-				List<Partition<X>> partitions = partitioner.partition(partition);
-				partitions.forEach(p -> sort(p.xs, p.from, p.to));
+		public InsertionSort<X> getInsertionSort() {
+				return insertionSort;
 		}
 
 		/**
 		 * Create a partition on ys from "from" to "to".
-		 * @param ys the array to partition
+		 *
+		 * @param ys   the array to partition
 		 * @param from the index of the first element to partition.
-		 * @param to the index of the first element NOT to partition.
-		 * @param <Y> the underlying type of ys.
+		 * @param to   the index of the first element NOT to partition.
+		 * @param <Y>  the underlying type of ys.
 		 * @return a Partition of Y.
 		 */
 		public static <Y extends Comparable<Y>> Partition<Y> createPartition(Y[] ys, int from, int to) {
@@ -89,7 +120,8 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 				return createPartition(ys, 0, ys.length);
 		}
 
-		protected final InsertionSort<X> insertionSort;
+		private final InsertionSort<X> insertionSort;
+
 		protected Partitioner<X> partitioner;
 
 		final static LazyLogger logger = new LazyLogger(QuickSort.class);

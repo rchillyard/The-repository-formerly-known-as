@@ -4,10 +4,19 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
+import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.HelperFactory;
 import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.ConfigTest;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.StatPack;
 import org.junit.Test;
 
+import java.util.List;
+
+import static edu.neu.coe.huskySort.util.Utilities.round;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -15,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 public class IntroSortTest {
 
     @Test
-    public void testSort() throws Exception {
+    public void testSort1() throws Exception {
         Integer[] xs = new Integer[4];
         xs[0] = 3;
         xs[1] = 4;
@@ -30,13 +39,76 @@ public class IntroSortTest {
     }
 
     @Test
+    public void testSortDetailed1() throws Exception {
+        int k = 7;
+        int N = (int) Math.pow(2, k);
+        // NOTE this depends on the cutoff value for quick sort.
+        int levels = k - 2;
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("intro sort", N, config);
+        System.out.println(helper);
+        SortWithHelper<Integer> s = new IntroSort<>(helper);
+        s.init(N);
+        final Integer[] xs = new Integer[N];
+        for (int i = 0; i < N; i++) xs[i] = i;
+        helper.preProcess(xs);
+        Integer[] ys = s.sort(xs);
+        assertTrue(helper.sorted(ys));
+        helper.postProcess(ys);
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        System.out.println(statPack);
+        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int inversions = (int) statPack.getStatistics("inversions").mean();
+        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        final int swaps = (int) statPack.getStatistics("swaps").mean();
+        final int copies = (int) statPack.getStatistics("copies").mean();
+        final int worstCompares = round(2.0 * N * Math.log(N));
+        System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
+        assertEquals(13, helper.maxDepth());
+    }
+
+    @Test
+    public void testSortDetailed2() throws Exception {
+        int k = 7;
+        int N = (int) Math.pow(2, k);
+        // NOTE this depends on the cutoff value for quick sort.
+        int levels = k - 2;
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("intro sort", N, config);
+        System.out.println(helper);
+        SortWithHelper<Integer> s = new IntroSort<>(helper);
+        s.init(N);
+        final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
+        assertEquals(Integer.valueOf(1360), xs[0]);
+        helper.preProcess(xs);
+        Integer[] ys = s.sort(xs);
+        assertTrue(helper.sorted(ys));
+        helper.postProcess(ys);
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        System.out.println(statPack);
+        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int inversions = (int) statPack.getStatistics("inversions").mean();
+        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        final int swaps = (int) statPack.getStatistics("swaps").mean();
+        final int copies = (int) statPack.getStatistics("copies").mean();
+        assertEquals(4, helper.maxDepth());
+        final int worstCompares = round(2.0 * N * Math.log(N));
+        System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
+        assertTrue(compares <= worstCompares);
+        // TODO understand why the following does not work
+//        assertTrue(inversions <= fixes);
+    }
+
+    @Test
     public void testHeapSort() throws Exception {
         IntroSort<Integer> sorter = new IntroSort<>();
         PrivateMethodTester t = new PrivateMethodTester(sorter);
         Integer[] xs = {15, 3, -1, 2, 4, 1, 0, 5, 8, 6, 1, 9, 17, 7, 11};
         Class[] classes = {Comparable[].class, int.class, int.class};
         t.invokePrivateExplicit("heapSort", classes, xs, 0, xs.length);
-				assertTrue(sorter.getHelper().sorted(xs));
+        assertTrue(sorter.getHelper().sorted(xs));
     }
 
     @Test
@@ -44,9 +116,9 @@ public class IntroSortTest {
         IntroSort<Integer> sorter = new IntroSort<>();
         PrivateMethodTester t = new PrivateMethodTester(sorter);
         Integer[] xs = {15, 3, -1, 2, 4, 1, 0, 5, 8, 6, 1, 9, 17, 7, 11};
-        Class[] classes = {Comparable[].class, int.class, int.class};
-				t.invokePrivateExplicit("insertionSort", classes, xs, 0, xs.length);
-				assertTrue(sorter.getHelper().sorted(xs));
+        Sort<Integer> insertionSort = (Sort<Integer>) t.invokePrivate("getInsertionSort");
+        insertionSort.sort(xs, 0, xs.length);
+        assertTrue(sorter.getHelper().sorted(xs));
     }
 
     @Test
@@ -56,10 +128,15 @@ public class IntroSortTest {
         Character[] array = new Character[charArray.length];
         for (int i = 0; i < array.length; i++) array[i] = charArray[i];
         Sort<Character> s = new IntroSort<>();
-        IntroSort.Partition p = ((IntroSort<Character>) s).partition(array, 0, array.length - 1);
-        assertEquals(4, p.lt);
-        assertEquals(8, p.gt);
-        assertEquals(Character.valueOf('A'), array[0]);
-        assertEquals(Character.valueOf('X'), array[array.length - 1]);
+        Partition<Character> partition = new Partition<>(array, 0, array.length);
+        List<Partition<Character>> partitions = ((IntroSort<Character>) s).partitioner.partition(partition);
+        assertEquals(0, partitions.get(0).from);
+        assertEquals(4, partitions.get(0).to);
+        assertEquals(5, partitions.get(1).from);
+        assertEquals(13, partitions.get(1).to);
+        assertEquals(14, partitions.get(2).from);
+        assertEquals(array.length, partitions.get(2).to);
+        assertEquals(Character.valueOf('C'), array[0]);
+        assertEquals(Character.valueOf('Z'), array[array.length - 1]);
     }
 }

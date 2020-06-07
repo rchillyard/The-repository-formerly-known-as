@@ -1,8 +1,6 @@
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import edu.neu.coe.huskySort.util.Config;
 
 import java.util.ArrayList;
@@ -10,21 +8,22 @@ import java.util.List;
 
 public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
 
-    public static final String DESCRIPTION = "QuickSort dual pivot";
+		public static final String DESCRIPTION = "QuickSort dual pivot";
 
-    /**
-     * Constructor for QuickSort_3way
-     *
-     * @param helper an explicit instance of Helper to be used.
-     */
-    public QuickSort_DualPivot(Helper<X> helper) {
-        super(null, helper);
-        setPartitioner(createPartitioner());
-    }
+		public QuickSort_DualPivot(String description, int N, Config config) {
+				super(description, N, config);
+				setPartitioner(createPartitioner());
+		}
 
-    public QuickSort_DualPivot() {
-        this(new BaseHelper<>(DESCRIPTION));
-    }
+		/**
+		 * Constructor for QuickSort_3way
+		 *
+		 * @param helper an explicit instance of Helper to be used.
+		 */
+		public QuickSort_DualPivot(Helper<X> helper) {
+				super(helper);
+				setPartitioner(createPartitioner());
+		}
 
     /**
      * Constructor for QuickSort_3way
@@ -33,20 +32,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
      * @param config the configuration.
      */
     public QuickSort_DualPivot(int N, Config config) {
-        super(DESCRIPTION, N, config);
-        setPartitioner(createPartitioner());
-    }
-
-    /**
-     * Constructor for QuickSort_3way which always uses an instrumented helper with a specific seed.
-     * <p>
-     * NOTE used by unit tests.
-     *
-     * @param N    the number of elements to be sorted.
-     * @param seed the seed for the random number generator.
-     */
-    public QuickSort_DualPivot(int N, long seed, Config config) {
-        this(new InstrumentedHelper<>(DESCRIPTION, N, config));
+				this(DESCRIPTION, N, config);
     }
 
     @Override
@@ -54,17 +40,17 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
         return new Partitioner_DualPivot(getHelper());
     }
 
-    class Partitioner_DualPivot implements Partitioner<X> {
+		public class Partitioner_DualPivot implements Partitioner<X> {
 
-        public Partitioner_DualPivot(Helper<X> helper) {
-            this.helper = helper;
-        }
+				public Partitioner_DualPivot(Helper<X> helper) {
+						this.helper = helper;
+				}
 
-        /**
-         * Method to partition the given partition into smaller partitions.
-         *
-         * @param partition the partition to divide up.
-         * @return an array of partitions, whose length depends on the sorting method being used.
+				/**
+				 * Method to partition the given partition into smaller partitions.
+				 *
+				 * @param partition the partition to divide up.
+				 * @return an array of partitions, whose length depends on the sorting method being used.
          */
         public List<Partition<X>> partition(Partition<X> partition) {
 //            logger.debug("partition on " + partition);

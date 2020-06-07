@@ -18,7 +18,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
      * @param helper an explicit instance of Helper to be used.
      */
     public QuickSort_3way(Helper<X> helper) {
-        super(null, helper);
+        super(helper);
         setPartitioner(createPartitioner());
     }
 

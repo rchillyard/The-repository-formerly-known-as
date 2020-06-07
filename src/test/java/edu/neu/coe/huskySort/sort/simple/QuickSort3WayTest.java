@@ -179,26 +179,28 @@ public class QuickSort3WayTest {
     @Test
     public void testPartitionWithSort() {
         String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
-        int n = xs.length;
-        final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        QuickSort_3way<String> sorter = new QuickSort_3way<>(helper);
-        int inversions = n * (n - 1) / 2;
-        assertEquals(inversions, helper.inversions(xs));
-        Partitioner<String> partitioner = sorter.createPartitioner();
-        List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
-        assertEquals(22, privateMethodTester.invokePrivate("getFixes"));
-        assertEquals(7, helper.inversions(xs));
-        sorter.sort(xs, 0, partitions.get(0).to);
-        assertEquals(22, privateMethodTester.invokePrivate("getFixes"));
-        assertEquals(7, helper.inversions(xs));
-        sorter.sort(xs, partitions.get(1).from, n);
-        assertEquals(0, helper.inversions(xs));
-        int fixes = (int) privateMethodTester.invokePrivate("getFixes");
-        // NOTE: there are at least as many fixes as inversions -- sort methods aren't necessarily perfectly efficient in terms of swaps.
-        assertTrue(inversions <= fixes);
-        assertEquals(13, privateMethodTester.invokePrivate("getSwaps"));
-    }
+				int n = xs.length;
+				final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
+				final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+				QuickSort_3way<String> sorter = new QuickSort_3way<>(helper);
+				int inversions = n * (n - 1) / 2;
+				assertEquals(inversions, helper.inversions(xs));
+				Partitioner<String> partitioner = sorter.createPartitioner();
+				List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
+				assertEquals(14, privateMethodTester.invokePrivate("getFixes"));
+				assertEquals(7, helper.inversions(xs));
+				sorter.sort(xs, 0, partitions.get(0).to, 0);
+				assertEquals(14, privateMethodTester.invokePrivate("getFixes"));
+				assertEquals(7, helper.inversions(xs));
+				sorter.sort(xs, partitions.get(1).from, n, 0);
+				assertEquals(0, helper.inversions(xs));
+				assertTrue(helper.sorted(xs));
+				int fixes = (int) privateMethodTester.invokePrivate("getFixes");
+				// NOTE: there are at least as many fixes as inversions -- sort methods aren't necessarily perfectly efficient in terms of swaps.
+				System.out.println("inversions: " + inversions + ", fixes: " + fixes);
+				assertTrue(inversions <= fixes);
+				assertEquals(13, privateMethodTester.invokePrivate("getSwaps"));
+		}
 
     @Test
     public void smallStringSort() throws IOException {

@@ -42,7 +42,7 @@ public class QuickSortDualPivotTest {
 		@Test
 		public void testSortWithInstrumenting0() throws Exception {
 				int n = 16;
-				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, 1L, config);
+				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
 				final Helper<Integer> helper = sorter.getHelper();
 				final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10));
 				final Integer[] sorted = sorter.sort(xs);
@@ -52,7 +52,7 @@ public class QuickSortDualPivotTest {
 		@Test
 		public void testSortWithInstrumenting1() throws Exception {
 				int n = 541; // a prime number
-				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, 0L, config);
+				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
 				final Helper<Integer> helper = sorter.getHelper();
 				final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(97));
 				final Integer[] sorted = sorter.sort(xs);
@@ -62,7 +62,7 @@ public class QuickSortDualPivotTest {
 		@Test
 		public void testSortWithInstrumenting2() throws Exception {
 				int n = 1000;
-				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, 0L, config);
+				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
 				final Helper<Integer> helper = sorter.getHelper();
 				final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(100));
 				final Integer[] sorted = sorter.sort(xs);
@@ -72,7 +72,7 @@ public class QuickSortDualPivotTest {
 		@Test
 		public void testSortWithInstrumenting3() throws Exception {
 				int n = 1000;
-				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, 0L, config);
+				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
 				final Helper<Integer> helper = sorter.getHelper();
 				final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
 				final Integer[] sorted = sorter.sort(xs);
@@ -82,7 +82,7 @@ public class QuickSortDualPivotTest {
 		@Test
 		public void testSortWithInstrumenting4() throws Exception {
 				int n = 1000;
-				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, 0L, config);
+				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
 				final Helper<Integer> helper = sorter.getHelper();
 				final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
 				final Integer[] sorted = sorter.sort(xs);
@@ -92,7 +92,7 @@ public class QuickSortDualPivotTest {
 		@Test
 		public void testSortWithInstrumenting5() throws Exception {
 				int n = 1000;
-				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, 0L, config);
+				final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
 				final Helper<Integer> helper = sorter.getHelper();
 				final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
 				final Integer[] sorted = sorter.sort(xs);
@@ -158,7 +158,7 @@ public class QuickSortDualPivotTest {
 				// NOTE this depends on the cutoff value for quick sort.
 				int levels = k - 2;
 				final Config config = ConfigTest.setupConfig("true", "0", "1", "");
-				final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("merge sort", N, config);
+				final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("quick sort dual pivot", N, config);
 				System.out.println(helper);
 				SortWithHelper<Integer> s = new QuickSort_DualPivot<>(helper);
 				s.init(N);
@@ -196,13 +196,13 @@ public class QuickSortDualPivotTest {
 				List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
 				assertEquals(11, privateMethodTester.invokePrivate("getFixes"));
 				Partition<String> p0 = partitions.get(0);
-				sorter.sort(xs, 0, p0.to);
+				sorter.sort(xs, 0, p0.to, 0);
 				assertEquals(11, privateMethodTester.invokePrivate("getFixes"));
 				Partition<String> p1 = partitions.get(1);
-				sorter.sort(xs, p1.from, p1.to);
+				sorter.sort(xs, p1.from, p1.to, 0);
 				assertEquals(21, privateMethodTester.invokePrivate("getFixes"));
 				Partition<String> p2 = partitions.get(2);
-				sorter.sort(xs, p2.from, n);
+				sorter.sort(xs, p2.from, n, 0);
 				int fixes = (int) privateMethodTester.invokePrivate("getFixes");
 				// NOTE: there are at least as many fixes as inversions -- sort methods aren't necessarily perfectly efficient in terms of swaps.
 				assertTrue(inversions <= fixes);

@@ -98,15 +98,17 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 				X v = xs[i];
 				X w = xs[j];
 				if (countFixes) {
-						// We assume that this swap is actually fixing the inversion of i and j. Otherwise, the following line be incorrect.
-						fixes++;
-						for (int k = i + 1; k < j; k++) {
-								X x = xs[k];
-								int cf1 = Integer.signum(v.compareTo(x));
-								int cf2 = Integer.signum(x.compareTo(w));
-								fixes += (cf1 + cf2);
-						}
-				}
+            int sense = Integer.signum(v.compareTo(w));
+            // We assume that this swap is actually fixing the inversion of i and j. Otherwise, the following line be incorrect.
+            fixes += sense;
+            for (int k = i + 1; k < j; k++) {
+                X x = xs[k];
+                if (w.compareTo(x) < 0 && x.compareTo(v) < 0) fixes += 2 * sense;
+//								int cf1 = Integer.signum(v.compareTo(x));
+//								int cf2 = Integer.signum(x.compareTo(w));
+//								fixes += (cf1 + cf2);
+            }
+        }
 				xs[i] = w;
 				xs[j] = v;
 		}
@@ -307,6 +309,16 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     }
 
     @Override
+    public void registerDepth(int depth) {
+        if (depth > maxDepth) maxDepth = depth;
+    }
+
+    @Override
+    public int maxDepth() {
+        return maxDepth;
+    }
+
+    @Override
     public void close() {
         logger.debug(() -> "Closing Helper: " + description + " with statPack: " + statPack);
         super.close();
@@ -350,4 +362,5 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     private final boolean countCompares;
     private int countInversions;
     private final boolean countFixes;
+    private int maxDepth = 0;
 }
