@@ -11,7 +11,10 @@ import java.util.function.Consumer;
 
 public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
     /**
-     * Constructor for HuskyBucketHelper
+     * Constructor for HuskyBucketHelper.
+     *
+     * NOTE: that this will never be instrumented.
+     * NOTE: used by unit tests only.
      *
      * @param description a description
      * @param m           mean bucket size

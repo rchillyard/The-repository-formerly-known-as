@@ -4,10 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.HelperFactory;
-import edu.neu.coe.huskySort.sort.Sort;
-import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.sort.*;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.ConfigTest;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
@@ -59,7 +56,7 @@ public class IntroSortTest {
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
         System.out.println(statPack);
         final int compares = (int) statPack.getStatistics("compares").mean();
-        final int inversions = (int) statPack.getStatistics("inversions").mean();
+        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
         final int fixes = (int) statPack.getStatistics("fixes").mean();
         final int swaps = (int) statPack.getStatistics("swaps").mean();
         final int copies = (int) statPack.getStatistics("copies").mean();
@@ -89,7 +86,7 @@ public class IntroSortTest {
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
         System.out.println(statPack);
         final int compares = (int) statPack.getStatistics("compares").mean();
-        final int inversions = (int) statPack.getStatistics("inversions").mean();
+        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
         final int fixes = (int) statPack.getStatistics("fixes").mean();
         final int swaps = (int) statPack.getStatistics("swaps").mean();
         final int copies = (int) statPack.getStatistics("copies").mean();

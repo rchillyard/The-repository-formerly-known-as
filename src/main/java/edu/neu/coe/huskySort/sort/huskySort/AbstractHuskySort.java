@@ -3,6 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.sort.HelperFactory;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
@@ -56,7 +57,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     }
 
     private static <Y extends Comparable<Y>> HuskyHelper<Y> createHelper(String name, int n, HuskyCoder<Y> huskyCoder, Consumer<Y[]> postSorter, boolean instrumentation, Config config) {
-        return instrumentation ? new HuskyHelper<Y>(name, n, huskyCoder, postSorter) : new HuskyHelper<Y>(name, n, huskyCoder, postSorter);
+        return instrumentation ? new HuskyHelper<Y>(HelperFactory.create("Husky Delegate Helper", n, config), huskyCoder, postSorter, false) : new HuskyHelper<Y>(name, n, huskyCoder, postSorter);
     }
 
     private final HuskyHelper<X> huskyHelper;

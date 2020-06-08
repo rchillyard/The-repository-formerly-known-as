@@ -29,7 +29,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         this.countCopies = config.getBoolean("instrumenting", "copies");
         this.countSwaps = config.getBoolean("instrumenting", "swaps");
         this.countCompares = config.getBoolean("instrumenting", "compares");
-        this.countInversions = config.getInt("instrumenting", "inversions", 0);
+        this.countInversions = config.getInt("instrumenting", INVERSIONS, 0);
         this.countFixes = config.getBoolean("instrumenting", "fixes");
         this.cutoff = config.getInt("helper", "cutoff", 0);
     }
@@ -95,23 +95,19 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         if (i == j) return;
         if (countSwaps)
             swaps++;
-				X v = xs[i];
-				X w = xs[j];
-				if (countFixes) {
+        X v = xs[i];
+        X w = xs[j];
+        if (countFixes) {
             int sense = Integer.signum(v.compareTo(w));
-            // We assume that this swap is actually fixing the inversion of i and j. Otherwise, the following line be incorrect.
             fixes += sense;
             for (int k = i + 1; k < j; k++) {
                 X x = xs[k];
                 if (w.compareTo(x) < 0 && x.compareTo(v) < 0) fixes += 2 * sense;
-//								int cf1 = Integer.signum(v.compareTo(x));
-//								int cf2 = Integer.signum(x.compareTo(w));
-//								fixes += (cf1 + cf2);
             }
         }
-				xs[i] = w;
-				xs[j] = v;
-		}
+        xs[i] = w;
+        xs[j] = v;
+    }
 
     /**
      * Method to perform a stable swap using half-exchanges,
@@ -142,13 +138,13 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      */
     @Override
     public boolean swapConditional(X[] xs, int i, int j) {
-				if (countCompares)
-						compares++;
-				int cf = xs[i].compareTo(xs[j]);
-				if (cf > 0)
-						swap(xs, i, j);
-				return cf > 0;
-		}
+        if (countCompares)
+            compares++;
+        int cf = xs[i].compareTo(xs[j]);
+        if (cf > 0)
+            swap(xs, i, j);
+        return cf > 0;
+    }
 
     /**
      * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
@@ -329,7 +325,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     private static final String SWAPS = "swaps";
     private static final String COMPARES = "compares";
     private static final String COPIES = "copies";
-    private static final String INVERSIONS = "inversions";
+    public static final String INVERSIONS = "inversions";
     private static final String FIXES = "fixes";
 
     private final int cutoff;

@@ -44,24 +44,37 @@ public class Statistics {
     @Override
     public String toString() {
         //noinspection StringBufferReplaceableByString
-        return new StringBuilder().append(property).append(": mean=").append(Utilities.asInt(mean())).append("; stdDev=").append(Utilities.asInt(stdDev())).toString();
+        final StringBuilder sb = new StringBuilder().append(property).append(": ");
+        if (updated) {
+            final boolean stats = stdDev() > 0.0;
+            final String s = stats ? "mean=" : "";
+            sb.append(s).append(Utilities.asInt(mean()));
+            if (stats)
+                sb.append("; stdDev=").append(Utilities.asInt(stdDev()));
+        }
+        else
+            sb.append("<unset>");
+        return sb.toString();
     }
 
     private void resize(int n) {
-				double[] result = new double[n];
-				System.arraycopy(doubles, 0, result, 0, doubles.length);
-				doubles = result;
-		}
+        double[] result = new double[n];
+        System.arraycopy(doubles, 0, result, 0, doubles.length);
+        doubles = result;
+    }
 
     private void stale() {
         total = null;
         stdDev = null;
+        updated = true;
     }
 
     private Double total;
     private Double stdDev;
 
-		private int count = 0;
-		private double[] doubles;
-		private final String property;
+    private int count = 0;
+    private double[] doubles;
+    private final String property;
+    private boolean updated = false;
+
 }
