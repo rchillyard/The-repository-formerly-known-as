@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Random;
 import java.util.function.Consumer;
@@ -18,54 +19,229 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
 
     // Delegate methods on helper
 
+    /**
+     *
+     * @param v the first value.
+     * @param w the second value.
+     * @return true if v is less than w.
+     */
     public boolean less(X v, X w) {
         return helper.less(v, w);
     }
 
+    /**
+     *
+     * @param xs an array of Xs.
+     * @return true if xs is sorted.
+     */
     public boolean sorted(X[] xs) {
         return helper.sorted(xs);
     }
 
+    /**
+     *
+     * @param xs   an array of Xs.
+     * @return the number of inversions in xs.
+     */
     public int inversions(X[] xs) {
         return helper.inversions(xs);
     }
 
+    /**
+     *
+     * @param xs the array that has been sorted.
+     */
     public void postProcess(X[] xs) {
         helper.postProcess(xs);
     }
 
+    /**
+     * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
+     *
+     * @param xs the array of elements under consideration
+     * @param i  the index of the lower element.
+     * @param j  the index of the upper element.
+     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     */
+    @Override
+    public boolean swapConditional(X[] xs, int i, int j) {
+        return helper.swapConditional(xs, i, j);
+    }
+
+    /**
+     * Method to perform a stable swap, but only if xs[i] is less than xs[i-1], i.e. out of order.
+     *
+     * @param xs the array of elements under consideration
+     * @param i  the index of the upper element.
+     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     */
+    @Override
+    public boolean swapStableConditional(X[] xs, int i) {
+        return helper.swapStableConditional(xs, i);
+    }
+
+    /**
+     * Method to perform a stable swap using half-exchanges, and binary search.
+     * i.e. x[i] is moved leftwards to its proper place and all elements from
+     * the destination of x[i] thru x[i-1] are moved up one place.
+     * This type of swap is used by insertion sort.
+     *  @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
+     * @param i  the index of the element to be swapped into the ordered array xs[0..i-1].
+     */
+    @Override
+    public void swapIntoSorted(X[] xs, int i) {
+        helper.swapIntoSorted(xs, i);
+    }
+
+    /**
+     * TODO eliminate this method as it has been superseded by swapConditional. However, maybe the latter is a better name.
+     * Method to fix a potentially unstable inversion.
+     *  @param xs the array of X elements.
+     * @param i  the index of the lower of the elements to be swapped.
+     * @param j  the index of the higher of the elements to be swapped.
+     */
+    @Override
+    public void fixInversion(X[] xs, int i, int j) {
+        helper.fixInversion(xs, i, j);
+    }
+
+    /**
+     * TODO eliminate this method as it has been superseded by swapStableConditional. However, maybe the latter is a better name.
+     * Method to fix a stable inversion.
+     *  @param xs the array of X elements.
+     * @param i  the index of the higher of the adjacent elements to be swapped.
+     */
+    @Override
+    public void fixInversion(X[] xs, int i) {
+        helper.fixInversion(xs, i);
+    }
+
+    @Override
+    public int cutoff() {
+        return helper.cutoff();
+    }
+
+    /**
+     * If instrumenting, increment the number of copies by n.
+     *
+     * @param n the number of copies made.
+     */
+    @Override
+    public void incrementCopies(int n) {
+        helper.incrementCopies(n);
+    }
+
+    /**
+     * If instrumenting, increment the number of fixes by n.
+     *
+     * @param n the number of copies made.
+     */
+    @Override
+    public void incrementFixes(int n) {
+        helper.incrementFixes(n);
+    }
+
+    /**
+     * Method to do any required preProcessing.
+     *
+     * @param xs the array to be sorted.
+     * @return the array after any pre-processing.
+     */
+    @Override
+    public X[] preProcess(X[] xs) {
+        return helper.preProcess(xs);
+    }
+
+    @Override
+    public void registerDepth(int depth) {
+        helper.registerDepth(depth);
+    }
+
+    @Override
+    public int maxDepth() {
+        return helper.maxDepth();
+    }
+
+    /**
+     *
+     * @param clazz the class of X.
+     * @param f a function which takes a Random and generates a random value of X.
+     * @return an array of randomly chosen X values.
+     */
     public X[] random(Class<X> clazz, Function<Random, X> f) {
         return helper.random(clazz, f);
     }
 
+    /**
+     *
+     * @return the description.
+     */
     public String getDescription() {
         return helper.getDescription();
     }
 
+    /**
+     *
+     * @return the number of elements.
+     */
     public int getN() {
         return helper.getN();
     }
 
+    /**
+     *
+     */
     public void close() {
         helper.close();
     }
 
+    /**
+     *
+     * @return true if this helper is instrumented.
+     */
     public boolean instrumented() {
         return helper.instrumented();
     }
 
+    /**
+     *
+     * @param xs the array.
+     * @param i  one of the indices.
+     * @param j  the other index.
+     * @return the result of comparing xs[i] with xs[j].
+     */
     public int compare(X[] xs, int i, int j) {
         return helper.compare(xs, i, j);
     }
 
+    /**
+     *
+     * @param v the first value.
+     * @param w the second value.
+     * @return The result of comparing v with w.
+     */
     public int compare(X v, X w) {
         return helper.compare(v, w);
+    }
+
+    // CONSIDER having a method less which compares the longs rather than having direct access to the longs array in sub-classes
+    public void swap(X[] xs, int i, int j) {
+        // Swap longs
+        long temp1 = longs[i];
+        longs[i] = longs[j];
+        longs[j] = temp1;
+        // CONSIDER incrementing the swaps here since we are in fact doing two swaps.
+        helper.swap(xs, i, j);
+//        // Swap xs
+//        X temp2 = xs[i];
+//        xs[i] = xs[j];
+//        xs[j] = temp2;
     }
 
     /**
      * Method to perform a stable swap, i.e. between xs[i] and xs[i-1]
      *
-     * @param xs the array of X elements.
+     * @param xs the array of Y elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
     public void swapStable(X[] xs, int i) {
@@ -77,37 +253,87 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * i.e. between xs[i] and xs[j] such that xs[j] is moved to index i,
      * and xs[i] thru xs[j-1] are all moved up one.
      * This type of swap is used by insertion sort.
-		 *
-		 * @param xs the array of Xs.
-		 * @param i  the index of the destination of xs[j].
-		 * @param j  the index of the right-most element to be involved in the swap.
-		 */
-		@Override
-		public void swapInto(X[] xs, int i, int j) {
-				helper.swapInto(xs, i, j);
-		}
+     *
+     * @param xs the array of Xs.
+     * @param i  the index of the destination of xs[j].
+     * @param j  the index of the right-most element to be involved in the swap.
+     */
+    @Override
+    public void swapInto(X[] xs, int i, int j) {
+        helper.swapInto(xs, i, j);
+    }
 
-		/**
-		 * Copy the element at source[j] into target[i]
-		 * @param source the source array.
-		 * @param i      the target index.
-		 * @param target the target array.
-		 * @param j      the source index.
-		 */
-		@Override
-		public void copy(X[] source, int i, X[] target, int j) {
-				helper.copy(source, i, target, j);
-		}
+    /**
+     * Copy the element at source[j] into target[i]
+     * @param source the source array.
+     * @param i      the target index.
+     * @param target the target array.
+     * @param j      the source index.
+     */
+    @Override
+    public void copy(X[] source, int i, X[] target, int j) {
+        helper.copy(source, i, target, j);
+    }
 
-		/**
-		 * Constructor to create a HuskyHelper
-		 *
-		 * @param helper     the Helper.
-		 * @param coder      the coder to be used.
-		 * @param postSorter the postSorter Consumer function.
-		 * @param makeCopy   explicit setting of the makeCopy value used in sort(X[] xs)
-		 */
-		public HuskyHelper(Helper<X> helper, HuskyCoder<X> coder, Consumer<X[]> postSorter, boolean makeCopy) {
+    /**
+     *
+     * @return the Husky coder.
+     */
+    public HuskyCoder<X> getCoder() {
+        return coder;
+    }
+
+    /**
+     *
+     * @param n the size to be managed.
+     */
+    public void init(int n) {
+        if (n != getN()) longs = new long[n];
+        helper.init(n);
+    }
+
+    /**
+     * TODO this should be package private but we have to get the classes in the same package first.
+     *
+     * @param array the array from which we build a long array by enocding.
+     */
+    public void initLongArray(X[] array) {
+        for (int i = 0; i < array.length; i++) longs[i] = coder.huskyEncode(array[i]);
+    }
+
+    /**
+     *
+     * @return the post-sorter.
+     */
+    public Consumer<X[]> getPostSorter() {
+        return postSorter;
+    }
+
+    /**
+     *
+     * @return the value of makeCopy.
+     */
+    public boolean isMakeCopy() {
+        return makeCopy;
+    }
+
+    /**
+     *
+     * @return the array of longs.
+     */
+    public long[] getLongs() {
+        return longs;
+    }
+
+    /**
+     * Constructor to create a HuskyHelper
+     *
+     * @param helper     the Helper.
+     * @param coder      the coder to be used.
+     * @param postSorter the postSorter Consumer function.
+     * @param makeCopy   explicit setting of the makeCopy value used in sort(Y[] xs)
+     */
+    public HuskyHelper(Helper<X> helper, HuskyCoder<X> coder, Consumer<X[]> postSorter, boolean makeCopy) {
         this.helper = helper;
         this.coder = coder;
         longs = new long[helper.getN()];
@@ -116,19 +342,23 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     * Constructor to create a Helper
+     * Constructor to create an uninstrumented Husky Helper with explicit seed.
+     *
+     * NOTE used by unit tests only.
      *
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param seed        the seed for the random number generator
-     * @param makeCopy    explicit setting of the makeCopy value used in sort(X[] xs)
+     * @param makeCopy    explicit setting of the makeCopy value used in sort(Y[] xs)
      */
     public HuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, long seed, boolean makeCopy) {
         this(new BaseHelper<>(description, n, seed), coder, postSorter, makeCopy);
     }
 
     /**
-     * Constructor to create a Helper with random seed.
+     * Constructor to create an uninstrumented Husky Helper with random seed.
+     *
+     * NOTE used by unit tests only.
      *
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
@@ -137,47 +367,15 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
     }
 
-    public HuskyCoder<X> getCoder() {
-        return coder;
-    }
-
-    public void init(int n) {
-				if (n != getN()) longs = new long[n];
-				helper.init(n);
-		}
-
-    public void initLongArray(X[] array) {
-        for (int i = 0; i < array.length; i++) longs[i] = coder.huskyEncode(array[i]);
-    }
-
-    // CONSIDER having a method less which compares the longs rather than having direct access to the longs array in sub-classes
-    public void swap(X[] xs, int i, int j) {
-        // Swap longs
-        long temp1 = longs[i];
-        longs[i] = longs[j];
-        longs[j] = temp1;
-        // Swap xs
-        X temp2 = xs[i];
-        xs[i] = xs[j];
-        xs[j] = temp2;
-    }
-
-    public Consumer<X[]> getPostSorter() {
-        return postSorter;
-    }
-
-    public boolean isMakeCopy() {
-        return makeCopy;
-    }
-
-    public long[] getLongs() {
-        return longs;
+    public Helper<X> getHelper() {
+        return helper;
     }
 
     private final HuskyCoder<X> coder;
     protected long[] longs;
     private final Consumer<X[]> postSorter;
     private final boolean makeCopy;
+
     protected final Helper<X> helper;
 
 }

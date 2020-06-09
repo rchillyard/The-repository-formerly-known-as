@@ -1,10 +1,15 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
 import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.ConfigTest;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.StatPack;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -16,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static edu.neu.coe.huskySort.util.Utilities.round;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -93,10 +99,34 @@ public class HuskySortTest {
     }
 
     @Test
-    public void testSortString() {
+    public void testSortString1() {
         String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
         QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskySortHelper.asciiCoder, config);
         assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));
+    }
+
+    @Test
+    public void testSortString2() {
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskySortHelper.asciiCoder, config);
+        final HuskyHelper<String> helper = sorter.getHelper();
+        final int N = 1000;
+        helper.init(N);
+        final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
+        final int inversionsOriginal = helper.inversions(xs);
+        System.out.println("inversions: "+inversionsOriginal);
+        sorter.preProcess(xs);
+        final String[] ys = sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(ys));
+        sorter.postProcess(ys);
+        final Helper<String> delegateHelper =  helper.getClass().isAssignableFrom(InstrumentedHelper.class) ? helper : helper.getHelper();
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(delegateHelper);
+        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        System.out.println(statPack);
+        assertEquals(0, helper.inversions(ys));
+        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        assertTrue(inversionsOriginal <= fixes);
+
     }
 
     @SuppressWarnings("deprecation")

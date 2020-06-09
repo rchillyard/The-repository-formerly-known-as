@@ -4,10 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.HelperFactory;
-import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.sort.*;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.ConfigTest;
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
@@ -53,7 +50,7 @@ public class SelectionSortTest {
         assertTrue(helper.sorted(ys));
         final int compares = (int) statPack.getStatistics("compares").mean();
         assertEquals(n * (n - 1) / 2, compares);
-        final int inversions = (int) statPack.getStatistics("inversions").mean();
+        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
         final int fixes = (int) statPack.getStatistics("fixes").mean();
         System.out.println(statPack);
         assertEquals(inversions, fixes);

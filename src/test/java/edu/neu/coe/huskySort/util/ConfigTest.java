@@ -1,5 +1,6 @@
 package edu.neu.coe.huskySort.util;
 
+import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import org.ini4j.Ini;
 import org.junit.Test;
 
@@ -32,7 +33,7 @@ public class ConfigTest {
 
 		public static final String TRUE = "true";
 		public static final String INSTRUMENTING = "instrumenting";
-		public static final String INVERSIONS = "inversions";
+		public static final String INVERSIONS = InstrumentedHelper.INVERSIONS;
 		public static final String SEED = "seed";
 		public static final String CUTOFF = "cutoff";
 		public static final String SWAPS = "swaps";
