@@ -14,6 +14,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static edu.neu.coe.huskySort.util.Utilities.round;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -107,7 +107,7 @@ public class HuskySortTest {
 
     @Test
     public void testSortString2() {
-        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskySortHelper.asciiCoder, config);
         final HuskyHelper<String> helper = sorter.getHelper();
         final int N = 1000;
@@ -119,13 +119,42 @@ public class HuskySortTest {
         final String[] ys = sorter.sort(xs);
         assertTrue("sorted", helper.sorted(ys));
         sorter.postProcess(ys);
-        final Helper<String> delegateHelper =  helper.getClass().isAssignableFrom(InstrumentedHelper.class) ? helper : helper.getHelper();
+        final Helper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper, (InstrumentedHelper<String>) helper.getHelper());
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(delegateHelper);
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
         System.out.println(statPack);
         assertEquals(0, helper.inversions(ys));
         final int fixes = (int) statPack.getStatistics("fixes").mean();
         assertTrue(inversionsOriginal <= fixes);
+    }
+
+    @Test
+    public void testSortString3() {
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "true");
+        QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskySortHelper.asciiCoder, config);
+        final HuskyHelper<String> helper = sorter.getHelper();
+        final int N = 1000;
+        helper.init(N);
+        final String[] xs = helper.random(String.class, r -> {
+            int x = r.nextInt(1000000000);
+            final BigInteger b = BigInteger.valueOf(x).multiply(BigInteger.valueOf(1000000));
+            return b.toString();
+        });
+        final int inversionsOriginal = helper.inversions(xs);
+        System.out.println("inversions: " + inversionsOriginal);
+        sorter.preProcess(xs);
+        final String[] ys = sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(ys));
+        sorter.postProcess(ys);
+        final Helper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper, (InstrumentedHelper<String>) helper.getHelper());
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(delegateHelper);
+        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        System.out.println(statPack);
+        assertEquals(0, helper.inversions(ys));
+        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        assertTrue(inversionsOriginal <= fixes);
+        final int ii = (int) statPack.getStatistics("intermissioninversions").mean();
+        assertEquals(0, ii);
 
     }
 

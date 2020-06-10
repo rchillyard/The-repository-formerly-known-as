@@ -2,7 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 
 import java.util.Random;
 import java.util.function.Consumer;
@@ -17,10 +17,45 @@ import java.util.function.Function;
  */
 public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
 
+    // HuskyHelper methods...
+
+    public void inProcessor(X[] xs) {
+        if (!helper.instrumented()) return;
+        final InstrumentedHelper<X> ih = InstrumentedHelper.getInstrumentedHelper(helper, null);
+        if (ih != null && ih.instrumented() && ih.isCountIntermissionInversions()) {
+            final int inversions = ih.inversions(xs);
+            ih.setIntermissionInversions(inversions);
+        }
+    }
+
+    /**
+     * @return the post-sorter.
+     */
+    public Consumer<X[]> getPostSorter() {
+        return postSorter;
+    }
+
+    /**
+     * @return the value of makeCopy.
+     */
+    public boolean isMakeCopy() {
+        return makeCopy;
+    }
+
+    /**
+     * @return the array of longs.
+     */
+    public long[] getLongs() {
+        return longs;
+    }
+
+    public Helper<X> getHelper() {
+        return helper;
+    }
+
     // Delegate methods on helper
 
     /**
-     *
      * @param v the first value.
      * @param w the second value.
      * @return true if v is less than w.
@@ -232,10 +267,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         longs[j] = temp1;
         // CONSIDER incrementing the swaps here since we are in fact doing two swaps.
         helper.swap(xs, i, j);
-//        // Swap xs
-//        X temp2 = xs[i];
-//        xs[i] = xs[j];
-//        xs[j] = temp2;
     }
 
     /**
@@ -295,34 +326,10 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * TODO this should be package private but we have to get the classes in the same package first.
      *
-     * @param array the array from which we build a long array by enocding.
+     * @param array the array from which we build a long array by encoding.
      */
     public void initLongArray(X[] array) {
         for (int i = 0; i < array.length; i++) longs[i] = coder.huskyEncode(array[i]);
-    }
-
-    /**
-     *
-     * @return the post-sorter.
-     */
-    public Consumer<X[]> getPostSorter() {
-        return postSorter;
-    }
-
-    /**
-     *
-     * @return the value of makeCopy.
-     */
-    public boolean isMakeCopy() {
-        return makeCopy;
-    }
-
-    /**
-     *
-     * @return the array of longs.
-     */
-    public long[] getLongs() {
-        return longs;
     }
 
     /**
@@ -365,10 +372,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      */
     public HuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter) {
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
-    }
-
-    public Helper<X> getHelper() {
-        return helper;
     }
 
     private final HuskyCoder<X> coder;

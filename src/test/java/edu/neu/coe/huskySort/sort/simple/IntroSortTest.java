@@ -41,7 +41,7 @@ public class IntroSortTest {
         int N = (int) Math.pow(2, k);
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
-        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("intro sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new IntroSort<>(helper);
@@ -71,7 +71,7 @@ public class IntroSortTest {
         int N = (int) Math.pow(2, k);
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
-        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("intro sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new IntroSort<>(helper);

@@ -33,6 +33,12 @@ public class BenchmarkIntegrationTest {
     }
 
     @Test
+    public void testStrings1K() throws Exception {
+        // NOTE: this is a very quick version of the other integration tests.
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 1000, 100);
+    }
+
+    @Test
     public void testStrings10K() throws Exception {
         benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
     }

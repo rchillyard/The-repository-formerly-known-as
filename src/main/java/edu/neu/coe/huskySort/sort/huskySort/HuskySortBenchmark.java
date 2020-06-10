@@ -131,8 +131,8 @@ public class HuskySortBenchmark {
         if (config.getBoolean(configSectionStringSorters, "huskybucketintrosort"))
             runStringSortBenchmark(words, nWords, nRuns, new HuskyBucketSort<>(1000, UNICODE_CODER, config), timeLoggersLinearithmic);
 
-        if (config.getBoolean(configSectionStringSorters, "huskysortwithinversions"))
-            logInversions(words, nWords, nRuns, new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, DONOTHING, config));
+        if (config.getBoolean(configSectionStringSorters, "loginversions"))
+            logInversions(words, nWords, nRuns, new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, DO_NOTHING, config));
     }
 
     /**
@@ -267,7 +267,7 @@ public class HuskySortBenchmark {
             new TimeLogger("Normalized time per run (n^2): ", (time, n) -> time / meanInversions(n) / 6 * 1e6)
     };
 
-    private static final Consumer<String[]> DONOTHING = (xs2) -> {
+    private static final Consumer<String[]> DO_NOTHING = (xs2) -> {
         // XXX do nothing.
     };
 

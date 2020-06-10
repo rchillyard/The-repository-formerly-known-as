@@ -25,20 +25,20 @@ public class MergeSortBasicTest {
 
     @Test
     public void testSort1() throws Exception {
-				Integer[] xs = new Integer[4];
-				xs[0] = 3;
-				xs[1] = 4;
-				xs[2] = 2;
-				xs[3] = 1;
-				// NOTE: first we ensure that there is no cutoff to insertion sort going on.
-				final Config config = ConfigTest.setupConfig("true", "", "0", "1");
-				Sort<Integer> s = new MergeSortBasic<>(xs.length, config);
-				Integer[] ys = s.sort(xs);
-				assertEquals(Integer.valueOf(1), ys[0]);
-				assertEquals(Integer.valueOf(2), ys[1]);
-				assertEquals(Integer.valueOf(3), ys[2]);
-				assertEquals(Integer.valueOf(4), ys[3]);
-		}
+        Integer[] xs = new Integer[4];
+        xs[0] = 3;
+        xs[1] = 4;
+        xs[2] = 2;
+        xs[3] = 1;
+        // NOTE: first we ensure that there is no cutoff to insertion sort going on.
+        final Config config = ConfigTest.setupConfig("true", "", "0", "1", "");
+        Sort<Integer> s = new MergeSortBasic<>(xs.length, config);
+        Integer[] ys = s.sort(xs);
+        assertEquals(Integer.valueOf(1), ys[0]);
+        assertEquals(Integer.valueOf(2), ys[1]);
+        assertEquals(Integer.valueOf(3), ys[2]);
+        assertEquals(Integer.valueOf(4), ys[3]);
+    }
 
     @Test
     public void testSort2() throws Exception {
@@ -46,7 +46,7 @@ public class MergeSortBasicTest {
         int N = (int) Math.pow(2, k);
         // NOTE this depends on the cutoff value for merge sort.
         int levels = k - 2;
-        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final Helper<Integer> helper = HelperFactory.create("merge sort", N, config);
         System.out.println(helper);
         Sort<Integer> s = new MergeSortBasic<>(helper);
@@ -74,13 +74,13 @@ public class MergeSortBasicTest {
     public void testSort3() throws Exception {
         int k = 7;
         int N = (int) Math.pow(2, k);
-        final Helper<Integer> helper1 = HelperFactory.create("insertion sort", N, ConfigTest.setupConfig("true", "0", "1", ""));
+        final Helper<Integer> helper1 = HelperFactory.create("insertion sort", N, ConfigTest.setupConfig("true", "0", "1", "", ""));
         System.out.println(helper1);
         final Integer[] xs = helper1.random(Integer.class, r -> r.nextInt(10000));
         assertEquals(Integer.valueOf(1360), xs[0]);
         new InsertionSort<Integer>(helper1).mutatingSort(xs);
         helper1.postProcess(xs);
-        final Helper<Integer> helper2 = HelperFactory.create("merge sort", N, ConfigTest.setupConfig("true", "", "0", "1"));
+        final Helper<Integer> helper2 = HelperFactory.create("merge sort", N, ConfigTest.setupConfig("true", "", "0", "1", ""));
         System.out.println(helper2);
         Sort<Integer> mergeSort = new MergeSortBasic<>(helper2);
         mergeSort.init(N);
