@@ -4,13 +4,22 @@ import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import org.ini4j.Ini;
 import org.junit.Test;
 
+import java.io.IOException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ConfigTest {
 
     @Test
-    public void testConfig() {
+    public void testConfig() throws IOException {
+        final Config config = Config.load();
+        String name = config.get("huskysort", "version");
+        System.out.println("ConfigTest: " + name);
+    }
+
+    @Test
+    public void testConfigFixed() {
         final Config config = setupConfig(TRUE, "0", "10", "", "");
         assertTrue(config.isInstrumented());
         assertEquals(0L, config.getLong(Config.HELPER, SEED, -1L));

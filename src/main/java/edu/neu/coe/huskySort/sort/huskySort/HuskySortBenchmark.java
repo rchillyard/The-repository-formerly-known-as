@@ -35,8 +35,9 @@ public class HuskySortBenchmark {
     }
 
     public static void main(String[] args) throws IOException {
-        logger.info("HuskySortBenchmark.main");
         Config config = Config.load(HuskySortBenchmark.class);
+        String name = config.get("huskysort", "version");
+        logger.info("HuskySortBenchmark.main: " + name);
         HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
         benchmark.sortStrings();
         benchmark.sortLocalDateTimes(100000);
