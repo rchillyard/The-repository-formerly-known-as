@@ -105,7 +105,7 @@ public class QuickSort3WayTest {
         char[] charArray = testString.toCharArray();
         Character[] array = new Character[charArray.length];
         for (int i = 0; i < array.length; i++) array[i] = charArray[i];
-        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         QuickSort_3way<Character> sorter = new QuickSort_3way<Character>(array.length, config);
         Partitioner<Character> partitioner = sorter.partitioner;
         List<Partition<Character>> partitions = partitioner.partition(QuickSort.createPartition(array));
@@ -128,7 +128,7 @@ public class QuickSort3WayTest {
         char[] charArray = testString.toCharArray();
         Character[] array = new Character[charArray.length];
         for (int i = 0; i < array.length; i++) array[i] = charArray[i];
-        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         QuickSort_3way<Character> sorter = new QuickSort_3way<Character>(array.length, config);
         Partitioner<Character> partitioner = sorter.partitioner;
         List<Partition<Character>> partitions = partitioner.partition(QuickSort.createPartition(array));
@@ -151,7 +151,7 @@ public class QuickSort3WayTest {
         int N = (int) Math.pow(2, k);
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
-        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("merge sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new QuickSort_3way<>(helper);

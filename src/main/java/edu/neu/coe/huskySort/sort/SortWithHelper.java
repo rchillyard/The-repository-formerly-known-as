@@ -64,6 +64,6 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
     }
 
     private final Helper<X> helper;
-    private boolean closeHelper = false;
+    protected boolean closeHelper = false;
 
 }

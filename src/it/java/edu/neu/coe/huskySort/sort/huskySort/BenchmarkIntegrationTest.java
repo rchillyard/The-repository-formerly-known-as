@@ -5,6 +5,9 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.LazyLogger;
+import org.apache.log4j.Logger;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -24,12 +27,18 @@ import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getW
 @SuppressWarnings("ALL")
 public class BenchmarkIntegrationTest {
 
-    Config config = Config.load(getClass());
-    HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
+    @BeforeClass
+    public static void BeforeClass() throws IOException {
+        config = Config.load();
+        benchmark = new HuskySortBenchmark(config);
+        String name = config.get("huskysort", "version");
+        logger.info("HuskySortBenchmark.main: " + name);
+    }
 
-    final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-
-    public BenchmarkIntegrationTest() throws IOException {
+    @Test
+    public void testStrings1K() throws Exception {
+        // NOTE: this is a very quick version of the other integration tests.
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 1000, 100);
     }
 
     @Test
@@ -52,4 +61,10 @@ public class BenchmarkIntegrationTest {
     public void testDates100K() throws Exception {
         benchmark.sortLocalDateTimes(100000);
     }
+
+    private final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+
+    private static Logger logger = new LazyLogger(BenchmarkIntegrationTest.class);
+    private static HuskySortBenchmark benchmark;
+    private static Config config;
 }

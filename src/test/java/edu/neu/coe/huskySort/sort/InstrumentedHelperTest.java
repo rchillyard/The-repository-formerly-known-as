@@ -6,8 +6,6 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.junit.Assert.*;
 
 public class InstrumentedHelperTest {
@@ -313,8 +311,8 @@ public class InstrumentedHelperTest {
 		}
 
 		@BeforeClass
-		public static void beforeClass() throws IOException {
-				config = ConfigTest.setupConfig("true", "0", "10", "1");
+		public static void beforeClass() {
+			config = ConfigTest.setupConfig("true", "0", "10", "1", "");
 		}
 
 		private static Config config;

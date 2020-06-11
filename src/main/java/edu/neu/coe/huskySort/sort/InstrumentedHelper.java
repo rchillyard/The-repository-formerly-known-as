@@ -32,6 +32,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         this.countInversions = config.getInt("instrumenting", INVERSIONS, 0);
         this.countFixes = config.getBoolean("instrumenting", "fixes");
         this.cutoff = config.getInt("helper", "cutoff", 0);
+        this.countIntermissionInversions = config.getBoolean("huskyhelper", "countintermissioninversions");
     }
 
     /**
@@ -66,6 +67,10 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      */
     public InstrumentedHelper(String description, Config config) {
         this(description, 0, config);
+    }
+
+    public static <Y extends Comparable<Y>> InstrumentedHelper<Y> getInstrumentedHelper(Helper<Y> helper, InstrumentedHelper<Y> alternative) {
+        return helper.getClass().isAssignableFrom(InstrumentedHelper.class) ? (InstrumentedHelper<Y>) helper : alternative;
     }
 
     public boolean instrumented() {
@@ -261,7 +266,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         // NOTE: it's an error to reset the StatPack if we've been here before
         if (n == this.n && statPack != null) return;
         super.init(n);
-        statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES);
+        statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES, INTERMISSION_INVERSIONS);
     }
 
     /**
@@ -320,12 +325,17 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         super.close();
     }
 
+    public boolean isCountIntermissionInversions() {
+        return countIntermissionInversions;
+    }
+
     final static LazyLogger logger = new LazyLogger(InstrumentedHelper.class);
 
     private static final String SWAPS = "swaps";
     private static final String COMPARES = "compares";
     private static final String COPIES = "copies";
     public static final String INVERSIONS = "inversions";
+    public static final String INTERMISSION_INVERSIONS = "intermissioninversions";
     private static final String FIXES = "fixes";
 
     private final int cutoff;
@@ -358,5 +368,12 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     private final boolean countCompares;
     private int countInversions;
     private final boolean countFixes;
+    private final boolean countIntermissionInversions;
     private int maxDepth = 0;
+
+    public void setIntermissionInversions(int inversions) {
+        if (countIntermissionInversions)
+            if (statPack != null) statPack.add(INTERMISSION_INVERSIONS, inversions);
+            else throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
+    }
 }

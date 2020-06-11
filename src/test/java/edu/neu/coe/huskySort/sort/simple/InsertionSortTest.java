@@ -51,7 +51,7 @@ public class InsertionSortTest {
 
     @Test
     public void sort2() throws Exception {
-        final Config config = ConfigTest.setupConfig("true", "0", "1", "");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         int n = 100;
         Helper<Integer> helper = HelperFactory.create("SelectionSort", n, config);
         helper.init(n);
