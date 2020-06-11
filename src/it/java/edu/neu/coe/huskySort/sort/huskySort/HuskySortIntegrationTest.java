@@ -55,7 +55,7 @@ public class HuskySortIntegrationTest {
         checkTime(n, benchmarkHuskySort.run(words, n, m));
     }
 
-    @Test(timeout = 4000)
+    @Test(timeout = 5000)
     public void testControl10K() throws Exception {
         final String[] words = getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line));
         final int m = 1000;
@@ -83,7 +83,7 @@ public class HuskySortIntegrationTest {
         final double estimateMeanRuntime = 2 * n * Math.log(n);
         double normalizedRuntime = run/estimateMeanRuntime;
         System.out.println(String.format("Mean normalized run time: %6.2f",normalizedRuntime));
-        assertTrue(normalizedRuntime >= 0.5 && normalizedRuntime <= 2);
+        assertTrue(normalizedRuntime >= 0.5 && normalizedRuntime <= 2.5);
     }
 
     final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
