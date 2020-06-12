@@ -56,7 +56,7 @@ public class HuskySortIntegrationTest {
         checkTime(n, benchmarkHuskySort.run(words, n, m));
     }
 
-    @Test(timeout = 5000)
+    @Ignore //(timeout = 5000)
     public void testControl10K() throws Exception {
         final String[] words = getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line));
         final int m = 1000;
@@ -72,7 +72,7 @@ public class HuskySortIntegrationTest {
         checkTime(n, benchmarkQuick3sort.run(words, n, m));
     }
 
-    @Test(timeout = 30000)
+    @Ignore //(timeout = 30000)
     public void testControl100K() throws Exception {
         final String[] words = getWords("eng-uk_web_2002_1M-sentences.txt", line -> getWords(regexLeipzig, line));
         final int m = 100;
