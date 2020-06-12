@@ -29,7 +29,10 @@ public class Bag_Array<Item> implements Bag<Item> {
         return count;
     }
 
-    @Override
+    public void clear() {
+        count = 0;
+    }
+
     public boolean contains(Item item) {
         for (Item i : items) {
             if (i != null && i.equals(item))
@@ -38,7 +41,6 @@ public class Bag_Array<Item> implements Bag<Item> {
         return false;
     }
 
-    @Override
     public int multiplicity(Item item) {
         int result = 0;
         if (isEmpty()) return 0;
@@ -49,20 +51,20 @@ public class Bag_Array<Item> implements Bag<Item> {
         return result;
     }
 
-    public Iterator<Item> iterator() {
-        assert items != null; // Should be not-null any time after construction.
-        // NOTE: there is no Java-defined array iterator.
-        return Arrays.asList(asArray()).iterator();
-    }
+     public Iterator<Item> iterator() {
+         assert items != null; // Should be not-null any time after construction.
+         // NOTE: there is no Java-defined array iterator.
+         return Arrays.asList(asArray()).iterator();
+     }
 
-    private Item[] asArray() {
+    public Item[] asArray() {
         return Arrays.copyOf(items, count);
     }
 
     @Override
     public String toString() {
         return "Bag_Array{" +
-                "items=" + Arrays.toString(items) +
+                "items=" + Arrays.toString(asArray()) +
                 ", count=" + count +
                 '}';
     }
@@ -90,12 +92,10 @@ public class Bag_Array<Item> implements Bag<Item> {
      * @param size the size of the new array
      */
     private static <T> T[] growFrom(T[] from, int size) {
-        // TO BE IMPLEMENTED ...
         // NOTE that we cannot use Arrays.copyOf here because we are extending the length of the array.
         @SuppressWarnings("unchecked") T[] result = (T[]) new Object[size];
         System.arraycopy(from, 0, result, 0, from.length);
         return result;
-        // ... END IMPLEMENTATION
     }
 
     private Item[] items = null;

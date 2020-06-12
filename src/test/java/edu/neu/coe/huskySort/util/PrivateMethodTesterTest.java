@@ -11,6 +11,7 @@ import static org.junit.Assert.assertEquals;
 public class PrivateMethodTesterTest {
 
     @SuppressWarnings("SameParameterValue")
+    static
     class Mock {
         private final int x;
         private final double y;
@@ -40,6 +41,7 @@ public class PrivateMethodTesterTest {
 
     }
 
+    @SuppressWarnings("SameReturnValue")
     private static int one() { return 1; }
 
     @Test
@@ -68,9 +70,9 @@ public class PrivateMethodTesterTest {
     public void testMockExplicit() {
         final Mock hello = new Mock(10, Math.PI, "Hello");
         final PrivateMethodTester tester = new PrivateMethodTester(hello);
-        Class[] xTimesYTimesWClasses = new Class[]{Double.class};
-        Class[] xTimesYTimesWPlusZClasses1 = new Class[]{double.class, int.class};
-        Class[] xTimesYTimesWPlusZClasses2 = new Class[]{Integer.class, double.class};
+        Class<?>[] xTimesYTimesWClasses = new Class<?>[]{Double.class};
+        Class<?>[] xTimesYTimesWPlusZClasses1 = new Class<?>[]{double.class, int.class};
+        Class<?>[] xTimesYTimesWPlusZClasses2 = new Class<?>[]{Integer.class, double.class};
         assertEquals(20 * Math.PI + 1, tester.invokePrivateExplicit("xTimesYTimesWPlusZ", xTimesYTimesWPlusZClasses1, 2.0, 1));
         assertEquals(20 * Math.PI + 1, tester.invokePrivateExplicit("xTimesYTimesWPlusZ", xTimesYTimesWPlusZClasses2, 1, 2.0));
         assertEquals(20 * Math.PI, tester.invokePrivateExplicit("xTimesYTimesW", xTimesYTimesWClasses, 2.0));

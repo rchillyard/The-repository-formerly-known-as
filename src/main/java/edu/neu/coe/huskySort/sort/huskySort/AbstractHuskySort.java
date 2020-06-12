@@ -3,51 +3,72 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.HelperFactory;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public abstract class AbstractHuskySort<X extends Comparable<X>> {
+public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWithHelper<X> {
 
-    public AbstractHuskySort() {
-        helper = new Helper<>("HuskySort Helper");
+    private AbstractHuskySort(String name, HuskyHelper<X> helper) {
+        super(helper);
+        this.name = name;
+        this.huskyHelper = helper;
     }
 
-    public void sort(X[] xs, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter) {
-        final long[] longs = getLongArray(xs, huskyCoder);
-        preSort(xs, longs, 0, xs.length - 1);
-        postSorter.accept(xs);
+    public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+        this(name, createHelper(name, n, huskyCoder, postSorter, config.isInstrumented(), config));
+        closeHelper = true;
     }
 
-    public void sort(X[] xs, HuskyCoder<X> huskyCoder) {
-        sort(xs, huskyCoder, Arrays::sort);
+    public X[] sort(X[] xs, boolean makeCopy) {
+        huskyHelper.init(xs.length);
+        X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
+        huskyHelper.initLongArray(result);
+        sort(result, 0, result.length);
+        huskyHelper.inProcessor(result);
+        huskyHelper.getPostSorter().accept(result);
+        return result;
     }
 
-    private long[] getLongArray(X[] array, HuskyCoder<X> coder) {
-        long[] longArray = new long[array.length];
-        for (int i = 0; i < array.length; i++) longArray[i] = coder.huskyEncode(array[i]);
-        return longArray;
+    public X[] sort(X[] xs) {
+        return sort(xs, huskyHelper.isMakeCopy());
     }
-
-    final protected Helper<X> helper;
 
     static final HuskyCoder<String> UNICODE_CODER = HuskySortHelper.unicodeCoder;
 
-    public Helper<X> getHelper() {
-        return helper;
+    void swap(X[] objects, int i, int j) {
+        huskyHelper.swap(objects, i, j);
     }
 
-    protected abstract void preSort(Object[] objects, long[] longs, int from, int to);
-
-    protected static void swap(Object[] objects, long[] longs, int i, int j) {
-        long temp1 = longs[i];
-        longs[i] = longs[j];
-        longs[j] = temp1;
-        Object temp2 = objects[i];
-        objects[i] = objects[j];
-        objects[j] = temp2;
+    // CONSIDER showing coder and postSorter (would need extra String for that).
+    @Override
+    public String toString() {
+        return name;
     }
+
+    protected final String name;
+
+    /**
+     * Method to get the Helper, but as a HuskyHelper.
+     *
+     * @return a HuskyHelper.
+     */
+    public HuskyHelper<X> getHelper() {
+        return huskyHelper;
+    }
+
+    /**
+     * NOTE: callers of this method should consider arranging for the helper to be closed on close of the sorter.
+     */
+    private static <Y extends Comparable<Y>> HuskyHelper<Y> createHelper(String name, int n, HuskyCoder<Y> huskyCoder, Consumer<Y[]> postSorter, boolean instrumentation, Config config) {
+        return instrumentation ? new HuskyHelper<>(HelperFactory.create("Husky Delegate Helper", n, config), huskyCoder, postSorter, false) : new HuskyHelper<>(name, n, huskyCoder, postSorter);
+    }
+
+    private final HuskyHelper<X> huskyHelper;
 }

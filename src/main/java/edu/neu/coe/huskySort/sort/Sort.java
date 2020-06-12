@@ -5,42 +5,47 @@ package edu.neu.coe.huskySort.sort;
 
 import java.util.Arrays;
 
-public interface Sort<X extends Comparable<X>> {
+public interface Sort<X> extends GenericSort<X> {
 
     /**
      * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
      *
-     * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
+     * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
      * @param makeCopy if set to true, we make a copy first and sort that.
      */
     default X[] sort(X[] xs, boolean makeCopy) {
-        getHelper().setN(xs.length);
+        init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         sort(result, 0, result.length);
         return result;
     }
 
     /**
-     * Generic, non-mutating sort method.
+     * Perform initializing step for this Sort.
+     * <p>
+     * CONSIDER merging this with preProcess logic.
      *
-     * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
+     * @param n the number of elements to be sorted.
      */
-    default X[] sort(X[] xs) {
-        return sort(xs, true);
+    void init(int n);
+
+    /**
+     * Perform pre-processing step for this Sort.
+     *
+     * @param xs the elements to be pre-processed.
+     */
+    default X[] preProcess(X[] xs) {
+        init(xs.length);
+        return xs;
     }
 
     /**
-     * Generic, mutating sort method which operates on a sub-array
+     * Post-process the given array, i.e. after sorting has been completed.
      *
-     * @param xs   sort the array xs from "from" to "to".
-     * @param from the index of the first element to sort
-     * @param to   the index of the first element not to sort
+     * @param xs an array of Xs.
      */
-    void sort(X[] xs, int from, int to);
+    void postProcess(X[] xs);
 
-    /**
-     * Get the Helper associated with this Sort.
-     * @return the Helper
-     */
-    Helper<X> getHelper();
+    void close();
+
 }
