@@ -19,10 +19,11 @@ public interface HuskySortable<X> extends Comparable<X> {
      * @param x the object to be compared
      * @return an int according to the ordering of this and x
      */
-    @Override
+    // TEST
     default int compareTo(X x) {
         if (HuskySortable.class.isAssignableFrom(x.getClass()))
-            return Long.compare(huskyCode(), ((HuskySortable) x).huskyCode());
+            //noinspection unchecked
+            return Long.compare(huskyCode(), ((HuskySortable<X>) x).huskyCode());
         else
             throw new UnsupportedOperationException("compareTo must be implemented for " + getClass());
     }

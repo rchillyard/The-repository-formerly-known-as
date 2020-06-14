@@ -28,19 +28,18 @@ public class HuskySortHelperTest {
         assertEquals(6989586621679009792L, asciiToLong(word));
     }
 
-    // TODO fix what's wrong with this test
-    @Ignore
+    @Test
     public void testUTF8ToLong() {
         String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a"};
         long[] codes = new long[6];
         int bitWidth = 8;
         long[] expected = {
-                0xE4B8ADE69687L << (1 * bitWidth),  // 中文
-                0xE5A4AAE995BFE7L,                  // 太长的中文
-                0x6173646667686AL,                  // asdfghjkl
-                0xC2A5L << (5 * bitWidth),          // ¥
-                0x63L << (6 * bitWidth),            // c
-                0x61L << (6 * bitWidth),            // a
+                (0xE4B8ADE69687L << (2 * bitWidth)) >>> 1,  // 中文
+                0xE5A4AAE995BFE79AL >>> 1,                  // 太长的中文
+                0x6173646667686A6BL >>> 1,                  // asdfghjkl
+                (0xC2A5L << (6 * bitWidth)) >>> 1,          // ¥
+                (0x63L << (7 * bitWidth)) >>> 1,            // c
+                (0x61L << (7 * bitWidth)) >>> 1,            // a
         };
         for (int i = 0; i < words.length; i++) {
             codes[i] = utf8ToLong(words[i]);
@@ -49,12 +48,12 @@ public class HuskySortHelperTest {
         Assert.assertArrayEquals(expected, codes);
         Arrays.sort(codes);
         long[] sortedExpected = {
-                0x61L << (6 * bitWidth),            // a
-                0x6173646667686AL,                  // asdfghjkl
-                0x63L << (6 * bitWidth),            // c
-                0xC2A5L << (5 * bitWidth),          // ¥
-                0xE4B8ADE69687L << (1 * bitWidth),  // 中文
-                0xE5A4AAE995BFE7L,                  // 太长的中文
+                (0x61L << (7 * bitWidth)) >>> 1,            // a
+                0x6173646667686A6BL >>> 1,                  // asdfghjkl
+                (0x63L << (7 * bitWidth)) >>> 1,            // c
+                (0xC2A5L << (6 * bitWidth)) >>> 1,          // ¥
+                (0xE4B8ADE69687L << (2 * bitWidth)) >>> 1,  // 中文
+                0xE5A4AAE995BFE79AL >>> 1,                  // 太长的中文
         };
         Assert.assertArrayEquals(sortedExpected, codes);
     }

@@ -3,43 +3,51 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.Config;
 
-public class SelectionSort<X extends Comparable<X>> implements Sort<X> {
+public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
+
+    public SelectionSort(Helper<X> helper) {
+        super(helper);
+    }
+
+		/**
+		 * Constructor for SelectionSort
+		 *
+		 * @param N      the number elements we expect to sort.
+		 * @param config the configuration.
+		 */
+		public SelectionSort(int N, Config config) {
+				super(DESCRIPTION, N, config);
+		}
+
+    public SelectionSort() {
+        this(new BaseHelper<>(DESCRIPTION));
+    }
 
     /**
      * Constructor for SelectionSort
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public SelectionSort(Helper<X> helper) {
-        this.helper = helper;
+    public SelectionSort(BaseHelper<X> helper) {
+        super(helper);
     }
 
-    public SelectionSort() {
-        this(new Helper<>("SelectionSort"));
-    }
-
-    @Override
     public void sort(X[] xs, int from, int to) {
-        for(int i = from; i < to; i++) {
+        final Helper<X> helper = getHelper();
+        for (int i = from; i < to; i++) {
             int min = i;
-            for(int j = i + 1; j < to; j++)
-                if(helper.less(xs[j], xs[min]))
+            for (int j = i + 1; j < to; j++)
+                if (helper.less(xs[j], xs[min]))
                     min = j;
-            helper.swap(xs, from, to, i, min);
+            helper.swap(xs, i, min);
         }
     }
 
-    @Override
-    public String toString() {
-        return helper.toString();
-    }
+    public static final String DESCRIPTION = "Selection sort";
 
-    public Helper<X> getHelper() {
-        return helper;
-    }
-
-    private final Helper<X> helper;
 }

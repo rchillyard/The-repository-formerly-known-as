@@ -56,11 +56,11 @@ public class PrivateMethodTester {
             Method m = getPrivateMethod(name, classes, classes.length, allowSubstitutions);
             return invokePrivateMethod(m, parameters);
         } catch (NoSuchMethodException e) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             Method[] declaredMethods = clazz.getDeclaredMethods();
-            for (Method m : declaredMethods) sb.append(m+", ");
+            for (Method m : declaredMethods) sb.append(m).append(", ");
             throw new RuntimeException(name + ": method not found for given " + classes.length +
-                    " parameter classes [did you consider that the method might be declared for a superclass or interface of one or more of your parameters? If so, use the invokePrivateExplicit method]. Here is a list of declared methods: "+sb);
+                    " parameter classes [did you consider that the method might be declared for a superclass or interface of one or more of your parameters? If so, use the invokePrivateExplicit method].\nHere is a list of declared methods: "+sb);
         }
     }
 
@@ -87,7 +87,7 @@ public class PrivateMethodTester {
             try {
                 return getPrivateMethod(name, classes, i, effectiveClasses);
             } catch (NoSuchMethodException e) {
-                // Ignore this exception: we keep looking in subsequent combinations of effective classes
+                // NOTE: Ignore this exception: we keep looking in subsequent combinations of effective classes
             }
         }
         throw new NoSuchMethodException("private method " + name + " with " + classes.length + " parameters");
@@ -104,7 +104,7 @@ public class PrivateMethodTester {
             try {
                 return findPrivateMethod(name, effectiveClasses);
             } catch (NoSuchMethodException nsme) {
-                // Ignore this exception: we keep looking with different effective classes
+                // NOTE: Ignore this exception: we keep looking with different effective classes
             }
         }
         throw new NoSuchMethodException("private method " + name + " with " + classes.length + " parameters for combination " + i);
@@ -123,9 +123,17 @@ public class PrivateMethodTester {
     }
 
     private Method findPrivateMethod(String name, Class<?>[] classes) throws NoSuchMethodException {
-        Method m = clazz.getDeclaredMethod(name, classes);
-        m.setAccessible(true);
-        return m;
+        try {
+            Method m = clazz.getDeclaredMethod(name, classes);
+            m.setAccessible(true);
+            return m;
+        }
+        catch (NoSuchMethodException e) {
+            // NOTE: we are trying to get a method from a super-class. Will this break anything???
+            Method m = clazz.getMethod(name, classes);
+            m.setAccessible(true);
+            return m;
+        }
     }
 
     private int getCombinations(int length) {

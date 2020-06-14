@@ -16,23 +16,23 @@ import java.util.concurrent.ThreadLocalRandom;
 public class HuskySortHelper {
 
     public final static HuskyCoder<String> asciiCoder = new HuskyCoder<String>() {
-        @Override
         public long huskyEncode(String str) {
             return asciiToLong(str);
         }
 
-        @Override
         public boolean imperfect() {
             return true;
         }
     };
 
     public final static HuskyCoder<String> unicodeCoder = new HuskyCoder<String>() {
+        // TEST
         @Override
         public long huskyEncode(String str) {
             return unicodeToLong(str);
         }
 
+        // TEST
         @Override
         public boolean imperfect() {
             return true;
@@ -40,11 +40,13 @@ public class HuskySortHelper {
     };
 
     public final static HuskyCoder<String> utf8Coder = new HuskyCoder<String>() {
+        // TEST
         @Override
         public long huskyEncode(String str) {
             return utf8ToLong(str);
         }
 
+        // TEST
         @Override
         public boolean imperfect() {
             return true;
@@ -79,9 +81,23 @@ public class HuskySortHelper {
 
     // This is used only by testSortDouble1
     public final static HuskyCoder<Double> doubleCoder = new HuskyCoder<Double>() {
+        // TEST
         @Override
         public long huskyEncode(Double aDouble) {
             return Double.doubleToLongBits(aDouble);
+        }
+
+        // TEST
+        @Override
+        public boolean imperfect() {
+            return true;
+        }
+    };
+
+    public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<Integer>() {
+        @Override
+        public long huskyEncode(Integer integer) {
+            return integer.longValue();
         }
 
         @Override
@@ -91,11 +107,13 @@ public class HuskySortHelper {
     };
 
     public final static HuskyCoder<BigInteger> bigIntegerCoder = new HuskyCoder<BigInteger>() {
+        // TEST
         @Override
         public long huskyEncode(BigInteger bigInteger) {
             return bigInteger.longValue();
         }
 
+        // TEST
         @Override
         public boolean imperfect() {
             return true;
@@ -106,12 +124,14 @@ public class HuskySortHelper {
         return stringToLong(str, 9, 7);
     }
 
-    public static long unicodeToLong(String str) {
-        return stringToLong(str, 4, 16) >>> 1;
+    // TEST
+    static long utf8ToLong(String str) {
+        return longArrayToLong(toUTF8Array(str), 8, 8) >>> 1;
     }
 
-    public static long utf8ToLong(String str) {
-        return longArrayToLong(toUTF8Array(str), 8, 8) >>> 1;
+    // TEST
+    private static long unicodeToLong(String str) {
+        return stringToLong(str, 4, 16) >>> 1;
     }
 
     private static long stringToLong(String str, int maxLength, int bitWidth) {
@@ -126,6 +146,7 @@ public class HuskySortHelper {
         return result;
     }
 
+    // TEST
     private static long longArrayToLong(long[] utf8, int maxLength, int bitWidth) {
         int length = Math.min(utf8.length, maxLength);
         long result = 0;
@@ -134,6 +155,7 @@ public class HuskySortHelper {
         return result;
     }
 
+    // TEST
     private static long[] toUTF8Array(String str) {
         int length = str.length();
         LongBuffer byteBuffer = LongBuffer.allocate(length << 2);
@@ -169,13 +191,14 @@ public class HuskySortHelper {
         return result;
     }
 
-    public static double checkUnidentified(String[] words, int offcut) {
+    // TEST
+    public static double checkUnidentified(String[] words, int offset) {
         int total = words.length;
         int count = 0;
         Set<String> exist = new HashSet<>();
         for (String word : words) {
-            if (word.length() >= offcut) {
-                String temp = word.substring(0, offcut);
+            if (word.length() >= offset) {
+                String temp = word.substring(0, offset);
                 if (exist.contains(temp)) {
                     count++;
                 } else {
@@ -186,6 +209,7 @@ public class HuskySortHelper {
         return (double) count / (double) total * 100.0;
     }
 
+    // TEST
     public static Date[] generateRandomDateArray(int number) {
         Date[] result = new Date[number];
         ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -195,6 +219,7 @@ public class HuskySortHelper {
         return result;
     }
 
+    // TEST
     public static LocalDateTime[] generateRandomLocalDateTimeArray(int number) {
         LocalDateTime[] result = new LocalDateTime[number];
         ThreadLocalRandom random = ThreadLocalRandom.current();

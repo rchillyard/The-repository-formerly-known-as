@@ -2,18 +2,19 @@ package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyBucketHelper;
+import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.lang.reflect.Array;
 
-public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
+/**
+ * @param <X> the underlying type which must
+ */
+public class BucketSort<X extends Comparable<X>> implements Sort<X> {
 
-    private final Helper<X> helper;
-    private final Bag<X>[] bucket;
-    private final InsertionSort<X> insertionSort;
-
-    BucketSort(int buckets, Helper<X> helper) {
+    BucketSort(int buckets, BaseHelper<X> helper) {
         //noinspection unchecked
         bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
         for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
@@ -22,41 +23,34 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
     }
 
     BucketSort(int buckets) {
-        this(buckets, new Helper<>("Bucket Sort"));
+        this(buckets, new BaseHelper<>(DESCRIPTION));
+        closeHelper = true;
     }
 
     @Override
     public void sort(X[] xs, int from, int to) {
-        System.out.println(helper.inversions(xs, from, to));
+        logger.info(helper.inversions(xs));
         // Determine the min, max and gap.
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
+        Number[] ys = (Number[]) xs;
         for (int i = from; i < to; i++) {
-            if (xs[i].doubleValue() < min) min = xs[i].doubleValue();
-            if (max < xs[i].doubleValue()) max = xs[i].doubleValue();
+            if (ys[i].doubleValue() < min) min = ys[i].doubleValue();
+            if (max < ys[i].doubleValue()) max = ys[i].doubleValue();
         }
         double gap = (max - min) / bucket.length;
 
         // Assign the elements to buckets
         for (int i = from; i < to; i++) {
-            int index = (int) Math.floor((xs[i].doubleValue() - min) / gap);
+            int index = (int) Math.floor((ys[i].doubleValue() - min) / gap);
             if (index == bucket.length) index--;
             bucket[index].add(xs[i]);
         }
 
-        // Copy the buckets back into array
-        int index = 0;
-        // TODO consider replacing with foreach
-        for (int i = 0; i < bucket.length; i++) {
-            for (X x : bucket[i]) xs[index++] = x;
-        }
+        HuskyBucketHelper.unloadBuckets(bucket, xs, helper);
 
-        System.out.println(helper.inversions(xs, from, to));
-
-        insertionSort.sort(xs, from, to);
-        System.out.println(insertionSort.toString());
-
-        System.out.println(helper.inversions(xs, from, to));
+        logger.info(insertionSort.toString());
+        logger.info(helper.inversions(xs));
     }
 
     @Override
@@ -64,9 +58,38 @@ public class BucketSort<X extends Number & Comparable<X>> implements Sort<X> {
         return helper.toString();
     }
 
+    /**
+     * Perform initializing step for this Sort.
+     *
+     * @param n the number of elements to be sorted.
+     */
     @Override
-    public Helper<X> getHelper() {
-        return helper;
+    public void init(int n) {
+
     }
+
+    /**
+     * Post-process the given array, i.e. after sorting has been completed.
+     *
+     * @param xs an array of Xs.
+     */
+    @Override
+    public void postProcess(X[] xs) {
+        helper.postProcess(xs);
+    }
+
+    @Override
+    public void close() {
+        if (closeHelper) helper.close();
+    }
+
+    final static LazyLogger logger = new LazyLogger(BucketSort.class);
+
+    public static final String DESCRIPTION = "Bucket sort";
+
+    private final BaseHelper<X> helper;
+    private final Bag<X>[] bucket;
+    private final InsertionSort<X> insertionSort;
+    private boolean closeHelper = false;
 
 }
