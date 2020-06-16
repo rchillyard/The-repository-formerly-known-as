@@ -114,7 +114,7 @@ public class HuskySortTest {
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
         final int inversionsOriginal = helper.inversions(xs);
-        System.out.println("inversions: "+inversionsOriginal);
+        System.out.println("inversions: " + inversionsOriginal);
         sorter.preProcess(xs);
         final String[] ys = sorter.sort(xs);
         assertTrue("sorted", helper.sorted(ys));

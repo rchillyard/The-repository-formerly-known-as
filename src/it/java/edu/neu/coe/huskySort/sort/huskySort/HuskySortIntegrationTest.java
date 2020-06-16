@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
  * NOTE: JUnit does not allow variables to be used for the timeout. That means that we cannot adjust these timeout for the speed of a particular machine.
  * The values given are for a MacBook Pro 2.8 GHz Intel Core i7 (4 cores) with 16 GB 2133 MHz LPDDRP.
  * Java version is 1.8.0_152.
- *
+ * <p>
  * The expected time for a pure quicksort of N items and M runs is 2 k M N log N (where log represents naturaL log, I.E. to the base e).
  * Bear in mind that the Benchmark code does M/10 warmup runs also (but these are counted only in the overall elapsed time--not the benchmark time).
  */
@@ -82,8 +82,8 @@ public class HuskySortIntegrationTest {
 
     private void checkTime(int n, double run) {
         final double estimateMeanRuntime = 2 * n * Math.log(n);
-        double normalizedRuntime = run/estimateMeanRuntime;
-        System.out.println(String.format("Mean normalized run time: %6.2f",normalizedRuntime));
+        double normalizedRuntime = run / estimateMeanRuntime;
+        System.out.println(String.format("Mean normalized run time: %6.2f", normalizedRuntime));
         assertTrue(normalizedRuntime >= 0.5 && normalizedRuntime <= 2.5);
     }
 
@@ -96,6 +96,7 @@ public class HuskySortIntegrationTest {
 
         /**
          * Class to wrap a Benchmark for testing purposes.
+         *
          * @param k the expected time for the method to run for an input array of size 1 (in nanoseconds).
          */
         public MyBenchmark(Sort<String> sorter, double k) {
@@ -106,14 +107,15 @@ public class HuskySortIntegrationTest {
 
         /**
          * Run and return the normalized time (t/k).
+         *
          * @param words the words from which to generate a random pattern.
-         * @param n the number of words to sort.
-         * @param m the number of runs.
+         * @param n     the number of words to sort.
+         * @param m     the number of runs.
          * @return the normalized per-run time
          */
         public double run(String[] words, int n, int m) {
-            System.out.println("run benchmark: "+this+" (k = " +k+
-                    " nanosec) with "+n+" words");
+            System.out.println("run benchmark: " + this + " (k = " + k +
+                    " nanosec) with " + n + " words");
             final double milliseconds = benchmark.run(() -> {
                 return generateRandomStringArray(words, n);
             }, m);

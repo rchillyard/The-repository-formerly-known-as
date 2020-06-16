@@ -52,7 +52,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param seed        the seed for the random number generator.
-     * @param config        the configuration.
+     * @param config      the configuration.
      */
     public InstrumentedHelper(String description, int n, long seed, Config config) {
         this(description, n, new Random(seed), config);
@@ -92,7 +92,8 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     /**
      * Swap the elements of array a at indices i and j.
-     *  @param xs the array.
+     *
+     * @param xs the array.
      * @param i  one of the indices.
      * @param j  the other index.
      */
@@ -179,6 +180,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     /**
      * Copy the element at source[j] into target[i]
+     *
      * @param source the source array.
      * @param i      the target index.
      * @param target the target array.

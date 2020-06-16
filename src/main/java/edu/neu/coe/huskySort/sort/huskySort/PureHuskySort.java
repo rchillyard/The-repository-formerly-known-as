@@ -19,7 +19,7 @@ public class PureHuskySort<X extends Comparable<X>> {
     /**
      * Primary constructor.
      *
-     * @param name a name for this sort.
+     * @param name       a name for this sort.
      * @param huskyCoder the Husky coder to be used for the encoding to longs.
      */
     public PureHuskySort(String name, HuskyCoder<X> huskyCoder) {
@@ -30,7 +30,7 @@ public class PureHuskySort<X extends Comparable<X>> {
     /**
      * The main sort method.
      *
-     * @param xs the array to be sorted.
+     * @param xs       the array to be sorted.
      * @param makeCopy true if we need to work on a copy of the original array.
      * @return the sorted elements: either the original xs or a copy (as appropriate, according to makeCopy).
      */

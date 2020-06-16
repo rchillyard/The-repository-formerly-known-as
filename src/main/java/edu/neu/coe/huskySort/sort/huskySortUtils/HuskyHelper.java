@@ -65,7 +65,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @param xs an array of Xs.
      * @return true if xs is sorted.
      */
@@ -74,8 +73,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
-     * @param xs   an array of Xs.
+     * @param xs an array of Xs.
      * @return the number of inversions in xs.
      */
     public int inversions(X[] xs) {
@@ -83,7 +81,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @param xs the array that has been sorted.
      */
     public void postProcess(X[] xs) {
@@ -120,7 +117,8 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * i.e. x[i] is moved leftwards to its proper place and all elements from
      * the destination of x[i] thru x[i-1] are moved up one place.
      * This type of swap is used by insertion sort.
-     *  @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
+     *
+     * @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
      * @param i  the index of the element to be swapped into the ordered array xs[0..i-1].
      */
     @Override
@@ -131,7 +129,8 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * TODO eliminate this method as it has been superseded by swapConditional. However, maybe the latter is a better name.
      * Method to fix a potentially unstable inversion.
-     *  @param xs the array of X elements.
+     *
+     * @param xs the array of X elements.
      * @param i  the index of the lower of the elements to be swapped.
      * @param j  the index of the higher of the elements to be swapped.
      */
@@ -143,7 +142,8 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * TODO eliminate this method as it has been superseded by swapStableConditional. However, maybe the latter is a better name.
      * Method to fix a stable inversion.
-     *  @param xs the array of X elements.
+     *
+     * @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
     @Override
@@ -198,9 +198,8 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @param clazz the class of X.
-     * @param f a function which takes a Random and generates a random value of X.
+     * @param f     a function which takes a Random and generates a random value of X.
      * @return an array of randomly chosen X values.
      */
     public X[] random(Class<X> clazz, Function<Random, X> f) {
@@ -208,7 +207,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @return the description.
      */
     public String getDescription() {
@@ -216,7 +214,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @return the number of elements.
      */
     public int getN() {
@@ -231,7 +228,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @return true if this helper is instrumented.
      */
     public boolean instrumented() {
@@ -239,7 +235,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @param xs the array.
      * @param i  one of the indices.
      * @param j  the other index.
@@ -250,7 +245,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @param v the first value.
      * @param w the second value.
      * @return The result of comparing v with w.
@@ -296,6 +290,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
 
     /**
      * Copy the element at source[j] into target[i]
+     *
      * @param source the source array.
      * @param i      the target index.
      * @param target the target array.
@@ -307,7 +302,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @return the Husky coder.
      */
     public HuskyCoder<X> getCoder() {
@@ -315,7 +309,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @param n the size to be managed.
      */
     public void init(int n) {
@@ -350,7 +343,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
 
     /**
      * Constructor to create an uninstrumented Husky Helper with explicit seed.
-     *
+     * <p>
      * NOTE used by unit tests only.
      *
      * @param description the description of this Helper (for humans).
@@ -364,7 +357,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
 
     /**
      * Constructor to create an uninstrumented Husky Helper with random seed.
-     *
+     * <p>
      * NOTE used by unit tests only.
      *
      * @param description the description of this Helper (for humans).

@@ -14,15 +14,15 @@ public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
         super(helper);
     }
 
-		/**
-		 * Constructor for SelectionSort
-		 *
-		 * @param N      the number elements we expect to sort.
-		 * @param config the configuration.
-		 */
-		public SelectionSort(int N, Config config) {
-				super(DESCRIPTION, N, config);
-		}
+    /**
+     * Constructor for SelectionSort
+     *
+     * @param N      the number elements we expect to sort.
+     * @param config the configuration.
+     */
+    public SelectionSort(int N, Config config) {
+        super(DESCRIPTION, N, config);
+    }
 
     public SelectionSort() {
         this(new BaseHelper<>(DESCRIPTION));

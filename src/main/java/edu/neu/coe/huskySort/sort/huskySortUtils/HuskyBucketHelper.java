@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
     /**
      * Constructor for HuskyBucketHelper.
-     *
+     * <p>
      * NOTE: that this will never be instrumented.
      * NOTE: used by unit tests only.
      *
@@ -86,6 +86,7 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
 
     /**
      * Method to unload the buckets.
+     *
      * @param xs the array of Xs in which to unload the buckets.
      */
     public void unloadBuckets(X[] xs) {
@@ -100,10 +101,11 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
 
     /**
      * Method to unload and sort the buckets into the array xs.
+     *
      * @param buckets an array of Bag of X elements.
-     * @param xs an array of X elements to be filled.
-     * @param helper a helper whose compare method we will use.
-     * @param <X> the underlying type of the array and the Helper.
+     * @param xs      an array of X elements to be filled.
+     * @param helper  a helper whose compare method we will use.
+     * @param <X>     the underlying type of the array and the Helper.
      */
     @SuppressWarnings("unchecked")
     public static <X extends Comparable<X>> void unloadBuckets(Bag<X>[] buckets, X[] xs, final Helper<X> helper) {

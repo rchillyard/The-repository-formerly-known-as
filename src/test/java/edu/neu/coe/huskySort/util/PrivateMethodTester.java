@@ -60,7 +60,7 @@ public class PrivateMethodTester {
             Method[] declaredMethods = clazz.getDeclaredMethods();
             for (Method m : declaredMethods) sb.append(m).append(", ");
             throw new RuntimeException(name + ": method not found for given " + classes.length +
-                    " parameter classes [did you consider that the method might be declared for a superclass or interface of one or more of your parameters? If so, use the invokePrivateExplicit method].\nHere is a list of declared methods: "+sb);
+                    " parameter classes [did you consider that the method might be declared for a superclass or interface of one or more of your parameters? If so, use the invokePrivateExplicit method].\nHere is a list of declared methods: " + sb);
         }
     }
 
@@ -127,8 +127,7 @@ public class PrivateMethodTester {
             Method m = clazz.getDeclaredMethod(name, classes);
             m.setAccessible(true);
             return m;
-        }
-        catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             // NOTE: we are trying to get a method from a super-class. Will this break anything???
             Method m = clazz.getMethod(name, classes);
             m.setAccessible(true);

@@ -16,10 +16,10 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  */
 public class Benchmark<T> {
 
-		/**
-		 * Constructor for a Benchmark with option of specifying all three functions.
-		 *
-		 * @param description the description of the benchmark.
+    /**
+     * Constructor for a Benchmark with option of specifying all three functions.
+     *
+     * @param description the description of the benchmark.
      * @param fPre        a function of T => T.
      *                    Function fPre is run before each invocation of fRun (but with the clock stopped).
      *                    The result of fPre (if any) is passed to fRun.
@@ -66,8 +66,8 @@ public class Benchmark<T> {
      * Constructor for a Benchmark where only the (timed) run function is specified.
      *
      * @param description the description of the benchmark.
-     * @param f a Consumer function (i.e. a function of T => Void).
-     *          Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
+     * @param f           a Consumer function (i.e. a function of T => Void).
+     *                    Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      */
     public Benchmark(String description, Consumer<T> f) {
         this(description, null, f, null);
@@ -92,7 +92,7 @@ public class Benchmark<T> {
      * @return the average number of milliseconds taken for each run of function f.
      */
     public double run(Supplier<T> supplier, int m) {
-				logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
+        logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
         // Warmup phase
         final Function<T, T> function = t -> {
             fRun.accept(t);

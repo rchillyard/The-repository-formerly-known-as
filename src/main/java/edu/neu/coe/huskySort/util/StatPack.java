@@ -42,7 +42,7 @@ public class StatPack {
         for (String key : map.keySet()) {
             final Statistics statistics = map.get(key);
 //            if (statistics.total() > 0)
-                stringBuilder.append(statistics.toString()).append("; ");
+            stringBuilder.append(statistics.toString()).append("; ");
 //            else
 //                stringBuilder.append(key+": <unset>; ");
         }

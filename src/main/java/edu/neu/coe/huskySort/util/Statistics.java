@@ -51,8 +51,7 @@ public class Statistics {
             sb.append(s).append(Utilities.asInt(mean()));
             if (stats)
                 sb.append("; stdDev=").append(Utilities.asInt(stdDev()));
-        }
-        else
+        } else
             sb.append("<unset>");
         return sb.toString();
     }

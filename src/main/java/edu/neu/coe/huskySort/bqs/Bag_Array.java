@@ -51,11 +51,11 @@ public class Bag_Array<Item> implements Bag<Item> {
         return result;
     }
 
-     public Iterator<Item> iterator() {
-         assert items != null; // Should be not-null any time after construction.
-         // NOTE: there is no Java-defined array iterator.
-         return Arrays.asList(asArray()).iterator();
-     }
+    public Iterator<Item> iterator() {
+        assert items != null; // Should be not-null any time after construction.
+        // NOTE: there is no Java-defined array iterator.
+        return Arrays.asList(asArray()).iterator();
+    }
 
     public Item[] asArray() {
         return Arrays.copyOf(items, count);

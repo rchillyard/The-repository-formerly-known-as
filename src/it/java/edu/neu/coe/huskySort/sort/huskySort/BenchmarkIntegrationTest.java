@@ -19,7 +19,7 @@ import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getW
  * NOTE: JUnit does not allow variables to be used for the timeout. That means that we cannot adjust these timeout for the speed of a particular machine.
  * The values given are for a MacBook Pro 2.8 GHz Intel Core i7 (4 cores) with 16 GB 2133 MHz LPDDRP.
  * Java version is 1.8.0_152.
- *
+ * <p>
  * The expected time for a pure quicksort of N items and M runs is 1.39 k M N lg N (where lg represents log to the base 2).
  * Bear in mind that the Benchmark code does M/10 warmup runs also.
  */
