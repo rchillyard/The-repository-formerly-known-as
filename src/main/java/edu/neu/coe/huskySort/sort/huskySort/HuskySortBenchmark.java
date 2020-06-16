@@ -96,8 +96,8 @@ public class HuskySortBenchmark {
 
         final String configSectionStringSorters = "benchmarktringsorters";
         if (config.getBoolean(configSectionStringSorters, "purehuskysort")) {
-            EmbeddedHuskySort<String> embeddedHuskySort = new EmbeddedHuskySort<>("EmbeddedHuskySort", UNICODE_CODER);
-            Benchmark<String[]> benchmark = new Benchmark<>("EmbeddedHuskySort", null, xs -> embeddedHuskySort.sort(xs, false), null);
+            PureHuskySort<String> pureHuskySort = new PureHuskySort<>("PureHuskySort", UNICODE_CODER);
+            Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, xs -> pureHuskySort.sort(xs, false), null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark);
         }
 

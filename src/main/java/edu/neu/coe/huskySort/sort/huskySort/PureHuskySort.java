@@ -9,13 +9,31 @@ import java.util.regex.Pattern;
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
 
-public class EmbeddedHuskySort<X extends Comparable<X>> {
+/**
+ * This class represents the purest form of Husky Sort based on IntroSort for pass 1 and the System sort for pass 2.
+ *
+ * @param <X> the type of the elements to be sorted.
+ */
+public class PureHuskySort<X extends Comparable<X>> {
 
-    public EmbeddedHuskySort(String name, HuskyCoder<X> huskyCoder) {
+    /**
+     * Primary constructor.
+     *
+     * @param name a name for this sort.
+     * @param huskyCoder the Husky coder to be used for the encoding to longs.
+     */
+    public PureHuskySort(String name, HuskyCoder<X> huskyCoder) {
         this.name = name;
         this.huskyCoder = huskyCoder;
     }
 
+    /**
+     * The main sort method.
+     *
+     * @param xs the array to be sorted.
+     * @param makeCopy true if we need to work on a copy of the original array.
+     * @return the sorted elements: either the original xs or a copy (as appropriate, according to makeCopy).
+     */
     public X[] sort(X[] xs, boolean makeCopy) {
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         sort(result, 0, result.length);
@@ -24,14 +42,14 @@ public class EmbeddedHuskySort<X extends Comparable<X>> {
     }
 
     // TEST
-    public void sort(X[] xs, int from, int to) {
+    private void sort(X[] xs, int from, int to) {
         long[] longs = huskyCoder.huskyEncode(xs);
-        quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
+        introSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
     }
 
     // TEST
     @SuppressWarnings({"UnnecessaryLocalVariable"})
-    private void quickSort(X[] objects, long[] longs, int from, int to, int depthThreshold) {
+    private void introSort(X[] objects, long[] longs, int from, int to, int depthThreshold) {
         if (to <= from) return;
         if (to - from <= sizeThreshold) {
             insertionSort(objects, longs, from, to);
@@ -56,9 +74,9 @@ public class EmbeddedHuskySort<X extends Comparable<X>> {
         }
         swap(objects, longs, lo, --lt);
         swap(objects, longs, hi, ++gt);
-        quickSort(objects, longs, lo, lt - 1, depthThreshold - 1);
-        if (longs[lt] < longs[gt]) quickSort(objects, longs, lt + 1, gt - 1, depthThreshold - 1);
-        quickSort(objects, longs, gt + 1, hi, depthThreshold - 1);
+        introSort(objects, longs, lo, lt - 1, depthThreshold - 1);
+        if (longs[lt] < longs[gt]) introSort(objects, longs, lt + 1, gt - 1, depthThreshold - 1);
+        introSort(objects, longs, gt + 1, hi, depthThreshold - 1);
     }
 
     // TEST
@@ -101,7 +119,7 @@ public class EmbeddedHuskySort<X extends Comparable<X>> {
         return (int) (Math.floor(Math.log(a) / Math.log(2)));
     }
 
-    public void swap(X[] xs, long[] longs, int i, int j) {
+    private void swap(X[] xs, long[] longs, int i, int j) {
         // Swap longs
         long temp1 = longs[i];
         longs[i] = longs[j];
@@ -121,7 +139,7 @@ public class EmbeddedHuskySort<X extends Comparable<X>> {
     public static void main(String[] args) throws FileNotFoundException {
         Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
         final String[] words = getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line));
-        EmbeddedHuskySort<String> sorter = new EmbeddedHuskySort<>("EmbeddedHuskySort", UNICODE_CODER);
+        PureHuskySort<String> sorter = new PureHuskySort<>("PureHuskySort", UNICODE_CODER);
         sorter.sort(words, false);
         for (int i = 1; i < words.length; i++)
             if (words[i - 1].compareTo(words[i]) > 0) {
