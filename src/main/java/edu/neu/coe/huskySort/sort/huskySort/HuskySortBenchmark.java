@@ -62,6 +62,7 @@ public class HuskySortBenchmark {
 
     public void sortLocalDateTimes(final int n) {
         logger.info("Beginning LocalDateTime sorts");
+        // TODO why do we have localDateTimeSupplier IN ADDITION TO localDateTimes?
         Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(n);
         BaseHelper<ChronoLocalDateTime<?>> helper = new BaseHelper<>("DateTimeHelper");
         final LocalDateTime[] localDateTimes = generateRandomLocalDateTimeArray(n);
@@ -90,7 +91,10 @@ public class HuskySortBenchmark {
     }
 
     void benchmarkStringSorters(String[] words, int nWords, int nRuns) {
+        doBenchmarkStringSorters(words, nWords, nRuns, this.config);
+    }
 
+    private static void doBenchmarkStringSorters(String[] words, int nWords, int nRuns, Config config) {
         logger.info("Testing pure sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
         Random random = new Random();
 
@@ -222,7 +226,7 @@ public class HuskySortBenchmark {
         logger.info("Normalized mean inversions: " + formatWhole((int) (meanInversions / nWords)));
     }
 
-    private void doPureBenchmark(String[] words, int nWords, int nRuns, Random random, Benchmark<String[]> benchmark) {
+    private static void doPureBenchmark(String[] words, int nWords, int nRuns, Random random, Benchmark<String[]> benchmark) {
         final double time = benchmark.run(() -> Utilities.fillRandomArray(String.class, random, nWords, r -> words[r.nextInt(words.length)]), nRuns);
         for (TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(time, nWords);
     }

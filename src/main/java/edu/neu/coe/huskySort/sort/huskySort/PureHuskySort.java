@@ -16,6 +16,28 @@ import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getW
  */
 public class PureHuskySort<X extends Comparable<X>> {
 
+    public static void main(String[] args) throws FileNotFoundException {
+        Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+        final String[] words = getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line));
+        PureHuskySort<String> sorter = new PureHuskySort<>(UNICODE_CODER);
+        sorter.sort(words);
+        for (int i = 1; i < words.length; i++)
+            if (words[i - 1].compareTo(words[i]) > 0) {
+                System.out.println("Not sorted!");
+                break;
+            }
+    }
+
+    /**
+     * The main sort method.
+     *
+     * @param xs the array to be sorted.
+     */
+    public void sort(X[] xs) {
+        sort(xs, 0, xs.length);
+        Arrays.sort(xs);
+    }
+
     /**
      * Primary constructor.
      *
@@ -25,15 +47,11 @@ public class PureHuskySort<X extends Comparable<X>> {
         this.huskyCoder = huskyCoder;
     }
 
-    /**
-     * The main sort method.
-     *
-     * @param xs       the array to be sorted.
-     */
-    public void sort(X[] xs) {
-        sort(xs, 0, xs.length);
-        Arrays.sort(xs);
+    private static int floor_lg(int a) {
+        return (int) (Math.floor(Math.log(a) / Math.log(2)));
     }
+
+    private static final int sizeThreshold = 16;
 
     // TEST
     private void sort(X[] xs, @SuppressWarnings("SameParameterValue") int from, int to) {
@@ -109,10 +127,6 @@ public class PureHuskySort<X extends Comparable<X>> {
                 swap(objects, longs, j, j - 1);
     }
 
-    private static int floor_lg(int a) {
-        return (int) (Math.floor(Math.log(a) / Math.log(2)));
-    }
-
     private void swap(X[] xs, long[] longs, int i, int j) {
         // Swap longs
         long temp1 = longs[i];
@@ -124,19 +138,5 @@ public class PureHuskySort<X extends Comparable<X>> {
         xs[j] = temp2;
     }
 
-    private static final int sizeThreshold = 16;
-
     private final HuskyCoder<X> huskyCoder;
-
-    public static void main(String[] args) throws FileNotFoundException {
-        Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-        final String[] words = getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line));
-        PureHuskySort<String> sorter = new PureHuskySort<>(UNICODE_CODER);
-        sorter.sort(words);
-        for (int i = 1; i < words.length; i++)
-            if (words[i - 1].compareTo(words[i]) > 0) {
-                System.out.println("Not sorted!");
-                break;
-            }
-    }
 }

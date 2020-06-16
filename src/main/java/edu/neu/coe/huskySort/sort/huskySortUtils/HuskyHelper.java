@@ -17,8 +17,12 @@ import java.util.function.Function;
  */
 public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
 
-    // HuskyHelper methods...
-
+    /**
+     * The "in"-processor for the Husky sorter.
+     * This is invoked between pass 1 and pass 2.
+     *
+     * @param xs the array being sorted, in its current form.
+     */
     public void inProcessor(X[] xs) {
         if (!helper.instrumented()) return;
         final InstrumentedHelper<X> ih = InstrumentedHelper.getInstrumentedHelper(helper, null);
@@ -49,11 +53,13 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         return longs;
     }
 
+    /**
+     *
+     * @return the Helper.
+     */
     public Helper<X> getHelper() {
         return helper;
     }
-
-    // Delegate methods on helper
 
     /**
      * @param v the first value.
@@ -151,6 +157,11 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         helper.fixInversion(xs, i);
     }
 
+    /**
+     * Get the curoff value.
+     *
+     * @return the cutoff value.
+     */
     @Override
     public int cutoff() {
         return helper.cutoff();
@@ -187,11 +198,21 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         return helper.preProcess(xs);
     }
 
+    /**
+     * Method to register the current recursion depth.
+     *
+     * @param depth the depth.
+     */
     @Override
     public void registerDepth(int depth) {
         helper.registerDepth(depth);
     }
 
+    /**
+     * Get the maximum depth so far registered.
+     *
+     * @return the maximum recursion depth.
+     */
     @Override
     public int maxDepth() {
         return helper.maxDepth();
@@ -221,7 +242,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
+     * Close this Helper.
      */
     public void close() {
         helper.close();
@@ -340,7 +361,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         this.postSorter = postSorter;
         this.makeCopy = makeCopy;
     }
-
     /**
      * Constructor to create an uninstrumented Husky Helper with explicit seed.
      * <p>
@@ -367,11 +387,12 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
     }
 
-    private final HuskyCoder<X> coder;
+    protected final Helper<X> helper;
     protected long[] longs;
+
+    // Delegate methods on helper
+    private final HuskyCoder<X> coder;
     private final Consumer<X[]> postSorter;
     private final boolean makeCopy;
-
-    protected final Helper<X> helper;
 
 }

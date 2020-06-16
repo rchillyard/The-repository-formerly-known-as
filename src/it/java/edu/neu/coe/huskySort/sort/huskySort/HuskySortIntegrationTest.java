@@ -32,6 +32,16 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings("ALL")
 public class HuskySortIntegrationTest {
 
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        config = Config.load(HuskySortIntegrationTest.class);
+    }
+
+    final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+    final MyBenchmark benchmarkHuskySort = new MyBenchmark(new QuickHuskySort<String>(UNICODE_CODER, config), 19.1);
+    final MyBenchmark benchmarkQuick3sort = new MyBenchmark(new QuickSort_3way<String>(), 20);
+    private static Config config;
+
     @Test(timeout = 4000)
     public void testHusky10K() throws Exception {
         final String[] words = getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line));
@@ -87,8 +97,6 @@ public class HuskySortIntegrationTest {
         assertTrue(normalizedRuntime >= 0.5 && normalizedRuntime <= 2.5);
     }
 
-    final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-
     class MyBenchmark {
         private final Sort<String> sorter;
         private final double k;
@@ -127,17 +135,4 @@ public class HuskySortIntegrationTest {
             return "MyBenchmark on " + sorter;
         }
     }
-
-
-    @BeforeClass
-    public static void beforeClass() throws IOException {
-        config = Config.load(HuskySortIntegrationTest.class);
-    }
-
-    private static Config config;
-
-    final MyBenchmark benchmarkHuskySort = new MyBenchmark(new QuickHuskySort<String>(UNICODE_CODER, config), 19.1);
-    final MyBenchmark benchmarkQuick3sort = new MyBenchmark(new QuickSort_3way<String>(), 20);
-//    final MyBenchmark benchmarkTimsort = new MyBenchmark((Consumer<String[]>) Arrays::sort, 20);
-
 }

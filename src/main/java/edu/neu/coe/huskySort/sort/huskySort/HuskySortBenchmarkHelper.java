@@ -23,6 +23,9 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  * Singleton class HuskySortBenchmarkHelper
  */
 class HuskySortBenchmarkHelper {
+
+    final static LazyLogger logger = new LazyLogger(HuskySortBenchmarkHelper.class);
+
     // TEST
     static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
         List<String> words = new ArrayList<>();
@@ -82,6 +85,4 @@ class HuskySortBenchmarkHelper {
     // NOTE private constructor (singleton pattern)
     private HuskySortBenchmarkHelper() {
     }
-
-    final static LazyLogger logger = new LazyLogger(HuskySortBenchmarkHelper.class);
 }

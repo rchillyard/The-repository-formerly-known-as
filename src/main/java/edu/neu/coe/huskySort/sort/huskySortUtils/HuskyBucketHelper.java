@@ -10,6 +10,63 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
+
+    /**
+     * Method to unload and sort the buckets into the array xs.
+     *
+     * @param buckets an array of Bag of X elements.
+     * @param xs      an array of X elements to be filled.
+     * @param helper  a helper whose compare method we will use.
+     * @param <X>     the underlying type of the array and the Helper.
+     */
+    @SuppressWarnings("unchecked")
+    public static <X extends Comparable<X>> void unloadBuckets(Bag<X>[] buckets, X[] xs, final Helper<X> helper) {
+        Index index = new Index();
+        Arrays.stream(buckets).forEach(xes -> {
+            final Object[] objects = xes.asArray();
+            Arrays.sort(objects, (o, t1) -> helper.compare((X) o, (X) t1));
+            for (Object x : objects) xs[index.getNext()] = (X) x;
+        });
+    }
+
+    /**
+     * Method to unload the buckets.
+     *
+     * @param xs the array of Xs in which to unload the buckets.
+     */
+    public void unloadBuckets(X[] xs) {
+        unloadBuckets(buckets, xs, this);
+    }
+
+    /**
+     * Check the buckets.
+     *
+     * @return the spread.
+     */
+    public int checkBuckets() {
+        return getSpread();
+    }
+
+    public int loadBuckets(X[] xs) {
+        // CONSIDER is this redundant?
+        initLongArray(xs);
+        long min = Long.MAX_VALUE;
+        long max = Long.MIN_VALUE;
+        long[] longs = getLongs();
+        for (long x : longs) {
+            if (x > max) max = x;
+            if (x < min) min = x;
+        }
+        int nBuckets = buckets.length;
+        BigInteger stride = BigInteger.valueOf(max).add(BigInteger.valueOf(min).negate()).divide(BigInteger.valueOf(nBuckets)).add(BigInteger.ONE);
+        for (int i = 0; i < xs.length; i++) {
+            int k = BigInteger.valueOf(longs[i]).add(BigInteger.valueOf(min).negate()).divide(stride).intValue();
+            if (0 <= k && k < nBuckets) buckets[k].add(xs[i]);
+            else throw new RuntimeException("Logic error: k=" + k + ", with " + nBuckets + " buckets");
+        }
+        return getTotal();
+    }
+
     /**
      * Constructor for HuskyBucketHelper.
      * <p>
@@ -47,24 +104,12 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
         for (int i = 0; i < buckets.length; i++) buckets[i] = new Bag_Array<>();
     }
 
-    public int loadBuckets(X[] xs) {
-        // CONSIDER is this redundant?
-        initLongArray(xs);
-        long min = Long.MAX_VALUE;
-        long max = Long.MIN_VALUE;
-        long[] longs = getLongs();
-        for (long x : longs) {
-            if (x > max) max = x;
-            if (x < min) min = x;
+    static class Index {
+        int index = 0;
+
+        int getNext() {
+            return index++;
         }
-        int nBuckets = buckets.length;
-        BigInteger stride = BigInteger.valueOf(max).add(BigInteger.valueOf(min).negate()).divide(BigInteger.valueOf(nBuckets)).add(BigInteger.ONE);
-        for (int i = 0; i < xs.length; i++) {
-            int k = BigInteger.valueOf(longs[i]).add(BigInteger.valueOf(min).negate()).divide(stride).intValue();
-            if (0 <= k && k < nBuckets) buckets[k].add(xs[i]);
-            else throw new RuntimeException("Logic error: k=" + k + ", with " + nBuckets + " buckets");
-        }
-        return getTotal();
     }
 
     private int getTotal() {
@@ -84,45 +129,5 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
         return max - min;
     }
 
-    /**
-     * Method to unload the buckets.
-     *
-     * @param xs the array of Xs in which to unload the buckets.
-     */
-    public void unloadBuckets(X[] xs) {
-        unloadBuckets(buckets, xs, this);
-    }
-
     final Bag<X>[] buckets;
-
-    public int checkBuckets() {
-        return getSpread();
-    }
-
-    /**
-     * Method to unload and sort the buckets into the array xs.
-     *
-     * @param buckets an array of Bag of X elements.
-     * @param xs      an array of X elements to be filled.
-     * @param helper  a helper whose compare method we will use.
-     * @param <X>     the underlying type of the array and the Helper.
-     */
-    @SuppressWarnings("unchecked")
-    public static <X extends Comparable<X>> void unloadBuckets(Bag<X>[] buckets, X[] xs, final Helper<X> helper) {
-        Index index = new Index();
-        Arrays.stream(buckets).forEach(xes -> {
-            final Object[] objects = xes.asArray();
-            Arrays.sort(objects, (o, t1) -> helper.compare((X) o, (X) t1));
-            for (Object x : objects) xs[index.getNext()] = (X) x;
-        });
-    }
-
-    static class Index {
-        int index = 0;
-
-        int getNext() {
-            return index++;
-        }
-    }
-
 }

@@ -14,18 +14,7 @@ import java.lang.reflect.Array;
  */
 public class BucketSort<X extends Comparable<X>> implements Sort<X> {
 
-    BucketSort(int buckets, BaseHelper<X> helper) {
-        //noinspection unchecked
-        bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
-        for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
-        this.helper = helper;
-        insertionSort = new InsertionSort<>();
-    }
-
-    BucketSort(int buckets) {
-        this(buckets, new BaseHelper<>(DESCRIPTION));
-        closeHelper = true;
-    }
+    public static final String DESCRIPTION = "Bucket sort";
 
     @Override
     public void sort(X[] xs, int from, int to) {
@@ -83,9 +72,20 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
         if (closeHelper) helper.close();
     }
 
-    final static LazyLogger logger = new LazyLogger(BucketSort.class);
+    BucketSort(int buckets, BaseHelper<X> helper) {
+        //noinspection unchecked
+        bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
+        for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
+        this.helper = helper;
+        insertionSort = new InsertionSort<>();
+    }
 
-    public static final String DESCRIPTION = "Bucket sort";
+    BucketSort(int buckets) {
+        this(buckets, new BaseHelper<>(DESCRIPTION));
+        closeHelper = true;
+    }
+
+    private final static LazyLogger logger = new LazyLogger(BucketSort.class);
 
     private final BaseHelper<X> helper;
     private final Bag<X>[] bucket;

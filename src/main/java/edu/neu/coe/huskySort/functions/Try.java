@@ -10,23 +10,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class Try<V> {
-    private Try() {
-    }
-
-    public abstract Boolean isSuccess();
-
-    public abstract Boolean isFailure();
-
-    public abstract void throwException();
-
-    public abstract Throwable getMessage();
-
-    public abstract V get();
-
-    public abstract <U> Try<U> map(Function<? super V, ? extends U> f);
-
-    public abstract <U> Try<U> flatMap(Function<? super V, Try<U>> f);
-
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public static <V> Try<V> toTry(Optional<V> optionalV) {
         return optionalV.map(Try::success).orElseGet(() -> failure(new NoSuchElementException()));
@@ -51,7 +34,29 @@ public abstract class Try<V> {
         }
     }
 
+    public abstract Boolean isSuccess();
+
+    public abstract Boolean isFailure();
+
+    public abstract void throwException();
+
+    public abstract Throwable getMessage();
+
+    public abstract V get();
+
+    public abstract <U> Try<U> map(Function<? super V, ? extends U> f);
+
+    public abstract <U> Try<U> flatMap(Function<? super V, Try<U>> f);
+
+    /**
+     * Singleton class.
+     */
+    private Try() {
+    }
+
     private static class Failure<V> extends Try<V> {
+        private final RuntimeException exception;
+
         public Failure(Throwable t) {
             super();
             this.exception = new RuntimeException(t);
@@ -86,8 +91,6 @@ public abstract class Try<V> {
         public Throwable getMessage() {
             return exception;
         }
-
-        private final RuntimeException exception;
     }
 
     private static class Success<V> extends Try<V> {

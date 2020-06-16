@@ -9,11 +9,20 @@ import java.util.Iterator;
 
 public class Bag_Array<Item> implements Bag<Item> {
 
-    public Bag_Array() {
+    /**
+     * Construct a new, empty, Bag_Array.
+     */
+     public Bag_Array() {
         //noinspection unchecked
         grow((Item[]) new Object[0], 32);
     }
 
+    /**
+     * Add the given item to this Bag.
+     * If the Bag is full, then it will be grown (by doubling) to accommodate the new element.
+     *
+     * @param item the item to add.
+     */
     public void add(Item item) {
         assert items != null;
         if (full())
@@ -57,6 +66,10 @@ public class Bag_Array<Item> implements Bag<Item> {
         return Arrays.asList(asArray()).iterator();
     }
 
+    /**
+     *
+     * @return the contents of this Bag as an array of items
+     */
     public Item[] asArray() {
         return Arrays.copyOf(items, count);
     }
@@ -67,19 +80,6 @@ public class Bag_Array<Item> implements Bag<Item> {
                 "items=" + Arrays.toString(asArray()) +
                 ", count=" + count +
                 '}';
-    }
-
-    private void grow(Item[] source, int size) {
-        items = growFrom(source, size);
-    }
-
-    private int capacity() {
-        assert items != null; // Should be not-null any time after construction.
-        return items.length;
-    }
-
-    private boolean full() {
-        return size() == capacity();
     }
 
     /**
@@ -98,6 +98,20 @@ public class Bag_Array<Item> implements Bag<Item> {
         return result;
     }
 
+    private void grow(Item[] source, int size) {
+        items = growFrom(source, size);
+    }
+
+    private int capacity() {
+        assert items != null; // Should be not-null any time after construction.
+        return items.length;
+    }
+
+    private boolean full() {
+        return size() == capacity();
+    }
+
     private Item[] items = null;
     private int count = 0;
+
 }

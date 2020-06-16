@@ -12,6 +12,13 @@ import java.util.function.Consumer;
 public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     // TEST
+    @Override
+    public void sort(X[] xs, int from, int to) {
+        long[] longs = getHelper().getLongs();
+        quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
+    }
+
+    // TEST
     public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
         super(name, 0, huskyCoder, postSorter, config);
     }
@@ -19,13 +26,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     // TEST
     public IntroHuskySort(HuskyCoder<X> huskyCoder, Config config) {
         this("IntroHuskySort", huskyCoder, Arrays::sort, config);
-    }
-
-    // TEST
-    @Override
-    public void sort(X[] xs, int from, int to) {
-        long[] longs = getHelper().getLongs();
-        quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
     }
 
     // TEST
@@ -60,16 +60,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             else i++;
         }
         return new Partition(lt, gt);
-    }
-
-    private static class Partition {
-        final int lt;
-        final int gt;
-
-        Partition(int lt, int gt) {
-            this.lt = lt;
-            this.gt = gt;
-        }
     }
 
     // TEST
@@ -108,10 +98,18 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
                 swap(objects, j, j - 1);
     }
 
+    private static final int sizeThreshold = 16;
     private static int floor_lg(int a) {
         return (int) (Math.floor(Math.log(a) / Math.log(2)));
     }
 
-    private static final int sizeThreshold = 16;
+    private static class Partition {
+        Partition(int lt, int gt) {
+            this.lt = lt;
+            this.gt = gt;
+        }
+        final int lt;
+        final int gt;
+    }
 
 }

@@ -6,51 +6,9 @@ import java.util.Random;
 import java.util.function.Function;
 
 public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
-    /**
-     * Constructor for explicit random number generator.
-     *
-     * @param description the description of this Helper (for humans).
-     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     * @param random      a random number generator.
-     */
-    public BaseHelper(String description, int n, Random random) {
-        this.n = n;
-        this.description = description;
-        this.random = random;
-    }
 
     /**
-     * Constructor for explicit seed.
-     *
-     * @param description the description of this Helper (for humans).
-     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     * @param seed        the seed for the random number generator.
-     */
-    public BaseHelper(String description, int n, long seed) {
-        this(description, n, new Random(seed));
-    }
-
-    /**
-     * Constructor to create a Helper with a random seed.
-     *
-     * @param description the description of this Helper (for humans).
-     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     */
-    public BaseHelper(String description, int n) {
-        this(description, n, System.currentTimeMillis());
-    }
-
-    /**
-     * Constructor to create a Helper with a random seed and an n value of 0.
-     *
-     * @param description the description of this Helper (for humans).
-     */
-    public BaseHelper(String description) {
-        this(description, 0);
-    }
-
-    /**
-     * @return true
+     * @return false
      */
     public boolean instrumented() {
         return false;
@@ -187,6 +145,49 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     public void close() {
+    }
+
+    /**
+     * Constructor for explicit random number generator.
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param random      a random number generator.
+     */
+    public BaseHelper(String description, int n, Random random) {
+        this.n = n;
+        this.description = description;
+        this.random = random;
+    }
+
+    /**
+     * Constructor for explicit seed.
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param seed        the seed for the random number generator.
+     */
+    public BaseHelper(String description, int n, long seed) {
+        this(description, n, new Random(seed));
+    }
+
+    /**
+     * Constructor to create a Helper with a random seed.
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     */
+    public BaseHelper(String description, int n) {
+        this(description, n, System.currentTimeMillis());
+    }
+
+    /**
+     * Constructor to create a Helper with a random seed and an n value of 0.
+     *
+     * @param description the description of this Helper (for humans).
+     */
+    public BaseHelper(String description) {
+        this(description, 0);
     }
 
     protected final String description;
