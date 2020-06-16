@@ -62,6 +62,23 @@ public class BenchmarkIntegrationTest {
         benchmark.sortLocalDateTimes(100000);
     }
 
+    @Test
+    public void testStrings1KInstrumented() throws Exception {
+        // NOTE: this is a very quick version of the other integration tests.
+        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 1000, 100);
+    }
+
+    @Test
+    public void testStrings10KInstrumented() throws Exception {
+        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
+    }
+
+    @Test(timeout = 140000)
+    public void testStrings100KInstrumented() throws Exception {
+        // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
+        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200);
+    }
+
     private final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
 
     private static Logger logger = new LazyLogger(BenchmarkIntegrationTest.class);

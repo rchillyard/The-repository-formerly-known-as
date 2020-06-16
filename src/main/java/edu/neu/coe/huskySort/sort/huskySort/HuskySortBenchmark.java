@@ -17,6 +17,7 @@ import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -89,6 +90,24 @@ public class HuskySortBenchmark {
     }
 
     void benchmarkStringSorters(String[] words, int nWords, int nRuns) {
+
+        logger.info("Testing pure sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
+        Random random = new Random();
+
+        final String configSectionStringSorters = "benchmarktringsorters";
+        if (config.getBoolean(configSectionStringSorters, "purehuskysort")) {
+            EmbeddedHuskySort<String> embeddedHuskySort = new EmbeddedHuskySort<>("EmbeddedHuskySort", UNICODE_CODER);
+            Benchmark<String[]> benchmark = new Benchmark<>("EmbeddedHuskySort", null, xs -> embeddedHuskySort.sort(xs, false), null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark);
+        }
+
+        if (config.getBoolean(configSectionStringSorters, "puresystemsort")) {
+            Benchmark<String[]> benchmark = new Benchmark<>("SystemSort", null, xs -> Arrays.sort(xs), null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark);
+        }
+    }
+
+    void benchmarkStringSortersInstrumented(String[] words, int nWords, int nRuns) {
 
         logger.info("Testing with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words" + (config.isInstrumented() ? " and instrumented" : ""));
 
@@ -201,6 +220,11 @@ public class HuskySortBenchmark {
         double meanInversions = inversions * 1.0 / nRuns;
         logger.info("Mean inversions after first part: " + formatWhole((int) meanInversions));
         logger.info("Normalized mean inversions: " + formatWhole((int) (meanInversions / nWords)));
+    }
+
+    private void doPureBenchmark(String[] words, int nWords, int nRuns, Random random, Benchmark<String[]> benchmark) {
+        final double time = benchmark.run(() -> Utilities.fillRandomArray(String.class, random, nWords, r -> words[r.nextInt(words.length)]), nRuns);
+        for (TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(time, nWords);
     }
 
     private void dateSortBenchmark(Supplier<LocalDateTime[]> localDateTimeSupplier, LocalDateTime[] localDateTimes, QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, String s, int i) {

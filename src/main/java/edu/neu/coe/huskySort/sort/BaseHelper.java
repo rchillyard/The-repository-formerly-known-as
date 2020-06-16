@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort;
 
-import java.lang.reflect.Array;
+import edu.neu.coe.huskySort.util.Utilities;
+
 import java.util.Random;
 import java.util.function.Function;
 
@@ -149,7 +150,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
 
     public X[] random(Class<X> clazz, Function<Random, X> f) {
         if (n <= 0) throw new HelperException("Helper.random: not initialized");
-        return random(n, clazz, f);
+        return Utilities.fillRandomArray(clazz, random, n, f);
     }
 
     /**
@@ -185,12 +186,6 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     public void close() {
-    }
-
-    private X[] random(int n, Class<X> clazz, Function<Random, X> f) {
-        @SuppressWarnings("unchecked") X[] result = (X[]) Array.newInstance(clazz, n);
-        for (int i = 0; i < n; i++) result[i] = f.apply(random);
-        return result;
     }
 
     protected final String description;
