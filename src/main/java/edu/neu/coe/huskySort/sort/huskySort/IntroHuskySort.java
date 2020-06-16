@@ -49,6 +49,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     // TEST
     private Partition partition(X[] objects, long[] longs, int lo, int hi) {
+        // CONSIDER merging this code with its counterpart in QuickHuskySort
         int lt = lo, gt = hi;
         if (longs[lo] > longs[hi]) swap(objects, lo, hi);
         long v = longs[lo];

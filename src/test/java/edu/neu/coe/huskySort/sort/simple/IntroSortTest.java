@@ -94,8 +94,7 @@ public class IntroSortTest {
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertTrue(compares <= worstCompares);
-        // TODO understand why the following does not work
-//        assertTrue(inversions <= fixes);
+        assertTrue(inversions <= fixes);
     }
 
     @Test

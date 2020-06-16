@@ -27,6 +27,7 @@ public abstract class Try<V> {
 
     public abstract <U> Try<U> flatMap(Function<? super V, Try<U>> f);
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public static <V> Try<V> toTry(Optional<V> optionalV) {
         return optionalV.map(Try::success).orElseGet(() -> failure(new NoSuchElementException()));
     }

@@ -43,7 +43,6 @@ public class Statistics {
 
     @Override
     public String toString() {
-        //noinspection StringBufferReplaceableByString
         final StringBuilder sb = new StringBuilder().append(property).append(": ");
         if (updated) {
             final boolean stats = stdDev() > 0.0;

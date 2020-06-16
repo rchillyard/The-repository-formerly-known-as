@@ -19,11 +19,9 @@ public class PureHuskySort<X extends Comparable<X>> {
     /**
      * Primary constructor.
      *
-     * @param name       a name for this sort.
      * @param huskyCoder the Husky coder to be used for the encoding to longs.
      */
-    public PureHuskySort(String name, HuskyCoder<X> huskyCoder) {
-        this.name = name;
+    public PureHuskySort(HuskyCoder<X> huskyCoder) {
         this.huskyCoder = huskyCoder;
     }
 
@@ -31,18 +29,14 @@ public class PureHuskySort<X extends Comparable<X>> {
      * The main sort method.
      *
      * @param xs       the array to be sorted.
-     * @param makeCopy true if we need to work on a copy of the original array.
-     * @return the sorted elements: either the original xs or a copy (as appropriate, according to makeCopy).
      */
-    public X[] sort(X[] xs, boolean makeCopy) {
-        X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-        sort(result, 0, result.length);
-        Arrays.sort(result);
-        return result;
+    public void sort(X[] xs) {
+        sort(xs, 0, xs.length);
+        Arrays.sort(xs);
     }
 
     // TEST
-    private void sort(X[] xs, int from, int to) {
+    private void sort(X[] xs, @SuppressWarnings("SameParameterValue") int from, int to) {
         long[] longs = huskyCoder.huskyEncode(xs);
         introSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
     }
@@ -134,13 +128,11 @@ public class PureHuskySort<X extends Comparable<X>> {
 
     private final HuskyCoder<X> huskyCoder;
 
-    private String name;
-
     public static void main(String[] args) throws FileNotFoundException {
         Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
         final String[] words = getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line));
-        PureHuskySort<String> sorter = new PureHuskySort<>("PureHuskySort", UNICODE_CODER);
-        sorter.sort(words, false);
+        PureHuskySort<String> sorter = new PureHuskySort<>(UNICODE_CODER);
+        sorter.sort(words);
         for (int i = 1; i < words.length; i++)
             if (words[i - 1].compareTo(words[i]) > 0) {
                 System.out.println("Not sorted!");

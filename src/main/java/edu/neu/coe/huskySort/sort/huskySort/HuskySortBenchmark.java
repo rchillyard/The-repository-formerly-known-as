@@ -96,13 +96,13 @@ public class HuskySortBenchmark {
 
         final String configSectionStringSorters = "benchmarktringsorters";
         if (config.getBoolean(configSectionStringSorters, "purehuskysort")) {
-            PureHuskySort<String> pureHuskySort = new PureHuskySort<>("PureHuskySort", UNICODE_CODER);
-            Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, xs -> pureHuskySort.sort(xs, false), null);
+            PureHuskySort<String> pureHuskySort = new PureHuskySort<>(UNICODE_CODER);
+            Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark);
         }
 
         if (config.getBoolean(configSectionStringSorters, "puresystemsort")) {
-            Benchmark<String[]> benchmark = new Benchmark<>("SystemSort", null, xs -> Arrays.sort(xs), null);
+            Benchmark<String[]> benchmark = new Benchmark<>("SystemSort", null, Arrays::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark);
         }
     }

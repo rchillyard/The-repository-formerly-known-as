@@ -65,7 +65,7 @@ class HuskySortBenchmarkHelper {
     }
 
     // TEST
-    private static String getFile(String resource, Class<?> clazz) throws FileNotFoundException {
+    private static String getFile(String resource, @SuppressWarnings("SameParameterValue") Class<?> clazz) throws FileNotFoundException {
         final URL url = clazz.getClassLoader().getResource(resource);
         if (url != null) return url.getFile();
         throw new FileNotFoundException(resource + " in " + clazz);
