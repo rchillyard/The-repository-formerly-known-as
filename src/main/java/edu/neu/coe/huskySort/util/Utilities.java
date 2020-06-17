@@ -2,6 +2,8 @@ package edu.neu.coe.huskySort.util;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Random;
+import java.util.function.Function;
 
 public class Utilities {
 		/**
@@ -35,5 +37,11 @@ public class Utilities {
 
     public static int round(double x) {
         return (int) (Math.round(x));
+    }
+
+    public static <T> T[] fillRandomArray(Class<T> clazz, Random random, int n, Function<Random, T> f) {
+        @SuppressWarnings("unchecked") T[] result = (T[]) Array.newInstance(clazz, n);
+        for (int i = 0; i < n; i++) result[i] = f.apply(random);
+        return result;
     }
 }

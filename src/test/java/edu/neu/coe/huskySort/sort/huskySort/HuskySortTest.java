@@ -129,29 +129,6 @@ public class HuskySortTest {
     }
 
     @Test
-    public void testSortString4() {
-        final int N = 1000;
-        final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
-        Config config1 = config.copy("huskyhelper", "countinteriminversions", "true");
-        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.asciiCoder, N, config1);
-        final HuskyHelper<String> helper = sorter.getHelper();
-        helper.init(N);
-        final String[] xs = helper.random(String.class, r -> "00000000" + r.nextInt(10000));
-        final int inversionsOriginal = helper.inversions(xs);
-        System.out.println("inversions: " + inversionsOriginal);
-        sorter.preProcess(xs);
-        final String[] ys = sorter.sort(xs);
-        assertTrue("sorted", helper.sorted(ys));
-        sorter.postProcess(ys);
-        sorter.close();
-        SortWithHelper<String> adjunctSorter = sorter.getAdjunctSorter();
-        Helper<String> helper1 = adjunctSorter.getHelper();
-        final InstrumentedHelper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper1, null);
-        assertNotNull(delegateHelper);
-        assertEquals(0, helper.inversions(ys));
-    }
-
-    @Test
     public void testSortString3() {
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "true");
         QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskySortHelper.asciiCoder, config);
@@ -179,6 +156,51 @@ public class HuskySortTest {
         final int ii = (int) statPack.getStatistics("interiminversions").mean();
         assertEquals(0, ii);
 
+    }
+
+    @Test
+    public void testSortString4() {
+        final int N = 1000;
+        final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
+        Config config1 = config.copy("huskyhelper", "countinteriminversions", "false");
+        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.asciiCoder, N, config1);
+        final HuskyHelper<String> helper = sorter.getHelper();
+        helper.init(N);
+        final String[] xs = helper.random(String.class, r -> "00000000" + r.nextInt(10000));
+        final int inversionsOriginal = helper.inversions(xs);
+        System.out.println("inversions: " + inversionsOriginal);
+        sorter.preProcess(xs);
+        final String[] ys = sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(ys));
+        sorter.postProcess(ys);
+        sorter.close();
+        SortWithHelper<String> adjunctSorter = sorter.getAdjunctSorter();
+        Helper<String> helper1 = adjunctSorter.getHelper();
+        final InstrumentedHelper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper1, null);
+        assertNull(delegateHelper);
+    }
+
+    @Test
+    public void testSortString5() {
+        final int N = 1000;
+        final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
+        Config config1 = config.copy("huskyhelper", "countinteriminversions", "true");
+        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.asciiCoder, N, config1);
+        final HuskyHelper<String> helper = sorter.getHelper();
+        helper.init(N);
+        final String[] xs = helper.random(String.class, r -> "00000000" + r.nextInt(10000));
+        final int inversionsOriginal = helper.inversions(xs);
+        System.out.println("inversions: " + inversionsOriginal);
+        sorter.preProcess(xs);
+        final String[] ys = sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(ys));
+        sorter.postProcess(ys);
+        sorter.close();
+        SortWithHelper<String> adjunctSorter = sorter.getAdjunctSorter();
+        Helper<String> helper1 = adjunctSorter.getHelper();
+        final InstrumentedHelper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper1, null);
+        assertNotNull(delegateHelper);
+        assertEquals(0, helper.inversions(ys));
     }
 
     @SuppressWarnings("deprecation")

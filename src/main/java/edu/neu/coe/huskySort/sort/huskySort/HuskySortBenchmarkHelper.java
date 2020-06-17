@@ -23,19 +23,22 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  * Singleton class HuskySortBenchmarkHelper
  */
 class HuskySortBenchmarkHelper {
-		// TEST
-		static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
-				List<String> words = new ArrayList<>();
-				FileReader fr = new FileReader(getFile(resource, QuickHuskySort.class));
-				for (Object line : new BufferedReader(fr).lines().toArray()) words.addAll(getStrings.apply((String) line));
-				words = words.stream().distinct().filter(new Predicate<String>() {
-						private static final int MINIMUM_LENGTH = 2;
 
-						public boolean test(String s) {
-								return s.length() >= MINIMUM_LENGTH;
-						}
-				}).collect(Collectors.toList());
-				logger.info("Testing with words: " + formatWhole(words.size()) + " from " + resource);
+    final static LazyLogger logger = new LazyLogger(HuskySortBenchmarkHelper.class);
+
+    // TEST
+    static String[] getWords(String resource, Function<String, List<String>> getStrings) throws FileNotFoundException {
+        List<String> words = new ArrayList<>();
+        FileReader fr = new FileReader(getFile(resource, QuickHuskySort.class));
+        for (Object line : new BufferedReader(fr).lines().toArray()) words.addAll(getStrings.apply((String) line));
+        words = words.stream().distinct().filter(new Predicate<String>() {
+            private static final int MINIMUM_LENGTH = 2;
+
+            public boolean test(String s) {
+                return s.length() >= MINIMUM_LENGTH;
+            }
+        }).collect(Collectors.toList());
+        logger.info("Testing with words: " + formatWhole(words.size()) + " from " + resource);
         String[] result = new String[words.size()];
         result = words.toArray(result);
         return result;
@@ -65,7 +68,7 @@ class HuskySortBenchmarkHelper {
     }
 
     // TEST
-    private static String getFile(String resource, Class<?> clazz) throws FileNotFoundException {
+    private static String getFile(String resource, @SuppressWarnings("SameParameterValue") Class<?> clazz) throws FileNotFoundException {
         final URL url = clazz.getClassLoader().getResource(resource);
         if (url != null) return url.getFile();
         throw new FileNotFoundException(resource + " in " + clazz);
@@ -82,6 +85,4 @@ class HuskySortBenchmarkHelper {
     // NOTE private constructor (singleton pattern)
     private HuskySortBenchmarkHelper() {
     }
-
-    final static LazyLogger logger = new LazyLogger(HuskySortBenchmarkHelper.class);
 }

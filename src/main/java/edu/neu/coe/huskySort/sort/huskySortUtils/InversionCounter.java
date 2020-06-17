@@ -6,7 +6,6 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 /**
  * Class to count inversions for an array of Xs.
  * NOTE: invoking getInversions will mutate the array passed in.
- *
  */
 @SuppressWarnings("rawtypes")
 public class InversionCounter {

@@ -16,17 +16,13 @@ import java.util.function.Consumer;
 
 public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWithHelper<X> {
 
-    private AbstractHuskySort(String name, HuskyHelper<X> helper) {
-        super(helper);
-        this.name = name;
-        this.huskyHelper = helper;
-    }
-
-    public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
-        this(name, createHelper(name, n, huskyCoder, postSorter, config.isInstrumented(), config));
-        closeHelper = true;
-    }
-
+    /**
+     * Sort array xs, after possibly making a copy.
+     *
+     * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
+     * @param makeCopy if set to true, we make a copy first and sort that.
+     * @return the sorted version of xs (or its copy).
+     */
     public X[] sort(X[] xs, boolean makeCopy) {
         huskyHelper.init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
@@ -36,11 +32,15 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         return result;
     }
 
+    /**
+     * Sort array xs, making a copy if stipulated by huskyHelper.
+     *
+     * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
+     * @return the sorted version of xs (or its copy).
+     */
     public X[] sort(X[] xs) {
         return sort(xs, huskyHelper.isMakeCopy());
     }
-
-    static final HuskyCoder<String> UNICODE_CODER = HuskySortHelper.unicodeCoder;
 
     void swap(X[] objects, int i, int j) {
         huskyHelper.swap(objects, i, j);
@@ -52,10 +52,6 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         return name;
     }
 
-    protected final static LazyLogger logger = new LazyLogger(AbstractHuskySort.class);
-
-    protected final String name;
-
     /**
      * Method to get the Helper, but as a HuskyHelper.
      *
@@ -65,6 +61,15 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         return huskyHelper;
     }
 
+    public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+        this(name, createHelper(name, n, huskyCoder, postSorter, config.isInstrumented(), config));
+        closeHelper = true;
+    }
+
+    static final HuskyCoder<String> UNICODE_CODER = HuskySortHelper.unicodeCoder;
+
+    protected final static LazyLogger logger = new LazyLogger(AbstractHuskySort.class);
+
     /**
      * NOTE: callers of this method should consider arranging for the helper to be closed on close of the sorter.
      */
@@ -73,4 +78,12 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     }
 
     protected final HuskyHelper<X> huskyHelper;
+    protected final String name;
+
+    private AbstractHuskySort(String name, HuskyHelper<X> helper) {
+        super(helper);
+        this.name = name;
+        this.huskyHelper = helper;
+    }
+
 }

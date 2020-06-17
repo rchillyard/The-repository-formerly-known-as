@@ -26,6 +26,24 @@ import static edu.neu.coe.huskySort.util.Utilities.asInt;
 public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     /**
+     * Factory method to create an IntroHuskySort instance which uses merge sort to finish up,
+     * wherein the merge sort counts the number of fixes (which is the same thing as the interim number of inversions).
+     *
+     * @param huskyCoder the Husky coder.
+     * @param N          the number of elements (may be 0).
+     * @param config     the configuration.
+     * @param <Y>        the underlying type.
+     * @return a new instance of IntroHuskySort.
+     */
+    public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(HuskyCoder<Y> huskyCoder, int N, Config config) {
+        boolean z = config.getBoolean("huskyhelper", "countinteriminversions");
+        Config config1 = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, z + "").copy("helper", BaseHelper.INSTRUMENT, z + "");
+        final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, config1);
+        finisher.init(N);
+        return new IntroHuskySort<>("IntroHuskySort/InversionCount", huskyCoder, finisher::mutatingSort, config.copy("huskyhelper", "countinteriminversions", ""), finisher);
+    }
+
+    /**
      * The primary sort method.
      *
      * @param xs   sort the array xs from "from" until "to" (i.e. exclusive of to).
@@ -46,6 +64,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      */
     @Override
     public X[] sort(X[] xs, boolean makeCopy) {
+        // CONSIDER merge this with super-method (which only lacks the adjunctSorter lines).
         huskyHelper.init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         huskyHelper.initLongArray(result);
@@ -56,7 +75,10 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         return result;
     }
 
-
+    /**
+     * Close this sorter.
+     * As a side-effect, we get the value of interim inversions, provided that it has been set up.
+     */
     @Override
     public void close() {
         if (closeHelper) {
@@ -65,7 +87,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
                 adjunctSorter.close();
                 Helper<X> helper = adjunctSorter.getHelper();
                 final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper, null);
-                if (delegateHelper != null) {
+                if (delegateHelper != null && delegateHelper.instrumented()) {
                     StatPack statPack = delegateHelper.getStatPack();
                     if (statPack != null) {
                         Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
@@ -92,24 +114,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     public SortWithHelper<X> getAdjunctSorter() {
         return adjunctSorter;
-    }
-
-    /**
-     * Factory method to create an IntroHuskySort instance which uses merge sort to finish up,
-     * wherein the merge sort counts the number of fixes (which is the same thing as the interim number of inversions).
-     *
-     * @param huskyCoder the Husky coder.
-     * @param N          the number of elements (may be 0).
-     * @param config     the configuration.
-     * @param <Y>        the underlying type.
-     * @return a new instance of IntroHuskySort.
-     */
-    public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(HuskyCoder<Y> huskyCoder, int N, Config config) {
-        boolean z = config.getBoolean("huskyhelper", "countinteriminversions");
-        Config config1 = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, z + "").copy("helper", BaseHelper.INSTRUMENT, "true");
-        final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, config1);
-        finisher.init(N);
-        return new IntroHuskySort<>("IntroHuskySort/InversionCount", huskyCoder, finisher::mutatingSort, config.copy("huskyhelper", "countinteriminversions", ""), finisher);
     }
 
     /**
@@ -172,6 +176,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     // TEST
     private Partition partition(X[] objects, long[] longs, int lo, int hi) {
+        // CONSIDER merge with partition from QuickHuskySort
         int lt = lo, gt = hi;
         if (longs[lo] > longs[hi]) swap(objects, lo, hi);
         long v = longs[lo];
@@ -182,16 +187,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             else i++;
         }
         return new Partition(lt, gt);
-    }
-
-    private static class Partition {
-        final int lt;
-        final int gt;
-
-        Partition(int lt, int gt) {
-            this.lt = lt;
-            this.gt = gt;
-        }
     }
 
     // TEST
@@ -206,7 +201,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         }
     }
 
-    // TEST
+    // CONSIDER: use downHeap of PureHuskySort
     private void downHeap(X[] objects, long[] longs, int i, int n, int lo) {
         long d = longs[lo + i - 1];
         X od = objects[lo + i - 1];
@@ -230,11 +225,22 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
                 swap(objects, j, j - 1);
     }
 
+    private static final int sizeThreshold = 16;
+
+    // CONSIDER invoke method in IntroSort
     private static int floor_lg(int a) {
         return (int) (Math.floor(Math.log(a) / Math.log(2)));
     }
 
-    private static final int sizeThreshold = 16;
+    private static class Partition {
+        Partition(int lt, int gt) {
+            this.lt = lt;
+            this.gt = gt;
+        }
+
+        final int lt;
+        final int gt;
+    }
 
     private final SortWithHelper<X> adjunctSorter;
 }

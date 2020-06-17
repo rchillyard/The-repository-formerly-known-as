@@ -42,8 +42,6 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
 
     public class Partitioner_DualPivot implements Partitioner<X> {
 
-        private final Helper<X> helper;
-
         public Partitioner_DualPivot(Helper<X> helper) {
             this.helper = helper;
         }
@@ -90,11 +88,14 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
             return partitions;
         }
 
+        // CONSIDER invoke swap in BaseHelper.
         private void swap(X[] ys, int i, int j) {
             X temp = ys[i];
             ys[i] = ys[j];
             ys[j] = temp;
         }
+
+        private final Helper<X> helper;
     }
 }
 
