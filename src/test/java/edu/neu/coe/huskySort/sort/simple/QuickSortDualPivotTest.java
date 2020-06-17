@@ -161,53 +161,54 @@ public class QuickSortDualPivotTest {
 		final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("quick sort dual pivot", N, config);
 		System.out.println(helper);
 		SortWithHelper<Integer> s = new QuickSort_DualPivot<>(helper);
-		s.init(N);
-		final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
-		assertEquals(Integer.valueOf(1360), xs[0]);
-		helper.preProcess(xs);
-		Integer[] ys = s.sort(xs);
-		assertTrue(helper.sorted(ys));
-		helper.postProcess(ys);
-		final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-		final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
-		System.out.println(statPack);
-		final int compares = (int) statPack.getStatistics("compares").mean();
-		final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-		final int fixes = (int) statPack.getStatistics("fixes").mean();
-		final int swaps = (int) statPack.getStatistics("swaps").mean();
-		final int copies = (int) statPack.getStatistics("copies").mean();
-		final int worstCompares = round(2.0 * N * Math.log(N));
-		System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
-		assertTrue(compares <= worstCompares);
-		assertTrue(inversions <= fixes);
-	}
+      s.init(N);
+      final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
+      assertEquals(Integer.valueOf(1360), xs[0]);
+      helper.preProcess(xs);
+      Integer[] ys = s.sort(xs);
+      assertTrue(helper.sorted(ys));
+      helper.postProcess(ys);
+      final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+      final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+      System.out.println(statPack);
+      final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
+      final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
+      final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
+      final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
+      final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
+      final int worstCompares = round(2.0 * N * Math.log(N));
+      System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
+      assertTrue(compares <= worstCompares);
+      assertTrue(inversions <= fixes);
+  }
 
 	@Test
 	public void testPartitionWithSort() {
-		String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
-		int n = xs.length;
-		final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
-		final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-		QuickSort_DualPivot<String> sorter = new QuickSort_DualPivot<>(helper);
-		int inversions = n * (n - 1) / 2;
-		assertEquals(inversions, helper.inversions(xs));
-		Partitioner<String> partitioner = sorter.createPartitioner();
-		List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
-		assertEquals(11, privateMethodTester.invokePrivate("getFixes"));
-		Partition<String> p0 = partitions.get(0);
-		sorter.sort(xs, 0, p0.to, 0);
-		assertEquals(11, privateMethodTester.invokePrivate("getFixes"));
-		Partition<String> p1 = partitions.get(1);
-		sorter.sort(xs, p1.from, p1.to, 0);
-		assertEquals(21, privateMethodTester.invokePrivate("getFixes"));
-		Partition<String> p2 = partitions.get(2);
-		sorter.sort(xs, p2.from, n, 0);
-		int fixes = (int) privateMethodTester.invokePrivate("getFixes");
-		// NOTE: there are at least as many fixes as inversions -- sort methods aren't necessarily perfectly efficient in terms of swaps.
-		assertTrue(inversions <= fixes);
-		assertEquals(0, helper.inversions(xs));
-		assertEquals(11, privateMethodTester.invokePrivate("getSwaps"));
-	}
+      String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
+      int n = xs.length;
+      final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
+      final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
+      final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+      QuickSort_DualPivot<String> sorter = new QuickSort_DualPivot<>(helper);
+      int inversions = n * (n - 1) / 2;
+      assertEquals(inversions, helper.inversions(xs));
+      Partitioner<String> partitioner = sorter.createPartitioner();
+      List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
+      assertEquals(11, privateMethodTester.invokePrivate("getFixes"));
+      Partition<String> p0 = partitions.get(0);
+      sorter.sort(xs, 0, p0.to, 0);
+      assertEquals(11, privateMethodTester.invokePrivate("getFixes"));
+      Partition<String> p1 = partitions.get(1);
+      sorter.sort(xs, p1.from, p1.to, 0);
+      assertEquals(21, privateMethodTester.invokePrivate("getFixes"));
+      Partition<String> p2 = partitions.get(2);
+      sorter.sort(xs, p2.from, n, 0);
+      int fixes = (int) privateMethodTester.invokePrivate("getFixes");
+      // NOTE: there are at least as many fixes as inversions -- sort methods aren't necessarily perfectly efficient in terms of swaps.
+      assertTrue(inversions <= fixes);
+      assertEquals(0, helper.inversions(xs));
+      assertEquals(11, privateMethodTester.invokePrivate("getSwaps"));
+  }
 
 	@Test
 	public void smallStringSort() throws IOException {

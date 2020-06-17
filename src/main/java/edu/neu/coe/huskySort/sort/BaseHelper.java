@@ -193,6 +193,8 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         return result;
     }
 
+    public static final String INSTRUMENT = "instrument";
+
     protected final String description;
     protected final Random random;
     protected int n;

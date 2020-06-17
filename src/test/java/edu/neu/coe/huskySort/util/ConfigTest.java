@@ -6,8 +6,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ConfigTest {
 
@@ -26,7 +25,24 @@ public class ConfigTest {
         assertEquals(10, config.getInt(INSTRUMENTING, INVERSIONS, 0));
     }
 
-    public static Config setupConfig(final String instrumenting, final String seed, final String inversions, String cutoff, String intermissionInversions) {
+    @Test
+    public void testCopy() {
+        final Config config = setupConfig(FALSE, "", "", "", "");
+        int originalSeed = config.getInt(Config.HELPER, SEED, -1);
+        Config config1 = config.copy(Config.HELPER, SEED, "1");
+        assertEquals(originalSeed, config.getInt(Config.HELPER, SEED, -1));
+        assertEquals(1, config1.getInt(Config.HELPER, SEED, -1));
+    }
+
+    @Test
+    public void testUnLogged() throws IOException {
+        final Config config = Config.load();
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(config);
+        assertTrue((Boolean) privateMethodTester.invokePrivate("unLogged", Config.HELPER + "." + SEED));
+        assertFalse((Boolean) privateMethodTester.invokePrivate("unLogged", Config.HELPER + "." + SEED));
+    }
+
+    public static Config setupConfig(final String instrumenting, final String seed, final String inversions, String cutoff, String interimInversions) {
         final Ini ini = new Ini();
         final String sInstrumenting = INSTRUMENTING;
         ini.put(Config.HELPER, Config.INSTRUMENT, instrumenting);
@@ -37,18 +53,19 @@ public class ConfigTest {
         ini.put(sInstrumenting, COMPARES, instrumenting);
         ini.put(sInstrumenting, COPIES, instrumenting);
         ini.put(sInstrumenting, FIXES, instrumenting);
-        ini.put("huskyhelper", "countintermissioninversions", intermissionInversions);
+        ini.put("huskyhelper", "countinteriminversions", interimInversions);
         return new Config(ini);
     }
 
     public static final String TRUE = "true";
-    public static final String INSTRUMENTING = "instrumenting";
+    public static final String FALSE = "";
+    public static final String INSTRUMENTING = InstrumentedHelper.INSTRUMENTING;
     public static final String INVERSIONS = InstrumentedHelper.INVERSIONS;
     public static final String SEED = "seed";
     public static final String CUTOFF = "cutoff";
-    public static final String SWAPS = "swaps";
-    public static final String COMPARES = "compares";
-    public static final String COPIES = "copies";
-    public static final String FIXES = "fixes";
+    public static final String SWAPS = InstrumentedHelper.SWAPS;
+    public static final String COMPARES = InstrumentedHelper.COMPARES;
+    public static final String COPIES = InstrumentedHelper.COPIES;
+    public static final String FIXES = InstrumentedHelper.FIXES;
 
 }

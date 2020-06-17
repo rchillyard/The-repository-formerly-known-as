@@ -55,11 +55,11 @@ public class IntroSortTest {
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
         final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics("fixes").mean();
-        final int swaps = (int) statPack.getStatistics("swaps").mean();
-        final int copies = (int) statPack.getStatistics("copies").mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertEquals(13, helper.maxDepth());
@@ -85,17 +85,16 @@ public class IntroSortTest {
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
         final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics("fixes").mean();
-        final int swaps = (int) statPack.getStatistics("swaps").mean();
-        final int copies = (int) statPack.getStatistics("copies").mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
         assertEquals(4, helper.maxDepth());
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertTrue(compares <= worstCompares);
-        // TODO understand why the following does not work
-//        assertTrue(inversions <= fixes);
+        assertTrue(inversions <= fixes);
     }
 
     @Test

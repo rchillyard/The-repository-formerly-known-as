@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.generateRandomStringArray;
@@ -39,24 +40,31 @@ public class HuskySortBenchmark {
         String name = config.get("huskysort", "version");
         logger.info("HuskySortBenchmark.main: " + name);
         HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
-        benchmark.sortStrings();
+        if (args.length == 0) logger.warn("No word counts specified on the command line");
+        benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt));
         benchmark.sortLocalDateTimes(100000);
     }
 
-    private void sortStrings() throws IOException {
+    private void sortStrings(Stream<Integer> wordCounts) throws IOException {
         logger.info("Beginning String sorts");
 
-        doLeipzigBenchmark("eng-uk_web_2002_10K-sentences.txt", 1000, 1000);
+        // NOTE: common words benchmark
+        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), 4000, 10000);
 
-        doLeipzigBenchmark("eng-uk_web_2002_10K-sentences.txt", 10000, 1000);
+        // NOTE: Leipzig English words benchmarks (according to command-line arguments)
+        wordCounts.forEach(this::doLeipzigBenchmarkEnglish);
 
-        doLeipzigBenchmark("eng-uk_web_2002_100K-sentences.txt", 100000, 200);
-
-        doLeipzigBenchmark("eng-uk_web_2002_1M-sentences.txt", 500000, 100);
-
-        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), 4000, 25000);
-
+        // NOTE: Leipzig Chines words benchmarks (according to command-line arguments)
         doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", 5000, 1000);
+    }
+
+    private void doLeipzigBenchmarkEnglish(int x) {
+        String resource = "eng-uk_web_2002_" + (x < 50000 ? "10K" : x < 200000 ? "100K" : "1M") + "-sentences.txt";
+        try {
+            doLeipzigBenchmark(resource, x, Utilities.round(100000000 / minComparisons(x)));
+        } catch (FileNotFoundException e) {
+            logger.warn("Unable to find resource: " + resource, e);
+        }
     }
 
     public void sortLocalDateTimes(final int n) {
@@ -108,6 +116,7 @@ public class HuskySortBenchmark {
         if (config.getBoolean(configSectionStringSorters, "introsort"))
             runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, config), timeLoggersLinearithmic);
 
+        // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (config.getBoolean(configSectionStringSorters, "insertionsort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new InsertionSort<>(nWords, config), timeLoggersQuadratic);
 
@@ -132,8 +141,8 @@ public class HuskySortBenchmark {
         if (config.getBoolean(configSectionStringSorters, "huskybucketintrosort"))
             runStringSortBenchmark(words, nWords, nRuns, new HuskyBucketSort<>(1000, UNICODE_CODER, config), timeLoggersLinearithmic);
 
-        if (config.getBoolean(configSectionStringSorters, "loginversions"))
-            logInversions(words, nWords, nRuns, new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, DO_NOTHING, config));
+//        if (config.getBoolean(configSectionStringSorters, "loginversions"))
+//            logInversions(words, nWords, nRuns, new QuickHuskySort<>("QuickHuskySort/print inversions", UNICODE_CODER, DO_NOTHING, config));
     }
 
     /**

@@ -17,9 +17,9 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 public class Benchmark<T> {
 
 		/**
-		 * Constructor for a Benchmark with option of specifying all three functions.
-		 *
-		 * @param description the description of the benchmark.
+     * Constructor for a Benchmark with option of specifying all three functions.
+     *
+     * @param description the description of the benchmark.
      * @param fPre        a function of T => T.
      *                    Function fPre is run before each invocation of fRun (but with the clock stopped).
      *                    The result of fPre (if any) is passed to fRun.

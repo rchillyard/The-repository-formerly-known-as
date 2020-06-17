@@ -9,6 +9,7 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -31,7 +32,6 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         huskyHelper.initLongArray(result);
         sort(result, 0, result.length);
-        huskyHelper.inProcessor(result);
         huskyHelper.getPostSorter().accept(result);
         return result;
     }
@@ -52,6 +52,8 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         return name;
     }
 
+    protected final static LazyLogger logger = new LazyLogger(AbstractHuskySort.class);
+
     protected final String name;
 
     /**
@@ -70,5 +72,5 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         return instrumentation ? new HuskyHelper<>(HelperFactory.create("Husky Delegate Helper", n, config), huskyCoder, postSorter, false) : new HuskyHelper<>(name, n, huskyCoder, postSorter);
     }
 
-    private final HuskyHelper<X> huskyHelper;
+    protected final HuskyHelper<X> huskyHelper;
 }

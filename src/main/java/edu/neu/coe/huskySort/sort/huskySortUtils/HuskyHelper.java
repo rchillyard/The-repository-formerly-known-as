@@ -2,7 +2,6 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 
 import java.util.Random;
 import java.util.function.Consumer;
@@ -16,17 +15,6 @@ import java.util.function.Function;
  * @param <X> the underlying type (must be Comparable).
  */
 public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
-
-    // HuskyHelper methods...
-
-    public void inProcessor(X[] xs) {
-        if (!helper.instrumented()) return;
-        final InstrumentedHelper<X> ih = InstrumentedHelper.getInstrumentedHelper(helper, null);
-        if (ih != null && ih.instrumented() && ih.isCountIntermissionInversions()) {
-            final int inversions = ih.inversions(xs);
-            ih.setIntermissionInversions(inversions);
-        }
-    }
 
     /**
      * @return the post-sorter.

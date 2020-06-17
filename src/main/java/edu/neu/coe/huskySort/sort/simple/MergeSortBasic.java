@@ -30,7 +30,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      */
     public MergeSortBasic(int N, Config config) {
         super(DESCRIPTION, N, config);
-				insertionSort = new InsertionSort<>(getHelper());
+        insertionSort = new InsertionSort<>(getHelper());
     }
 
     @Override

@@ -284,7 +284,6 @@ public class InstrumentedHelperTest {
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
         s.sort(xs);
         final int compares = (Integer) privateMethodTester.invokePrivate("getCompares");
-//        System.out.println("compares: "+compares);
         assertTrue(compares <= 20 && compares >= 11);
     }
 
@@ -302,12 +301,11 @@ public class InstrumentedHelperTest {
             helper.postProcess(ys);
         }
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
-        final Statistics statistics = statPack.getStatistics("compares");
+        final Statistics statistics = statPack.getStatistics(InstrumentedHelper.COMPARES);
         System.out.println(statistics);
-        final int compares = statPack.getCount("compares");
+        final int compares = statPack.getCount(InstrumentedHelper.COMPARES);
         System.out.println(statPack);
         assertTrue(12 <= compares && compares <= 17);
-//        assert
 		}
 
 		@BeforeClass
@@ -323,15 +321,15 @@ public class InstrumentedHelperTest {
 
 		@Test
 		public void testSwapConditional1() {
-				String[] xs = new String[]{"a", "b", "c"};
-				final Helper<String> helper = new InstrumentedHelper<>("test", config);
-				assertTrue(helper.sorted(xs));
-				helper.swap(xs, 0, 2);
-				assertFalse(helper.sorted(xs));
-				final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-				assertEquals(0, privateMethodTester.invokePrivate("getCompares"));
-				assertEquals(1, privateMethodTester.invokePrivate("getSwaps"));
-		}
+        String[] xs = new String[]{"c", "b", "a"};
+        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        assertFalse(helper.sorted(xs));
+        helper.swapConditional(xs, 0, 2);
+        assertTrue(helper.sorted(xs));
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        assertEquals(1, privateMethodTester.invokePrivate("getCompares"));
+        assertEquals(1, privateMethodTester.invokePrivate("getSwaps"));
+    }
 
 		@Test
 		public void swapStableConditional() {

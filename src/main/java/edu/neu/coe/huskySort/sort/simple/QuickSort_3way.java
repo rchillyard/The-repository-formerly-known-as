@@ -66,7 +66,6 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
          * @return an array of partitions, whose length depends on the sorting method being used.
          */
         public List<Partition<X>> partition(Partition<X> partition) {
-//            logger.debug("partition on " + partition);
             X[] xs = partition.xs;
             int lt = partition.from;
             int gt = partition.to - 1;
