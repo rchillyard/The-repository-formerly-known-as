@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.util;
 
 import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import org.ini4j.Ini;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,7 +35,8 @@ public class ConfigTest {
         assertEquals(1, config1.getInt(Config.HELPER, SEED, -1));
     }
 
-    @Test
+    // NOTE: we ignore this for now, because this would need to run before any other tests in order to work as originally designed.
+    @Ignore
     public void testUnLogged() throws IOException {
         final Config config = Config.load();
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(config);

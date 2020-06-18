@@ -120,6 +120,7 @@ public class Config {
         return getBoolean(HELPER, INSTRUMENT);
     }
 
+    // CONSIDER: sort these out.
     public static final String HELPER = "helper";
     public static final String INSTRUMENT = BaseHelper.INSTRUMENT;
 
@@ -159,6 +160,8 @@ public class Config {
 
     final static LazyLogger logger = new LazyLogger(Config.class);
 
-    private final Map<String, Boolean> logged = new HashMap<>();
+    // NOTE this is static because, otherwise, we get too much logging when we copy a Config that hasn't had all enquiries made yet.
+    private static final Map<String, Boolean> logged = new HashMap<>();
+
     private final Ini ini;
 }

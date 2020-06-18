@@ -37,7 +37,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      */
     public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(HuskyCoder<Y> huskyCoder, int N, Config config) {
         boolean z = config.getBoolean("huskyhelper", "countinteriminversions");
-        Config config1 = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, z + "").copy("helper", BaseHelper.INSTRUMENT, z + "");
+        Config config1 = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, z + "").copy(Config.HELPER, BaseHelper.INSTRUMENT, z + "");
         final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, config1);
         finisher.init(N);
         return new IntroHuskySort<>("IntroHuskySort/InversionCount", huskyCoder, finisher::mutatingSort, config.copy("huskyhelper", "countinteriminversions", ""), finisher);
