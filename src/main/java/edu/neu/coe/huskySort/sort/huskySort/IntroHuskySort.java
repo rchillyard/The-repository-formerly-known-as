@@ -4,7 +4,6 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
@@ -17,6 +16,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 import static edu.neu.coe.huskySort.util.Utilities.asInt;
+import static edu.neu.coe.huskySort.util.Utilities.formatDecimal3Places;
 
 /**
  * This class defines the preferred form of HuskySort: based on IntroSort which tends to run slightly faster than pure QuickSort.
@@ -85,14 +85,10 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             huskyHelper.close();
             if (adjunctSorter != null) {
                 adjunctSorter.close();
-                Helper<X> helper = adjunctSorter.getHelper();
-                final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper, null);
+                final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
                 if (delegateHelper != null && delegateHelper.instrumented()) {
                     StatPack statPack = delegateHelper.getStatPack();
-                    if (statPack != null) {
-                        Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
-                        logger.info("HuskySort interim inversions: " + asInt(fixes.mean()));
-                    }
+                    if (statPack != null) logInterimInversions(delegateHelper, statPack);
                 }
             }
         }
@@ -240,6 +236,16 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
         final int lt;
         final int gt;
+    }
+
+    private void logInterimInversions(InstrumentedHelper<X> delegateHelper, StatPack statPack) {
+        Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
+        double mean = fixes.mean();
+        int n = delegateHelper.getN();
+        // NOTE the mean number of inversions for a random array is N * (N - 1) / 4
+        String percentage = formatDecimal3Places((1.0 - mean * 4 / n / (n - 1)) * 100);
+        logger.debug("HuskySort interim inversions: " + asInt(mean));
+        logger.info("HuskySort first pass success rate: " + percentage + "%");
     }
 
     private final SortWithHelper<X> adjunctSorter;

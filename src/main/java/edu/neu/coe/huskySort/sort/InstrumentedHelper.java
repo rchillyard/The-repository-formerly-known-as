@@ -217,6 +217,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         compares = 0;
         swaps = 0;
         copies = 0;
+        fixes = 0;
         // NOTE: it's an error to reset the StatPack if we've been here before
         if (n == this.n && statPack != null) return;
         super.init(n);
@@ -283,10 +284,6 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         return statPack;
     }
 
-    public boolean isCountIntermissionInversions() {
-        return countIntermissionInversions;
-    }
-
     /**
      * Constructor for explicit random number generator.
      *
@@ -303,7 +300,6 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         this.countInversions = config.getInt(INSTRUMENTING, INVERSIONS, 0);
         this.countFixes = config.getBoolean(INSTRUMENTING, FIXES);
         this.cutoff = config.getInt("helper", "cutoff", 0);
-        this.countIntermissionInversions = config.getBoolean("huskyhelper", "countinteriminversions");
     }
 
     /**
@@ -367,7 +363,6 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     private final boolean countSwaps;
     private final boolean countCompares;
     private final boolean countFixes;
-    private final boolean countIntermissionInversions;
     private StatPack statPack;
     private int compares = 0;
     private int swaps = 0;
@@ -375,10 +370,4 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     private int fixes = 0;
     private int countInversions;
     private int maxDepth = 0;
-
-    public void setIntermissionInversions(int inversions) {
-        if (countIntermissionInversions)
-            if (statPack != null) statPack.add(INTERIM_INVERSIONS, inversions);
-            else throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
-    }
 }

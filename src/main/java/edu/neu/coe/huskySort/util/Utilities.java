@@ -21,6 +21,17 @@ public class Utilities {
     }
 
     /**
+     * Create a string representing an double, with three decimal places.
+     *
+     * @param x the number to show.
+     * @return a String representing the number rounded to three decimal places.
+     */
+    public static String formatDecimal3Places(double x) {
+        double scaleFactor = 1000.0;
+        return String.format("%.3f", round(x * scaleFactor) / scaleFactor);
+    }
+
+    /**
      * Create a string representing an integer, with commas to separate thousands.
      *
      * @param x the integer.
