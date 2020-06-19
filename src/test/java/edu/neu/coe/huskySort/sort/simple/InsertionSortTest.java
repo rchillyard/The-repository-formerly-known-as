@@ -63,13 +63,13 @@ public class InsertionSortTest {
         Integer[] ys = sorter.sort(xs);
         sorter.postProcess(ys);
         assertTrue(helper.sorted(ys));
-        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
         // NOTE: these are suppoed to match within about 12%.
         // Since we set a specific seed, this should always succeed.
         // If we use true random see and this test fails, just increase the delta a little.
         assertEquals(1.0, 4.0 * compares / n / (n - 1), 0.12);
         final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
         System.out.println(statPack);
         assertEquals(inversions, fixes);
     }

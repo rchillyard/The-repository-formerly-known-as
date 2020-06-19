@@ -53,7 +53,6 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
          * @return an array of partitions, whose length depends on the sorting method being used.
          */
         public List<Partition<X>> partition(Partition<X> partition) {
-//            logger.debug("partition on " + partition);
             final X[] xs = partition.xs;
             final int lo = partition.from;
             final int hi = partition.to - 1;
@@ -89,6 +88,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
             return partitions;
         }
 
+        // CONSIDER invoke swap in BaseHelper.
         private void swap(X[] ys, int i, int j) {
             X temp = ys[i];
             ys[i] = ys[j];

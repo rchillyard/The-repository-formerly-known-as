@@ -66,9 +66,9 @@ public class BenchmarkIntegrationTest {
         benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
     }
 
-    @Test(timeout = 140000)
-    public void testStrings100KInstrumented() throws Exception {
-        // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
-        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200);
-    }
+//    @Test(timeout = 140000)
+//    public void testStrings100KInstrumented() throws Exception {
+//        // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
+//        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200);
+//    }
 }

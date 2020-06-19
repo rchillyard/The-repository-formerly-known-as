@@ -102,21 +102,22 @@ public class Benchmark<T> {
     public Benchmark(String description, Consumer<T> fRun, Consumer<T> fPost) {
         this(description, null, fRun, fPost);
     }
+
     /**
      * Constructor for a Benchmark where only the (timed) run function is specified.
      *
      * @param description the description of the benchmark.
-     * @param f           a Consumer function (i.e. a function of T => Void).
-     *                    Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
+     * @param f a Consumer function (i.e. a function of T => Void).
+     *          Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      */
     public Benchmark(String description, Consumer<T> f) {
         this(description, null, f, null);
     }
 
-    private final static LazyLogger logger = new LazyLogger(Benchmark.class);
     private final String description;
     private final UnaryOperator<T> fPre;
     private final Consumer<T> fRun;
     private final Consumer<T> fPost;
 
+    final static LazyLogger logger = new LazyLogger(Benchmark.class);
 }

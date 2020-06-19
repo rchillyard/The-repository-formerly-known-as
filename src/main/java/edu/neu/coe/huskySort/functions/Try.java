@@ -48,12 +48,6 @@ public abstract class Try<V> {
 
     public abstract <U> Try<U> flatMap(Function<? super V, Try<U>> f);
 
-    /**
-     * Singleton class.
-     */
-    private Try() {
-    }
-
     private static class Failure<V> extends Try<V> {
         private final RuntimeException exception;
 
@@ -138,4 +132,9 @@ public abstract class Try<V> {
             throw new IllegalStateException("no messages when success");
         }
     }
+
+    /**
+     * Singleton class.
+     */
+    private Try() {}
 }

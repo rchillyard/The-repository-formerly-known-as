@@ -81,6 +81,7 @@ public interface Helper<X extends Comparable<X>> {
         final X w = xs[j];
         boolean result = v.compareTo(w) > 0;
         if (result) {
+            // CONSIDER invoking swap
             xs[i] = w;
             xs[j] = v;
         }

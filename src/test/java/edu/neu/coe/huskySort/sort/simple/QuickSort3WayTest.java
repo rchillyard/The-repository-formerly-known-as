@@ -165,11 +165,11 @@ public class QuickSort3WayTest {
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
         final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics("fixes").mean();
-        final int swaps = (int) statPack.getStatistics("swaps").mean();
-        final int copies = (int) statPack.getStatistics("copies").mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertTrue(compares <= worstCompares);
@@ -180,6 +180,7 @@ public class QuickSort3WayTest {
     public void testPartitionWithSort() {
         String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
         int n = xs.length;
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
         final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
         QuickSort_3way<String> sorter = new QuickSort_3way<>(helper);

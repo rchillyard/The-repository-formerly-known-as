@@ -48,10 +48,10 @@ public class SelectionSortTest {
         Integer[] ys = sorter.sort(xs);
         sorter.postProcess(ys);
         assertTrue(helper.sorted(ys));
-        final int compares = (int) statPack.getStatistics("compares").mean();
+        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
         assertEquals(n * (n - 1) / 2, compares);
         final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
         System.out.println(statPack);
         assertEquals(inversions, fixes);
     }

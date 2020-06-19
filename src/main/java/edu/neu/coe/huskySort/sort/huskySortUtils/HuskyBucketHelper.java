@@ -84,6 +84,7 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
     @SuppressWarnings("unchecked")
     public HuskyBucketHelper(String description, int m, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, long seed, boolean makeCopy) {
         super(description, n, coder, postSorter, seed, makeCopy);
+        // CONSIDER merge with HuskyBucketHelper lines 103-104
         buckets = (Bag<X>[]) Array.newInstance(Bag.class, n / m);
         for (int i = 0; i < buckets.length; i++) buckets[i] = new Bag_Array<>();
     }

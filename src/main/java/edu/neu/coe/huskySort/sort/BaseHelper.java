@@ -144,8 +144,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         return n;
     }
 
-    public void close() {
-    }
+    public void close() {}
 
     /**
      * Constructor for explicit random number generator.
@@ -190,9 +189,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         this(description, 0);
     }
 
-    protected final String description;
-    protected final Random random;
-    protected int n;
+    public static final String INSTRUMENT = "instrument";
 
     public static class HelperException extends RuntimeException {
 
@@ -212,4 +209,8 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
             super(message, cause, enableSuppression, writableStackTrace);
         }
     }
+
+    protected final String description;
+    protected final Random random;
+    protected int n;
 }

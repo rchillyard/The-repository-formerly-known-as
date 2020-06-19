@@ -47,6 +47,7 @@ public class PureHuskySort<X extends Comparable<X>> {
         this.huskyCoder = huskyCoder;
     }
 
+    // CONSIDER invoke method in IntroSort
     private static int floor_lg(int a) {
         return (int) (Math.floor(Math.log(a) / Math.log(2)));
     }
@@ -62,6 +63,7 @@ public class PureHuskySort<X extends Comparable<X>> {
     // TEST
     @SuppressWarnings({"UnnecessaryLocalVariable"})
     private void introSort(X[] objects, long[] longs, int from, int to, int depthThreshold) {
+        // CONSIDER merge with IntroHuskySort
         if (to <= from) return;
         if (to - from <= sizeThreshold) {
             insertionSort(objects, longs, from, to);

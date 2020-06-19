@@ -2,7 +2,6 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 
 import java.util.Random;
 import java.util.function.Consumer;
@@ -16,21 +15,6 @@ import java.util.function.Function;
  * @param <X> the underlying type (must be Comparable).
  */
 public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
-
-    /**
-     * The "in"-processor for the Husky sorter.
-     * This is invoked between pass 1 and pass 2.
-     *
-     * @param xs the array being sorted, in its current form.
-     */
-    public void inProcessor(X[] xs) {
-        if (!helper.instrumented()) return;
-        final InstrumentedHelper<X> ih = InstrumentedHelper.getInstrumentedHelper(helper, null);
-        if (ih != null && ih.instrumented() && ih.isCountIntermissionInversions()) {
-            final int inversions = ih.inversions(xs);
-            ih.setIntermissionInversions(inversions);
-        }
-    }
 
     /**
      * @return the post-sorter.
@@ -54,7 +38,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     *
      * @return the Helper.
      */
     public Helper<X> getHelper() {
@@ -158,7 +141,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     * Get the curoff value.
+     * Get the cutoff value.
      *
      * @return the cutoff value.
      */
@@ -361,6 +344,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         this.postSorter = postSorter;
         this.makeCopy = makeCopy;
     }
+
     /**
      * Constructor to create an uninstrumented Husky Helper with explicit seed.
      * <p>

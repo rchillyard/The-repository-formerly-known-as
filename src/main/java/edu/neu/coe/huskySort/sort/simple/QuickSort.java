@@ -46,6 +46,7 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
      * @return the result (sorted version of xs).
      */
     public X[] sort(X[] xs, boolean makeCopy) {
+        // CONSIDER merge with MergeSortBasic and maybe others.
         getHelper().init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         sort(result, 0, result.length, 0);

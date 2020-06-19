@@ -10,14 +10,6 @@ import java.util.Iterator;
 public class Bag_Array<Item> implements Bag<Item> {
 
     /**
-     * Construct a new, empty, Bag_Array.
-     */
-     public Bag_Array() {
-        //noinspection unchecked
-        grow((Item[]) new Object[0], 32);
-    }
-
-    /**
      * Add the given item to this Bag.
      * If the Bag is full, then it will be grown (by doubling) to accommodate the new element.
      *
@@ -67,7 +59,6 @@ public class Bag_Array<Item> implements Bag<Item> {
     }
 
     /**
-     *
      * @return the contents of this Bag as an array of items
      */
     public Item[] asArray() {
@@ -80,6 +71,14 @@ public class Bag_Array<Item> implements Bag<Item> {
                 "items=" + Arrays.toString(asArray()) +
                 ", count=" + count +
                 '}';
+    }
+
+    /**
+     * Construct a new, empty, Bag_Array.
+     */
+    public Bag_Array() {
+        //noinspection unchecked
+        grow((Item[]) new Object[0], 32);
     }
 
     /**

@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.InstrumentedHelper;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
@@ -22,8 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @SuppressWarnings("MagicConstant")
 public class HuskySortTest {
@@ -124,7 +124,7 @@ public class HuskySortTest {
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
         System.out.println(statPack);
         assertEquals(0, helper.inversions(ys));
-        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
         assertTrue(inversionsOriginal <= fixes);
     }
 
@@ -151,11 +151,56 @@ public class HuskySortTest {
         final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
         System.out.println(statPack);
         assertEquals(0, helper.inversions(ys));
-        final int fixes = (int) statPack.getStatistics("fixes").mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
         assertTrue(inversionsOriginal <= fixes);
-        final int ii = (int) statPack.getStatistics("intermissioninversions").mean();
+        final int ii = (int) statPack.getStatistics("interiminversions").mean();
         assertEquals(0, ii);
 
+    }
+
+    @Test
+    public void testSortString4() {
+        final int N = 1000;
+        final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
+        Config config1 = config.copy("huskyhelper", "countinteriminversions", "false");
+        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.asciiCoder, N, config1);
+        final HuskyHelper<String> helper = sorter.getHelper();
+        helper.init(N);
+        final String[] xs = helper.random(String.class, r -> "00000000" + r.nextInt(10000));
+        final int inversionsOriginal = helper.inversions(xs);
+        System.out.println("inversions: " + inversionsOriginal);
+        sorter.preProcess(xs);
+        final String[] ys = sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(ys));
+        sorter.postProcess(ys);
+        sorter.close();
+        SortWithHelper<String> adjunctSorter = sorter.getAdjunctSorter();
+        Helper<String> helper1 = adjunctSorter.getHelper();
+        final InstrumentedHelper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper1, null);
+        assertNull(delegateHelper);
+    }
+
+    @Test
+    public void testSortString5() {
+        final int N = 1000;
+        final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
+        Config config1 = config.copy("huskyhelper", "countinteriminversions", "true");
+        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.asciiCoder, N, config1);
+        final HuskyHelper<String> helper = sorter.getHelper();
+        helper.init(N);
+        final String[] xs = helper.random(String.class, r -> "00000000" + r.nextInt(10000));
+        final int inversionsOriginal = helper.inversions(xs);
+        System.out.println("inversions: " + inversionsOriginal);
+        sorter.preProcess(xs);
+        final String[] ys = sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(ys));
+        sorter.postProcess(ys);
+        sorter.close();
+        SortWithHelper<String> adjunctSorter = sorter.getAdjunctSorter();
+        Helper<String> helper1 = adjunctSorter.getHelper();
+        final InstrumentedHelper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper1, null);
+        assertNotNull(delegateHelper);
+        assertEquals(0, helper.inversions(ys));
     }
 
     @SuppressWarnings("deprecation")
