@@ -15,9 +15,6 @@ import edu.neu.coe.huskySort.util.Statistics;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-import static edu.neu.coe.huskySort.util.Utilities.asInt;
-import static edu.neu.coe.huskySort.util.Utilities.formatDecimal3Places;
-
 /**
  * This class defines the preferred form of HuskySort: based on IntroSort which tends to run slightly faster than pure QuickSort.
  *
@@ -36,11 +33,26 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @return a new instance of IntroHuskySort.
      */
     public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(HuskyCoder<Y> huskyCoder, int N, Config config) {
-        boolean z = config.getBoolean("huskyhelper", "countinteriminversions");
-        Config config1 = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, z + "").copy(Config.HELPER, BaseHelper.INSTRUMENT, z + "");
-        final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, config1);
+        String value = isCountInterimInversions(config) + "";
+        Config copy = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, value).copy(Config.HELPER, BaseHelper.INSTRUMENT, value);
+        final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, copy);
         finisher.init(N);
         return new IntroHuskySort<>("IntroHuskySort/InversionCount", huskyCoder, finisher::mutatingSort, config.copy("huskyhelper", "countinteriminversions", ""), finisher);
+    }
+
+    // CONSIDER making this an instance method (carefully!)
+    public static boolean isCountInterimInversions(Config config) {
+        return config.getBoolean("huskyhelper", "countinteriminversions");
+    }
+
+    /**
+     * Method to yield the expected number of inversions for a random array of length n.
+     *
+     * @param n the length of the array.
+     * @return the expected number of inversions: n * (n-1) / 4.
+     */
+    public static double expectedInversions(int n) {
+        return 0.25 * n * (n - 1);
     }
 
     /**
@@ -85,13 +97,19 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             huskyHelper.close();
             if (adjunctSorter != null) {
                 adjunctSorter.close();
-                final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
-                if (delegateHelper != null && delegateHelper.instrumented()) {
-                    StatPack statPack = delegateHelper.getStatPack();
-                    if (statPack != null) logInterimInversions(delegateHelper, statPack);
-                }
+                closed = true;
             }
         }
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    private StatPack getStatPack() {
+        final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
+        if (delegateHelper != null && delegateHelper.instrumented()) return delegateHelper.getStatPack();
+        else return null;
     }
 
     /**
@@ -238,15 +256,17 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         final int gt;
     }
 
-    private void logInterimInversions(InstrumentedHelper<X> delegateHelper, StatPack statPack) {
-        Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
-        double mean = fixes.mean();
-        int n = delegateHelper.getN();
-        // NOTE the mean number of inversions for a random array is N * (N - 1) / 4
-        String percentage = formatDecimal3Places((1.0 - mean * 4 / n / (n - 1)) * 100);
-        logger.debug("HuskySort interim inversions: " + asInt(mean));
-        logger.info("HuskySort first pass success rate: " + percentage + "%");
+    public double getMeanInterimInversions() {
+        StatPack statPack = getStatPack();
+        if (closed && statPack != null) {
+            Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
+            if (fixes != null) return fixes.mean();
+            else throw new RuntimeException("Cannot get fixes from StatPack");
+        } else throw new RuntimeException("Cannot get statPack or not closed");
     }
 
     private final SortWithHelper<X> adjunctSorter;
+
+    private boolean closed;
+
 }

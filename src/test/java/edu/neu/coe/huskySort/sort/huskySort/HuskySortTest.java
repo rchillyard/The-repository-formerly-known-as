@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("MagicConstant")
 public class HuskySortTest {
@@ -162,45 +163,28 @@ public class HuskySortTest {
     public void testSortString4() {
         final int N = 1000;
         final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
-        Config config1 = config.copy("huskyhelper", "countinteriminversions", "false");
-        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.asciiCoder, N, config1);
-        final HuskyHelper<String> helper = sorter.getHelper();
-        helper.init(N);
-        final String[] xs = helper.random(String.class, r -> "00000000" + r.nextInt(10000));
-        final int inversionsOriginal = helper.inversions(xs);
-        System.out.println("inversions: " + inversionsOriginal);
-        sorter.preProcess(xs);
-        final String[] ys = sorter.sort(xs);
-        assertTrue("sorted", helper.sorted(ys));
-        sorter.postProcess(ys);
-        sorter.close();
-        SortWithHelper<String> adjunctSorter = sorter.getAdjunctSorter();
-        Helper<String> helper1 = adjunctSorter.getHelper();
-        final InstrumentedHelper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper1, null);
-        assertNull(delegateHelper);
+        doTestIntroHuskySort(N, config, "false", false, "00000000", 0.0, 10.0);
     }
 
     @Test
     public void testSortString5() {
         final int N = 1000;
         final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
-        Config config1 = config.copy("huskyhelper", "countinteriminversions", "true");
-        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.asciiCoder, N, config1);
-        final HuskyHelper<String> helper = sorter.getHelper();
-        helper.init(N);
-        final String[] xs = helper.random(String.class, r -> "00000000" + r.nextInt(10000));
-        final int inversionsOriginal = helper.inversions(xs);
-        System.out.println("inversions: " + inversionsOriginal);
-        sorter.preProcess(xs);
-        final String[] ys = sorter.sort(xs);
-        assertTrue("sorted", helper.sorted(ys));
-        sorter.postProcess(ys);
-        sorter.close();
-        SortWithHelper<String> adjunctSorter = sorter.getAdjunctSorter();
-        Helper<String> helper1 = adjunctSorter.getHelper();
-        final InstrumentedHelper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper1, null);
-        assertNotNull(delegateHelper);
-        assertEquals(0, helper.inversions(ys));
+        doTestIntroHuskySort(N, config, "true", true, "000000", 230, 100.0);
+    }
+
+    @Test
+    public void testSortString6() {
+        final int N = 1000;
+        final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
+        doTestIntroHuskySort(N, config, "true", true, "0000000", 2700.0, 1000.0);
+    }
+
+    @Test
+    public void testSortString7() {
+        final int N = 1000;
+        final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
+        doTestIntroHuskySort(N, config, "true", true, "00000000", 27398.0, 1000.0);
     }
 
     @SuppressWarnings("deprecation")
@@ -230,4 +214,25 @@ public class HuskySortTest {
     }
 
     private static Config config;
+
+    private void doTestIntroHuskySort(int n, Config config, String countInterimInversions, Boolean hasDelegateHelper, final String prefix, final double expected, final double delta) {
+        Config config1 = config.copy("huskyhelper", "countinteriminversions", countInterimInversions);
+        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.asciiCoder, n, config1);
+        final HuskyHelper<String> helper = sorter.getHelper();
+        helper.init(n);
+        final String[] xs = helper.random(String.class, r -> prefix + r.nextInt(10000));
+        final int inversionsOriginal = helper.inversions(xs);
+        System.out.println("inversions: " + inversionsOriginal);
+        sorter.preProcess(xs);
+        final String[] ys = sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(ys));
+        sorter.postProcess(ys);
+        sorter.close();
+        SortWithHelper<String> adjunctSorter = sorter.getAdjunctSorter();
+        Helper<String> helper1 = adjunctSorter.getHelper();
+        final InstrumentedHelper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper1, null);
+        assertEquals(hasDelegateHelper, delegateHelper != null);
+        if (hasDelegateHelper && sorter.isClosed()) assertEquals(expected, sorter.getMeanInterimInversions(), delta);
+    }
+
 }

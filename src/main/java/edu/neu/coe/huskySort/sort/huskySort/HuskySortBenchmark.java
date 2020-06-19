@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
-import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
+import static edu.neu.coe.huskySort.util.Utilities.*;
 
 public class HuskySortBenchmark {
 
@@ -143,8 +143,11 @@ public class HuskySortBenchmark {
         if (isConfigBenchmarkStringSorter("introsort"))
             runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, config), timeLoggersLinearithmic);
 
-        if (isConfigBenchmarkStringSorter("introhuskysort"))
-            runStringSortBenchmark(words, nWords, nRuns, IntroHuskySort.createIntroHuskySortWithInversionCount(UNICODE_CODER, nWords, config), timeLoggersLinearithmic);
+        if (isConfigBenchmarkStringSorter("introhuskysort")) {
+            IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(UNICODE_CODER, nWords, config);
+            runStringSortBenchmark(words, nWords, nRuns, sorter, timeLoggersLinearithmic);
+            if (IntroHuskySort.isCountInterimInversions(config) && sorter.isClosed()) logInterimInversions(nWords, sorter);
+        }
 
         if (isConfigBenchmarkStringSorter("quickhuskysort"))
             runStringSortBenchmark(words, nWords, nRuns, new QuickHuskySort<>(UNICODE_CODER, config), timeLoggersLinearithmic);
@@ -279,6 +282,13 @@ public class HuskySortBenchmark {
         final SortWithHelper<ChronoLocalDateTime<?>> sorter = whichSort == 0 ? new TimSort<>() : whichSort == 1 ? new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder, config) : new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, config);
         @SuppressWarnings("unchecked") final SorterBenchmark<ChronoLocalDateTime<?>> sorterBenchmark = new SorterBenchmark<>((Class<ChronoLocalDateTime<?>>) tClass, (xs) -> Arrays.copyOf(xs, xs.length), sorter, dateTimes, m, timeLoggersLinearithmic);
         sorterBenchmark.run(N);
+    }
+
+    private static void logInterimInversions(int nWords, IntroHuskySort<String> sorter) {
+        double mean = sorter.getMeanInterimInversions();
+        String percentage = formatDecimal3Places((1.0 - mean / IntroHuskySort.expectedInversions(nWords)) * 100);
+        logger.debug("HuskySort interim inversions: " + asInt(mean));
+        logger.info("HuskySort first pass success rate: " + percentage + "%");
     }
 
     private static double lg(double n) {
