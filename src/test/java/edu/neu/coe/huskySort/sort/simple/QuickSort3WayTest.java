@@ -15,8 +15,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.runStringSortBenchmark;
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.timeLoggersLinearithmic;
 import static edu.neu.coe.huskySort.util.Utilities.round;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -201,19 +199,6 @@ public class QuickSort3WayTest {
 				assertTrue(inversions <= fixes);
 				assertEquals(13, privateMethodTester.invokePrivate("getSwaps"));
 		}
-
-    @Test
-    public void smallStringSort() throws IOException {
-        Config config = Config.load(null);
-        final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
-        int k = 20;
-        int n = k * k;
-        helper.init(n);
-        String[] words = setupWords(k);
-        String[] xs = helper.random(String.class, r -> words[r.nextInt(n)]);
-        SortWithHelper<String> sorter = new QuickSort_3way<>(helper);
-        runStringSortBenchmark(xs, n, 1, sorter, timeLoggersLinearithmic);
-    }
 
     private static String[] setupWords(final int n) {
         if (n > 36) throw new RuntimeException("cannot have n > 36");

@@ -3,11 +3,12 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
 import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.Sort;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyBucketHelper;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
 /**
  * @param <X> the underlying type which must
@@ -47,7 +48,7 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
             bucket[index].add(xs[i]);
         }
 
-        HuskyBucketHelper.unloadBuckets(bucket, xs, helper);
+        unloadBuckets(bucket, xs, helper);
 
         logger.info(insertionSort.toString());
         logger.info(helper.inversions(xs));
@@ -86,6 +87,31 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
     final static LazyLogger logger = new LazyLogger(BucketSort.class);
 
     public static final String DESCRIPTION = "Bucket sort";
+
+    /**
+     * Method to unload and sort the buckets into the array xs.
+     * @param buckets an array of Bag of X elements.
+     * @param xs an array of X elements to be filled.
+     * @param helper a helper whose compare method we will use.
+     * @param <X> the underlying type of the array and the Helper.
+     */
+    @SuppressWarnings("unchecked")
+    private static <X extends Comparable<X>> void unloadBuckets(Bag<X>[] buckets, X[] xs, final Helper<X> helper) {
+        Index index = new Index();
+        Arrays.stream(buckets).forEach(xes -> {
+            final Object[] objects = xes.asArray();
+            Arrays.sort(objects, (o, t1) -> helper.compare((X) o, (X) t1));
+            for (Object x : objects) xs[index.getNext()] = (X) x;
+        });
+    }
+
+    static class Index {
+        int index = 0;
+
+        int getNext() {
+            return index++;
+        }
+    }
 
     private final BaseHelper<X> helper;
     private final Bag<X>[] bucket;
