@@ -81,6 +81,7 @@ public interface Helper<X extends Comparable<X>> {
         final X w = xs[j];
         boolean result = v.compareTo(w) > 0;
         if (result) {
+            // CONSIDER invoking swap
             xs[i] = w;
             xs[j] = v;
         }
@@ -110,7 +111,7 @@ public interface Helper<X extends Comparable<X>> {
      * i.e. between xs[i] and xs[j] such that xs[j] is moved to index i,
      * and xs[i] thru xs[j-1] are all moved up one.
      * This type of swap is used by insertion sort.
-     *
+     * <p>
      * TODO this method does not seem to work.
      *
      * @param xs the array of Xs.
@@ -136,6 +137,7 @@ public interface Helper<X extends Comparable<X>> {
 
     /**
      * Copy the element at source[j] into target[i]
+     *
      * @param source the source array.
      * @param i      the target index.
      * @param target the target array.
@@ -144,26 +146,26 @@ public interface Helper<X extends Comparable<X>> {
     void copy(X[] source, int i, X[] target, int j);
 
     /**
-		 * TODO eliminate this method as it has been superseded by swapConditional. However, maybe the latter is a better name.
-		 * Method to fix a potentially unstable inversion.
-		 *
-		 * @param xs the array of X elements.
-		 * @param i  the index of the lower of the elements to be swapped.
-		 * @param j  the index of the higher of the elements to be swapped.
-		 */
+     * TODO eliminate this method as it has been superseded by swapConditional. However, maybe the latter is a better name.
+     * Method to fix a potentially unstable inversion.
+     *
+     * @param xs the array of X elements.
+     * @param i  the index of the lower of the elements to be swapped.
+     * @param j  the index of the higher of the elements to be swapped.
+     */
     default void fixInversion(X[] xs, int i, int j) {
-				swapConditional(xs, i, j);
+        swapConditional(xs, i, j);
     }
 
-		/**
-		 * TODO eliminate this method as it has been superseded by swapStableConditional. However, maybe the latter is a better name.
-		 * Method to fix a stable inversion.
-		 *
-		 * @param xs the array of X elements.
-		 * @param i  the index of the higher of the adjacent elements to be swapped.
-		 */
+    /**
+     * TODO eliminate this method as it has been superseded by swapStableConditional. However, maybe the latter is a better name.
+     * Method to fix a stable inversion.
+     *
+     * @param xs the array of X elements.
+     * @param i  the index of the higher of the adjacent elements to be swapped.
+     */
     default void fixInversion(X[] xs, int i) {
-				swapStableConditional(xs, i);
+        swapStableConditional(xs, i);
     }
 
     /**
@@ -177,7 +179,7 @@ public interface Helper<X extends Comparable<X>> {
     /**
      * Count the number of inversions of this array.
      *
-     * @param xs   an array of Xs.
+     * @param xs an array of Xs.
      * @return the number of inversions.
      */
     int inversions(X[] xs);
@@ -191,8 +193,9 @@ public interface Helper<X extends Comparable<X>> {
 
     /**
      * Method to generate an array of randomly chosen X elements.
+     *
      * @param clazz the class of X.
-     * @param f a function which takes a Random and generates a random value of X.
+     * @param f     a function which takes a Random and generates a random value of X.
      * @return an array of X of length determined by the current value according to setN.
      */
     X[] random(Class<X> clazz, Function<Random, X> f);

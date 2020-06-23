@@ -41,9 +41,9 @@ public interface GenericSort<X> {
     }
 
     /**
-     * Generic, mutating sort method which operates on a sub-array
+     * Generic, mutating sort method which operates on a sub-array.
      *
-     * @param xs   sort the array xs from "from" to "to".
+     * @param xs   sort the array xs from "from" until "to" (exclusive of to).
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
@@ -61,5 +61,4 @@ public interface GenericSort<X> {
         mutatingSort(array);
         return Arrays.asList(array);
     }
-
 }

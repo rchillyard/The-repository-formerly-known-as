@@ -16,15 +16,15 @@ import edu.neu.coe.huskySort.util.Config;
 public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**
-		 * Constructor for ShellSort
-		 *
-		 * @param N      the number elements we expect to sort.
-		 * @param config the configuration.
-		 */
-		public ShellSort(int m, int N, Config config) {
-				super(DESCRIPTION, N, config);
-				this.m = m;
-		}
+     * Constructor for ShellSort
+     *
+     * @param N      the number elements we expect to sort.
+     * @param config the configuration.
+     */
+    public ShellSort(int m, int N, Config config) {
+        super(DESCRIPTION, N, config);
+        this.m = m;
+    }
 
     public ShellSort() {
         this(3, new BaseHelper<>(DESCRIPTION));

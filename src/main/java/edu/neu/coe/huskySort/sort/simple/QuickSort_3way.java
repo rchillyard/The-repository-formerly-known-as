@@ -55,10 +55,6 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
 
     class Partitioner_3Way implements Partitioner<X> {
 
-        public Partitioner_3Way(Helper<X> helper) {
-            this.helper = helper;
-        }
-
         /**
          * Method to partition the given partition into smaller partitions.
          *
@@ -66,7 +62,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
          * @return an array of partitions, whose length depends on the sorting method being used.
          */
         public List<Partition<X>> partition(Partition<X> partition) {
-//            logger.debug("partition on " + partition);
+            // CONSIDER merge with Partitioner_DualPivot
             X[] xs = partition.xs;
             int lt = partition.from;
             int gt = partition.to - 1;
@@ -94,6 +90,10 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
             partitions.add(new Partition<>(xs, partition.from, lt));
             partitions.add(new Partition<>(xs, gt + 1, partition.to));
             return partitions;
+        }
+
+        public Partitioner_3Way(Helper<X> helper) {
+            this.helper = helper;
         }
 
         private void swap(X[] ys, int i, int j) {

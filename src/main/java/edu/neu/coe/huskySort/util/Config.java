@@ -1,5 +1,6 @@
 package edu.neu.coe.huskySort.util;
 
+import edu.neu.coe.huskySort.sort.BaseHelper;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 
@@ -14,13 +15,34 @@ import java.util.Map;
 
 @SuppressWarnings("SuspiciousMethodCalls")
 public class Config {
+
+    /**
+     * Method to copy this Config, but setting sectionName.optionName to be value.
+     *
+     * @param sectionName the section name.
+     * @param optionName  the option name.
+     * @param value       the new value.
+     * @return a new Config as described.
+     */
+    public Config copy(String sectionName, String optionName, String value) {
+        Ini ini = new Ini();
+        for (Map.Entry<String, Profile.Section> entry : this.ini.entrySet())
+            for (Map.Entry<String, String> x : entry.getValue().entrySet())
+                ini.put(entry.getKey(), x.getKey(), x.getValue());
+        Config result = new Config(ini);
+        Profile.Section section = result.ini.get(sectionName);
+        section.replace(optionName, value);
+        result.ini.replace(sectionName, section);
+        return result;
+    }
+
     public String get(Object sectionName, Object optionName) {
         return get(sectionName, optionName, String.class);
     }
 
     public <T> T get(Object sectionName, Object optionName, Class<T> clazz) {
         final T t = ini.get(sectionName, optionName, clazz);
-        if (!getSetLogged(sectionName + "." + optionName))
+        if (unLogged(sectionName + "." + optionName))
             logger.debug(() -> "Config.get(" + sectionName + ", " + optionName + ") = " + t);
         return t;
     }
@@ -43,7 +65,7 @@ public class Config {
 
     public String getComment(String key) {
         final String comment = ini.getComment(key);
-        if (!getSetLogged(key))
+        if (unLogged(key))
             logger.debug(() -> "Config.getComment(" + key + ") = " + comment);
         return comment;
     }
@@ -98,8 +120,9 @@ public class Config {
         return getBoolean(HELPER, INSTRUMENT);
     }
 
+    // CONSIDER: sort these out.
     public static final String HELPER = "helper";
-    public static final String INSTRUMENT = "instrument";
+    public static final String INSTRUMENT = BaseHelper.INSTRUMENT;
 
     /**
      * Method to load the appropriate configuration.
@@ -126,17 +149,19 @@ public class Config {
         return load(null);
     }
 
-    private boolean getSetLogged(String s) {
+    private boolean unLogged(String s) {
         Boolean value = logged.get(s);
         if (value == null) {
             logged.put(s, true);
-            return false;
+            return true;
         }
-        return value;
+        return !value;
     }
 
     final static LazyLogger logger = new LazyLogger(Config.class);
 
-    private final Map<String, Boolean> logged = new HashMap<>();
+    // NOTE this is static because, otherwise, we get too much logging when we copy a Config that hasn't had all enquiries made yet.
+    private static final Map<String, Boolean> logged = new HashMap<>();
+
     private final Ini ini;
 }

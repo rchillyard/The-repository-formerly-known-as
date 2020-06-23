@@ -93,18 +93,6 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
         return false;
     }
 
-    /**
-     * NOTE: This method looks like it can be removed.
-     * However, it is required so that it can be found by PrivateMethodTester in unit tests.
-     * Once, there is a workaround, we can safely remove this declaration.
-     *
-     * @return an instance of InsertionSort on X.
-     */
-    @Override
-    public InsertionSort<X> getInsertionSort() {
-        return super.getInsertionSort();
-    }
-
     public static final String DESCRIPTION = "Intro sort";
 
     /*

@@ -42,7 +42,9 @@ public class PrivateMethodTesterTest {
     }
 
     @SuppressWarnings("SameReturnValue")
-    private static int one() { return 1; }
+    private static int one() {
+        return 1;
+    }
 
     @Test
     public void testStatic() {
