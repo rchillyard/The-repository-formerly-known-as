@@ -25,6 +25,16 @@ public class HuskySortHelper {
         }
     };
 
+    public final static HuskyCoder<String> printableAsciiCoder = new HuskyCoder<String>() {
+        public long huskyEncode(String str) {
+            return printableAsciiToLong(str);
+        }
+
+        public boolean imperfect() {
+            return true;
+        }
+    };
+
     public final static HuskyCoder<String> unicodeCoder = new HuskyCoder<String>() {
         // TEST
         @Override
@@ -138,10 +148,32 @@ public class HuskySortHelper {
         return charArrayToLong(str.toCharArray(), maxLength, bitWidth);
     }
 
+    private static long printableAsciiToLong(String str) {
+        int maxLength = 10, bitWidth = 6;
+        char[] charArray = str.toCharArray();
+        int length = Math.min(charArray.length, maxLength);
+        long result = 0;
+        for (int i = 0; i < length; i++) {
+            long value = charArray[i];
+            if(value != 32) {
+                if (value < 65)
+                    value -= 15;
+                else if (value < 97)
+                    value -= 22;
+                else
+                    value -= 28;
+            }
+            value -= 32;
+            result = result << bitWidth | value;
+        }
+        result = result << (bitWidth * (maxLength - length));
+        return result;
+    }
+
     private static long charArrayToLong(char[] charArray, int maxLength, int bitWidth) {
         int length = Math.min(charArray.length, maxLength);
         long result = 0;
-        for (int i = 0; i < length; i++) result = result << bitWidth | (long) charArray[i];
+        for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
         result = result << (bitWidth * (maxLength - length));
         return result;
     }
