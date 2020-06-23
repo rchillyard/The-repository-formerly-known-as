@@ -153,19 +153,7 @@ public class HuskySortHelper {
         char[] charArray = str.toCharArray();
         int length = Math.min(charArray.length, maxLength);
         long result = 0;
-        for (int i = 0; i < length; i++) {
-            long value = charArray[i];
-            if(value != 32) {
-                if (value < 65)
-                    value -= 15;
-                else if (value < 97)
-                    value -= 22;
-                else
-                    value -= 28;
-            }
-            value -= 32;
-            result = result << bitWidth | value;
-        }
+        for (int i = 0; i < length; i++) result = result << bitWidth | (charArray[i] & 0x3F);
         result = result << (bitWidth * (maxLength - length));
         return result;
     }

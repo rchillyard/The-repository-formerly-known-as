@@ -240,7 +240,7 @@ public class HuskySortBenchmark {
         return 0.25 * n * (n - 1);
     }
 
-    private static List<String> lineAsList(String line) {
+    static List<String> lineAsList(String line) {
         List<String> words = new ArrayList<>();
         words.add(line);
         return words;
