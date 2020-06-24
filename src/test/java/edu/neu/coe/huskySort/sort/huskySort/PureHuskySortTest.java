@@ -72,7 +72,7 @@ public class PureHuskySortTest {
         PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskySortHelper.printableAsciiCoder);
         Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);
         final double time = benchmark.run(() -> Utilities.fillRandomArray(String.class, random, N, r -> words[r.nextInt(words.length)]), 200);
-        assertEquals(0.25, time, 0.05);
+        assertEquals(0.24, time, 0.05);
         for (TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(time, N);
     }
 }

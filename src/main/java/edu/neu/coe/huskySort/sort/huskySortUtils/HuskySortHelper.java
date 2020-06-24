@@ -25,6 +25,15 @@ public class HuskySortHelper {
         }
     };
 
+    /**
+     * This should work correctly for all 52 English characters (upper and lower case),
+     * as well as the following 11 characters: @ [ \ ] ^ _ ` { | } ~
+     *
+     * But, in any case, we are only optimizing for printable ascii characters here.
+     * If the long encoding is off for some reason (like there's a number embedded in the name),
+     * it's no big deal.
+     * It just means that the final pass will have to work a bit harder to fix the extra inversion.
+     */
     public final static HuskyCoder<String> printableAsciiCoder = new HuskyCoder<String>() {
         public long huskyEncode(String str) {
             return printableAsciiToLong(str);
@@ -149,20 +158,22 @@ public class HuskySortHelper {
     }
 
     private static long printableAsciiToLong(String str) {
-        int maxLength = 10, bitWidth = 6;
-        char[] charArray = str.toCharArray();
-        int length = Math.min(charArray.length, maxLength);
-        long result = 0;
-        for (int i = 0; i < length; i++) result = result << bitWidth | (charArray[i] & 0x3F);
-        result = result << (bitWidth * (maxLength - length));
+        final int maxLength = 10, bitWidth = 6;
+        final char[] charArray = str.toCharArray();
+        final int length = Math.min(charArray.length, maxLength);
+        final int padding = maxLength - length;
+        long result = 0L;
+        for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i] & 0x3F;
+        result = result << bitWidth * padding;
         return result;
     }
 
     private static long charArrayToLong(char[] charArray, int maxLength, int bitWidth) {
-        int length = Math.min(charArray.length, maxLength);
-        long result = 0;
+        final int length = Math.min(charArray.length, maxLength);
+        final int padding = maxLength - length;
+        long result = 0L;
         for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
-        result = result << (bitWidth * (maxLength - length));
+        result = result << bitWidth * padding;
         return result;
     }
 
