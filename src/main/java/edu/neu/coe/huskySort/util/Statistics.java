@@ -43,7 +43,6 @@ public class Statistics {
 
     @Override
     public String toString() {
-        //noinspection StringBufferReplaceableByString
         final StringBuilder sb = new StringBuilder().append(property).append(": ");
         if (updated) {
             final boolean stats = stdDev() > 0.0;
@@ -51,8 +50,7 @@ public class Statistics {
             sb.append(s).append(Utilities.asInt(mean()));
             if (stats)
                 sb.append("; stdDev=").append(Utilities.asInt(stdDev()));
-        }
-        else
+        } else
             sb.append("<unset>");
         return sb.toString();
     }

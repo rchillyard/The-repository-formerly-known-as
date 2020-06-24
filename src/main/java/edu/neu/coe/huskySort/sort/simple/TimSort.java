@@ -26,15 +26,15 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
         super(helper);
     }
 
-		/**
-		 * Constructor for TimSort
-		 *
-		 * @param N      the number elements we expect to sort.
-		 * @param config the configuration.
-		 */
-		public TimSort(int N, Config config) {
-				super(DESCRIPTION, N, config);
-		}
+    /**
+     * Constructor for TimSort
+     *
+     * @param N      the number elements we expect to sort.
+     * @param config the configuration.
+     */
+    public TimSort(int N, Config config) {
+        super(DESCRIPTION, N, config);
+    }
 
     public TimSort() {
         this(new BaseHelper<>(DESCRIPTION));
