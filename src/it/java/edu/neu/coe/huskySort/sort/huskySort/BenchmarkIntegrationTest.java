@@ -51,13 +51,13 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void testStrings10K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1600);
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1575);
     }
 
     @Test
     public void testStrings100K() throws Exception {
         // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 75);
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 72);
     }
 
     @Test
@@ -67,12 +67,12 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void testDates100K() throws Exception {
-        benchmark.sortLocalDateTimes(40000);
+        benchmark.sortLocalDateTimes(44000);
     }
 
     @Test
     public void testStrings10KInstrumented() throws Exception {
-        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
+        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 950);
     }
 
 //    @Test(timeout = 140000)

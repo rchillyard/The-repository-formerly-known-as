@@ -155,20 +155,32 @@ public class HuskySortHelper {
     }
 
     private static long stringToLong(String str, int maxLength, int bitWidth) {
-        try {
-            Field field = str.getClass().getDeclaredField("value");
-            field.setAccessible(true);
-            char[] charArray = (char[]) field.get(str);
-            final int length = Math.min(charArray.length, maxLength);
-            final int padding = maxLength - length;
-            long result = 0L;
-            for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
-            result = result << bitWidth * padding;
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException("Here shouldn't be touched.", e);
-        }
-//        return charArrayToLong(str.toCharArray(), maxLength, bitWidth);
+        if (isGetCharArray) {
+            try {
+                Field field = String.class.getDeclaredField("value");
+                field.setAccessible(true);
+                char[] charArray = (char[]) field.get(str);
+                final int length = Math.min(charArray.length, maxLength);
+                final int padding = maxLength - length;
+                long result = 0L;
+                for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
+                result = result << bitWidth * padding;
+                return result;
+            } catch (Exception e) {
+                throw new RuntimeException("Here shouldn't be touched.", e);
+            }
+        } else
+            return stringToLongViaBytes(str, maxLength, bitWidth);
+    }
+
+    private static long stringToLongViaBytes(String str, int maxLength, int bitWidth) {
+        long result = 0L;
+        final byte[] bytes = str.getBytes();
+        final int length = Math.min(bytes.length, maxLength);
+        final int padding = maxLength - length;
+        for (int i = 0; i < length; i++) result = result << bitWidth | bytes[i];
+        result = result << bitWidth * padding;
+        return result;
     }
 
     private static long printableAsciiToLong(String str) {
@@ -286,4 +298,7 @@ public class HuskySortHelper {
         }
         return result;
     }
+
+    private final static boolean isGetCharArray = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
+
 }

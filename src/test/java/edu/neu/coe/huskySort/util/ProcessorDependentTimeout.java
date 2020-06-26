@@ -2,6 +2,8 @@ package edu.neu.coe.huskySort.util;
 
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
     /**
      * Create a {@code Timeout} instance with the timeout specified
@@ -14,6 +16,10 @@ public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
      * @since 4.12
      */
     public ProcessorDependentTimeout(long timeout, TimeUnit timeUnit, double speedFactor) {
-        super(Math.round(timeout * 1000 / speedFactor / 1000), timeUnit);
+        super(getFactoredMilliseconds(timeout, timeUnit, speedFactor), MILLISECONDS);
+    }
+
+    private static long getFactoredMilliseconds(long timeout, TimeUnit timeUnit, double speedFactor) {
+        return Math.round(MILLISECONDS.convert(timeout, timeUnit) * 1000 / speedFactor / 1000);
     }
 }
