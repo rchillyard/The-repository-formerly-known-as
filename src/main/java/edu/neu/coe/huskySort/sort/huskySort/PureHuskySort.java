@@ -1,12 +1,12 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
 
 /**
@@ -17,15 +17,23 @@ import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getW
 public class PureHuskySort<X extends Comparable<X>> {
 
     public static void main(String[] args) throws FileNotFoundException {
-        Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-        final String[] words = getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line));
-        PureHuskySort<String> sorter = new PureHuskySort<>(UNICODE_CODER);
-        sorter.sort(words);
-        for (int i = 1; i < words.length; i++)
-            if (words[i - 1].compareTo(words[i]) > 0) {
-                System.out.println("Not sorted!");
-                break;
-            }
+//        Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+//        final String[] words = getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line));
+//        PureHuskySort<String> sorter = new PureHuskySort<>(HuskySortHelper.unicodeCoder);
+//        sorter.sort(words);
+//        for (int i = 1; i < words.length; i++) {
+//            if (words[i - 1].compareTo(words[i]) > 0) {
+//                System.out.println("Not sorted!");
+//                break;
+//            }
+//        }
+
+        // Just for test purpose
+        PureHuskySort<String> sorter = new PureHuskySort<>(HuskySortHelper.asciiCoder);
+        for (int i = 0; i < 10000; i++) {
+            String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(50000, 4, 9);
+            sorter.sort(Arrays.copyOf(alphaBetaArray, alphaBetaArray.length));
+        }
     }
 
     /**
