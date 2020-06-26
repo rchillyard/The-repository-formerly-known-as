@@ -16,10 +16,51 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  */
 public class Benchmark<T> {
 
-		/**
-		 * Constructor for a Benchmark with option of specifying all three functions.
-		 *
-		 * @param description the description of the benchmark.
+    /**
+     * Calculate the appropriate number of warmup runs.
+     *
+     * @param m the number of runs.
+     * @return at least 2 and at most m/10.
+     */
+    static int getWarmupRuns(int m) {
+        return Integer.max(2, Integer.min(10, m / 10));
+    }
+
+    /**
+     * Run function f m times and return the average time in milliseconds.
+     *
+     * @param t the value that will in turn be passed to function f.
+     * @param m the number of times the function f will be called.
+     * @return the average number of milliseconds taken for each run of function f.
+     */
+    public double run(T t, int m) {
+        return run(() -> t, m);
+    }
+
+    /**
+     * Run function f m times and return the average time in milliseconds.
+     *
+     * @param supplier a Supplier of a T
+     * @param m        the number of times the function f will be called.
+     * @return the average number of milliseconds taken for each run of function f.
+     */
+    public double run(Supplier<T> supplier, int m) {
+        logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
+        // Warmup phase
+        final Function<T, T> function = t -> {
+            fRun.accept(t);
+            return t;
+        };
+        new Timer().repeat(getWarmupRuns(m), supplier, function, fPre, null);
+
+        // Timed phase
+        return new Timer().repeat(m, supplier, function, fPre, fPost);
+    }
+
+    /**
+     * Constructor for a Benchmark with option of specifying all three functions.
+     *
+     * @param description the description of the benchmark.
      * @param fPre        a function of T => T.
      *                    Function fPre is run before each invocation of fRun (but with the clock stopped).
      *                    The result of fPre (if any) is passed to fRun.
@@ -71,47 +112,6 @@ public class Benchmark<T> {
      */
     public Benchmark(String description, Consumer<T> f) {
         this(description, null, f, null);
-    }
-
-    /**
-     * Run function f m times and return the average time in milliseconds.
-     *
-     * @param t the value that will in turn be passed to function f.
-     * @param m the number of times the function f will be called.
-     * @return the average number of milliseconds taken for each run of function f.
-     */
-    public double run(T t, int m) {
-        return run(() -> t, m);
-    }
-
-    /**
-     * Run function f m times and return the average time in milliseconds.
-     *
-     * @param supplier a Supplier of a T
-     * @param m        the number of times the function f will be called.
-     * @return the average number of milliseconds taken for each run of function f.
-     */
-    public double run(Supplier<T> supplier, int m) {
-				logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
-        // Warmup phase
-        final Function<T, T> function = t -> {
-            fRun.accept(t);
-            return t;
-        };
-        new Timer().repeat(getWarmupRuns(m), supplier, function, fPre, null);
-
-        // Timed phase
-        return new Timer().repeat(m, supplier, function, fPre, fPost);
-    }
-
-    /**
-     * Calculate the appropriate number of warmup runs.
-     *
-     * @param m the number of runs.
-     * @return at least 2 and at most m/10.
-     */
-    static int getWarmupRuns(int m) {
-        return Integer.max(2, Integer.min(10, m / 10));
     }
 
     private final String description;

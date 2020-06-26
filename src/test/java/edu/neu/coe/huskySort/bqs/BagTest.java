@@ -83,7 +83,7 @@ public class BagTest {
         Bag<Integer> bag = new Bag_Array<>();
         for (int i = 0; i < 10; i++)
             bag.add(i);
-        for (int i = 0; i < 10; i+=2)
+        for (int i = 0; i < 10; i += 2)
             bag.add(i);
         assertEquals(2, bag.multiplicity(0));
         assertEquals(1, bag.multiplicity(9));

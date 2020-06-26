@@ -16,61 +16,10 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  */
 public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
-    /**
-     * Constructor for explicit random number generator.
-     *
-     * @param description the description of this Helper (for humans).
-     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     * @param random      a random number generator.
-     * @param config      the configuration (note that the seed value is ignored).
-     */
-    public InstrumentedHelper(String description, int n, Random random, Config config) {
-        super(description, n, random);
-        this.countCopies = config.getBoolean("instrumenting", "copies");
-        this.countSwaps = config.getBoolean("instrumenting", "swaps");
-        this.countCompares = config.getBoolean("instrumenting", "compares");
-        this.countInversions = config.getInt("instrumenting", INVERSIONS, 0);
-        this.countFixes = config.getBoolean("instrumenting", "fixes");
-        this.cutoff = config.getInt("helper", "cutoff", 0);
-        this.countIntermissionInversions = config.getBoolean("huskyhelper", "countintermissioninversions");
-    }
-
-    /**
-     * Constructor to create a Helper
-     *
-     * @param description the description of this Helper (for humans).
-     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     * @param config      The configuration.
-     */
-    public InstrumentedHelper(String description, int n, Config config) {
-        this(description, n, config.getLong("helper", "seed", System.currentTimeMillis()), config);
-    }
-
-    /**
-     * Constructor to create a Helper
-     *
-     * @param description the description of this Helper (for humans).
-     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
-     * @param seed        the seed for the random number generator.
-     * @param config        the configuration.
-     */
-    public InstrumentedHelper(String description, int n, long seed, Config config) {
-        this(description, n, new Random(seed), config);
-    }
-
-    /**
-     * Constructor to create a Helper with a random seed and an n value of 0.
-     * <p>
-     * NOTE: this constructor is used only by unit tests
-     *
-     * @param description the description of this Helper (for humans).
-     */
-    public InstrumentedHelper(String description, Config config) {
-        this(description, 0, config);
-    }
-
+    final static LazyLogger logger = new LazyLogger(InstrumentedHelper.class);
+    
     public static <Y extends Comparable<Y>> InstrumentedHelper<Y> getInstrumentedHelper(Helper<Y> helper, InstrumentedHelper<Y> alternative) {
-        return helper.getClass().isAssignableFrom(InstrumentedHelper.class) ? (InstrumentedHelper<Y>) helper : alternative;
+        return InstrumentedHelper.class.isAssignableFrom(helper.getClass()) ? (InstrumentedHelper<Y>) helper : alternative;
     }
 
     public boolean instrumented() {
@@ -92,7 +41,8 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     /**
      * Swap the elements of array a at indices i and j.
-     *  @param xs the array.
+     *
+     * @param xs the array.
      * @param i  one of the indices.
      * @param j  the other index.
      */
@@ -160,6 +110,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      */
     @Override
     public boolean swapStableConditional(X[] xs, int i) {
+        // CONSIDER invoke super-method
         final X v = xs[i];
         final X w = xs[i - 1];
         boolean result = v.compareTo(w) < 0;
@@ -179,6 +130,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     /**
      * Copy the element at source[j] into target[i]
+     *
      * @param source the source array.
      * @param i      the target index.
      * @param target the target array.
@@ -200,6 +152,8 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     public void incrementCopies(int n) {
         if (countCopies) copies += n;
     }
+
+    // NOTE: the following private methods are only for testing.
 
     /**
      * If instrumenting, increment the number of fixes by n.
@@ -263,10 +217,11 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         compares = 0;
         swaps = 0;
         copies = 0;
+        fixes = 0;
         // NOTE: it's an error to reset the StatPack if we've been here before
         if (n == this.n && statPack != null) return;
         super.init(n);
-        statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES, INTERMISSION_INVERSIONS);
+        statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES, INTERIM_INVERSIONS);
     }
 
     /**
@@ -325,26 +280,71 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         super.close();
     }
 
-    public boolean isCountIntermissionInversions() {
-        return countIntermissionInversions;
-    }
-
-    final static LazyLogger logger = new LazyLogger(InstrumentedHelper.class);
-
-    private static final String SWAPS = "swaps";
-    private static final String COMPARES = "compares";
-    private static final String COPIES = "copies";
-    public static final String INVERSIONS = "inversions";
-    public static final String INTERMISSION_INVERSIONS = "intermissioninversions";
-    private static final String FIXES = "fixes";
-
-    private final int cutoff;
-
-    // NOTE: the following private methods are only for testing.
-
-    private StatPack getStatPack() {
+    public StatPack getStatPack() {
         return statPack;
     }
+
+    /**
+     * Constructor for explicit random number generator.
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param random      a random number generator.
+     * @param config      the configuration (note that the seed value is ignored).
+     */
+    public InstrumentedHelper(String description, int n, Random random, Config config) {
+        super(description, n, random);
+        this.countCopies = config.getBoolean(INSTRUMENTING, COPIES);
+        this.countSwaps = config.getBoolean(INSTRUMENTING, SWAPS);
+        this.countCompares = config.getBoolean(INSTRUMENTING, COMPARES);
+        this.countInversions = config.getInt(INSTRUMENTING, INVERSIONS, 0);
+        this.countFixes = config.getBoolean(INSTRUMENTING, FIXES);
+        this.cutoff = config.getInt("helper", "cutoff", 0);
+    }
+
+    /**
+     * Constructor to create a Helper
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param config      The configuration.
+     */
+    public InstrumentedHelper(String description, int n, Config config) {
+        this(description, n, config.getLong("helper", "seed", System.currentTimeMillis()), config);
+    }
+
+    /**
+     * Constructor to create a Helper
+     *
+     * @param description the description of this Helper (for humans).
+     * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
+     * @param seed        the seed for the random number generator.
+     * @param config      the configuration.
+     */
+    public InstrumentedHelper(String description, int n, long seed, Config config) {
+        this(description, n, new Random(seed), config);
+    }
+
+    /**
+     * Constructor to create a Helper with a random seed and an n value of 0.
+     * <p>
+     * NOTE: this constructor is used only by unit tests
+     *
+     * @param description the description of this Helper (for humans).
+     */
+    public InstrumentedHelper(String description, Config config) {
+        this(description, 0, config);
+    }
+
+    public static final String SWAPS = "swaps";
+    public static final String COMPARES = "compares";
+    public static final String COPIES = "copies";
+    public static final String INVERSIONS = "inversions";
+    public static final String INTERIM_INVERSIONS = "interiminversions";
+    public static final String FIXES = "fixes";
+    public static final String INSTRUMENTING = "instrumenting";
+
+    // NOTE: the following private methods are only for testing.
 
     private int getCompares() {
         return compares;
@@ -358,22 +358,16 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
         return fixes;
     }
 
+    private final int cutoff;
+    private final boolean countCopies;
+    private final boolean countSwaps;
+    private final boolean countCompares;
+    private final boolean countFixes;
     private StatPack statPack;
     private int compares = 0;
     private int swaps = 0;
     private int copies = 0;
     private int fixes = 0;
-    private final boolean countCopies;
-    private final boolean countSwaps;
-    private final boolean countCompares;
     private int countInversions;
-    private final boolean countFixes;
-    private final boolean countIntermissionInversions;
     private int maxDepth = 0;
-
-    public void setIntermissionInversions(int inversions) {
-        if (countIntermissionInversions)
-            if (statPack != null) statPack.add(INTERMISSION_INVERSIONS, inversions);
-            else throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
-    }
 }

@@ -25,10 +25,10 @@ import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getW
  */
 
 @SuppressWarnings("ALL")
-public class BenchmarkIntegrationTest {
+public class QuickBenchmarkIntegrationTest {
 
     private final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-    private static Logger logger = new LazyLogger(BenchmarkIntegrationTest.class);
+    private static Logger logger = new LazyLogger(QuickBenchmarkIntegrationTest.class);
     private static HuskySortBenchmark benchmark;
     private static Config config;
 
@@ -41,34 +41,19 @@ public class BenchmarkIntegrationTest {
     }
 
     @Test
-    public void testStrings10K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
-    }
-
-    @Test(timeout = 140000)
-    public void testStrings100K() throws Exception {
-        // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200);
+    public void testStrings1K() throws Exception {
+        // NOTE: this is a very quick version of the other integration tests.
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 1000, 100);
     }
 
     @Test
-    public void testDates10K() throws Exception {
-        benchmark.sortLocalDateTimes(10000);
+    public void testDates1K() throws Exception {
+        benchmark.sortLocalDateTimes(1000);
     }
 
     @Test
-    public void testDates100K() throws Exception {
-        benchmark.sortLocalDateTimes(100000);
+    public void testStrings1KInstrumented() throws Exception {
+        // NOTE: this is a very quick version of the other integration tests.
+        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 1000, 100);
     }
-
-    @Test
-    public void testStrings10KInstrumented() throws Exception {
-        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
-    }
-
-//    @Test(timeout = 140000)
-//    public void testStrings100KInstrumented() throws Exception {
-//        // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
-//        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200);
-//    }
 }

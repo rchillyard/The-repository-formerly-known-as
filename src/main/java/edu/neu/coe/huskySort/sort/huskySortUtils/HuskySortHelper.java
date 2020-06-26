@@ -147,7 +147,7 @@ public class HuskySortHelper {
     }
 
     // TEST
-    private static long longArrayToLong(long[] utf8, int maxLength, int bitWidth) {
+    private static long longArrayToLong(long[] utf8, @SuppressWarnings("SameParameterValue") int maxLength, @SuppressWarnings("SameParameterValue") int bitWidth) {
         int length = Math.min(utf8.length, maxLength);
         long result = 0;
         for (int i = 0; i < length; i++) result = result << bitWidth | utf8[i];
