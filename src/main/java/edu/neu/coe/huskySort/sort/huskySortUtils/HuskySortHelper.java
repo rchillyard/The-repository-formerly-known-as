@@ -166,7 +166,7 @@ public class HuskySortHelper {
             result = result << bitWidth * padding;
             return result;
         } catch (Exception e) {
-            throw new RuntimeException("Here shouldn't be touched.");
+            throw new RuntimeException("Here shouldn't be touched.", e);
         }
 //        return charArrayToLong(str.toCharArray(), maxLength, bitWidth);
     }
