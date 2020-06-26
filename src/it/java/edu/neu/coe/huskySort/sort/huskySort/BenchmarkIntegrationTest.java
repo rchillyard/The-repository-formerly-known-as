@@ -6,8 +6,10 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
+import edu.neu.coe.huskySort.util.MyTimeoutBuilder;
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,6 +33,11 @@ public class BenchmarkIntegrationTest {
     private static Logger logger = new LazyLogger(BenchmarkIntegrationTest.class);
     private static HuskySortBenchmark benchmark;
     private static Config config;
+    private final static double MacBook_2_8_GHz_Quad_Core_Intel_Core_i7 = 0.9;
+    private final static double YunluProcessor = 0.9;
+
+    @Rule
+    public MyTimeoutBuilder timeoutBuilder = new MyTimeoutBuilder(10000, MacBook_2_8_GHz_Quad_Core_Intel_Core_i7);
 
     @BeforeClass
     public static void BeforeClass() throws IOException {
@@ -42,23 +49,23 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void testStrings10K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1000);
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1600);
     }
 
-    @Test(timeout = 140000)
+    @Test
     public void testStrings100K() throws Exception {
         // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200);
+        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 75);
     }
 
     @Test
     public void testDates10K() throws Exception {
-        benchmark.sortLocalDateTimes(10000);
+        benchmark.sortLocalDateTimes(37000);
     }
 
     @Test
     public void testDates100K() throws Exception {
-        benchmark.sortLocalDateTimes(100000);
+        benchmark.sortLocalDateTimes(40000);
     }
 
     @Test

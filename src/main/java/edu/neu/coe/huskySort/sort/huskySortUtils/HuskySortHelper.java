@@ -3,6 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.nio.LongBuffer;
 import java.time.LocalDateTime;
@@ -18,6 +19,25 @@ public class HuskySortHelper {
     public final static HuskyCoder<String> asciiCoder = new HuskyCoder<String>() {
         public long huskyEncode(String str) {
             return asciiToLong(str);
+        }
+
+        public boolean imperfect() {
+            return true;
+        }
+    };
+
+    /**
+     * This should work correctly for all 52 English characters (upper and lower case),
+     * as well as the following 11 characters: @ [ \ ] ^ _ ` { | } ~
+     * <p>
+     * But, in any case, we are only optimizing for printable ascii characters here.
+     * If the long encoding is off for some reason (like there's a number embedded in the name),
+     * it's no big deal.
+     * It just means that the final pass will have to work a bit harder to fix the extra inversion.
+     */
+    public final static HuskyCoder<String> printableAsciiCoder = new HuskyCoder<String>() {
+        public long huskyEncode(String str) {
+            return printableAsciiToLong(str);
         }
 
         public boolean imperfect() {
@@ -135,14 +155,38 @@ public class HuskySortHelper {
     }
 
     private static long stringToLong(String str, int maxLength, int bitWidth) {
-        return charArrayToLong(str.toCharArray(), maxLength, bitWidth);
+        try {
+            Field field = str.getClass().getDeclaredField("value");
+            field.setAccessible(true);
+            char[] charArray = (char[]) field.get(str);
+            final int length = Math.min(charArray.length, maxLength);
+            final int padding = maxLength - length;
+            long result = 0L;
+            for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
+            result = result << bitWidth * padding;
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("Here shouldn't be touched.");
+        }
+//        return charArrayToLong(str.toCharArray(), maxLength, bitWidth);
+    }
+
+    private static long printableAsciiToLong(String str) {
+        final int maxLength = 10, bitWidth = 6;
+        final int length = Math.min(str.length(), maxLength);
+        final int padding = maxLength - length;
+        long result = 0L;
+        for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i) & 0x3F;
+        result = result << bitWidth * padding;
+        return result;
     }
 
     private static long charArrayToLong(char[] charArray, int maxLength, int bitWidth) {
-        int length = Math.min(charArray.length, maxLength);
-        long result = 0;
-        for (int i = 0; i < length; i++) result = result << bitWidth | (long) charArray[i];
-        result = result << (bitWidth * (maxLength - length));
+        final int length = Math.min(charArray.length, maxLength);
+        final int padding = maxLength - length;
+        long result = 0L;
+        for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
+        result = result << bitWidth * padding;
         return result;
     }
 
@@ -215,6 +259,20 @@ public class HuskySortHelper {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < number; i++) {
             result[i] = new Date(random.nextLong(new Date().getTime()));
+        }
+        return result;
+    }
+
+    public static String[] generateRandomAlphaBetaArray(int number, int minLength, int maxLength) {
+        char[] alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+
+        String[] result = new String[number];
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < number; i++) {
+            StringBuilder tmp = new StringBuilder();
+            int length = random.nextInt(minLength, maxLength + 1);
+            for (int j = 0; j < length; j++) tmp.append(alphabet[random.nextInt(0, 52)]);
+            result[i] = tmp.toString();
         }
         return result;
     }
