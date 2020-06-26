@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -34,12 +35,6 @@ public class BenchmarkIntegrationTest {
     private static Logger logger = new LazyLogger(BenchmarkIntegrationTest.class);
     private static HuskySortBenchmark benchmark;
     private static Config config;
-    private final static double MacBookPro_2_8_GHz_Quad_Core_Intel_Core_i7 = 0.9;
-    private final static double MacBookAir_1_6_GH_Dual_Core_Intel_Core_i5 = 0.68;
-    private final static double YunluProcessor = 1.0;
-
-    @Rule
-    public ProcessorDependentTimeout timeoutBuilder = new ProcessorDependentTimeout(10, TimeUnit.SECONDS, MacBookAir_1_6_GH_Dual_Core_Intel_Core_i5);
 
     @BeforeClass
     public static void BeforeClass() throws IOException {
@@ -48,6 +43,9 @@ public class BenchmarkIntegrationTest {
         String name = config.get("huskysort", "version");
         logger.info("HuskySortBenchmark.main: " + name);
     }
+
+    @Rule
+    public Timeout timeoutBuilder = new ProcessorDependentTimeout(10, TimeUnit.SECONDS, config);
 
     @Test
     public void testStrings10K() throws Exception {
