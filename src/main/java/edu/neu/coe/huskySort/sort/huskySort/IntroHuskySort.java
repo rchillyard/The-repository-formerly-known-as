@@ -257,12 +257,17 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     public double getMeanInterimInversions() {
-        StatPack statPack = getStatPack();
-        if (closed && statPack != null) {
-            Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
-            if (fixes != null) return fixes.mean();
-            else throw new RuntimeException("Cannot get fixes from StatPack");
-        } else throw new RuntimeException("Cannot get statPack or not closed");
+        if (adjunctSorter == null) {
+            logger.warn("IntroHuskySort.getMeanInterimInversions: interim inversions is not enabled. Use createIntroHuskySortWithInversionCount() instead");
+            return 0;
+        } else {
+            StatPack statPack = getStatPack();
+            if (closed && statPack != null) {
+                Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
+                if (fixes != null) return fixes.mean();
+                else throw new RuntimeException("Cannot get fixes from StatPack");
+            } else throw new RuntimeException("Cannot get statPack or not closed");
+        }
     }
 
     private final SortWithHelper<X> adjunctSorter;

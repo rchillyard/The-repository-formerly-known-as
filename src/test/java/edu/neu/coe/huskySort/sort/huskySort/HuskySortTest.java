@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomAlphaBetaArray;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -91,7 +92,7 @@ public class HuskySortTest {
             }
 
             @Override
-            public boolean imperfect() {
+            public boolean imperfect(int length) {
                 return true;
             }
         }, config);
@@ -185,6 +186,28 @@ public class HuskySortTest {
         final int N = 1000;
         final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
         doTestIntroHuskySort(N, config, "true", true, "00000000", 27398.0, 1200.0);
+    }
+
+    @Test
+    public void testSortString8() {
+        final int N = 1000;
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "true");
+        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.printableAsciiCoder, N, config);
+        final HuskyHelper<String> helper = sorter.getHelper();
+        helper.init(N);
+        String[] xs = generateRandomAlphaBetaArray(N, 4, 10);
+        final int inversionsOriginal = helper.inversions(xs);
+        System.out.println("inversions: " + inversionsOriginal);
+        sorter.preProcess(xs);
+        final String[] ys = sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(ys));
+        sorter.postProcess(ys);
+        sorter.close();
+        final Helper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper, (InstrumentedHelper<String>) helper.getHelper());
+        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(delegateHelper);
+        assertEquals(0, helper.inversions(ys));
+        double ii = sorter.getMeanInterimInversions();
+        assertEquals(0.0, ii, 10);
     }
 
     @SuppressWarnings("deprecation")

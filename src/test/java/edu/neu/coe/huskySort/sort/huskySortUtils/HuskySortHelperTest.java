@@ -15,16 +15,26 @@ public class HuskySortHelperTest {
     @Test
     public void testStringToLong() {
         final PrivateMethodTester tester = new PrivateMethodTester(HuskySortHelper.class);
-        assertEquals(0x48cbb36000000000L, ((Long) tester.invokePrivate("stringToLong", "Hell", 9, 7)).longValue());
-        assertEquals(0x48cbb366f0000000L, ((Long) tester.invokePrivate("stringToLong", "Hello", 9, 7)).longValue());
-        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Go", 9, 7)).longValue());
-        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7)).longValue());
+        assertEquals(0x48cbb36000000000L, ((Long) tester.invokePrivate("stringToLong", "Hell", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48cbb366f0000000L, ((Long) tester.invokePrivate("stringToLong", "Hello", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Go", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7, 0x7F)).longValue());
     }
 
     @Test
     public void testAsciiToLong() {
         String word = "a";
-        assertEquals(6989586621679009792L, asciiToLong(word));
+        long actual = asciiToLong(word);
+        assertEquals(0x6100000000000000L, actual);
+    }
+
+    @Test
+    public void testPrintableAsciiToLong() {
+        HuskyCoder<String> coder = HuskySortHelper.printableAsciiCoder;
+        assertEquals(0x0840000000000000L, coder.huskyEncode("a"));
+        assertEquals(0x0880000000000000L, coder.huskyEncode("b"));
+        assertEquals(0x0040000000000000L, coder.huskyEncode("A"));
+        assertEquals(0x0080000000000000L, coder.huskyEncode("B"));
     }
 
     @Test

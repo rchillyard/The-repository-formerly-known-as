@@ -16,13 +16,22 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class HuskySortHelper {
 
+    /**
+     * This should work correctly for all 52 English characters (upper and lower case),
+     * as well as the following 11 characters: @ [ \ ] ^ _ ` { | } ~
+     * <p>
+     * But, in any case, we are only optimizing for printable ascii characters here.
+     * If the long encoding is off for some reason (like there's a number embedded in the name),
+     * it's no big deal.
+     * It just means that the final pass will have to work a bit harder to fix the extra inversion.
+     */
     public final static HuskyCoder<String> asciiCoder = new HuskyCoder<String>() {
         public long huskyEncode(String str) {
             return asciiToLong(str);
         }
 
-        public boolean imperfect() {
-            return true;
+        public boolean imperfect(int length) {
+            return length > MAX_LENGTH_ASCII;
         }
     };
 
@@ -40,8 +49,8 @@ public class HuskySortHelper {
             return printableAsciiToLong(str);
         }
 
-        public boolean imperfect() {
-            return true;
+        public boolean imperfect(int length) {
+            return length > MAX_LENGTH_PRINTABLE;
         }
     };
 
@@ -54,7 +63,7 @@ public class HuskySortHelper {
 
         // TEST
         @Override
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             return true;
         }
     };
@@ -68,7 +77,7 @@ public class HuskySortHelper {
 
         // TEST
         @Override
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             return true;
         }
     };
@@ -80,7 +89,7 @@ public class HuskySortHelper {
         }
 
         @Override
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             // TODO this needs to be thoroughly checked
             return true;
         }
@@ -93,7 +102,7 @@ public class HuskySortHelper {
         }
 
         @Override
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             // TODO this needs to be thoroughly checked
             return false;
         }
@@ -109,7 +118,7 @@ public class HuskySortHelper {
 
         // TEST
         @Override
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             return true;
         }
     };
@@ -121,7 +130,7 @@ public class HuskySortHelper {
         }
 
         @Override
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             return true;
         }
     };
@@ -135,13 +144,13 @@ public class HuskySortHelper {
 
         // TEST
         @Override
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             return true;
         }
     };
 
     public static long asciiToLong(String str) {
-        return stringToLong(str, 9, 7);
+        return stringToLong(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, MASK_ASCII);
     }
 
     // TEST
@@ -151,55 +160,40 @@ public class HuskySortHelper {
 
     // TEST
     private static long unicodeToLong(String str) {
-        return stringToLong(str, 4, 16) >>> 1;
+        return stringToLong(str, 4, 16, 0xFFFF) >>> 1;
     }
 
-    private static long stringToLong(String str, int maxLength, int bitWidth) {
-        if (isGetCharArray) {
-            try {
-                Field field = String.class.getDeclaredField("value");
-                field.setAccessible(true);
-                char[] charArray = (char[]) field.get(str);
-                final int length = Math.min(charArray.length, maxLength);
-                final int padding = maxLength - length;
-                long result = 0L;
-                for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
-                result = result << bitWidth * padding;
-                return result;
-            } catch (Exception e) {
-                throw new RuntimeException("Here shouldn't be touched.", e);
-            }
-        } else
-            return stringToLongViaBytes(str, maxLength, bitWidth);
+    private static long stringToLong(String str, int maxLength, int bitWidth, int mask) {
+        if (isGetCharArray) try {
+            Field field = String.class.getDeclaredField("value");
+            field.setAccessible(true);
+            return charsToLong((char[]) field.get(str), maxLength, bitWidth, mask);
+        } catch (Exception e) {
+            throw new RuntimeException("Problem encoding String as long", e);
+        }
+        else return bytesToLong(str.getBytes(), maxLength, bitWidth, mask);
     }
 
-    private static long stringToLongViaBytes(String str, int maxLength, int bitWidth) {
+    private static long charsToLong(char[] charArray, int maxLength, int bitWidth, int mask) {
+        final int length = Math.min(charArray.length, maxLength);
+        final int padding = maxLength - length;
         long result = 0L;
-        final byte[] bytes = str.getBytes();
+        for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i] & mask;
+        result = result << bitWidth * padding;
+        return result;
+    }
+
+    private static long bytesToLong(byte[] bytes, int maxLength, int bitWidth, int mask) {
+        long result = 0L;
         final int length = Math.min(bytes.length, maxLength);
         final int padding = maxLength - length;
-        for (int i = 0; i < length; i++) result = result << bitWidth | bytes[i];
+        for (int i = 0; i < length; i++) result = result << bitWidth | bytes[i] & mask;
         result = result << bitWidth * padding;
         return result;
     }
 
     private static long printableAsciiToLong(String str) {
-        final int maxLength = 10, bitWidth = 6;
-        final int length = Math.min(str.length(), maxLength);
-        final int padding = maxLength - length;
-        long result = 0L;
-        for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i) & 0x3F;
-        result = result << bitWidth * padding;
-        return result;
-    }
-
-    private static long charArrayToLong(char[] charArray, int maxLength, int bitWidth) {
-        final int length = Math.min(charArray.length, maxLength);
-        final int padding = maxLength - length;
-        long result = 0L;
-        for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
-        result = result << bitWidth * padding;
-        return result;
+        return stringToLong(str, MAX_LENGTH_PRINTABLE, BIT_WIDTH_PRINTABLE, MASK_PRINTABLE);
     }
 
     // TEST
@@ -275,6 +269,14 @@ public class HuskySortHelper {
         return result;
     }
 
+    /**
+     * Generate a random String of (English) alphabetic characters.
+     *
+     * @param number    the number of Strings to generate.
+     * @param minLength the minimum number of characters in a String.
+     * @param maxLength the maximum number of characters in a String.
+     * @return an array (of length number) of Strings, each of length between minLength and maxLength.
+     */
     public static String[] generateRandomAlphaBetaArray(int number, int minLength, int maxLength) {
         char[] alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
@@ -301,4 +303,13 @@ public class HuskySortHelper {
 
     private final static boolean isGetCharArray = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
 
+    public static final int BITS_LONG = 64;
+
+    public static final int BIT_WIDTH_ASCII = 7;
+    public static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
+    public static final int MASK_ASCII = 0x7FFF;
+
+    public static final int BIT_WIDTH_PRINTABLE = 6;
+    public static final int MAX_LENGTH_PRINTABLE = BITS_LONG / BIT_WIDTH_PRINTABLE;
+    public static final int MASK_PRINTABLE = 0x3F;
 }

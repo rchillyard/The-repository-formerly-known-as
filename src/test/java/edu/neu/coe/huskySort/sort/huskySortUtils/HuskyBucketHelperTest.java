@@ -17,7 +17,7 @@ public class HuskyBucketHelperTest {
             return o;
         }
 
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             return false;
         }
     };
@@ -26,7 +26,7 @@ public class HuskyBucketHelperTest {
             return o;
         }
 
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             return false;
         }
     };
@@ -35,7 +35,7 @@ public class HuskyBucketHelperTest {
             return o;
         }
 
-        public boolean imperfect() {
+        public boolean imperfect(int length) {
             return false;
         }
     };
@@ -134,10 +134,10 @@ public class HuskyBucketHelperTest {
     @Test
     public void testStringToLong() {
         final PrivateMethodTester tester = new PrivateMethodTester(HuskySortHelper.class);
-        assertEquals(0x48cbb36000000000L, ((Long) tester.invokePrivate("stringToLong", "Hell", 9, 7)).longValue());
-        assertEquals(0x48cbb366f0000000L, ((Long) tester.invokePrivate("stringToLong", "Hello", 9, 7)).longValue());
-        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Go", 9, 7)).longValue());
-        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7)).longValue());
+        assertEquals(0x48cbb36000000000L, ((Long) tester.invokePrivate("stringToLong", "Hell", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48cbb366f0000000L, ((Long) tester.invokePrivate("stringToLong", "Hello", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Go", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7, 0x7F)).longValue());
     }
 
     @Test

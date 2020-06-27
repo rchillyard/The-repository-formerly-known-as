@@ -14,5 +14,13 @@ public interface HuskyCoder<X> {
         return result;
     }
 
-    boolean imperfect();
+    /**
+     * Method to determine if this Husky Coder is imperfect for a String of the given length.
+     * If the result is true for any String, it implies that inversions will remain after the first pass of Husky Sort.
+     * If the result is false for all Strings, then the second pass of Husky Sort would be superfluous.
+     *
+     * @param length the length of a String
+     * @return true if the resulting long for the String will likely not be unique.
+     */
+    boolean imperfect(int length);
 }
