@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
+
     /**
      * Create a {@code Timeout} instance with the timeout specified
      * at the timeUnit of granularity of the provided {@code TimeUnit}.
@@ -16,18 +17,18 @@ public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
      * @param timeout  the maximum time to allow the test to run
      *                 before it should timeout
      * @param timeUnit the time unit for the {@code timeout}
-     * @param config
+     * @param config    the configuration (containing the processor details).
      * @since 4.12
      */
     public ProcessorDependentTimeout(long timeout, TimeUnit timeUnit, Config config) {
-        super(getFactoredMilliseconds(timeout, timeUnit, config), MILLISECONDS);
+        super(getFactoredTimeout(timeout, timeUnit, config, MILLISECONDS), MILLISECONDS);
     }
 
-    private static long getFactoredMilliseconds(long timeout, TimeUnit timeUnit, Config config) {
+    public static long getFactoredTimeout(long timeoutGiven, TimeUnit timeUnit, Config config, TimeUnit timeoutRequired) {
         Map<String, Double> processorSpeeds = getProcessorSpeeds();
         Double processorSpeed = processorSpeeds.getOrDefault(config.get("tests", "processor"), 1.0);
-        long result = Math.round(MILLISECONDS.convert(timeout, timeUnit) * 1000 / processorSpeed / 1000);
-        logger.info("setting timeout to " + result + " milliseconds");
+        long result = Math.round(timeoutRequired.convert(timeoutGiven, timeUnit) * GRANULARITY / processorSpeed / GRANULARITY);
+        logger.info("setting timeout to " + result + " " + timeoutRequired);
         return result;
     }
 
@@ -39,4 +40,6 @@ public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
     }
 
     private static final Logger logger = new LazyLogger(ProcessorDependentTimeout.class);
+    private static final int GRANULARITY = 10000;
+
 }

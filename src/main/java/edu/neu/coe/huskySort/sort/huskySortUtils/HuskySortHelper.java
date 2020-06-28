@@ -4,6 +4,7 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.LongBuffer;
 import java.time.LocalDateTime;
@@ -17,21 +18,30 @@ import java.util.concurrent.ThreadLocalRandom;
 public class HuskySortHelper {
 
     /**
-     * This should work correctly for all 52 English characters (upper and lower case),
-     * as well as the following 11 characters: @ [ \ ] ^ _ ` { | } ~
+     * This should work correctly for all 7-bit ASCII characters including all English letters (upper and lower case),
+     * as well as the following all punctuation.
+     * Additionally, many ASCII codes (non-printing) are included.
      * <p>
      * But, in any case, we are only optimizing for printable ascii characters here.
      * If the long encoding is off for some reason (like there's a number embedded in the name),
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskyCoder<String> asciiCoder = new HuskyCoder<String>() {
-        public long huskyEncode(String str) {
-            return asciiToLong(str);
+    public final static HuskySequenceCoder<String> asciiCoder = new HuskySequenceCoder<String>() {
+        /**
+         * Method to determine if this Husky Coder is perfect for a sequence of the given length.
+         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
+         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
+         *
+         * @param length the length of a particular String.
+         * @return true if length <= MAX_LENGTH_ASCII.
+         */
+        public boolean perfectForLength(int length) {
+            return length <= MAX_LENGTH_ASCII;
         }
 
-        public boolean imperfect(int length) {
-            return length > MAX_LENGTH_ASCII;
+        public long huskyEncode(String str) {
+            return asciiToLong(str);
         }
     };
 
@@ -44,41 +54,64 @@ public class HuskySortHelper {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskyCoder<String> printableAsciiCoder = new HuskyCoder<String>() {
+    public final static HuskySequenceCoder<String> englishCoder = new HuskySequenceCoder<String>() {
+        /**
+         * Method to determine if this Husky Coder is perfect for a sequence of the given length.
+         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
+         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
+         *
+         * @param length the length of a particular String.
+         * @return true if length <= MAX_LENGTH_ENGLISH.
+         */
+        @Override
+        public boolean perfectForLength(int length) {
+            return length <= MAX_LENGTH_ENGLISH;
+        }
+
         public long huskyEncode(String str) {
             return printableAsciiToLong(str);
         }
-
-        public boolean imperfect(int length) {
-            return length > MAX_LENGTH_PRINTABLE;
-        }
     };
 
-    public final static HuskyCoder<String> unicodeCoder = new HuskyCoder<String>() {
+    public final static HuskySequenceCoder<String> unicodeCoder = new HuskySequenceCoder<String>() {
+        /**
+         * Method to determine if this Husky Coder is perfect for a sequence of the given length.
+         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
+         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
+         *
+         * @param length the length of a particular String.
+         * @return false if the resulting long for the String will likely not be unique.
+         */
+        @Override
+        public boolean perfectForLength(int length) {
+            return length <= MAX_LENGTH_UNICODE - 1;
+        }
+
         // TEST
         @Override
         public long huskyEncode(String str) {
             return unicodeToLong(str);
         }
-
-        // TEST
-        @Override
-        public boolean imperfect(int length) {
-            return true;
-        }
     };
 
-    public final static HuskyCoder<String> utf8Coder = new HuskyCoder<String>() {
+    public final static HuskySequenceCoder<String> utf8Coder = new HuskySequenceCoder<String>() {
+        /**
+         * Method to determine if this Husky Coder is perfect for a sequence of the given length.
+         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
+         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
+         *
+         * @param length the length of a particular String.
+         * @return true if length <= MAX_LENGTH_UTF8 - 1.
+         */
+        @Override
+        public boolean perfectForLength(int length) {
+            return length <= MAX_LENGTH_UTF8 - 1;
+        }
+
         // TEST
         @Override
         public long huskyEncode(String str) {
             return utf8ToLong(str);
-        }
-
-        // TEST
-        @Override
-        public boolean imperfect(int length) {
-            return true;
         }
     };
 
@@ -88,79 +121,92 @@ public class HuskySortHelper {
             return date.getTime();
         }
 
+        /**
+         * Method to determine if this Husky Coder is perfect for all Dates.
+         *
+         * @return true.
+         */
         @Override
-        public boolean imperfect(int length) {
-            // TODO this needs to be thoroughly checked
+        public boolean perfect() {
             return true;
         }
     };
 
     public final static HuskyCoder<ChronoLocalDateTime<?>> chronoLocalDateTimeCoder = new HuskyCoder<ChronoLocalDateTime<?>>() {
         @Override
-        public long huskyEncode(ChronoLocalDateTime<?> chronoLocalDateTime) {
-            return chronoLocalDateTime.toEpochSecond(ZoneOffset.UTC);
+        public long huskyEncode(ChronoLocalDateTime<?> x) {
+            return x.toEpochSecond(ZoneOffset.UTC);
         }
 
+        /**
+         * Method to determine if this Husky Coder is perfect for all ChronoLocalDateTimes.
+         *
+         * @return true.
+         */
         @Override
-        public boolean imperfect(int length) {
-            // TODO this needs to be thoroughly checked
-            return false;
-        }
-    };
-
-    // This is used only by testSortDouble1
-    public final static HuskyCoder<Double> doubleCoder = new HuskyCoder<Double>() {
-        // TEST
-        @Override
-        public long huskyEncode(Double aDouble) {
-            return Double.doubleToLongBits(aDouble);
-        }
-
-        // TEST
-        @Override
-        public boolean imperfect(int length) {
+        public boolean perfect() {
             return true;
         }
     };
+
+    // TEST
+    // This is used only by testSortDouble1
+    public final static HuskyCoder<Double> doubleCoder = Double::doubleToLongBits;
 
     public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<Integer>() {
         @Override
-        public long huskyEncode(Integer integer) {
-            return integer.longValue();
+        public long huskyEncode(Integer x) {
+            return x.longValue();
         }
 
+        /**
+         * Method to determine if this Husky Coder is perfect for a class of objects (Integer).
+         *
+         * @return true.
+         */
         @Override
-        public boolean imperfect(int length) {
+        public boolean perfect() {
             return true;
         }
     };
 
-    public final static HuskyCoder<BigInteger> bigIntegerCoder = new HuskyCoder<BigInteger>() {
-        // TEST
+    public final static HuskyCoder<Long> longCoder = new HuskyCoder<Long>() {
         @Override
-        public long huskyEncode(BigInteger bigInteger) {
-            return bigInteger.longValue();
+        public long huskyEncode(Long x) {
+            return x;
         }
 
-        // TEST
+        /**
+         * Method to determine if this Husky Coder is perfect for a class of objects (Long).
+         *
+         * @return true.
+         */
         @Override
-        public boolean imperfect(int length) {
+        public boolean perfect() {
             return true;
         }
     };
 
+    // TEST this needs to be tested because longValue will obviously drop information.
+    public final static HuskyCoder<BigInteger> bigIntegerCoder = x -> Double.doubleToLongBits(x.doubleValue());
+
+    // TEST this needs to be tested because longValue will obviously drop information.
+    public final static HuskyCoder<BigDecimal> bigDecimalCoder = BigDecimal::longValue;
+
+    // CONSIDER making this private
     public static long asciiToLong(String str) {
         return stringToLong(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, MASK_ASCII);
     }
 
     // TEST
     static long utf8ToLong(String str) {
-        return longArrayToLong(toUTF8Array(str), 8, 8) >>> 1;
+        // TODO Need to test that the mask value is correct. I think it might not be.
+        return longArrayToLong(toUTF8Array(str), MAX_LENGTH_UTF8, BIT_WIDTH_UTF8, MASK_UTF8) >>> 1;
     }
 
     // TEST
     private static long unicodeToLong(String str) {
-        return stringToLong(str, 4, 16, 0xFFFF) >>> 1;
+        return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
     }
 
     private static long stringToLong(String str, int maxLength, int bitWidth, int mask) {
@@ -193,14 +239,15 @@ public class HuskySortHelper {
     }
 
     private static long printableAsciiToLong(String str) {
-        return stringToLong(str, MAX_LENGTH_PRINTABLE, BIT_WIDTH_PRINTABLE, MASK_PRINTABLE);
+        return stringToLong(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, MASK_ENGLISH);
     }
 
     // TEST
-    private static long longArrayToLong(long[] utf8, @SuppressWarnings("SameParameterValue") int maxLength, @SuppressWarnings("SameParameterValue") int bitWidth) {
-        int length = Math.min(utf8.length, maxLength);
+    @SuppressWarnings("SameParameterValue")
+    private static long longArrayToLong(long[] xs, int maxLength, int bitWidth, int mask) {
+        int length = Math.min(xs.length, maxLength);
         long result = 0;
-        for (int i = 0; i < length; i++) result = result << bitWidth | utf8[i];
+        for (int i = 0; i < length; i++) result = result << bitWidth | xs[i] & mask;
         result = result << (bitWidth * (maxLength - length));
         return result;
     }
@@ -241,34 +288,6 @@ public class HuskySortHelper {
         return result;
     }
 
-    // TEST
-    public static double checkUnidentified(String[] words, int offset) {
-        int total = words.length;
-        int count = 0;
-        Set<String> exist = new HashSet<>();
-        for (String word : words) {
-            if (word.length() >= offset) {
-                String temp = word.substring(0, offset);
-                if (exist.contains(temp)) {
-                    count++;
-                } else {
-                    exist.add(temp);
-                }
-            }
-        }
-        return (double) count / (double) total * 100.0;
-    }
-
-    // TEST
-    public static Date[] generateRandomDateArray(int number) {
-        Date[] result = new Date[number];
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        for (int i = 0; i < number; i++) {
-            result[i] = new Date(random.nextLong(new Date().getTime()));
-        }
-        return result;
-    }
-
     /**
      * Generate a random String of (English) alphabetic characters.
      *
@@ -278,14 +297,14 @@ public class HuskySortHelper {
      * @return an array (of length number) of Strings, each of length between minLength and maxLength.
      */
     public static String[] generateRandomAlphaBetaArray(int number, int minLength, int maxLength) {
-        char[] alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+        final char[] alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
         String[] result = new String[number];
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < number; i++) {
             StringBuilder tmp = new StringBuilder();
             int length = random.nextInt(minLength, maxLength + 1);
-            for (int j = 0; j < length; j++) tmp.append(alphabet[random.nextInt(0, 52)]);
+            for (int j = 0; j < length; j++) tmp.append(alphabet[random.nextInt(0, alphabet.length)]);
             result[i] = tmp.toString();
         }
         return result;
@@ -303,13 +322,49 @@ public class HuskySortHelper {
 
     private final static boolean isGetCharArray = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
 
-    public static final int BITS_LONG = 64;
+    private static final int BITS_LONG = 64;
 
-    public static final int BIT_WIDTH_ASCII = 7;
-    public static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
-    public static final int MASK_ASCII = 0x7FFF;
+    private static final int BIT_WIDTH_ASCII = 7;
+    private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
+    private static final int MASK_ASCII = 0x7F;
 
-    public static final int BIT_WIDTH_PRINTABLE = 6;
-    public static final int MAX_LENGTH_PRINTABLE = BITS_LONG / BIT_WIDTH_PRINTABLE;
-    public static final int MASK_PRINTABLE = 0x3F;
+    private static final int BIT_WIDTH_ENGLISH = 6;
+    private static final int MAX_LENGTH_ENGLISH = BITS_LONG / BIT_WIDTH_ENGLISH;
+    private static final int MASK_ENGLISH = 0x3F;
+
+    private static final int BIT_WIDTH_UNICODE = 16;
+    private static final int MAX_LENGTH_UNICODE = BITS_LONG / BIT_WIDTH_UNICODE;
+    private static final int MASK_UNICODE = 0xFFFF;
+
+    private static final int BIT_WIDTH_UTF8 = 8;
+    private static final int MAX_LENGTH_UTF8 = BITS_LONG / BIT_WIDTH_UTF8;
+    private static final int MASK_UTF8 = 0xFF;
+
+    // NOTE: not used.
+    public static double checkUnidentified(String[] words, int offset) {
+        int total = words.length;
+        int count = 0;
+        Set<String> exist = new HashSet<>();
+        for (String word : words) {
+            if (word.length() >= offset) {
+                String temp = word.substring(0, offset);
+                if (exist.contains(temp)) {
+                    count++;
+                } else {
+                    exist.add(temp);
+                }
+            }
+        }
+        return (double) count / (double) total * 100.0;
+    }
+
+    // NOTE: not used.
+    public static Date[] generateRandomDateArray(int number) {
+        Date[] result = new Date[number];
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < number; i++) {
+            result[i] = new Date(random.nextLong(new Date().getTime()));
+        }
+        return result;
+    }
 }

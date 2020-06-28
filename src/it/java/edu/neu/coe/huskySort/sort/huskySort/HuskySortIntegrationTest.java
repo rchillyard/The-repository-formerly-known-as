@@ -8,11 +8,15 @@ import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
 import edu.neu.coe.huskySort.util.Benchmark;
 import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.ProcessorDependentTimeout;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
@@ -37,20 +41,23 @@ public class HuskySortIntegrationTest {
         config = Config.load(HuskySortIntegrationTest.class);
     }
 
+    @Rule
+    public Timeout timeoutBuilder = new ProcessorDependentTimeout(10, TimeUnit.SECONDS, config);
+
     final Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
     final MyBenchmark benchmarkHuskySort = new MyBenchmark(new QuickHuskySort<String>(UNICODE_CODER, config), 19.1);
     final MyBenchmark benchmarkQuick3sort = new MyBenchmark(new QuickSort_3way<String>(), 20);
     private static Config config;
 
-    @Test(timeout = 4000)
+    @Test
     public void testHusky10K() throws Exception {
         final String[] words = getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line));
-        final int m = 1000;
+        final int m = 1900;
         final int n = 10000;
         checkTime(n, benchmarkHuskySort.run(words, n, m));
     }
 
-    @Test(timeout = 10000)
+    @Test
     public void testHusky31K() throws Exception {
         final String[] words = getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line));
         final int m = 200;

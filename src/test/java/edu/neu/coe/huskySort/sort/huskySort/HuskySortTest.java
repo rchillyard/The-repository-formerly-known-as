@@ -3,7 +3,6 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
@@ -85,17 +84,7 @@ public class HuskySortTest {
     @Test
     public void testSortPerson() {
         Person[] xs = {new Person("Robin", "Hillyard"), new Person("Yunlu", "Liao Zheng"), new Person("Miranda", "Hillyard"), new Person("William", "Hillyard"), new Person("Ella", "Hillyard"), new Person("Paul", "Hillyard"), new Person("Mia", "Hillyard")};
-        QuickHuskySort<Person> sorter = new QuickHuskySort<>(new HuskyCoder<Person>() {
-            @Override
-            public long huskyEncode(Person person) {
-                return person.huskyCode();
-            }
-
-            @Override
-            public boolean imperfect(int length) {
-                return true;
-            }
-        }, config);
+        QuickHuskySort<Person> sorter = new QuickHuskySort<>(Person::huskyCode, config);
         Person[] sorted = sorter.sort(xs);
         assertTrue("sorted", sorter.getHelper().sorted(sorted));
     }
@@ -185,14 +174,14 @@ public class HuskySortTest {
     public void testSortString7() {
         final int N = 1000;
         final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
-        doTestIntroHuskySort(N, config, "true", true, "00000000", 27398.0, 1200.0);
+        doTestIntroHuskySort(N, config, "true", true, "00000000", 27398.0, 1400.0);
     }
 
     @Test
     public void testSortString8() {
         final int N = 1000;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "true");
-        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.printableAsciiCoder, N, config);
+        IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(HuskySortHelper.englishCoder, N, config);
         final HuskyHelper<String> helper = sorter.getHelper();
         helper.init(N);
         String[] xs = generateRandomAlphaBetaArray(N, 4, 10);
