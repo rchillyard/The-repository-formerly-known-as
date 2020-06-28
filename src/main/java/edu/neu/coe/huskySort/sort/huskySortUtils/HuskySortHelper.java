@@ -187,11 +187,11 @@ public class HuskySortHelper {
         }
     };
 
-    // TEST this needs to be tested because longValue will obviously drop information.
+    // TEST this needs to be tested.
     public final static HuskyCoder<BigInteger> bigIntegerCoder = x -> Double.doubleToLongBits(x.doubleValue());
 
-    // TEST this needs to be tested because longValue will obviously drop information.
-    public final static HuskyCoder<BigDecimal> bigDecimalCoder = BigDecimal::longValue;
+    // TEST this needs to be tested.
+    public final static HuskyCoder<BigDecimal> bigDecimalCoder = x -> Double.doubleToLongBits(x.doubleValue());
 
     // CONSIDER making this private
     public static long asciiToLong(String str) {
@@ -210,7 +210,7 @@ public class HuskySortHelper {
     }
 
     private static long stringToLong(String str, int maxLength, int bitWidth, int mask) {
-        if (isGetCharArray) try {
+        if (isPreJava11) try {
             Field field = String.class.getDeclaredField("value");
             field.setAccessible(true);
             return charsToLong((char[]) field.get(str), maxLength, bitWidth, mask);
@@ -320,7 +320,7 @@ public class HuskySortHelper {
         return result;
     }
 
-    private final static boolean isGetCharArray = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
+    public final static boolean isPreJava11 = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
 
     private static final int BITS_LONG = 64;
 
