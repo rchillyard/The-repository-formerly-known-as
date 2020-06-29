@@ -2,7 +2,6 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.util.PrivateMethodTester;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -29,18 +28,16 @@ public class HuskySortHelperTest {
     @Test
     public void testAsciiToLong() {
         String word = "a";
-        long actual = asciiToLong(word);
-        assertEquals(0x6100000000000000L, actual);
+        assertEquals(0x6100000000000000L, asciiToLong(word));
     }
 
     @SuppressWarnings("SpellCheckingInspection")
     @Test
     public void testAsciiCoder2() {
-        HuskySequenceCoder<String> coder = HuskySortHelper.asciiCoder;
         final String apostroph = "apostroph";
         final long expected = 0x61E1BF9F4E5BF868L;
-        final long actual = coder.huskyEncode(apostroph);
-        assertEquals(expected, actual);
+        HuskySequenceCoder<String> coder = HuskySortHelper.asciiCoder;
+        assertEquals(expected, coder.huskyEncode(apostroph));
         assertTrue(coder.perfect(apostroph));
         assertEquals(expected, coder.huskyEncode(apostroph + "e"));
         assertFalse(coder.perfect(apostroph + "e"));
@@ -57,9 +54,9 @@ public class HuskySortHelperTest {
 
     @Test
     public void testEnglishCoder2() {
-        HuskySequenceCoder<String> coder = HuskySortHelper.englishCoder;
         final String apostrophe = "apostrophe";
         final long expected = 0x870BF3D32BF0A25L;
+        HuskySequenceCoder<String> coder = HuskySortHelper.englishCoder;
         assertEquals(expected, coder.huskyEncode(apostrophe));
         assertTrue(coder.perfect(apostrophe));
         assertEquals(expected, coder.huskyEncode(apostrophe + "s"));
@@ -127,65 +124,83 @@ public class HuskySortHelperTest {
 
     @Test
     public void testDoubleCoder() {
+        Long[] expectedOrder = {ldMinusMax, ldZero, ldMin, ldOne, ldMax};
         HuskyCoder<Double> coder = HuskySortHelper.doubleCoder;
         assertFalse(coder.perfect());
-        final long minusMaxLong = -4503599627370497L;
-        final long zeroLong = 0L;
-        final long minLong = 1L;
-        final long oneLong = 4607182418800017408L;
-        final long maxLong = 9218868437227405311L;
-        assertEquals(zeroLong, coder.huskyEncode(0.0));
-        assertEquals(oneLong, coder.huskyEncode(1.0));
-        assertEquals(minusMaxLong, coder.huskyEncode(-Double.MAX_VALUE));
-        assertEquals(maxLong, coder.huskyEncode(Double.MAX_VALUE));
-        assertEquals(minLong, coder.huskyEncode(Double.MIN_VALUE));
-        List<Double> doubles = Arrays.asList(0.0, Double.MAX_VALUE, -Double.MAX_VALUE, 1.0, Double.MIN_VALUE);
+        assertEquals(ldZero, coder.huskyEncode(dZero));
+        assertEquals(ldOne, coder.huskyEncode(dOne));
+        assertEquals(ldMinusMax, coder.huskyEncode(dMaxMinus));
+        assertEquals(ldMax, coder.huskyEncode(dMax));
+        assertEquals(ldMin, coder.huskyEncode(dMin));
+        List<Double> doubles = Arrays.asList(dZero, dMax, dMaxMinus, dOne, dMin);
         final Object[] result = doubles.stream().map(coder::huskyEncode).sorted().toArray();
-        assertArrayEquals(new Long[]{minusMaxLong, zeroLong, minLong, oneLong, maxLong}, result);
+        assertArrayEquals(expectedOrder, result);
+    }
+
+    @Test
+    public void testDoubleCoder2() {
+        double bigMaxMinus = BigInteger.valueOf(Long.MAX_VALUE).negate().doubleValue();
+        double bigOneMinus = BigInteger.ONE.negate().doubleValue();
+        double bigZero = BigInteger.ZERO.doubleValue();
+        double bigRedOne = BigInteger.ONE.doubleValue();
+        double bigMax = BigInteger.valueOf(Long.MAX_VALUE).doubleValue();
+        Long[] expectedOrder = {llMaxMinus, llOneMinus, llZero, llOne, llMax};
+        HuskyCoder<Double> coder = HuskySortHelper.doubleCoder;
+        assertFalse(coder.perfect());
+        assertEquals(llZero, coder.huskyEncode(bigZero));
+        assertEquals(llOne, coder.huskyEncode(bigRedOne));
+        assertEquals(llMaxMinus, coder.huskyEncode(bigMaxMinus));
+        assertEquals(llMax, coder.huskyEncode(bigMax));
+        assertEquals(llOneMinus, coder.huskyEncode(bigOneMinus));
+        List<Double> doubles = Arrays.asList(bigZero, bigMax, bigMaxMinus, bigRedOne, bigOneMinus);
+        final Object[] result = doubles.stream().map(coder::huskyEncode).sorted().toArray();
+        assertArrayEquals(expectedOrder, result);
     }
 
     @Test
     public void testBigDecimalCoder() {
+        Long[] expectedOrder = {ldMinusMax, ldZero, ldMin, ldOne, ldMax};
         HuskyCoder<BigDecimal> coder = HuskySortHelper.bigDecimalCoder;
         assertFalse(coder.perfect());
-        final long minusMaxLong = -4503599627370497L;
-        final long zeroLong = 0L;
-        final long minLong = 1L;
-        final long oneLong = 4607182418800017408L;
-        final long maxLong = 9218868437227405311L;
-        assertEquals(zeroLong, coder.huskyEncode(BigDecimal.valueOf(0.0)));
-        assertEquals(oneLong, coder.huskyEncode(BigDecimal.valueOf(1.0)));
-        assertEquals(minusMaxLong, coder.huskyEncode(BigDecimal.valueOf(-Double.MAX_VALUE)));
-        assertEquals(maxLong, coder.huskyEncode(BigDecimal.valueOf(Double.MAX_VALUE)));
-        assertEquals(minLong, coder.huskyEncode(BigDecimal.valueOf(Double.MIN_VALUE)));
+        assertEquals(ldZero, coder.huskyEncode(BigDecimal.valueOf(dZero)));
+        assertEquals(ldOne, coder.huskyEncode(BigDecimal.valueOf(dOne)));
+        assertEquals(ldMinusMax, coder.huskyEncode(BigDecimal.valueOf(dMaxMinus)));
+        assertEquals(ldMax, coder.huskyEncode(BigDecimal.valueOf(dMax)));
+        assertEquals(ldMin, coder.huskyEncode(BigDecimal.valueOf(dMin)));
         List<BigDecimal> bigDecimals = Arrays.asList(BigDecimal.valueOf(0.0), BigDecimal.valueOf(Double.MAX_VALUE), BigDecimal.valueOf(-Double.MAX_VALUE), BigDecimal.valueOf(1.0), BigDecimal.valueOf(Double.MIN_VALUE));
         final Object[] result = bigDecimals.stream().map(coder::huskyEncode).sorted().toArray();
-        assertArrayEquals(new Long[]{minusMaxLong, zeroLong, minLong, oneLong, maxLong}, result);
+        assertArrayEquals(expectedOrder, result);
     }
 
-    // This test fails because the bigIntegerCoder doesn't do its job as well as it should.
-    @Ignore
+    @Test
     public void testBigIntegerCoder() {
+        Long[] expectedOrder = {llMaxMinus, llOneMinus, llZero, llOne, llMax};
         HuskyCoder<BigInteger> coder = HuskySortHelper.bigIntegerCoder;
         assertFalse(coder.perfect());
-        final long minusMaxLong = 0xC3E0000000000000L;
-        final long zeroLong = 0L;
-        final long minusOneLong = 0xBFF0000000000000L;
-        final long oneLong = 0x3FF0000000000000L;
-        final long maxLong = 0x43E0000000000000L;
-        long actual = coder.huskyEncode(BigInteger.ZERO);
-        assertEquals(zeroLong, actual);
-        long actual1 = coder.huskyEncode(BigInteger.ONE);
-        assertEquals(oneLong, actual1);
-        long actual2 = coder.huskyEncode(BigInteger.valueOf(Long.MAX_VALUE).negate());
-        assertEquals(minusMaxLong, actual2);
-        long actual3 = coder.huskyEncode(BigInteger.valueOf(Long.MAX_VALUE));
-        assertEquals(maxLong, actual3);
-        long actual4 = coder.huskyEncode(BigInteger.ONE.negate());
-        assertEquals(minusOneLong, actual4);
+        assertEquals(llZero, coder.huskyEncode(BigInteger.ZERO));
+        assertEquals(llOne, coder.huskyEncode(BigInteger.ONE));
+        assertEquals(llMaxMinus, coder.huskyEncode(BigInteger.valueOf(Long.MAX_VALUE).negate()));
+        assertEquals(llMax, coder.huskyEncode(BigInteger.valueOf(Long.MAX_VALUE)));
+        assertEquals(llOneMinus, coder.huskyEncode(BigInteger.ONE.negate()));
         List<BigInteger> bigints = Arrays.asList(BigInteger.ZERO, BigInteger.valueOf(Long.MAX_VALUE), BigInteger.valueOf(Long.MAX_VALUE).negate(), BigInteger.ONE, BigInteger.ONE.negate());
         final Object[] result = bigints.stream().map(coder::huskyEncode).sorted().toArray();
-        System.out.println(Arrays.toString(result));
-        assertArrayEquals(new Long[]{minusMaxLong, minusOneLong, zeroLong, oneLong, maxLong}, result);
+        assertArrayEquals(expectedOrder, result);
     }
+
+    static final long llMaxMinus = 0xBC20000000000000L; // -4890909195324358656
+    static final long llOneMinus = 0xC010000000000000L; // -4616189618054758400
+    static final long llZero = 0L;
+    static final long llOne = 0x3FF0000000000000L; // 4607182418800017408
+    static final long llMax = 0x43E0000000000000L; // 4890909195324358656
+    static final double dZero = 0.0;
+    static final double dOne = 1.0;
+    static final double dMax = Double.MAX_VALUE;
+    static final double dMaxMinus = -dMax;
+    static final double dMin = Double.MIN_VALUE;
+    static final long ldMinusMax = 0x8010000000000001L; // -9218868437227405311
+    static final long ldZero = 0L;
+    static final long ldMin = 1L;
+    static final long ldOne = 0x3FF0000000000000L; // 4607182418800017408
+    static final long ldMax = 0x7FEFFFFFFFFFFFFFL; // 9218868437227405311
+
 }

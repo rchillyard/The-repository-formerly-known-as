@@ -18,6 +18,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class HuskySortHelper {
 
     /**
+     * A Husky Coder for ASCII Strings.
+     * <p>
      * This should work correctly for all 7-bit ASCII characters including all English letters (upper and lower case),
      * as well as the following all punctuation.
      * Additionally, many ASCII codes (non-printing) are included.
@@ -46,6 +48,8 @@ public class HuskySortHelper {
     };
 
     /**
+     * A Husky Coder for English Strings.
+     *
      * This should work correctly for all 52 English characters (upper and lower case),
      * as well as the following 11 characters: @ [ \ ] ^ _ ` { | } ~
      * <p>
@@ -73,6 +77,9 @@ public class HuskySortHelper {
         }
     };
 
+    /**
+     * A Husky Coder for unicode Strings.
+     */
     public final static HuskySequenceCoder<String> unicodeCoder = new HuskySequenceCoder<String>() {
         /**
          * Method to determine if this Husky Coder is perfect for a sequence of the given length.
@@ -94,6 +101,9 @@ public class HuskySortHelper {
         }
     };
 
+    /**
+     * A Husky Coder for UTF Strings.
+     */
     public final static HuskySequenceCoder<String> utf8Coder = new HuskySequenceCoder<String>() {
         /**
          * Method to determine if this Husky Coder is perfect for a sequence of the given length.
@@ -103,6 +113,7 @@ public class HuskySortHelper {
          * @param length the length of a particular String.
          * @return true if length <= MAX_LENGTH_UTF8 - 1.
          */
+        // TEST
         @Override
         public boolean perfectForLength(int length) {
             return length <= MAX_LENGTH_UTF8 - 1;
@@ -115,6 +126,9 @@ public class HuskySortHelper {
         }
     };
 
+    /**
+     * A Husky Coder for Dates.
+     */
     public final static HuskyCoder<Date> dateCoder = new HuskyCoder<Date>() {
         @Override
         public long huskyEncode(Date date) {
@@ -132,6 +146,9 @@ public class HuskySortHelper {
         }
     };
 
+    /**
+     * A Husky Coder for ChronoLocalDateTimes.
+     */
     public final static HuskyCoder<ChronoLocalDateTime<?>> chronoLocalDateTimeCoder = new HuskyCoder<ChronoLocalDateTime<?>>() {
         @Override
         public long huskyEncode(ChronoLocalDateTime<?> x) {
@@ -149,10 +166,14 @@ public class HuskySortHelper {
         }
     };
 
-    // TEST
-    // This is used only by testSortDouble1
-    public final static HuskyCoder<Double> doubleCoder = Double::doubleToLongBits;
+    /**
+     * A Husky Coder for Doubles.
+     */
+    public final static HuskyCoder<Double> doubleCoder = HuskySortHelper::doubleToLong;
 
+    /**
+     * A Husky Coder for Integers.
+     */
     public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<Integer>() {
         @Override
         public long huskyEncode(Integer x) {
@@ -170,6 +191,9 @@ public class HuskySortHelper {
         }
     };
 
+    /**
+     * A Husky Coder for Longs.
+     */
     public final static HuskyCoder<Long> longCoder = new HuskyCoder<Long>() {
         @Override
         public long huskyEncode(Long x) {
@@ -187,24 +211,63 @@ public class HuskySortHelper {
         }
     };
 
-    // TEST this needs to be tested.
-    public final static HuskyCoder<BigInteger> bigIntegerCoder = x -> Double.doubleToLongBits(x.doubleValue());
+    /**
+     * A Husky Coder for BigIntegers.
+     */
+    public final static HuskyCoder<BigInteger> bigIntegerCoder = x -> doubleToLong(x.doubleValue());
 
-    // TEST this needs to be tested.
-    public final static HuskyCoder<BigDecimal> bigDecimalCoder = x -> Double.doubleToLongBits(x.doubleValue());
+    /**
+     * A Husky Coder for Decimals.
+     */
+    public final static HuskyCoder<BigDecimal> bigDecimalCoder = x -> doubleToLong(x.doubleValue());
+
+    /**
+     * Generate a random String of (English) alphabetic characters.
+     *
+     * @param number    the number of Strings to generate.
+     * @param minLength the minimum number of characters in a String.
+     * @param maxLength the maximum number of characters in a String.
+     * @return an array (of length number) of Strings, each of length between minLength and maxLength.
+     */
+    public static String[] generateRandomAlphaBetaArray(int number, int minLength, int maxLength) {
+        final char[] alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+
+        String[] result = new String[number];
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < number; i++) {
+            StringBuilder tmp = new StringBuilder();
+            int length = random.nextInt(minLength, maxLength + 1);
+            for (int j = 0; j < length; j++) tmp.append(alphabet[random.nextInt(0, alphabet.length)]);
+            result[i] = tmp.toString();
+        }
+        return result;
+    }
+
+    /**
+     * Generate a random array of LocalDateTime instances.
+     *
+     * @param number the required length of the resulting array.
+     * @return a number-length array of random dates
+     */
+    public static LocalDateTime[] generateRandomLocalDateTimeArray(int number) {
+        LocalDateTime[] result = new LocalDateTime[number];
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < number; i++) {
+            result[i] = LocalDateTime.ofEpochSecond(random.nextLong(new Date().getTime()), random.nextInt(0, 1000000000), ZoneOffset.UTC);
+        }
+        return result;
+    }
 
     // CONSIDER making this private
     public static long asciiToLong(String str) {
         return stringToLong(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, MASK_ASCII);
     }
 
-    // TEST
     static long utf8ToLong(String str) {
         // TODO Need to test that the mask value is correct. I think it might not be.
         return longArrayToLong(toUTF8Array(str), MAX_LENGTH_UTF8, BIT_WIDTH_UTF8, MASK_UTF8) >>> 1;
     }
 
-    // TEST
     private static long unicodeToLong(String str) {
         return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
     }
@@ -229,6 +292,7 @@ public class HuskySortHelper {
         return result;
     }
 
+    // TEST
     private static long bytesToLong(byte[] bytes, int maxLength, int bitWidth, int mask) {
         long result = 0L;
         final int length = Math.min(bytes.length, maxLength);
@@ -242,7 +306,6 @@ public class HuskySortHelper {
         return stringToLong(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, MASK_ENGLISH);
     }
 
-    // TEST
     @SuppressWarnings("SameParameterValue")
     private static long longArrayToLong(long[] xs, int maxLength, int bitWidth, int mask) {
         int length = Math.min(xs.length, maxLength);
@@ -252,7 +315,6 @@ public class HuskySortHelper {
         return result;
     }
 
-    // TEST
     private static long[] toUTF8Array(String str) {
         int length = str.length();
         LongBuffer byteBuffer = LongBuffer.allocate(length << 2);
@@ -273,6 +335,7 @@ public class HuskySortHelper {
                 byteBuffer.put(0x80 | ((code >> 6) & 0x3F));
                 byteBuffer.put(0x80 | (code & 0x3F));
             } else {
+                // TEST
                 i++;
                 int tempCode = 0x10000 + (((code & 0x3FF) << 10) | codes[i] & 0x3FF);
                 count += 4;
@@ -289,35 +352,16 @@ public class HuskySortHelper {
     }
 
     /**
-     * Generate a random String of (English) alphabetic characters.
+     * This method is required because doubleToLongBits does not increase monotonically with its input value.
      *
-     * @param number    the number of Strings to generate.
-     * @param minLength the minimum number of characters in a String.
-     * @param maxLength the maximum number of characters in a String.
-     * @return an array (of length number) of Strings, each of length between minLength and maxLength.
+     * @param value a double.
+     * @return an appropriate long value.
      */
-    public static String[] generateRandomAlphaBetaArray(int number, int minLength, int maxLength) {
-        final char[] alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
-
-        String[] result = new String[number];
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        for (int i = 0; i < number; i++) {
-            StringBuilder tmp = new StringBuilder();
-            int length = random.nextInt(minLength, maxLength + 1);
-            for (int j = 0; j < length; j++) tmp.append(alphabet[random.nextInt(0, alphabet.length)]);
-            result[i] = tmp.toString();
-        }
-        return result;
-    }
-
-    // TEST
-    public static LocalDateTime[] generateRandomLocalDateTimeArray(int number) {
-        LocalDateTime[] result = new LocalDateTime[number];
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        for (int i = 0; i < number; i++) {
-            result[i] = LocalDateTime.ofEpochSecond(random.nextLong(new Date().getTime()), random.nextInt(0, 1000000000), ZoneOffset.UTC);
-        }
-        return result;
+    private static long doubleToLong(double value) {
+        long doubleToLongBits = Double.doubleToLongBits(value);
+        long sign = doubleToLongBits & 0x8000000000000000L;
+        long result = doubleToLongBits & 0x7FFFFFFFFFFFFFFFL;
+        return sign == 0 ? result : -result;
     }
 
     public final static boolean isPreJava11 = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
