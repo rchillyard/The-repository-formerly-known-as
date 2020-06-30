@@ -36,31 +36,89 @@ public class Config {
         return result;
     }
 
+    public String get(Object sectionName, Object optionName, String defaultValue) {
+        return get(sectionName, optionName, String.class, defaultValue);
+    }
+
     public String get(Object sectionName, Object optionName) {
-        return get(sectionName, optionName, String.class);
+        return get(sectionName, optionName, (String)null);
+    }
+
+    /**
+     * Get a configured value of type T.
+     * NOTE: using this method, it is not possible to retrieve an empty String as the result,
+     * unless you specify an empty string as the default.
+     *
+     * @param sectionName the section name.
+     * @param optionName the option name.
+     * @param defaultValue the default value.
+     * @param <T> the type of the result.
+     * @return the configured value as a T.
+     */
+    public <T> T get(Object sectionName, Object optionName, Class<T> clazz, final T defaultValue) {
+        T t = ini.get(sectionName, optionName, clazz);
+        if (t == null || t.equals(""))
+            t = defaultValue;
+        final String sT = t != null ? t.toString() : "null";
+        if (unLogged(sectionName + "." + optionName))
+            logger.debug(() -> "Config.get(" + sectionName + ", " + optionName + ") = " + sT);
+        return t;
     }
 
     public <T> T get(Object sectionName, Object optionName, Class<T> clazz) {
-        final T t = ini.get(sectionName, optionName, clazz);
-        if (unLogged(sectionName + "." + optionName))
-            logger.debug(() -> "Config.get(" + sectionName + ", " + optionName + ") = " + t);
-        return t;
+        return get(sectionName, optionName, clazz, null);
     }
 
     public boolean getBoolean(String sectionName, String optionName) {
         return get(sectionName, optionName, boolean.class);
     }
 
+    /**
+     * Method to get an Int.
+     * This doesn't work quite like the String getters.
+     * In this case, when the value is unset, the log message will not show the default value.
+     *
+     * @param sectionName the section name.
+     * @param optionName the option name.
+     * @param defaultValue the default value.
+     * @return the configured value as an int.
+     */
     public int getInt(final String sectionName, final String optionName, final int defaultValue) {
         final String s = get(sectionName, optionName);
         if (s == null || s.isEmpty()) return defaultValue;
         return Integer.parseInt(s);
     }
 
+    /**
+     * Method to get an Int.
+     * This doesn't work quite like the String getters.
+     * In this case, when the value is unset, the log message will not show the default value.
+     *
+     * @param sectionName the section name.
+     * @param optionName the option name.
+     * @param defaultValue the default value.
+     * @return the configured value as an int.
+     */
     public long getLong(final String sectionName, final String optionName, final long defaultValue) {
         final String s = get(sectionName, optionName);
         if (s == null || s.isEmpty()) return defaultValue;
         return Long.parseLong(s);
+    }
+
+    /**
+     * Method to get a String.
+     * In this case, when the value is unset, the log message will show the default value, unless it perceives
+     * the value as the empty string.
+     *
+     * @param sectionName the section name.
+     * @param optionName the option name.
+     * @param defaultValue the default value.
+     * @return the configured value as an int.
+     */
+    public String getString(final String sectionName, final String optionName, final String defaultValue) {
+        final String s = get(sectionName, optionName, defaultValue);
+        if (s.isEmpty()) return defaultValue;
+        return s;
     }
 
     public String getComment(String key) {

@@ -10,12 +10,20 @@ import java.nio.LongBuffer;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class HuskySortHelper {
+
+
+    /**
+     * Method to get a HuskySequenceCoder by name.
+     * @param name a string representing the name (case must match).
+     * @return the appropriate HuskySequenceCoder.
+     */
+    public static HuskySequenceCoder<String> getSequenceCoderByName(String name) {
+            return sequenceCoderMap.getOrDefault(name, unicodeCoder);
+    }
 
     /**
      * A Husky Coder for ASCII Strings.
@@ -374,6 +382,19 @@ public class HuskySortHelper {
         return sign == 0 ? result : -result;
     }
 
+    private static Map<String, HuskySequenceCoder<String>> sequenceCoderMap;
+
+    /**
+     * Initialize the sequenceCoderMap.
+     */
+    static {
+        sequenceCoderMap = new HashMap<>();
+        sequenceCoderMap.put("ASCII", asciiCoder);
+        sequenceCoderMap.put("UTF8", utf8Coder);
+        sequenceCoderMap.put("English", englishCoder);
+        sequenceCoderMap.put("Unicode", unicodeCoder);
+    }
+
     public final static boolean isPreJava11 = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
 
     private static final int BITS_LONG = 64;
@@ -421,4 +442,5 @@ public class HuskySortHelper {
         }
         return result;
     }
+
 }
