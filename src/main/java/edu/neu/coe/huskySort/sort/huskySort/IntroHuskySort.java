@@ -259,7 +259,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     public double getMeanInterimInversions() {
         if (adjunctSorter == null) {
             logger.warn("IntroHuskySort.getMeanInterimInversions: interim inversions is not enabled. Use createIntroHuskySortWithInversionCount() instead");
-            return 0;
+            return Double.NaN;
         } else {
             StatPack statPack = getStatPack();
             if (closed && statPack != null) {

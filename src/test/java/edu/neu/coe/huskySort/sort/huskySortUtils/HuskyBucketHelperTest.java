@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import java.util.Random;
 
-import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.asciiToLong;
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.asciiToLong;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -133,7 +133,7 @@ public class HuskyBucketHelperTest {
 
     @Test
     public void testStringToLong() {
-        final PrivateMethodTester tester = new PrivateMethodTester(HuskySortHelper.class);
+        final PrivateMethodTester tester = new PrivateMethodTester(HuskyCoderFactory.class);
         assertEquals(0x48cbb36000000000L, ((Long) tester.invokePrivate("stringToLong", "Hell", 9, 7, 0x7F)).longValue());
         assertEquals(0x48cbb366f0000000L, ((Long) tester.invokePrivate("stringToLong", "Hello", 9, 7, 0x7F)).longValue());
         assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Go", 9, 7, 0x7F)).longValue());

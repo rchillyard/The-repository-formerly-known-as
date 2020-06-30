@@ -3,11 +3,34 @@
  */
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
+/**
+ * This interface models the essence of the Husky Sort mechanism.
+ * Elements in a collection are encoded using the huskyEncode method.
+ * As far as possible, the codes should be monotonically increasing with the values.
+ * But, all is not lost if that is not the case, for the result is a partially-sorted array
+ * with a relatively small number of inversions which can be cleared up in phase two of the sort,
+ * in linear time.
+ *
+ * @param <X> the underlying type for this coder.
+ */
 public interface HuskyCoder<X> {
 
+    /**
+     * Encode x as a long.
+     * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
+     * If this cannot be guaranteed, then the result of imperfect(z) will be true.
+     *
+     * @param x the X value to encode.
+     * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
+     */
     long huskyEncode(X x);
 
-    // TEST
+    /**
+     * Encode an array of Xs.
+     *
+     * @param xs an array of X elements.
+     * @return an array of longs corresponding to the the Husky codes of the X elements.
+     */
     default long[] huskyEncode(X[] xs) {
         long[] result = new long[xs.length];
         for (int i = 0; i < xs.length; i++) result[i] = huskyEncode(xs[i]);
@@ -15,12 +38,21 @@ public interface HuskyCoder<X> {
     }
 
     /**
-     * Method to determine if this Husky Coder is imperfect for a String of the given length.
-     * If the result is true for any String, it implies that inversions will remain after the first pass of Husky Sort.
-     * If the result is false for all Strings, then the second pass of Husky Sort would be superfluous.
+     * Method to determine if it's OK to call the perfect() method.
      *
-     * @param length the length of a String
-     * @return true if the resulting long for the String will likely not be unique.
+     * @return true for a non-sequence type X.
      */
-    boolean imperfect(int length);
+    default boolean isPerfectCallable() {
+        return true;
+    }
+
+    /**
+     * Method to determine if this Husky Coder is perfect for a class of objects (X).
+     *
+     * @return true if the resulting longs are perfect for ANY value of X.
+     * By default, this method returns false.
+     */
+    default boolean perfect() {
+        return false;
+    }
 }

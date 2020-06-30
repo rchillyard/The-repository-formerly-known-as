@@ -6,8 +6,8 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.HelperFactory;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
@@ -24,10 +24,17 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @return the sorted version of xs (or its copy).
      */
     public X[] sort(X[] xs, boolean makeCopy) {
+        // NOTE: First pass where we code to longs and sort according to those.
         huskyHelper.init(xs.length);
         X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
         huskyHelper.initLongArray(result);
         sort(result, 0, result.length);
+
+        // NOTE: Second pass (if required) to fix any remaining inversions.
+        HuskyCoder<X> huskyCoder = huskyHelper.getCoder();
+        if (huskyCoder.isPerfectCallable() && huskyCoder.perfect())
+            return result;
+
         huskyHelper.getPostSorter().accept(result);
         return result;
     }
@@ -66,7 +73,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         closeHelper = true;
     }
 
-    static final HuskyCoder<String> UNICODE_CODER = HuskySortHelper.unicodeCoder;
+    static final HuskyCoder<String> UNICODE_CODER = HuskyCoderFactory.unicodeCoder;
 
     protected final static LazyLogger logger = new LazyLogger(AbstractHuskySort.class);
 

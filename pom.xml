@@ -15,9 +15,12 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!--
         <skip.unit.tests>false</skip.unit.tests>
         <skip.integration.tests>true</skip.integration.tests>
+        -->
     </properties>
+    <!--
     <profiles>
         <profile>
             <id>dev</id>
@@ -71,6 +74,7 @@
             </plugin>
         </plugins>
     </build>
+    -->
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
