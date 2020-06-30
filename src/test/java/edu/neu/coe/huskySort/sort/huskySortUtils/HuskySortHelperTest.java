@@ -97,19 +97,18 @@ public class HuskySortHelperTest {
     @Test
     public void testUnicodeCoder() {
         HuskySequenceCoder<String> coder = HuskySortHelper.unicodeCoder;
-        boolean java8 = HuskySortHelper.isPreJava11;
         final String sAase = "Åse";
-        long expectedAase1 = java8 ? 0x62803980328000L : 0x7FE1FFC280398032L;
+        long expectedAase1 = 0x62803980328000L;
         assertEquals(expectedAase1, coder.huskyEncode(sAase));
         assertTrue(coder.perfect(sAase));
-        long expectedAase2 = java8 ? 0x6280398032803CL : 0x7FE1FFC280398032L;
+        long expectedAase2 = 0x6280398032803CL;
         assertEquals(expectedAase2, coder.huskyEncode(sAase + "x"));
         final String sMoskva = "Mосква";
-        long expectedM = java8 ? 0x26821F0220821DL : 0x26FFE87FDF7FE8L;
+        long expectedM = 0x26821F0220821DL;
         assertEquals(expectedM, coder.huskyEncode(sMoskva));
         assertFalse(coder.perfect(sMoskva));
         final String sSrebrenica = "Сребреница";
-        long expectedS = java8 ? 0x2108220021A8218L : 0x7FE87FD0FFE8FFC0L;
+        long expectedS = 0x2108220021A8218L;
         assertEquals(expectedS, coder.huskyEncode(sSrebrenica));
         assertFalse(coder.perfect(sSrebrenica));
     }
