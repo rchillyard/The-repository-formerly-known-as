@@ -73,7 +73,7 @@ public class HuskySortHelper {
         }
 
         public long huskyEncode(String str) {
-            return printableAsciiToLong(str);
+            return englishToLong(str);
         }
     };
 
@@ -91,7 +91,7 @@ public class HuskySortHelper {
          */
         @Override
         public boolean perfectForLength(int length) {
-            return length <= MAX_LENGTH_UNICODE - 1;
+            return length < MAX_LENGTH_UNICODE;
         }
 
         // TEST
@@ -116,7 +116,7 @@ public class HuskySortHelper {
         // TEST
         @Override
         public boolean perfectForLength(int length) {
-            return length <= MAX_LENGTH_UTF8 - 1;
+            return length < MAX_LENGTH_UTF8;
         }
 
         // TEST
@@ -287,7 +287,11 @@ public class HuskySortHelper {
         final int length = Math.min(charArray.length, maxLength);
         final int padding = maxLength - length;
         long result = 0L;
-        for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i] & mask;
+        if (((mask ^ 0xFFFF) & 0xFFFF) == 0)
+            for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i];
+        else
+            for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i] & mask;
+
         result = result << bitWidth * padding;
         return result;
     }
@@ -297,12 +301,15 @@ public class HuskySortHelper {
         long result = 0L;
         final int length = Math.min(bytes.length, maxLength);
         final int padding = maxLength - length;
-        for (int i = 0; i < length; i++) result = result << bitWidth | bytes[i] & mask;
+        if (((mask ^ 0xFF) & 0xFF) == 0)
+            for (int i = 0; i < length; i++) result = result << bitWidth | bytes[i];
+        else
+            for (int i = 0; i < length; i++) result = result << bitWidth | bytes[i] & mask;
         result = result << bitWidth * padding;
         return result;
     }
 
-    private static long printableAsciiToLong(String str) {
+    private static long englishToLong(String str) {
         return stringToLong(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, MASK_ENGLISH);
     }
 
@@ -310,7 +317,10 @@ public class HuskySortHelper {
     private static long longArrayToLong(long[] xs, int maxLength, int bitWidth, int mask) {
         int length = Math.min(xs.length, maxLength);
         long result = 0;
-        for (int i = 0; i < length; i++) result = result << bitWidth | xs[i] & mask;
+        if (((~mask)) == 0)
+            for (int i = 0; i < length; i++) result = result << bitWidth | xs[i];
+        else
+            for (int i = 0; i < length; i++) result = result << bitWidth | xs[i] & mask;
         result = result << (bitWidth * (maxLength - length));
         return result;
     }

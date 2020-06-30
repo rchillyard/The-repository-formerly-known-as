@@ -11,6 +11,8 @@ import edu.neu.coe.huskySort.util.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -25,6 +28,7 @@ import java.util.stream.Stream;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.englishCoder;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static edu.neu.coe.huskySort.util.Utilities.*;
 
@@ -39,6 +43,7 @@ public class HuskySortBenchmark {
         logger.info("HuskySortBenchmark.main: " + config.get("huskysort", "version") + " with word counts: " + Arrays.toString(args));
         if (args.length == 0) logger.warn("No word counts specified on the command line");
         HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
+        benchmark.sortNumerics(100000);
         benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt));
         benchmark.sortLocalDateTimes(100000);
     }
@@ -94,6 +99,52 @@ public class HuskySortBenchmark {
             dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, new InsertionSort<>(helper)::mutatingSort, config), "Sort LocalDateTimes using huskySort with insertionSort", 2);
     }
 
+    public void sortNumerics(final int n) {
+        logger.info("Beginning Numeric sorts");
+        String timsort = "timsort";
+        String introhuskysort = "introhuskysort";
+        String sInteger = "integer";
+        String sDouble = "double";
+        String sLong = "long";
+        String sBigInteger = "biginteger";
+        String sBigDecimal = "bigdecimal";
+
+        if (isConfigBenchmarkNumberSorter(timsort, sInteger))
+            sortNumeric(n, Integer.class, Random::nextInt, Arrays::sort, null);
+        if (isConfigBenchmarkNumberSorter(introhuskysort, sInteger))
+            sortNumeric(n, Integer.class, Random::nextInt, new PureHuskySort<>(HuskySortHelper.integerCoder)::sort, Utilities::checkSorted);
+
+        if (isConfigBenchmarkNumberSorter(timsort, sDouble))
+            sortNumeric(n, Double.class, Random::nextDouble, Arrays::sort, null);
+        if (isConfigBenchmarkNumberSorter(introhuskysort, sDouble))
+            sortNumeric(n, Double.class, Random::nextDouble, new PureHuskySort<>(HuskySortHelper.doubleCoder)::sort, Utilities::checkSorted);
+
+        if (isConfigBenchmarkNumberSorter(timsort, sLong))
+            sortNumeric(n, Long.class, Random::nextLong, Arrays::sort, null);
+        if (isConfigBenchmarkNumberSorter(introhuskysort, sLong))
+            sortNumeric(n, Long.class, Random::nextLong, new PureHuskySort<>(HuskySortHelper.longCoder)::sort, Utilities::checkSorted);
+
+        if (isConfigBenchmarkNumberSorter(timsort, sBigInteger))
+            sortNumeric(n, BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), Arrays::sort, null);
+        if (isConfigBenchmarkNumberSorter(introhuskysort, sBigInteger))
+            sortNumeric(n, BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), new PureHuskySort<>(HuskySortHelper.bigIntegerCoder)::sort, Utilities::checkSorted);
+
+        if (isConfigBenchmarkNumberSorter(timsort, sBigDecimal))
+            sortNumeric(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), Arrays::sort, null);
+        if (isConfigBenchmarkNumberSorter(introhuskysort, sBigDecimal))
+            sortNumeric(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), new PureHuskySort<>(HuskySortHelper.bigDecimalCoder)::sort, Utilities::checkSorted);
+    }
+
+    public static <X extends Number & Comparable<X>> void sortNumeric(int n, final Class<X> clazz, final Function<Random, X> randomNumberFunction, final Consumer<X[]> sortFunction, final Consumer<X[]> postProcessor) {
+        final Benchmark<X[]> benchmark = new Benchmark<>(
+                "System sort for " + clazz,
+                (xs) -> Arrays.copyOf(xs, xs.length),
+                sortFunction,
+                postProcessor
+        );
+        logger.info(benchmark.run(getSupplier(n, clazz, randomNumberFunction), 100) + "ms");
+    }
+
     /**
      * Method to run pure (non-instrumented) string sorter benchmarks.
      * <p>
@@ -108,7 +159,7 @@ public class HuskySortBenchmark {
         Random random = new Random();
 
         if (isConfigBenchmarkStringSorter("purehuskysort")) {
-            PureHuskySort<String> pureHuskySort = new PureHuskySort<>(UNICODE_CODER);
+            PureHuskySort<String> pureHuskySort = new PureHuskySort<>(englishCoder);
             Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark);
         }
@@ -246,6 +297,10 @@ public class HuskySortBenchmark {
         return words;
     }
 
+    private static <T extends Number & Comparable<T>> Supplier<T[]> getSupplier(int n, final Class<T> clazz, Function<Random, T> randomNumberFunction) {
+        return () -> Utilities.fillRandomArray(clazz, new Random(), n, randomNumberFunction);
+    }
+
     private static List<String> getLeipzigWords(String line) {
         return getWords(regexLeipzig, line);
     }
@@ -318,6 +373,10 @@ public class HuskySortBenchmark {
 
     private boolean isConfigBenchmarkDateSorter(String option) {
         return isConfigBoolean("benchmarkdatesorters", option);
+    }
+
+    private boolean isConfigBenchmarkNumberSorter(String sortOption, String typeOption) {
+        return isConfigBoolean("benchmarknumbersorters", sortOption) && isConfigBoolean("benchmarknumbersorters", typeOption);
     }
 
     private boolean isConfigBoolean(String section, String option) {

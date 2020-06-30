@@ -94,11 +94,22 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         target[j] = source[i];
     }
 
+    /**
+     * Method to determine if the given array (xs) is sorted.
+     *
+     * @param xs an array of Xs.
+     * @return false as soon as an inversion is found; otherwise return true.
+     */
     public boolean sorted(X[] xs) {
-        for (int i = 1; i < xs.length; i++) if (xs[i - 1].compareTo(xs[i]) > 0) return false;
-        return true;
+        return Utilities.isSorted(xs);
     }
 
+    /**
+     * Method to count the total number of inversions in the given array (xs).
+     *
+     * @param xs an array of Xs.
+     * @return the number of inversions.
+     */
     public int inversions(X[] xs) {
         int result = 0;
         for (int i = 0; i < xs.length; i++)
