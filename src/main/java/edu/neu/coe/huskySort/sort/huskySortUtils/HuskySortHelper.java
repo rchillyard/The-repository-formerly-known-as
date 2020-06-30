@@ -3,19 +3,26 @@
  */
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.LongBuffer;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class HuskySortHelper {
+
+
+    /**
+     * Method to get a HuskySequenceCoder by name.
+     * @param name a string representing the name (case must match).
+     * @return the appropriate HuskySequenceCoder.
+     */
+    public static HuskySequenceCoder<String> getSequenceCoderByName(String name) {
+            return sequenceCoderMap.getOrDefault(name, unicodeCoder);
+    }
 
     /**
      * A Husky Coder for ASCII Strings.
@@ -73,7 +80,7 @@ public class HuskySortHelper {
         }
 
         public long huskyEncode(String str) {
-            return printableAsciiToLong(str);
+            return englishToLong(str);
         }
     };
 
@@ -91,7 +98,7 @@ public class HuskySortHelper {
          */
         @Override
         public boolean perfectForLength(int length) {
-            return length <= MAX_LENGTH_UNICODE - 1;
+            return length < MAX_LENGTH_UNICODE;
         }
 
         // TEST
@@ -116,7 +123,7 @@ public class HuskySortHelper {
         // TEST
         @Override
         public boolean perfectForLength(int length) {
-            return length <= MAX_LENGTH_UTF8 - 1;
+            return length < MAX_LENGTH_UTF8;
         }
 
         // TEST
@@ -273,36 +280,19 @@ public class HuskySortHelper {
     }
 
     private static long stringToLong(String str, int maxLength, int bitWidth, int mask) {
-        if (isPreJava11) try {
-            Field field = String.class.getDeclaredField("value");
-            field.setAccessible(true);
-            return charsToLong((char[]) field.get(str), maxLength, bitWidth, mask);
-        } catch (Exception e) {
-            throw new RuntimeException("Problem encoding String as long", e);
-        }
-        else return bytesToLong(str.getBytes(), maxLength, bitWidth, mask);
-    }
-
-    private static long charsToLong(char[] charArray, int maxLength, int bitWidth, int mask) {
-        final int length = Math.min(charArray.length, maxLength);
+        final int length = Math.min(str.length(), maxLength);
         final int padding = maxLength - length;
         long result = 0L;
-        for (int i = 0; i < length; i++) result = result << bitWidth | charArray[i] & mask;
+        if (((mask ^ 0xFFFF) & 0xFFFF) == 0)
+            for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i);
+        else
+            for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i) & mask;
+
         result = result << bitWidth * padding;
         return result;
     }
 
-    // TEST
-    private static long bytesToLong(byte[] bytes, int maxLength, int bitWidth, int mask) {
-        long result = 0L;
-        final int length = Math.min(bytes.length, maxLength);
-        final int padding = maxLength - length;
-        for (int i = 0; i < length; i++) result = result << bitWidth | bytes[i] & mask;
-        result = result << bitWidth * padding;
-        return result;
-    }
-
-    private static long printableAsciiToLong(String str) {
+    private static long englishToLong(String str) {
         return stringToLong(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, MASK_ENGLISH);
     }
 
@@ -310,7 +300,10 @@ public class HuskySortHelper {
     private static long longArrayToLong(long[] xs, int maxLength, int bitWidth, int mask) {
         int length = Math.min(xs.length, maxLength);
         long result = 0;
-        for (int i = 0; i < length; i++) result = result << bitWidth | xs[i] & mask;
+        if (((~mask)) == 0)
+            for (int i = 0; i < length; i++) result = result << bitWidth | xs[i];
+        else
+            for (int i = 0; i < length; i++) result = result << bitWidth | xs[i] & mask;
         result = result << (bitWidth * (maxLength - length));
         return result;
     }
@@ -364,6 +357,19 @@ public class HuskySortHelper {
         return sign == 0 ? result : -result;
     }
 
+    private static final Map<String, HuskySequenceCoder<String>> sequenceCoderMap;
+
+    /*
+     * Initialize the sequenceCoderMap.
+     */
+    static {
+        sequenceCoderMap = new HashMap<>();
+        sequenceCoderMap.put("ASCII", asciiCoder);
+        sequenceCoderMap.put("UTF8", utf8Coder);
+        sequenceCoderMap.put("English", englishCoder);
+        sequenceCoderMap.put("Unicode", unicodeCoder);
+    }
+
     public final static boolean isPreJava11 = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
 
     private static final int BITS_LONG = 64;
@@ -411,4 +417,5 @@ public class HuskySortHelper {
         }
         return result;
     }
+
 }

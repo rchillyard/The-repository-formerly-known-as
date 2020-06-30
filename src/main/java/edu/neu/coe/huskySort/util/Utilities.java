@@ -55,4 +55,28 @@ public class Utilities {
         for (int i = 0; i < n; i++) result[i] = f.apply(random);
         return result;
     }
+
+    /**
+     * Check that the given array is sorted.
+     *
+     * @param ts  the array to be checked.
+     * @param <T> the underlying type of ts.
+     * @return false as soon as an inversion is found; otherwise return true.
+     */
+    public static <T extends Comparable<T>> boolean isSorted(T[] ts) {
+        for (int i = 1; i < ts.length; i++) if (ts[i - 1].compareTo(ts[i]) > 0) return false;
+        return true;
+    }
+
+    /**
+     * Check that the given array is sorted.
+     *
+     * @param ts  the array to be checked.
+     * @param <T> the underlying type of ts.
+     * @throws RuntimeException if an inversion is found.
+     */
+    public static <T extends Comparable<T>> void checkSorted(T[] ts) {
+        if (!isSorted(ts))
+            throw new RuntimeException("array is not sorted");
+    }
 }

@@ -31,6 +31,16 @@ public interface HuskySequenceCoder<X extends CharSequence> extends HuskyCoder<X
     boolean perfectForLength(int length);
 
     /**
+     * Method to determine if it's OK to call the perfect() method.
+     *
+     * @return false.
+     */
+    @Override
+    default boolean isPerfectCallable() {
+        return false;
+    }
+
+    /**
      * Method to determine if this Husky Coder is perfect for a class of objects (X).
      *
      * @throws RuntimeException this is the wrong method.

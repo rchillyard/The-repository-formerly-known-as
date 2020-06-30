@@ -38,6 +38,15 @@ public interface HuskyCoder<X> {
     }
 
     /**
+     * Method to determine if it's OK to call the perfect() method.
+     *
+     * @return true for a non-sequence type X.
+     */
+    default boolean isPerfectCallable() {
+        return true;
+    }
+
+    /**
      * Method to determine if this Husky Coder is perfect for a class of objects (X).
      *
      * @return true if the resulting longs are perfect for ANY value of X.

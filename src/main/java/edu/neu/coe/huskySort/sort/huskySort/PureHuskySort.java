@@ -2,38 +2,31 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.util.LazyLogger;
 
-import java.io.FileNotFoundException;
 import java.util.Arrays;
-import java.util.regex.Pattern;
-
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
 
 /**
  * This class represents the purest form of Husky Sort based on IntroSort for pass 1 and the System sort for pass 2.
+ * <p>
+ * CONSIDER redefining all of the "to" parameters to be consistent with our other Sort utilities.
  *
  * @param <X> the type of the elements to be sorted.
  */
 public class PureHuskySort<X extends Comparable<X>> {
 
-    public static void main(String[] args) throws FileNotFoundException {
-//        Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-//        final String[] words = getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line));
-//        PureHuskySort<String> sorter = new PureHuskySort<>(HuskySortHelper.unicodeCoder);
-//        sorter.sort(words);
-//        for (int i = 1; i < words.length; i++) {
-//            if (words[i - 1].compareTo(words[i]) > 0) {
-//                System.out.println("Not sorted!");
-//                break;
-//            }
-//        }
+    public static void main(String[] args) {
 
-        // Just for test purpose
+        int N = 50000;
+        int m = 10000;
+        logger.info("PureHuskySort: sorting " + N + " random alphabetic ASCII words " + m + " times");
+        // Just for test purpose: this should take about 3 minutes
         PureHuskySort<String> sorter = new PureHuskySort<>(HuskySortHelper.asciiCoder);
-        for (int i = 0; i < 10000; i++) {
-            String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(50000, 4, 9);
+        for (int i = 0; i < m; i++) {
+            String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
             sorter.sort(Arrays.copyOf(alphaBetaArray, alphaBetaArray.length));
         }
+        logger.info("Finished");
     }
 
     /**
@@ -42,7 +35,13 @@ public class PureHuskySort<X extends Comparable<X>> {
      * @param xs the array to be sorted.
      */
     public void sort(X[] xs) {
-        sort(xs, 0, xs.length);
+        // NOTE: First pass where we code to longs and sort according to those.
+        long[] longs = huskyCoder.huskyEncode(xs);
+        introSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(xs.length));
+
+        // NOTE: Second pass (if required) to fix any remaining inversions.
+        if (huskyCoder.isPerfectCallable() && huskyCoder.perfect())
+            return;
         Arrays.sort(xs);
     }
 
@@ -61,12 +60,6 @@ public class PureHuskySort<X extends Comparable<X>> {
     }
 
     private static final int sizeThreshold = 16;
-
-    // TEST
-    private void sort(X[] xs, @SuppressWarnings("SameParameterValue") int from, int to) {
-        long[] longs = huskyCoder.huskyEncode(xs);
-        introSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
-    }
 
     // TEST
     @SuppressWarnings({"UnnecessaryLocalVariable"})
@@ -149,4 +142,6 @@ public class PureHuskySort<X extends Comparable<X>> {
     }
 
     private final HuskyCoder<X> huskyCoder;
+
+    private final static LazyLogger logger = new LazyLogger(PureHuskySort.class);
 }
