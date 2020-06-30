@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
@@ -21,7 +22,7 @@ public class PureHuskySort<X extends Comparable<X>> {
         int m = 10000;
         logger.info("PureHuskySort: sorting " + N + " random alphabetic ASCII words " + m + " times");
         // Just for test purpose: this should take about 3 minutes
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskySortHelper.asciiCoder);
+        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
         for (int i = 0; i < m; i++) {
             String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
             sorter.sort(Arrays.copyOf(alphaBetaArray, alphaBetaArray.length));

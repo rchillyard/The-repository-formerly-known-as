@@ -19,9 +19,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
-import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.asciiCoder;
 
 /**
  * Benchmark Integration Test.

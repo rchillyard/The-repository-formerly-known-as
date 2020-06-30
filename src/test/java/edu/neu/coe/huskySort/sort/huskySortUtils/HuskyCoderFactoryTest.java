@@ -9,16 +9,16 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
-import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.asciiToLong;
-import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.utf8ToLong;
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.asciiToLong;
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.utf8ToLong;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.*;
 
-public class HuskySortHelperTest {
+public class HuskyCoderFactoryTest {
 
     @Test
     public void testStringToLong() {
-        final PrivateMethodTester tester = new PrivateMethodTester(HuskySortHelper.class);
+        final PrivateMethodTester tester = new PrivateMethodTester(HuskyCoderFactory.class);
         assertEquals(0x48cbb36000000000L, ((Long) tester.invokePrivate("stringToLong", "Hell", 9, 7, 0x7F)).longValue());
         assertEquals(0x48cbb366f0000000L, ((Long) tester.invokePrivate("stringToLong", "Hello", 9, 7, 0x7F)).longValue());
         assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Go", 9, 7, 0x7F)).longValue());
@@ -36,7 +36,7 @@ public class HuskySortHelperTest {
     public void testAsciiCoder2() {
         final String apostroph = "apostroph";
         final long expected = 0x61E1BF9F4E5BF868L;
-        HuskySequenceCoder<String> coder = HuskySortHelper.asciiCoder;
+        HuskySequenceCoder<String> coder = HuskyCoderFactory.asciiCoder;
         assertEquals(expected, coder.huskyEncode(apostroph));
         assertTrue(coder.perfect(apostroph));
         assertEquals(expected, coder.huskyEncode(apostroph + "e"));
@@ -45,7 +45,7 @@ public class HuskySortHelperTest {
 
     @Test
     public void testEnglishCoder1() {
-        HuskyCoder<String> coder = HuskySortHelper.englishCoder;
+        HuskyCoder<String> coder = HuskyCoderFactory.englishCoder;
         assertEquals(0x0840000000000000L, coder.huskyEncode("a"));
         assertEquals(0x0880000000000000L, coder.huskyEncode("b"));
         assertEquals(0x0040000000000000L, coder.huskyEncode("A"));
@@ -56,7 +56,7 @@ public class HuskySortHelperTest {
     public void testEnglishCoder2() {
         final String apostrophe = "apostrophe";
         final long expected = 0x870BF3D32BF0A25L;
-        HuskySequenceCoder<String> coder = HuskySortHelper.englishCoder;
+        HuskySequenceCoder<String> coder = HuskyCoderFactory.englishCoder;
         assertEquals(expected, coder.huskyEncode(apostrophe));
         assertTrue(coder.perfect(apostrophe));
         assertEquals(expected, coder.huskyEncode(apostrophe + "s"));
@@ -96,7 +96,7 @@ public class HuskySortHelperTest {
     @SuppressWarnings("SpellCheckingInspection")
     @Test
     public void testUnicodeCoder() {
-        HuskySequenceCoder<String> coder = HuskySortHelper.unicodeCoder;
+        HuskySequenceCoder<String> coder = HuskyCoderFactory.unicodeCoder;
         boolean java8 = HuskySortHelper.isPreJava11;
         final String sAase = "Åse";
         long expectedAase1 = java8 ? 0x62803980328000L : 0x7FE1FFC280398032L;
@@ -116,7 +116,7 @@ public class HuskySortHelperTest {
 
     @Test
     public void testLongCoder() {
-        HuskyCoder<Long> coder = HuskySortHelper.longCoder;
+        HuskyCoder<Long> coder = HuskyCoderFactory.longCoder;
         assertTrue(coder.perfect());
         assertEquals(Long.MAX_VALUE, coder.huskyEncode(Long.MAX_VALUE));
         assertEquals(Long.MIN_VALUE, coder.huskyEncode(Long.MIN_VALUE));
@@ -125,7 +125,7 @@ public class HuskySortHelperTest {
     @Test
     public void testDoubleCoder() {
         Long[] expectedOrder = {ldMinusMax, ldZero, ldMin, ldOne, ldMax};
-        HuskyCoder<Double> coder = HuskySortHelper.doubleCoder;
+        HuskyCoder<Double> coder = HuskyCoderFactory.doubleCoder;
         assertFalse(coder.perfect());
         assertEquals(ldZero, coder.huskyEncode(dZero));
         assertEquals(ldOne, coder.huskyEncode(dOne));
@@ -145,7 +145,7 @@ public class HuskySortHelperTest {
         double bigRedOne = BigInteger.ONE.doubleValue();
         double bigMax = BigInteger.valueOf(Long.MAX_VALUE).doubleValue();
         Long[] expectedOrder = {llMaxMinus, llOneMinus, llZero, llOne, llMax};
-        HuskyCoder<Double> coder = HuskySortHelper.doubleCoder;
+        HuskyCoder<Double> coder = HuskyCoderFactory.doubleCoder;
         assertFalse(coder.perfect());
         assertEquals(llZero, coder.huskyEncode(bigZero));
         assertEquals(llOne, coder.huskyEncode(bigRedOne));
@@ -160,7 +160,7 @@ public class HuskySortHelperTest {
     @Test
     public void testBigDecimalCoder() {
         Long[] expectedOrder = {ldMinusMax, ldZero, ldMin, ldOne, ldMax};
-        HuskyCoder<BigDecimal> coder = HuskySortHelper.bigDecimalCoder;
+        HuskyCoder<BigDecimal> coder = HuskyCoderFactory.bigDecimalCoder;
         assertFalse(coder.perfect());
         assertEquals(ldZero, coder.huskyEncode(BigDecimal.valueOf(dZero)));
         assertEquals(ldOne, coder.huskyEncode(BigDecimal.valueOf(dOne)));
@@ -175,7 +175,7 @@ public class HuskySortHelperTest {
     @Test
     public void testBigIntegerCoder() {
         Long[] expectedOrder = {llMaxMinus, llOneMinus, llZero, llOne, llMax};
-        HuskyCoder<BigInteger> coder = HuskySortHelper.bigIntegerCoder;
+        HuskyCoder<BigInteger> coder = HuskyCoderFactory.bigIntegerCoder;
         assertFalse(coder.perfect());
         assertEquals(llZero, coder.huskyEncode(BigInteger.ZERO));
         assertEquals(llOne, coder.huskyEncode(BigInteger.ONE));

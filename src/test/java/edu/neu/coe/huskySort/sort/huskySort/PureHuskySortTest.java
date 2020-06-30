@@ -1,7 +1,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -15,14 +15,14 @@ public class PureHuskySortTest {
     @Test
     public void testSortString1() {
         String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskySortHelper.unicodeCoder);
+        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.unicodeCoder);
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
 
     @Test
     public void testSortString2() {
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskySortHelper.asciiCoder);
+        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
         final int N = 1000;
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
@@ -32,7 +32,7 @@ public class PureHuskySortTest {
 
     @Test
     public void testSortString3() {
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskySortHelper.asciiCoder);
+        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
         final int N = 1000;
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> {

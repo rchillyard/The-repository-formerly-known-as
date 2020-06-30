@@ -6,6 +6,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.simple.*;
 import edu.neu.coe.huskySort.util.*;
@@ -29,7 +30,7 @@ import java.util.stream.Stream;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
-import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.englishCoder;
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.englishCoder;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static edu.neu.coe.huskySort.util.Utilities.*;
 
@@ -94,11 +95,11 @@ public class HuskySortBenchmark {
 
         // NOTE Test on date using husky sort.
         if (isConfigBenchmarkDateSorter("quickhuskysort"))
-            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder, config), "Sort LocalDateTimes using huskySort with TimSort", 1);
+            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, config), "Sort LocalDateTimes using huskySort with TimSort", 1);
 
         // NOTE Test on date using husky sort with insertion sort.
         if (isConfigBenchmarkDateSorter("quickhuskyinsertionsort"))
-            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, new InsertionSort<>(helper)::mutatingSort, config), "Sort LocalDateTimes using huskySort with insertionSort", 2);
+            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>("QuickHuskySort/Insertion", HuskyCoderFactory.chronoLocalDateTimeCoder, new InsertionSort<>(helper)::mutatingSort, config), "Sort LocalDateTimes using huskySort with insertionSort", 2);
     }
 
     public void sortNumerics(final int n) {
@@ -114,27 +115,27 @@ public class HuskySortBenchmark {
         if (isConfigBenchmarkNumberSorter(timsort, sInteger))
             sortNumeric(n, Integer.class, Random::nextInt, Arrays::sort, null);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sInteger))
-            sortNumeric(n, Integer.class, Random::nextInt, new PureHuskySort<>(HuskySortHelper.integerCoder)::sort, Utilities::checkSorted);
+            sortNumeric(n, Integer.class, Random::nextInt, new PureHuskySort<>(HuskyCoderFactory.integerCoder)::sort, Utilities::checkSorted);
 
         if (isConfigBenchmarkNumberSorter(timsort, sDouble))
             sortNumeric(n, Double.class, Random::nextDouble, Arrays::sort, null);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sDouble))
-            sortNumeric(n, Double.class, Random::nextDouble, new PureHuskySort<>(HuskySortHelper.doubleCoder)::sort, Utilities::checkSorted);
+            sortNumeric(n, Double.class, Random::nextDouble, new PureHuskySort<>(HuskyCoderFactory.doubleCoder)::sort, Utilities::checkSorted);
 
         if (isConfigBenchmarkNumberSorter(timsort, sLong))
             sortNumeric(n, Long.class, Random::nextLong, Arrays::sort, null);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sLong))
-            sortNumeric(n, Long.class, Random::nextLong, new PureHuskySort<>(HuskySortHelper.longCoder)::sort, Utilities::checkSorted);
+            sortNumeric(n, Long.class, Random::nextLong, new PureHuskySort<>(HuskyCoderFactory.longCoder)::sort, Utilities::checkSorted);
 
         if (isConfigBenchmarkNumberSorter(timsort, sBigInteger))
             sortNumeric(n, BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), Arrays::sort, null);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sBigInteger))
-            sortNumeric(n, BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), new PureHuskySort<>(HuskySortHelper.bigIntegerCoder)::sort, Utilities::checkSorted);
+            sortNumeric(n, BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), new PureHuskySort<>(HuskyCoderFactory.bigIntegerCoder)::sort, Utilities::checkSorted);
 
         if (isConfigBenchmarkNumberSorter(timsort, sBigDecimal))
             sortNumeric(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), Arrays::sort, null);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sBigDecimal))
-            sortNumeric(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), new PureHuskySort<>(HuskySortHelper.bigDecimalCoder)::sort, Utilities::checkSorted);
+            sortNumeric(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), new PureHuskySort<>(HuskyCoderFactory.bigDecimalCoder)::sort, Utilities::checkSorted);
     }
 
     public static <X extends Number & Comparable<X>> void sortNumeric(int n, final Class<X> clazz, final Function<Random, X> randomNumberFunction, final Consumer<X[]> sortFunction, final Consumer<X[]> postProcessor) {
@@ -338,7 +339,7 @@ public class HuskySortBenchmark {
 
     @SuppressWarnings("SameParameterValue")
     private void runDateTimeSortBenchmark(Class<?> tClass, ChronoLocalDateTime<?>[] dateTimes, int N, int m, int whichSort) {
-        final SortWithHelper<ChronoLocalDateTime<?>> sorter = whichSort == 0 ? new TimSort<>() : whichSort == 1 ? new QuickHuskySort<>(HuskySortHelper.chronoLocalDateTimeCoder, config) : new QuickHuskySort<>("QuickHuskySort/Insertion", HuskySortHelper.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, config);
+        final SortWithHelper<ChronoLocalDateTime<?>> sorter = whichSort == 0 ? new TimSort<>() : whichSort == 1 ? new QuickHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, config) : new QuickHuskySort<>("QuickHuskySort/Insertion", HuskyCoderFactory.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, config);
         @SuppressWarnings("unchecked") final SorterBenchmark<ChronoLocalDateTime<?>> sorterBenchmark = new SorterBenchmark<>((Class<ChronoLocalDateTime<?>>) tClass, (xs) -> Arrays.copyOf(xs, xs.length), sorter, dateTimes, m, timeLoggersLinearithmic);
         sorterBenchmark.run(N);
     }

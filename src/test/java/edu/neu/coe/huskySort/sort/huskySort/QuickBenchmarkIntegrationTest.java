@@ -15,9 +15,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
-import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.asciiCoder;
 
 /**
  * Quick Benchmark Integration Test.
