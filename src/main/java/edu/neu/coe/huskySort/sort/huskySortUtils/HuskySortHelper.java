@@ -94,8 +94,10 @@ public class HuskySortHelper {
          * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
          * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
          *
+         * NOTE: a length equal to MAX_LENGTH_UNICODE would not be perfect because we have to drop one bit.
+         *
          * @param length the length of a particular String.
-         * @return false if the resulting long for the String will likely not be unique.
+         * @return true if length < MAX_LENGTH_UNICODE.
          */
         @Override
         public boolean perfectForLength(int length) {
@@ -118,8 +120,10 @@ public class HuskySortHelper {
          * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
          * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
          *
+         * NOTE: a length equal to MAX_LENGTH_UTF8 would not be perfect because we have to drop one bit.
+         *
          * @param length the length of a particular String.
-         * @return true if length <= MAX_LENGTH_UTF8 - 1.
+         * @return true if length < MAX_LENGTH_UTF8.
          */
         // TEST
         @Override
