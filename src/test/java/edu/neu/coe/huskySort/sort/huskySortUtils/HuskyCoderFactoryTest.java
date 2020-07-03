@@ -69,19 +69,30 @@ public class HuskyCoderFactoryTest {
         long[] codes = new long[6];
         int bitWidth = 8;
         long[] expected = {
+                // Here we manually encode some strings to utf-8 format.
+                // Chinese string
                 (0xE4B8ADE69687L << (2 * bitWidth)) >>> 1,  // 中文
+                // Too long Chinese string
                 0xE5A4AAE995BFE79AL >>> 1,                  // 太长的中文
+                // Too long English string
                 0x6173646667686A6BL >>> 1,                  // asdfghjkl
+                // A special symbol
                 (0xC2A5L << (6 * bitWidth)) >>> 1,          // ¥
+                // short enough English string
                 (0x63L << (7 * bitWidth)) >>> 1,            // c
+                // another short enough English string
                 (0x61L << (7 * bitWidth)) >>> 1,            // a
         };
+
+        // We test if they are correctly encoded.
         for (int i = 0; i < words.length; i++) {
             codes[i] = utf8ToLong(words[i]);
         }
 
         Assert.assertArrayEquals(expected, codes);
         Arrays.sort(codes);
+
+        // We test if they are correctly sorted.
         long[] sortedExpected = {
                 (0x61L << (7 * bitWidth)) >>> 1,            // a
                 0x6173646667686A6BL >>> 1,                  // asdfghjkl
