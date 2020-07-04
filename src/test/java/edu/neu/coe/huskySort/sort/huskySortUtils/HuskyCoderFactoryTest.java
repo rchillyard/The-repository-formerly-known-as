@@ -4,6 +4,10 @@ import edu.neu.coe.huskySort.util.PrivateMethodTester;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -196,6 +200,26 @@ public class HuskyCoderFactoryTest {
         List<BigInteger> bigints = Arrays.asList(BigInteger.ZERO, BigInteger.valueOf(Long.MAX_VALUE), BigInteger.valueOf(Long.MAX_VALUE).negate(), BigInteger.ONE, BigInteger.ONE.negate());
         final Object[] result = bigints.stream().map(coder::huskyEncode).sorted().toArray();
         assertArrayEquals(expectedOrder, result);
+    }
+
+    @Test
+    public void testUTF8EncodingFromStringFromFile()
+            throws IOException {
+        String file = "src/test/resources/SentiWS_v2.0_Positive.txt";
+        String encoding = "UTF-8";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding));
+        String line1 = reader.readLine();
+        String line2 = reader.readLine();
+        reader.close();
+        long long1 = utf8ToLong(line1);
+        long long2 = utf8ToLong(line2);
+        // "               A-b-m-a-c-h-u-n-g|NN\t0.0040\tAbmachungen";
+        long expected1 = 0x41626D616368756EL >>> 1;
+        assertEquals(expected1, long1);
+        // "               A-b-s-c-h-l-u-ß-|NN\t0.0040\tAbschluss,Abschlusse,Abschlusses,Abschlüsse,Abschlüssen";
+        long expected2 = 0x41627363686C75C3L >>> 1;
+        assertEquals(expected2, long2);
+        assertTrue(long1 < long2);
     }
 
     static final long llMaxMinus = 0xBC20000000000000L; // -4890909195324358656
