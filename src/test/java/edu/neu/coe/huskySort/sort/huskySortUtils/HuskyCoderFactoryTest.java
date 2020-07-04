@@ -69,7 +69,7 @@ public class HuskyCoderFactoryTest {
 
     @Test
     public void testUTF8ToLong() {
-        String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a"};
+        String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a𐍈"};
         long[] codes = new long[6];
         int bitWidth = 8;
         long[] expected = {
@@ -84,8 +84,8 @@ public class HuskyCoderFactoryTest {
                 (0xC2A5L << (6 * bitWidth)) >>> 1,          // ¥
                 // short enough English string
                 (0x63L << (7 * bitWidth)) >>> 1,            // c
-                // another short enough English string
-                (0x61L << (7 * bitWidth)) >>> 1,            // a
+                // English and a special character which takes 4 bytes to encode in UTF-8
+                (0x61F0908D88L << (3 * bitWidth)) >>> 1,    // a𐍈
         };
 
         // We test if they are correctly encoded.
@@ -98,8 +98,8 @@ public class HuskyCoderFactoryTest {
 
         // We test if they are correctly sorted.
         long[] sortedExpected = {
-                (0x61L << (7 * bitWidth)) >>> 1,            // a
                 0x6173646667686A6BL >>> 1,                  // asdfghjkl
+                (0x61F0908D88L << (3 * bitWidth)) >>> 1,    // a𐍈
                 (0x63L << (7 * bitWidth)) >>> 1,            // c
                 (0xC2A5L << (6 * bitWidth)) >>> 1,          // ¥
                 (0xE4B8ADE69687L << (2 * bitWidth)) >>> 1,  // 中文
