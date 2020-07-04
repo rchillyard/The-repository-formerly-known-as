@@ -286,7 +286,6 @@ public class HuskyCoderFactory {
                 byteBuffer.put(0x80 | ((code >> 6) & 0x3F));
                 byteBuffer.put(0x80 | (code & 0x3F));
             } else {
-                // TEST
                 i++;
                 int tempCode = 0x10000 + (((code & 0x3FF) << 10) | codes[i] & 0x3FF);
                 count += 4;

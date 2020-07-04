@@ -4,6 +4,10 @@ import edu.neu.coe.huskySort.util.PrivateMethodTester;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -65,30 +69,44 @@ public class HuskyCoderFactoryTest {
 
     @Test
     public void testUTF8ToLong() {
-        String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a"};
-        long[] codes = new long[6];
+        String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a𐍈", "𝒑𝒒"};
+        long[] codes = new long[7];
         int bitWidth = 8;
         long[] expected = {
+                // Here we manually encode some strings to utf-8 format.
+                // Chinese string
                 (0xE4B8ADE69687L << (2 * bitWidth)) >>> 1,  // 中文
+                // Too long Chinese string
                 0xE5A4AAE995BFE79AL >>> 1,                  // 太长的中文
+                // Too long English string
                 0x6173646667686A6BL >>> 1,                  // asdfghjkl
+                // A special symbol
                 (0xC2A5L << (6 * bitWidth)) >>> 1,          // ¥
+                // short enough English string
                 (0x63L << (7 * bitWidth)) >>> 1,            // c
-                (0x61L << (7 * bitWidth)) >>> 1,            // a
+                // English and a special character which takes 4 bytes to encode in UTF-8
+                (0x61F0908D88L << (3 * bitWidth)) >>> 1,    // a𐍈
+                // Special characters which take 4 bytes to encode in UTF-8
+                0xf09d9291f09d9292L >>> 1
         };
+
+        // We test if they are correctly encoded.
         for (int i = 0; i < words.length; i++) {
             codes[i] = utf8ToLong(words[i]);
         }
 
         Assert.assertArrayEquals(expected, codes);
         Arrays.sort(codes);
+
+        // We test if they are correctly sorted.
         long[] sortedExpected = {
-                (0x61L << (7 * bitWidth)) >>> 1,            // a
                 0x6173646667686A6BL >>> 1,                  // asdfghjkl
+                (0x61F0908D88L << (3 * bitWidth)) >>> 1,    // a𐍈
                 (0x63L << (7 * bitWidth)) >>> 1,            // c
                 (0xC2A5L << (6 * bitWidth)) >>> 1,          // ¥
                 (0xE4B8ADE69687L << (2 * bitWidth)) >>> 1,  // 中文
                 0xE5A4AAE995BFE79AL >>> 1,                  // 太长的中文
+                0xf09d9291f09d9292L >>> 1                   // 𝒑𝒒
         };
         Assert.assertArrayEquals(sortedExpected, codes);
     }
@@ -185,6 +203,26 @@ public class HuskyCoderFactoryTest {
         List<BigInteger> bigints = Arrays.asList(BigInteger.ZERO, BigInteger.valueOf(Long.MAX_VALUE), BigInteger.valueOf(Long.MAX_VALUE).negate(), BigInteger.ONE, BigInteger.ONE.negate());
         final Object[] result = bigints.stream().map(coder::huskyEncode).sorted().toArray();
         assertArrayEquals(expectedOrder, result);
+    }
+
+    @Test
+    public void testUTF8EncodingFromStringFromFile()
+            throws IOException {
+        String file = "src/test/resources/SentiWS_v2.0_Positive.txt";
+        String encoding = "UTF-8";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding));
+        String line1 = reader.readLine();
+        String line2 = reader.readLine();
+        reader.close();
+        long long1 = utf8ToLong(line1);
+        long long2 = utf8ToLong(line2);
+        // "               A-b-m-a-c-h-u-n-g|NN\t0.0040\tAbmachungen";
+        long expected1 = 0x41626D616368756EL >>> 1;
+        assertEquals(expected1, long1);
+        // "               A-b-s-c-h-l-u-ß-|NN\t0.0040\tAbschluss,Abschlusse,Abschlusses,Abschlüsse,Abschlüssen";
+        long expected2 = 0x41627363686C75C3L >>> 1;
+        assertEquals(expected2, long2);
+        assertTrue(long1 < long2);
     }
 
     static final long llMaxMinus = 0xBC20000000000000L; // -4890909195324358656
