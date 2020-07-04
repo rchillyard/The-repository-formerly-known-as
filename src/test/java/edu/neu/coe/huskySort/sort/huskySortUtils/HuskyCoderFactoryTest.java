@@ -69,8 +69,8 @@ public class HuskyCoderFactoryTest {
 
     @Test
     public void testUTF8ToLong() {
-        String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a𐍈"};
-        long[] codes = new long[6];
+        String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a𐍈", "𝒑𝒒"};
+        long[] codes = new long[7];
         int bitWidth = 8;
         long[] expected = {
                 // Here we manually encode some strings to utf-8 format.
@@ -86,6 +86,8 @@ public class HuskyCoderFactoryTest {
                 (0x63L << (7 * bitWidth)) >>> 1,            // c
                 // English and a special character which takes 4 bytes to encode in UTF-8
                 (0x61F0908D88L << (3 * bitWidth)) >>> 1,    // a𐍈
+                // Special characters which take 4 bytes to encode in UTF-8
+                0xf09d9291f09d9292L >>> 1
         };
 
         // We test if they are correctly encoded.
@@ -104,6 +106,7 @@ public class HuskyCoderFactoryTest {
                 (0xC2A5L << (6 * bitWidth)) >>> 1,          // ¥
                 (0xE4B8ADE69687L << (2 * bitWidth)) >>> 1,  // 中文
                 0xE5A4AAE995BFE79AL >>> 1,                  // 太长的中文
+                0xf09d9291f09d9292L >>> 1                   // 𝒑𝒒
         };
         Assert.assertArrayEquals(sortedExpected, codes);
     }
