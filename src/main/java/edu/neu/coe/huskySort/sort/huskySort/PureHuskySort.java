@@ -25,7 +25,7 @@ public class PureHuskySort<X extends Comparable<X>> {
         PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
         for (int i = 0; i < m; i++) {
             String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
-            sorter.sort(Arrays.copyOf(alphaBetaArray, alphaBetaArray.length));
+            sorter.sort(alphaBetaArray);
         }
         logger.info("Finished");
     }
