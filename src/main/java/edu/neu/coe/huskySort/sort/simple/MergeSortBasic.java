@@ -8,6 +8,43 @@ import java.util.Arrays;
 
 public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
 
+    /**
+     * Method to prepare for sorting.
+     * The default method invokes init with the length of the array xs then makes a copy of the array if appropriate.
+     *
+     * @param xs       the original array to be sorted.
+     * @param makeCopy true if we need to work on a copy of the array.
+     * @return either the original or a copy of the array.
+     */
+    @Override
+    public X[] preSort(X[] xs, boolean makeCopy) {
+        // CONSIDER don't copy but just allocate according to the xs/aux interchange optimization
+        aux = Arrays.copyOf(xs, xs.length);
+        return super.preSort(xs, makeCopy);
+    }
+
+    /**
+     * Method to sort a sub-array.
+     *
+     * @param xs   the array to be sorted.
+     * @param from the index of the first element of the sub-array.
+     * @param to   the index of the first element of the sub-array NOT to sort.
+     */
+    @Override
+    public void sort(X[] xs, int from, int to) {
+        @SuppressWarnings("UnnecessaryLocalVariable") int lo = from;
+        if (to <= lo + getHelper().cutoff()) {
+            insertionSort.sort(xs, from, to);
+            return;
+        }
+        int mid = from + (to - from) / 2;
+        sort(xs, lo, mid);
+        sort(xs, mid, to);
+        System.arraycopy(xs, from, aux, from, to - from);
+        getHelper().incrementCopies(to - from);
+        merge(aux, xs, lo, mid, to);
+    }
+
     public static final String DESCRIPTION = "MergeSort";
 
     /**
@@ -33,31 +70,6 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
         insertionSort = new InsertionSort<>(getHelper());
     }
 
-    @Override
-    public X[] sort(X[] xs, boolean makeCopy) {
-        getHelper().init(xs.length);
-        X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-        // TODO don't copy but just allocate according to the xs/aux interchange optimization
-        aux = Arrays.copyOf(xs, xs.length);
-        sort(result, 0, result.length);
-        return result;
-    }
-
-    @Override
-    public void sort(X[] a, int from, int to) {
-        @SuppressWarnings("UnnecessaryLocalVariable") int lo = from;
-        if (to <= lo + getHelper().cutoff()) {
-            insertionSort.sort(a, from, to);
-            return;
-        }
-        int mid = from + (to - from) / 2;
-        sort(a, lo, mid);
-        sort(a, mid, to);
-        System.arraycopy(a, from, aux, from, to - from);
-        getHelper().incrementCopies(to - from);
-        merge(aux, a, lo, mid, to);
-    }
-
     private void merge(X[] aux, X[] a, int lo, int mid, int hi) {
         final Helper<X> helper = getHelper();
         int i = lo;
@@ -71,7 +83,6 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
                 helper.copy(aux, j++, a, k);
             } else helper.copy(aux, i++, a, k);
     }
-
 
     private X[] aux = null;
     private final InsertionSort<X> insertionSort;

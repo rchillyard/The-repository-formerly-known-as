@@ -141,6 +141,7 @@ public class HuskySortBenchmark {
     public static <X extends Number & Comparable<X>> void sortNumeric(int n, final Class<X> clazz, final Function<Random, X> randomNumberFunction, final Consumer<X[]> sortFunction, final Consumer<X[]> postProcessor) {
         final Benchmark<X[]> benchmark = new Benchmark<>(
                 "System sort for " + clazz,
+                // CONSIDER do we actually need to copy here?
                 (xs) -> Arrays.copyOf(xs, xs.length),
                 sortFunction,
                 postProcessor
@@ -314,6 +315,7 @@ public class HuskySortBenchmark {
     private static Benchmark<LocalDateTime[]> benchmarkFactory(String description, Consumer<LocalDateTime[]> sorter, Consumer<LocalDateTime[]> checker) {
         return new Benchmark<>(
                 description,
+                // CONSIDER do we actually need to copy here?
                 (xs) -> Arrays.copyOf(xs, xs.length),
                 sorter,
                 checker
@@ -340,6 +342,7 @@ public class HuskySortBenchmark {
     @SuppressWarnings("SameParameterValue")
     private void runDateTimeSortBenchmark(Class<?> tClass, ChronoLocalDateTime<?>[] dateTimes, int N, int m, int whichSort) {
         final SortWithHelper<ChronoLocalDateTime<?>> sorter = whichSort == 0 ? new TimSort<>() : whichSort == 1 ? new QuickHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, config) : new QuickHuskySort<>("QuickHuskySort/Insertion", HuskyCoderFactory.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, config);
+        // CONSIDER do we actually need to copy here?
         @SuppressWarnings("unchecked") final SorterBenchmark<ChronoLocalDateTime<?>> sorterBenchmark = new SorterBenchmark<>((Class<ChronoLocalDateTime<?>>) tClass, (xs) -> Arrays.copyOf(xs, xs.length), sorter, dateTimes, m, timeLoggersLinearithmic);
         sorterBenchmark.run(N);
     }
@@ -349,10 +352,6 @@ public class HuskySortBenchmark {
         String percentage = formatDecimal3Places((1.0 - mean / IntroHuskySort.expectedInversions(nWords)) * 100);
         logger.debug("HuskySort interim inversions: " + asInt(mean));
         logger.info("HuskySort first pass success rate: " + percentage + "%");
-    }
-
-    private static double lg(double n) {
-        return Math.log(n) / Math.log(2);
     }
 
     /**

@@ -79,4 +79,14 @@ public class Utilities {
         if (!isSorted(ts))
             throw new RuntimeException("array is not sorted");
     }
+
+    /**
+     * Return log to the base 2 of x.
+     *
+     * @param x the number whose log we require.
+     * @return lg(x).
+     */
+    public static double lg(double x) {
+        return Math.log(x) / Math.log(2);
+    }
 }
