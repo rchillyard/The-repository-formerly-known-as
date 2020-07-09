@@ -18,6 +18,18 @@ import java.util.Arrays;
 public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**
+     * @param xs   sort the array xs from "from" until "to" (exclusive of to).
+     * @param from the index of the first element to sort.
+     * @param to   the index of the first element not to sort.
+     */
+    @Override
+    public void sort(X[] xs, int from, int to) {
+        Arrays.sort(xs, from, to);
+    }
+
+    public static final String DESCRIPTION = "Timsort";
+
+    /**
      * Constructor for TimSort
      *
      * @param helper an explicit instance of Helper to be used.
@@ -39,11 +51,5 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
     public TimSort() {
         this(new BaseHelper<>(DESCRIPTION));
     }
-
-    public void sort(X[] xs, int from, int to) {
-        Arrays.sort(xs, from, to);
-    }
-
-    public static final String DESCRIPTION = "Timsort";
 }
 

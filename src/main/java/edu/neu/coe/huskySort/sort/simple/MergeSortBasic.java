@@ -6,6 +6,12 @@ import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
 
+/**
+ * Class to implement Merge Sort.
+ * NOTE: this implementation does NOT use the insertion swap mechanism,
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**

@@ -59,6 +59,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
      * @return the sorted version of xs (or its copy).
      */
+    @Override
     public X[] sort(X[] xs) {
         return sort(xs, huskyHelper.isMakeCopy());
     }
@@ -68,6 +69,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      *
      * @return a HuskyHelper.
      */
+    @Override
     public HuskyHelper<X> getHelper() {
         return huskyHelper;
     }

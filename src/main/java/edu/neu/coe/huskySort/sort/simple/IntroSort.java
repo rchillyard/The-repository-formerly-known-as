@@ -8,6 +8,11 @@ import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.Utilities;
 
+/**
+ * Class to implement Intro Sort.
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
 
     /**

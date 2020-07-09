@@ -16,7 +16,28 @@ import edu.neu.coe.huskySort.util.Config;
 public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**
-     * Constructor for ShellSort
+     * Method to sort a sub-array of an array of Xs.
+     * <p>
+     * TODO check that the treatment of from and to is correct. It seems to be according to the unit tests.
+     *
+     * @param xs an array of Xs to be sorted in place.
+     */
+    public void sort(X[] xs, int from, int to) {
+        int N = to - from;
+        H hh = new H(N);
+        int h = hh.first();
+        while (h > 0) {
+            hSort(h, xs, from, to);
+            h = hh.next();
+        }
+    }
+
+    public static final String DESCRIPTION = "Shell sort";
+
+    /**
+     * Constructor for ShellSort.
+     * <p>
+     * NOTE: not used.
      *
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
@@ -24,10 +45,6 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
     public ShellSort(int m, int N, Config config) {
         super(DESCRIPTION, N, config);
         this.m = m;
-    }
-
-    public ShellSort() {
-        this(3, new BaseHelper<>(DESCRIPTION));
     }
 
     /**
@@ -57,25 +74,6 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
     public ShellSort(int m) {
         this(m, new BaseHelper<>(DESCRIPTION));
     }
-
-    /**
-     * Method to sort a sub-array of an array of Xs.
-     * <p>
-     * TODO check that the treatment of from and to is correct. It seems to be according to the unit tests.
-     *
-     * @param xs an array of Xs to be sorted in place.
-     */
-    public void sort(X[] xs, int from, int to) {
-        int N = to - from;
-        H hh = new H(N);
-        int h = hh.first();
-        while (h > 0) {
-            hSort(h, xs, from, to);
-            h = hh.next();
-        }
-    }
-
-    public static final String DESCRIPTION = "Shell sort";
 
     /**
      * Private method to h-sort an array.

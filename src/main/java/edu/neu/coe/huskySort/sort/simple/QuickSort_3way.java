@@ -8,9 +8,23 @@ import edu.neu.coe.huskySort.util.Config;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class to implement 3-way Quick Sort.
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
 
     public static final String DESCRIPTION = "QuickSort 3 way";
+
+    /**
+     * Method to create a partitioner.
+     *
+     * @return a Partitioner
+     */
+    public Partitioner<X> createPartitioner() {
+        return new Partitioner_3Way(getHelper());
+    }
 
     /**
      * Constructor for QuickSort_3way
@@ -47,10 +61,6 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
      */
     public QuickSort_3way(int N, long seed, Config config) {
         this(new InstrumentedHelper<>(DESCRIPTION, N, config));
-    }
-
-    public Partitioner<X> createPartitioner() {
-        return new Partitioner_3Way(getHelper());
     }
 
     class Partitioner_3Way implements Partitioner<X> {

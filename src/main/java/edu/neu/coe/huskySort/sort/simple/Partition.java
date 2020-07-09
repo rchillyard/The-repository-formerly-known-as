@@ -1,5 +1,10 @@
 package edu.neu.coe.huskySort.sort.simple;
 
+/**
+ * Implementation of a Partition.
+ *
+ * @param <X> the underlying element type.
+ */
 public class Partition<X extends Comparable<X>> {
     public final X[] xs;
     public final int from;

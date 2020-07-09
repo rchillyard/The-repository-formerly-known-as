@@ -13,7 +13,6 @@ import edu.neu.coe.huskySort.util.StatPack;
 import edu.neu.coe.huskySort.util.Statistics;
 import edu.neu.coe.huskySort.util.Utilities;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
@@ -63,7 +62,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    @Override
     public void sort(X[] xs, int from, int to) {
         long[] longs = getHelper().getLongs();
         quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
@@ -103,18 +101,14 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     /**
-     * Method to determin if this sorter is closed.
+     * Method to determine if this sorter is closed.
+     * <p>
+     * TODO make this private (but note that it is unused by unit tests)
      *
      * @return the value of closed.
      */
     public boolean isClosed() {
         return closed;
-    }
-
-    private StatPack getStatPack() {
-        final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
-        if (delegateHelper != null && delegateHelper.instrumented()) return delegateHelper.getStatPack();
-        else return null;
     }
 
     /**
@@ -131,8 +125,33 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             adjunctSorter.postProcess(xs);
     }
 
+    /**
+     * TODO make this private (but note that it is unused by unit tests)
+     *
+     * @return the value of adjunctSorter field.
+     */
     public SortWithHelper<X> getAdjunctSorter() {
         return adjunctSorter;
+    }
+
+    /**
+     * Get the mean number of interim inversions.
+     * Such inversions are the ones left over after the first Husky sort pass.
+     *
+     * @return the mean as a double.
+     */
+    public double getMeanInterimInversions() {
+        if (adjunctSorter == null) {
+            logger.warn("IntroHuskySort.getMeanInterimInversions: interim inversions is not enabled. Use createIntroHuskySortWithInversionCount() instead");
+            return Double.NaN;
+        } else {
+            StatPack statPack = getStatPack();
+            if (closed && statPack != null) {
+                Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
+                if (fixes != null) return fixes.mean();
+                else throw new RuntimeException("Cannot get fixes from StatPack");
+            } else throw new RuntimeException("Cannot get statPack or not closed");
+        }
     }
 
     /**
@@ -161,17 +180,10 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         this(name, huskyCoder, postSorter, config, null);
     }
 
-    /**
-     * Secondary constructor for IntroHuskySort.
-     * Name will be IntroHuskySort/System.
-     * Post-sorter will be the system sort.
-     *
-     * @param huskyCoder the Husky coder.
-     * @param config     the configuration.
-     */
-    // TEST
-    public IntroHuskySort(HuskyCoder<X> huskyCoder, Config config) {
-        this("IntroHuskySort/System", huskyCoder, Arrays::sort, config);
+    private StatPack getStatPack() {
+        final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
+        if (delegateHelper != null && delegateHelper.instrumented()) return delegateHelper.getStatPack();
+        else return null;
     }
 
     @SuppressWarnings({"UnnecessaryLocalVariable"})
@@ -254,20 +266,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
         final int lt;
         final int gt;
-    }
-
-    public double getMeanInterimInversions() {
-        if (adjunctSorter == null) {
-            logger.warn("IntroHuskySort.getMeanInterimInversions: interim inversions is not enabled. Use createIntroHuskySortWithInversionCount() instead");
-            return Double.NaN;
-        } else {
-            StatPack statPack = getStatPack();
-            if (closed && statPack != null) {
-                Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
-                if (fixes != null) return fixes.mean();
-                else throw new RuntimeException("Cannot get fixes from StatPack");
-            } else throw new RuntimeException("Cannot get statPack or not closed");
-        }
     }
 
     private final SortWithHelper<X> adjunctSorter;
