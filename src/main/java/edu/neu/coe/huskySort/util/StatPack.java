@@ -41,7 +41,7 @@ public class StatPack {
         if (map.isEmpty()) stringBuilder.append("<empty>}");
         for (String key : map.keySet()) {
             final Statistics statistics = map.get(key);
-                stringBuilder.append(statistics.toString()).append("; ");
+            stringBuilder.append(statistics.toString()).append("; ");
         }
         return stringBuilder.toString().replaceAll("; $", "}");
     }

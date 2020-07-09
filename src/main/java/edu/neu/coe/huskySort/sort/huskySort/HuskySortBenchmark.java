@@ -154,9 +154,9 @@ public class HuskySortBenchmark {
      * <p>
      * NOTE: this is package-private because it is used by unit tests.
      *
-     * @param words  the word source.
-     * @param nWords the number of words to be sorted.
-     * @param nRuns  the number of runs.
+     * @param words      the word source.
+     * @param nWords     the number of words to be sorted.
+     * @param nRuns      the number of runs.
      * @param huskyCoder the Husky coder to use in the test of PureHuskySort.
      */
     void benchmarkStringSorters(String[] words, int nWords, int nRuns, final HuskyCoder<String> huskyCoder) {
@@ -180,9 +180,9 @@ public class HuskySortBenchmark {
      * <p>
      * NOTE: this is package-private because it is used by unit tests.
      *
-     * @param words  the word source.
-     * @param nWords the number of words to be sorted.
-     * @param nRuns  the number of runs.
+     * @param words      the word source.
+     * @param nWords     the number of words to be sorted.
+     * @param nRuns      the number of runs.
      * @param huskyCoder the Husky coder to be used for the runs of HuskySort.
      */
     void benchmarkStringSortersInstrumented(String[] words, int nWords, int nRuns, final HuskyCoder<String> huskyCoder) {
@@ -203,7 +203,8 @@ public class HuskySortBenchmark {
         if (isConfigBenchmarkStringSorter("introhuskysort")) {
             IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(huskyCoder, nWords, config);
             runStringSortBenchmark(words, nWords, nRuns, sorter, timeLoggersLinearithmic);
-            if (IntroHuskySort.isCountInterimInversions(config) && sorter.isClosed()) logInterimInversions(nWords, sorter);
+            if (IntroHuskySort.isCountInterimInversions(config) && sorter.isClosed())
+                logInterimInversions(nWords, sorter);
         }
 
         if (isConfigBenchmarkStringSorter("quickhuskysort"))
@@ -246,14 +247,13 @@ public class HuskySortBenchmark {
 
     /**
      * Method to run a sorting benchmark using the standard preProcess method of the sorter.
+     * NOTE: this method is public because it is referenced in a unit test of a different package
      *
      * @param words       an array of available words (to be chosen randomly).
      * @param nWords      the number of words to be sorted.
      * @param nRuns       the number of runs of the sort to be preformed.
      * @param sorter      the sorter to use--NOTE that this sorter will be closed at the end of this method.
      * @param timeLoggers a set of timeLoggers to be used.
-     *
-     * NOTE: this method is public because it is referenced in a unit test of a different package
      */
     public static void runStringSortBenchmark(String[] words, int nWords, int nRuns, SortWithHelper<String> sorter, TimeLogger[] timeLoggers) {
         runStringSortBenchmark(words, nWords, nRuns, sorter, sorter::preProcess, timeLoggers);

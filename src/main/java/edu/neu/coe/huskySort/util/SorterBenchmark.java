@@ -53,6 +53,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
         this.nRuns = nRuns;
         this.timeLoggers = timeLoggers;
     }
+
     /**
      * Constructor for a SorterBenchmark where we provide the following parameters:
      * For this form of the constructor, the post-processor always checks that the sort was successful.
@@ -67,6 +68,7 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
     public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, SortWithHelper<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
         this(tClass, preProcessor, sorter, sorter::postProcess, ts, nRuns, timeLoggers);
     }
+
     /**
      * Constructor for a SorterBenchmark where we provide the following parameters:
      * For this form of the constructor, the post-processor always checks that the sort was successful.

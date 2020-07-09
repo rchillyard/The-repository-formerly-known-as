@@ -17,7 +17,7 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     final static LazyLogger logger = new LazyLogger(InstrumentedHelper.class);
-    
+
     public static <Y extends Comparable<Y>> InstrumentedHelper<Y> getInstrumentedHelper(Helper<Y> helper, InstrumentedHelper<Y> alternative) {
         return InstrumentedHelper.class.isAssignableFrom(helper.getClass()) ? (InstrumentedHelper<Y>) helper : alternative;
     }

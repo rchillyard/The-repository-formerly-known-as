@@ -136,5 +136,6 @@ public abstract class Try<V> {
     /**
      * Singleton class.
      */
-    private Try() {}
+    private Try() {
+    }
 }
