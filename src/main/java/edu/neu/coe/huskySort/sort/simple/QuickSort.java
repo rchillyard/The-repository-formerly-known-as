@@ -5,20 +5,14 @@ import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
-import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Base class for implementations of QuickSort.
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<X> {
-
-    public QuickSort(String description, int N, Config config) {
-        super(description, N, config);
-        insertionSort = new InsertionSort<>(getHelper());
-    }
-
-    public QuickSort(Helper<X> helper) {
-        super(helper);
-        insertionSort = new InsertionSort<>(helper);
-    }
 
     /**
      * Method to create a Partitioner.
@@ -39,18 +33,14 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
     }
 
     /**
-     * Method to sort.
+     * Sort the sub-array xs[from] .. xs[to-1]
      *
-     * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
-     * @param makeCopy if set to true, we make a copy first and sort that.
-     * @return the result (sorted version of xs).
+     * @param xs   the complete array from which this sub-array derives.
+     * @param from the index of the first element to sort.
+     * @param to   the index of the first element not to sort.
      */
-    public X[] sort(X[] xs, boolean makeCopy) {
-        // CONSIDER merge with MergeSortBasic and maybe others.
-        getHelper().init(xs.length);
-        X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-        sort(result, 0, result.length, 0);
-        return result;
+    public void sort(X[] xs, int from, int to) {
+        sort(xs, from, to, 0);
     }
 
     /**
@@ -61,24 +51,13 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
      * @param to    the index of the first element not to sort.
      * @param depth the depth of the recursion.
      */
-    public void sort(X[] xs, int from, int to, int depth) {
+    void sort(X[] xs, int from, int to, int depth) {
         if (terminator(xs, from, to, depth)) return;
         getHelper().registerDepth(depth);
         Partition<X> partition = createPartition(xs, from, to);
         if (partitioner == null) throw new RuntimeException("partitioner not set");
         List<Partition<X>> partitions = partitioner.partition(partition);
         partitions.forEach(p -> sort(p.xs, p.from, p.to, depth + 1));
-    }
-
-    /**
-     * Sort the sub-array xs[from] .. xs[to-1]
-     *
-     * @param xs   the complete array from which this sub-array derives.
-     * @param from the index of the first element to sort.
-     * @param to   the index of the first element not to sort.
-     */
-    public void sort(X[] xs, int from, int to) {
-        throw new RuntimeException("This sort signature is not used for Quicksort");
     }
 
     /**
@@ -100,6 +79,11 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
         return false;
     }
 
+    /**
+     * NOTE: this is called by privateMethodTester and needs to be visible.
+     *
+     * @return
+     */
     public InsertionSort<X> getInsertionSort() {
         return insertionSort;
     }
@@ -119,6 +103,16 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
 
     public static <Y extends Comparable<Y>> Partition<Y> createPartition(Y[] ys) {
         return createPartition(ys, 0, ys.length);
+    }
+
+    public QuickSort(String description, int N, Config config) {
+        super(description, N, config);
+        insertionSort = new InsertionSort<>(getHelper());
+    }
+
+    public QuickSort(Helper<X> helper) {
+        super(helper);
+        insertionSort = new InsertionSort<>(helper);
     }
 
     private final InsertionSort<X> insertionSort;

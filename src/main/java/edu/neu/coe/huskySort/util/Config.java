@@ -41,7 +41,7 @@ public class Config {
     }
 
     public String get(Object sectionName, Object optionName) {
-        return get(sectionName, optionName, (String)null);
+        return get(sectionName, optionName, (String) null);
     }
 
     /**
@@ -49,10 +49,10 @@ public class Config {
      * NOTE: using this method, it is not possible to retrieve an empty String as the result,
      * unless you specify an empty string as the default.
      *
-     * @param sectionName the section name.
-     * @param optionName the option name.
+     * @param sectionName  the section name.
+     * @param optionName   the option name.
      * @param defaultValue the default value.
-     * @param <T> the type of the result.
+     * @param <T>          the type of the result.
      * @return the configured value as a T.
      */
     public <T> T get(Object sectionName, Object optionName, Class<T> clazz, final T defaultValue) {
@@ -78,8 +78,8 @@ public class Config {
      * This doesn't work quite like the String getters.
      * In this case, when the value is unset, the log message will not show the default value.
      *
-     * @param sectionName the section name.
-     * @param optionName the option name.
+     * @param sectionName  the section name.
+     * @param optionName   the option name.
      * @param defaultValue the default value.
      * @return the configured value as an int.
      */
@@ -94,8 +94,8 @@ public class Config {
      * This doesn't work quite like the String getters.
      * In this case, when the value is unset, the log message will not show the default value.
      *
-     * @param sectionName the section name.
-     * @param optionName the option name.
+     * @param sectionName  the section name.
+     * @param optionName   the option name.
      * @param defaultValue the default value.
      * @return the configured value as an int.
      */
@@ -110,8 +110,8 @@ public class Config {
      * In this case, when the value is unset, the log message will show the default value, unless it perceives
      * the value as the empty string.
      *
-     * @param sectionName the section name.
-     * @param optionName the option name.
+     * @param sectionName  the section name.
+     * @param optionName   the option name.
      * @param defaultValue the default value.
      * @return the configured value as an int.
      */

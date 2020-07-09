@@ -17,7 +17,7 @@ public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
      * @param timeout  the maximum time to allow the test to run
      *                 before it should timeout
      * @param timeUnit the time unit for the {@code timeout}
-     * @param config    the configuration (containing the processor details).
+     * @param config   the configuration (containing the processor details).
      * @since 4.12
      */
     public ProcessorDependentTimeout(long timeout, TimeUnit timeUnit, Config config) {

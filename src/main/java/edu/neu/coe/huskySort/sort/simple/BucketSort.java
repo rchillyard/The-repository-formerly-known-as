@@ -67,7 +67,6 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
         helper.postProcess(xs);
     }
 
-    @Override
     public void close() {
         if (closeHelper) helper.close();
     }

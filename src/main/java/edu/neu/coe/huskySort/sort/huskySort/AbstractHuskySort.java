@@ -11,32 +11,46 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
+/**
+ * Base class for HuskySort implementations.
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**
-     * Sort array xs, after possibly making a copy.
+     * Init HuskyHelper and initialize the long array.
+     * Make copy if appropriate.
      *
-     * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
-     * @param makeCopy if set to true, we make a copy first and sort that.
-     * @return the sorted version of xs (or its copy).
+     * @param xs       the original array to be sorted.
+     * @param makeCopy true if we need to work on a copy of the array.
+     * @return the xs or a copy.
      */
-    public X[] sort(X[] xs, boolean makeCopy) {
-        // NOTE: First pass where we code to longs and sort according to those.
-        huskyHelper.init(xs.length);
-        X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
+    @Override
+    public X[] preSort(X[] xs, boolean makeCopy) {
+        // NOTE: Prepare for first pass where we code to longs and sort according to those.
+        X[] result = super.preSort(xs, makeCopy);
         huskyHelper.initLongArray(result);
-        sort(result, 0, result.length);
+        return result;
+    }
 
+    /**
+     * This post-sort process is where HuskySort performs the second sorting pass, if necessary.
+     *
+     * @param xs the array sorted by the first pass.
+     * @return either the array passed in or the result of invoking the post-sorter on that array.
+     */
+    @Override
+    public X[] postSort(X[] xs) {
         // NOTE: Second pass (if required) to fix any remaining inversions.
         HuskyCoder<X> huskyCoder = huskyHelper.getCoder();
         if (huskyCoder.isPerfectCallable() && huskyCoder.perfect())
-            return result;
+            return xs;
 
-        huskyHelper.getPostSorter().accept(result);
-        return result;
+        huskyHelper.getPostSorter().accept(xs);
+        return xs;
     }
 
     /**
@@ -45,12 +59,19 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
      * @return the sorted version of xs (or its copy).
      */
+    @Override
     public X[] sort(X[] xs) {
         return sort(xs, huskyHelper.isMakeCopy());
     }
 
-    void swap(X[] objects, int i, int j) {
-        huskyHelper.swap(objects, i, j);
+    /**
+     * Method to get the Helper, but as a HuskyHelper.
+     *
+     * @return a HuskyHelper.
+     */
+    @Override
+    public HuskyHelper<X> getHelper() {
+        return huskyHelper;
     }
 
     // CONSIDER showing coder and postSorter (would need extra String for that).
@@ -60,15 +81,27 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     }
 
     /**
-     * Method to get the Helper, but as a HuskyHelper.
+     * Method to do a swap for HuskySort.
+     * Delegate to huskyHelper.
      *
-     * @return a HuskyHelper.
+     * @param xs the array being sorted.
+     * @param i  the first index.
+     * @param j  the second index.
      */
-    public HuskyHelper<X> getHelper() {
-        return huskyHelper;
+    protected void swap(X[] xs, int i, int j) {
+        huskyHelper.swap(xs, i, j);
     }
 
-    public AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+    /**
+     * Constructor for AbstractHuskySort
+     *
+     * @param name       name of sorter.
+     * @param n          number of elements expected.
+     * @param huskyCoder coder.
+     * @param postSorter post-sorter.
+     * @param config     configuration.
+     */
+    protected AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
         this(name, createHelper(name, n, huskyCoder, postSorter, config.isInstrumented(), config));
         closeHelper = true;
     }

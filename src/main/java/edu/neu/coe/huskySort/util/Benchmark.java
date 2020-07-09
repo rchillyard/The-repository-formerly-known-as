@@ -107,8 +107,8 @@ public class Benchmark<T> {
      * Constructor for a Benchmark where only the (timed) run function is specified.
      *
      * @param description the description of the benchmark.
-     * @param f a Consumer function (i.e. a function of T => Void).
-     *          Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
+     * @param f           a Consumer function (i.e. a function of T => Void).
+     *                    Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      */
     public Benchmark(String description, Consumer<T> f) {
         this(description, null, f, null);

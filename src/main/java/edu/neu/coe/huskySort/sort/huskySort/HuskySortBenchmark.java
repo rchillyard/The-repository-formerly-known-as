@@ -141,6 +141,7 @@ public class HuskySortBenchmark {
     public static <X extends Number & Comparable<X>> void sortNumeric(int n, final Class<X> clazz, final Function<Random, X> randomNumberFunction, final Consumer<X[]> sortFunction, final Consumer<X[]> postProcessor) {
         final Benchmark<X[]> benchmark = new Benchmark<>(
                 "System sort for " + clazz,
+                // CONSIDER do we actually need to copy here?
                 (xs) -> Arrays.copyOf(xs, xs.length),
                 sortFunction,
                 postProcessor
@@ -153,9 +154,9 @@ public class HuskySortBenchmark {
      * <p>
      * NOTE: this is package-private because it is used by unit tests.
      *
-     * @param words  the word source.
-     * @param nWords the number of words to be sorted.
-     * @param nRuns  the number of runs.
+     * @param words      the word source.
+     * @param nWords     the number of words to be sorted.
+     * @param nRuns      the number of runs.
      * @param huskyCoder the Husky coder to use in the test of PureHuskySort.
      */
     void benchmarkStringSorters(String[] words, int nWords, int nRuns, final HuskyCoder<String> huskyCoder) {
@@ -179,9 +180,9 @@ public class HuskySortBenchmark {
      * <p>
      * NOTE: this is package-private because it is used by unit tests.
      *
-     * @param words  the word source.
-     * @param nWords the number of words to be sorted.
-     * @param nRuns  the number of runs.
+     * @param words      the word source.
+     * @param nWords     the number of words to be sorted.
+     * @param nRuns      the number of runs.
      * @param huskyCoder the Husky coder to be used for the runs of HuskySort.
      */
     void benchmarkStringSortersInstrumented(String[] words, int nWords, int nRuns, final HuskyCoder<String> huskyCoder) {
@@ -202,7 +203,8 @@ public class HuskySortBenchmark {
         if (isConfigBenchmarkStringSorter("introhuskysort")) {
             IntroHuskySort<String> sorter = IntroHuskySort.createIntroHuskySortWithInversionCount(huskyCoder, nWords, config);
             runStringSortBenchmark(words, nWords, nRuns, sorter, timeLoggersLinearithmic);
-            if (IntroHuskySort.isCountInterimInversions(config) && sorter.isClosed()) logInterimInversions(nWords, sorter);
+            if (IntroHuskySort.isCountInterimInversions(config) && sorter.isClosed())
+                logInterimInversions(nWords, sorter);
         }
 
         if (isConfigBenchmarkStringSorter("quickhuskysort"))
@@ -245,14 +247,13 @@ public class HuskySortBenchmark {
 
     /**
      * Method to run a sorting benchmark using the standard preProcess method of the sorter.
+     * NOTE: this method is public because it is referenced in a unit test of a different package
      *
      * @param words       an array of available words (to be chosen randomly).
      * @param nWords      the number of words to be sorted.
      * @param nRuns       the number of runs of the sort to be preformed.
      * @param sorter      the sorter to use--NOTE that this sorter will be closed at the end of this method.
      * @param timeLoggers a set of timeLoggers to be used.
-     *
-     * NOTE: this method is public because it is referenced in a unit test of a different package
      */
     public static void runStringSortBenchmark(String[] words, int nWords, int nRuns, SortWithHelper<String> sorter, TimeLogger[] timeLoggers) {
         runStringSortBenchmark(words, nWords, nRuns, sorter, sorter::preProcess, timeLoggers);
@@ -314,6 +315,7 @@ public class HuskySortBenchmark {
     private static Benchmark<LocalDateTime[]> benchmarkFactory(String description, Consumer<LocalDateTime[]> sorter, Consumer<LocalDateTime[]> checker) {
         return new Benchmark<>(
                 description,
+                // CONSIDER do we actually need to copy here?
                 (xs) -> Arrays.copyOf(xs, xs.length),
                 sorter,
                 checker
@@ -340,6 +342,7 @@ public class HuskySortBenchmark {
     @SuppressWarnings("SameParameterValue")
     private void runDateTimeSortBenchmark(Class<?> tClass, ChronoLocalDateTime<?>[] dateTimes, int N, int m, int whichSort) {
         final SortWithHelper<ChronoLocalDateTime<?>> sorter = whichSort == 0 ? new TimSort<>() : whichSort == 1 ? new QuickHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, config) : new QuickHuskySort<>("QuickHuskySort/Insertion", HuskyCoderFactory.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, config);
+        // CONSIDER do we actually need to copy here?
         @SuppressWarnings("unchecked") final SorterBenchmark<ChronoLocalDateTime<?>> sorterBenchmark = new SorterBenchmark<>((Class<ChronoLocalDateTime<?>>) tClass, (xs) -> Arrays.copyOf(xs, xs.length), sorter, dateTimes, m, timeLoggersLinearithmic);
         sorterBenchmark.run(N);
     }
@@ -349,10 +352,6 @@ public class HuskySortBenchmark {
         String percentage = formatDecimal3Places((1.0 - mean / IntroHuskySort.expectedInversions(nWords)) * 100);
         logger.debug("HuskySort interim inversions: " + asInt(mean));
         logger.info("HuskySort first pass success rate: " + percentage + "%");
-    }
-
-    private static double lg(double n) {
-        return Math.log(n) / Math.log(2);
     }
 
     /**

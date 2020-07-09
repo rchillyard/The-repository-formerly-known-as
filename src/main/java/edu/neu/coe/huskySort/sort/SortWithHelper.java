@@ -2,17 +2,12 @@ package edu.neu.coe.huskySort.sort;
 
 import edu.neu.coe.huskySort.util.Config;
 
+/**
+ * Base class for a sorter that uses a Helper.
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X> {
-
-
-    public SortWithHelper(Helper<X> helper) {
-        this.helper = helper;
-    }
-
-    public SortWithHelper(String description, int N, Config config) {
-        this(HelperFactory.create(description, N, config));
-        closeHelper = true;
-    }
 
     /**
      * Get the Helper associated with this Sort.
@@ -54,13 +49,37 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
         helper.postProcess(xs);
     }
 
+    /**
+     * Close this sorter.
+     */
+    public void close() {
+        if (closeHelper) helper.close();
+    }
+
     @Override
     public String toString() {
         return helper.toString();
     }
 
-    public void close() {
-        if (closeHelper) helper.close();
+    /**
+     * Constructor.
+     *
+     * @param helper the helper to use.
+     */
+    public SortWithHelper(Helper<X> helper) {
+        this.helper = helper;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param description the description.
+     * @param N           the number of elements expected.
+     * @param config      the configuration.
+     */
+    public SortWithHelper(String description, int N, Config config) {
+        this(HelperFactory.create(description, N, config));
+        closeHelper = true;
     }
 
     private final Helper<X> helper;

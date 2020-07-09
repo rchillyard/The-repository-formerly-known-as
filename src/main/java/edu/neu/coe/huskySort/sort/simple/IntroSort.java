@@ -6,10 +6,56 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.Utilities;
 
-import java.util.Arrays;
-
+/**
+ * Class to implement Intro Sort.
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
+
+    /**
+     * Method to do the preSort.
+     * Before calling the super-method, we calculate the depthThreshold (i.e level of recursion to switch to heapSort).
+     *
+     * @param xs       the original array to be sorted.
+     * @param makeCopy true if we need to work on a copy of the array.
+     * @return the result of calling super.preSort(xs, makeCopy).
+     */
+    @Override
+    public X[] preSort(X[] xs, boolean makeCopy) {
+        depthThreshold = 2 * floor_lg(xs.length);
+        return super.preSort(xs, makeCopy);
+    }
+
+    /**
+     * Protected method to determine to terminate the recursion of this quick sort.
+     * If the current depth meets or exceeds the depthThreshold, the algorithm switches to heapSort.
+     *
+     * @param xs    the complete array from which this sub-array derives.
+     * @param from  the index of the first element to sort.
+     * @param to    the index of the first element not to sort.
+     * @param depth the current depth of the recursion.
+     * @return true if there is no further work to be done.
+     */
+    @Override
+    protected boolean terminator(X[] xs, int from, int to, int depth) {
+        if (to - from <= sizeThreshold) {
+            if (to > from + 1)
+                getInsertionSort().sort(xs, from, to);
+            return true;
+        }
+
+        if (depth >= depthThreshold) {
+            heapSort(xs, from, to);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static final String DESCRIPTION = "Intro sort";
 
     /**
      * Constructor for QuickSort_3way
@@ -46,54 +92,6 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
     public IntroSort() {
         this(new BaseHelper<>(DESCRIPTION));
     }
-
-    @Override
-    public X[] sort(X[] xs, boolean makeCopy) {
-        getHelper().init(xs.length);
-        depthThreshold = 2 * floor_lg(xs.length);
-        X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-        int from = 0, to = result.length;
-        sort(result, from, to, 0);
-        return result;
-    }
-
-    /**
-     * @param xs   an array of Xs.
-     * @param from the index of the first element to sort.
-     * @param to   the index of the first element not to sort.
-     */
-    @Override
-    public void sort(X[] xs, int from, int to) {
-        sort(xs, from, to, 2 * floor_lg(to - from));
-    }
-
-    /**
-     * Protected method to determine to terminate the recursion of this quick sort.
-     * NOTE that in this implementation, the depth is ignored.
-     *
-     * @param xs    the complete array from which this sub-array derives.
-     * @param from  the index of the first element to sort.
-     * @param to    the index of the first element not to sort.
-     * @param depth the current depth of the recursion.
-     * @return true if there is no further work to be done.
-     */
-    @Override
-    protected boolean terminator(X[] xs, int from, int to, int depth) {
-        if (to - from <= sizeThreshold) {
-            if (to > from + 1)
-                getInsertionSort().sort(xs, from, to);
-            return true;
-        }
-
-        if (depth >= depthThreshold) {
-            heapSort(xs, from, to);
-            return true;
-        }
-
-        return false;
-    }
-
-    public static final String DESCRIPTION = "Intro sort";
 
     /*
      * Heapsort algorithm
@@ -143,7 +141,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
     }
 
     private static int floor_lg(int a) {
-        return (int) (Math.floor(Math.log(a) / Math.log(2)));
+        return (int) Utilities.lg(a);
     }
 
     private int depthThreshold = Integer.MAX_VALUE;

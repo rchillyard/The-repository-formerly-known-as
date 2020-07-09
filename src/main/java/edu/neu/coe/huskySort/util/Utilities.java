@@ -6,10 +6,10 @@ import java.util.Random;
 import java.util.function.Function;
 
 public class Utilities {
-		/**
-		 * There is really no better way that I could find to do this with library/language methods.
-		 * Don't try to inline this if the generic type extends something like Comparable, or you will get a ClassCastException.
-		 *
+    /**
+     * There is really no better way that I could find to do this with library/language methods.
+     * Don't try to inline this if the generic type extends something like Comparable, or you will get a ClassCastException.
+     *
      * @param ts  a collection of Ts.
      * @param <T> the underlying type of ts.
      * @return an array T[].
@@ -78,5 +78,15 @@ public class Utilities {
     public static <T extends Comparable<T>> void checkSorted(T[] ts) {
         if (!isSorted(ts))
             throw new RuntimeException("array is not sorted");
+    }
+
+    /**
+     * Return log to the base 2 of x.
+     *
+     * @param x the number whose log we require.
+     * @return lg(x).
+     */
+    public static double lg(double x) {
+        return Math.log(x) / Math.log(2);
     }
 }

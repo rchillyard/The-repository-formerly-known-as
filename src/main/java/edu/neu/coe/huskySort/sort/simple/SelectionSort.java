@@ -8,6 +8,12 @@ import edu.neu.coe.huskySort.sort.Helper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
+/**
+ * Class to implement Selection Sort.
+ * NOTE: this implementation does NOT use the insertion swap mechanism,
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     public SelectionSort(Helper<X> helper) {

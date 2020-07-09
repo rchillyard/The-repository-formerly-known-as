@@ -6,9 +6,23 @@ import edu.neu.coe.huskySort.util.Config;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class to implement Dual-pivot Quick Sort.
+ *
+ * @param <X> the underlying type to be sorted.
+ */
 public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
 
     public static final String DESCRIPTION = "QuickSort dual pivot";
+
+    /**
+     * Method to create a partitioner.
+     *
+     * @return a Partitioner
+     */
+    public Partitioner<X> createPartitioner() {
+        return new Partitioner_DualPivot(getHelper());
+    }
 
     public QuickSort_DualPivot(String description, int N, Config config) {
         super(description, N, config);
@@ -33,11 +47,6 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
      */
     public QuickSort_DualPivot(int N, Config config) {
         this(DESCRIPTION, N, config);
-    }
-
-    @Override
-    public Partitioner<X> createPartitioner() {
-        return new Partitioner_DualPivot(getHelper());
     }
 
     public class Partitioner_DualPivot implements Partitioner<X> {

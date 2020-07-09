@@ -155,7 +155,8 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         return n;
     }
 
-    public void close() {}
+    public void close() {
+    }
 
     /**
      * Constructor for explicit random number generator.

@@ -11,8 +11,8 @@ import edu.neu.coe.huskySort.sort.simple.MergeSortBasic;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.StatPack;
 import edu.neu.coe.huskySort.util.Statistics;
+import edu.neu.coe.huskySort.util.Utilities;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
@@ -62,29 +62,27 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    // TEST
-    @Override
     public void sort(X[] xs, int from, int to) {
         long[] longs = getHelper().getLongs();
         quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
     }
 
     /**
-     * @param xs the array to be sorted.
-     * @param makeCopy true if we should make a copy of xs.
-     * @return the sorted array, either xs itself or a copy.
+     * The postSort method.
+     * If adjunctSorter is not null. we invoke its pre-processor.
+     * Then we apply the post-sorter to the array.
+     * <p>
+     * NOTE: this method does NOT invoke its super-method.
+     *
+     * @param xs the result of the sorting.
+     * @return the array xs, which may have been changed by both the adjunctSort and the post-sorter.
      */
     @Override
-    public X[] sort(X[] xs, boolean makeCopy) {
-        // CONSIDER merge this with super-method (which only lacks the adjunctSorter lines).
-        huskyHelper.init(xs.length);
-        X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
-        huskyHelper.initLongArray(result);
-        sort(result, 0, result.length);
+    public X[] postSort(X[] xs) {
         if (adjunctSorter != null)
-            adjunctSorter.preProcess(result);
-        huskyHelper.getPostSorter().accept(result);
-        return result;
+            adjunctSorter.preProcess(xs);
+        huskyHelper.getPostSorter().accept(xs);
+        return xs;
     }
 
     /**
@@ -102,14 +100,15 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         }
     }
 
+    /**
+     * Method to determine if this sorter is closed.
+     * <p>
+     * TODO make this private (but note that it is unused by unit tests)
+     *
+     * @return the value of closed.
+     */
     public boolean isClosed() {
         return closed;
-    }
-
-    private StatPack getStatPack() {
-        final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
-        if (delegateHelper != null && delegateHelper.instrumented()) return delegateHelper.getStatPack();
-        else return null;
     }
 
     /**
@@ -126,8 +125,33 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             adjunctSorter.postProcess(xs);
     }
 
+    /**
+     * TODO make this private (but note that it is unused by unit tests)
+     *
+     * @return the value of adjunctSorter field.
+     */
     public SortWithHelper<X> getAdjunctSorter() {
         return adjunctSorter;
+    }
+
+    /**
+     * Get the mean number of interim inversions.
+     * Such inversions are the ones left over after the first Husky sort pass.
+     *
+     * @return the mean as a double.
+     */
+    public double getMeanInterimInversions() {
+        if (adjunctSorter == null) {
+            logger.warn("IntroHuskySort.getMeanInterimInversions: interim inversions is not enabled. Use createIntroHuskySortWithInversionCount() instead");
+            return Double.NaN;
+        } else {
+            StatPack statPack = getStatPack();
+            if (closed && statPack != null) {
+                Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
+                if (fixes != null) return fixes.mean();
+                else throw new RuntimeException("Cannot get fixes from StatPack");
+            } else throw new RuntimeException("Cannot get statPack or not closed");
+        }
     }
 
     /**
@@ -156,20 +180,12 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         this(name, huskyCoder, postSorter, config, null);
     }
 
-    /**
-     * Secondary constructor for IntroHuskySort.
-     * Name will be IntroHuskySort/System.
-     * Post-sorter will be the system sort.
-     *
-     * @param huskyCoder the Husky coder.
-     * @param config     the configuration.
-     */
-    // TEST
-    public IntroHuskySort(HuskyCoder<X> huskyCoder, Config config) {
-        this("IntroHuskySort/System", huskyCoder, Arrays::sort, config);
+    private StatPack getStatPack() {
+        final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
+        if (delegateHelper != null && delegateHelper.instrumented()) return delegateHelper.getStatPack();
+        else return null;
     }
 
-    // TEST
     @SuppressWarnings({"UnnecessaryLocalVariable"})
     private void quickSort(X[] objects, long[] longs, int from, int to, int depthThreshold) {
         int lo = from;
@@ -188,7 +204,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         quickSort(objects, longs, partition.gt + 1, hi, depthThreshold - 1);
     }
 
-    // TEST
     private Partition partition(X[] objects, long[] longs, int lo, int hi) {
         // CONSIDER merge with partition from QuickHuskySort
         int lt = lo, gt = hi;
@@ -203,7 +218,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         return new Partition(lt, gt);
     }
 
-    // TEST
     private void heapSort(X[] objects, long[] longs, int from, int to) {
         int n = to - from + 1;
         for (int i = n / 2; i >= 1; i = i - 1) {
@@ -232,7 +246,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         objects[lo + i - 1] = od;
     }
 
-    // TEST
     private void insertionSort(X[] objects, long[] longs, int from, int to) {
         for (int i = from + 1; i <= to; i++)
             for (int j = i; j > from && longs[j] < longs[j - 1]; j--)
@@ -241,9 +254,8 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     private static final int sizeThreshold = 16;
 
-    // CONSIDER invoke method in IntroSort
     private static int floor_lg(int a) {
-        return (int) (Math.floor(Math.log(a) / Math.log(2)));
+        return (int) Utilities.lg(a);
     }
 
     private static class Partition {
@@ -254,20 +266,6 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
         final int lt;
         final int gt;
-    }
-
-    public double getMeanInterimInversions() {
-        if (adjunctSorter == null) {
-            logger.warn("IntroHuskySort.getMeanInterimInversions: interim inversions is not enabled. Use createIntroHuskySortWithInversionCount() instead");
-            return Double.NaN;
-        } else {
-            StatPack statPack = getStatPack();
-            if (closed && statPack != null) {
-                Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
-                if (fixes != null) return fixes.mean();
-                else throw new RuntimeException("Cannot get fixes from StatPack");
-            } else throw new RuntimeException("Cannot get statPack or not closed");
-        }
     }
 
     private final SortWithHelper<X> adjunctSorter;

@@ -2,6 +2,11 @@ package edu.neu.coe.huskySort.sort.simple;
 
 import java.util.List;
 
+/**
+ * Interface defining partitioning operations.
+ *
+ * @param <X> the underlying element type.
+ */
 public interface Partitioner<X extends Comparable<X>> {
 
     /**
