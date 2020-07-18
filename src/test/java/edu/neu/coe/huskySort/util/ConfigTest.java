@@ -5,11 +5,38 @@ import org.ini4j.Ini;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import static org.junit.Assert.*;
 
 public class ConfigTest {
+
+    @Test
+    public void testConfigFromString1() throws IOException {
+        String s = "[x]\nx1=\nx2= \nx3=Hello\nx4= Hello\nx5=Hello World!\nx6= Hello World!\nx7= \"Hello\"";
+        Config config = new Config(new ByteArrayInputStream(s.getBytes()));
+        assertNull(config.get("x", "x1"));
+        assertNull(config.get("x", "x2"));
+        assertEquals("Hello", config.get("x", "x3"));
+        assertEquals("Hello", config.get("x", "x4"));
+        assertEquals("Hello World!", config.get("x", "x5"));
+        assertEquals("Hello World!", config.get("x", "x6"));
+        assertEquals("\"Hello\"", config.get("x", "x7"));
+    }
+
+    @Test
+    public void testConfigFromString2() throws IOException {
+        String s = "[x]\nx1=\nx2=\t\nx3=Hello\nx4=\tHello\nx5=Hello World!\nx6=\tHello World!\nx7=\t\"Hello\"";
+        Config config = new Config(new ByteArrayInputStream(s.getBytes()));
+        assertNull(config.get("x", "x1"));
+        assertNull(config.get("x", "x2"));
+        assertEquals("Hello", config.get("x", "x3"));
+        assertEquals("Hello", config.get("x", "x4"));
+        assertEquals("Hello World!", config.get("x", "x5"));
+        assertEquals("Hello World!", config.get("x", "x6"));
+        assertEquals("\"Hello\"", config.get("x", "x7"));
+    }
 
     @Test
     public void testConfig() throws IOException {
