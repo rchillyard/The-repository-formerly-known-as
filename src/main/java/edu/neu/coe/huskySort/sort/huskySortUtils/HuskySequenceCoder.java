@@ -37,7 +37,7 @@ public interface HuskySequenceCoder<X extends CharSequence> extends HuskyCoder<X
      */
     @Override
     default boolean isPerfectCallable() {
-        return false;
+        return true;
     }
 
     /**
@@ -46,7 +46,5 @@ public interface HuskySequenceCoder<X extends CharSequence> extends HuskyCoder<X
      * @throws RuntimeException this is the wrong method.
      */
     @Override
-    default boolean perfect() {
-        throw new RuntimeException("perfect() method is not applicable to an instance of HuskySequenceCoder");
-    }
+     boolean perfect();
 }

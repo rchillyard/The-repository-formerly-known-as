@@ -41,8 +41,17 @@ public class HuskyCoderFactory {
         }
 
         public long huskyEncode(String str) {
-            return asciiToLong(str);
+            long val = asciiToLong(str);
+            if (isPerfect) isPerfect = isPerfectlyEncoded(val);
+            return val & ~ tooLongMask;
         }
+
+        @Override
+        public boolean perfect() {
+            return isPerfect;
+        }
+
+        private boolean isPerfect = true;
     };
 
     /**
@@ -71,8 +80,17 @@ public class HuskyCoderFactory {
         }
 
         public long huskyEncode(String str) {
-            return englishToLong(str);
+            long val = englishToLong(str);
+            if (isPerfect) isPerfect = isPerfectlyEncoded(val);
+            return val & ~ tooLongMask;
         }
+
+        @Override
+        public boolean perfect() {
+            return isPerfect;
+        }
+
+        private boolean isPerfect = true;
     };
 
     /**
@@ -97,8 +115,17 @@ public class HuskyCoderFactory {
         // TEST
         @Override
         public long huskyEncode(String str) {
-            return unicodeToLong(str);
+            long val = unicodeToLong(str);
+            if (isPerfect) isPerfect = isPerfectlyEncoded(val);
+            return val & ~ tooLongMask;
         }
+
+        @Override
+        public boolean perfect() {
+            return isPerfect;
+        }
+
+        private boolean isPerfect = true;
     };
 
     /**
@@ -124,8 +151,17 @@ public class HuskyCoderFactory {
         // TEST
         @Override
         public long huskyEncode(String str) {
-            return utf8ToLong(str);
+            long val = utf8ToLong(str);
+            if (isPerfect) isPerfect = isPerfectlyEncoded(val);
+            return val & ~ tooLongMask;
         }
+
+        @Override
+        public boolean perfect() {
+            return isPerfect;
+        }
+
+        private boolean isPerfect = true;
     };
 
     /**
@@ -240,13 +276,15 @@ public class HuskyCoderFactory {
     private static long stringToLong(String str, int maxLength, int bitWidth, int mask) {
         final int length = Math.min(str.length(), maxLength);
         final int padding = maxLength - length;
-        long result = 0L;
+        long result = 0L, tooLongMask = 1L << 63;
         if (((mask ^ 0xFFFF) & 0xFFFF) == 0)
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i);
         else
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i) & mask;
 
         result = result << bitWidth * padding;
+        if (str.length() > maxLength)
+            result = result | tooLongMask;
         return result;
     }
 
