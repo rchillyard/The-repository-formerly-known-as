@@ -31,8 +31,8 @@ public class HuskySortTest {
 
     @Test
     public void testGetWords() {
-        final PrivateMethodInvoker tester = new PrivateMethodInvoker(HuskySortBenchmarkHelper.class);
-        @SuppressWarnings("unchecked") final List<String> words = (List<String>) tester.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
+        final PrivateMethodInvoker invoker = new PrivateMethodInvoker(HuskySortBenchmarkHelper.class);
+        @SuppressWarnings("unchecked") final List<String> words = (List<String>) invoker.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
         assertEquals(8, words.size());
     }
 

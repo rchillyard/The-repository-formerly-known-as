@@ -133,11 +133,11 @@ public class HuskyBucketHelperTest {
 
     @Test
     public void testStringToLong() {
-        final PrivateMethodInvoker tester = new PrivateMethodInvoker(HuskyCoderFactory.class);
-        assertEquals(0x48cbb36000000000L, ((Long) tester.invokePrivate("stringToLong", "Hell", 9, 7, 0x7F)).longValue());
-        assertEquals(0x48cbb366f0000000L, ((Long) tester.invokePrivate("stringToLong", "Hello", 9, 7, 0x7F)).longValue());
-        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Go", 9, 7, 0x7F)).longValue());
-        assertEquals(0xC8CBB366F58823EFL, ((Long) tester.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7, 0x7F)).longValue());
+        final PrivateMethodInvoker invoker = new PrivateMethodInvoker(HuskyCoderFactory.class);
+        assertEquals(0x48cbb36000000000L, ((Long) invoker.invokePrivate("stringToLong", "Hell", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48cbb366f0000000L, ((Long) invoker.invokePrivate("stringToLong", "Hello", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48cbb366f58823efL, ((Long) invoker.invokePrivate("stringToLong", "Hello, Go", 9, 7, 0x7F)).longValue());
+        assertEquals(0xC8CBB366F58823EFL, ((Long) invoker.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7, 0x7F)).longValue());
     }
 
     @Test
