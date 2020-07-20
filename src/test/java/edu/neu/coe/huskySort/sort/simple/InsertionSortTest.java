@@ -7,7 +7,7 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.*;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import edu.neu.coe.huskySort.util.StatPack;
 import org.junit.Test;
 
@@ -55,8 +55,8 @@ public class InsertionSortTest {
         int n = 100;
         Helper<Integer> helper = HelperFactory.create("SelectionSort", n, config);
         helper.init(n);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
         SortWithHelper<Integer> sorter = new InsertionSort<Integer>(helper);
         sorter.preProcess(xs);

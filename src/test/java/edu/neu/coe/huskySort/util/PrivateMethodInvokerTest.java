@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class PrivateMethodTesterTest {
+public class PrivateMethodInvokerTest {
 
     @SuppressWarnings("SameParameterValue")
     static
@@ -48,8 +48,8 @@ public class PrivateMethodTesterTest {
 
     @Test
     public void testStatic() {
-        final PrivateMethodTester tester = new PrivateMethodTester(PrivateMethodTesterTest.class);
-        assertEquals(1, tester.invokePrivate("one"));
+        final PrivateMethodInvoker invoker = new PrivateMethodInvoker(PrivateMethodInvokerTest.class);
+        assertEquals(1, invoker.invokePrivate("one"));
     }
 
     /**
@@ -58,11 +58,11 @@ public class PrivateMethodTesterTest {
     @Test
     public void testMock() {
         final Mock hello = new Mock(10, Math.PI, "Hello");
-        final PrivateMethodTester tester = new PrivateMethodTester(hello);
-        assertEquals(10 * Math.PI, tester.invokePrivate("xTimesY"));
-        assertEquals(20 * Math.PI + 1, tester.invokePrivate("xTimesYTimesWPlusZ", 2.0, 1));
-        assertEquals(20 * Math.PI + 1, tester.invokePrivate("xTimesYTimesWPlusZ", 1, 2.0));
-        assertEquals(20 * Math.PI, tester.invokePrivate("xTimesYTimesW", 2.0));
+        final PrivateMethodInvoker invoker = new PrivateMethodInvoker(hello);
+        assertEquals(10 * Math.PI, invoker.invokePrivate("xTimesY"));
+        assertEquals(20 * Math.PI + 1, invoker.invokePrivate("xTimesYTimesWPlusZ", 2.0, 1));
+        assertEquals(20 * Math.PI + 1, invoker.invokePrivate("xTimesYTimesWPlusZ", 1, 2.0));
+        assertEquals(20 * Math.PI, invoker.invokePrivate("xTimesYTimesW", 2.0));
     }
 
     /**
@@ -71,12 +71,12 @@ public class PrivateMethodTesterTest {
     @Test
     public void testMockExplicit() {
         final Mock hello = new Mock(10, Math.PI, "Hello");
-        final PrivateMethodTester tester = new PrivateMethodTester(hello);
+        final PrivateMethodInvoker invoker = new PrivateMethodInvoker(hello);
         Class<?>[] xTimesYTimesWClasses = new Class<?>[]{Double.class};
         Class<?>[] xTimesYTimesWPlusZClasses1 = new Class<?>[]{double.class, int.class};
         Class<?>[] xTimesYTimesWPlusZClasses2 = new Class<?>[]{Integer.class, double.class};
-        assertEquals(20 * Math.PI + 1, tester.invokePrivateExplicit("xTimesYTimesWPlusZ", xTimesYTimesWPlusZClasses1, 2.0, 1));
-        assertEquals(20 * Math.PI + 1, tester.invokePrivateExplicit("xTimesYTimesWPlusZ", xTimesYTimesWPlusZClasses2, 1, 2.0));
-        assertEquals(20 * Math.PI, tester.invokePrivateExplicit("xTimesYTimesW", xTimesYTimesWClasses, 2.0));
+        assertEquals(20 * Math.PI + 1, invoker.invokePrivateExplicit("xTimesYTimesWPlusZ", xTimesYTimesWPlusZClasses1, 2.0, 1));
+        assertEquals(20 * Math.PI + 1, invoker.invokePrivateExplicit("xTimesYTimesWPlusZ", xTimesYTimesWPlusZClasses2, 1, 2.0));
+        assertEquals(20 * Math.PI, invoker.invokePrivateExplicit("xTimesYTimesW", xTimesYTimesWClasses, 2.0));
     }
 }

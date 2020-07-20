@@ -161,7 +161,7 @@ public class HuskySortBenchmark {
      */
     void benchmarkStringSorters(String[] words, int nWords, int nRuns, final HuskyCoder<String> huskyCoder) {
         logger.info("Testing pure sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
-        Random random = new Random();
+        final Random random = new Random();
 
         if (isConfigBenchmarkStringSorter("purehuskysort")) {
             PureHuskySort<String> pureHuskySort = new PureHuskySort<>(huskyCoder);
@@ -173,6 +173,15 @@ public class HuskySortBenchmark {
             Benchmark<String[]> benchmark = new Benchmark<>("SystemSort", null, Arrays::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark);
         }
+
+        if (isConfigBenchmarkStringSorter("puremergesort")) {
+            final PrivateMethodInvoker invoker = new PrivateMethodInvoker(Arrays.class);
+            final Class<?>[] classes = new Class[]{Object[].class};
+            Consumer<String[]> sort = strings -> invoker.invokePrivateExplicit("legacyMergeSort", classes, new Object[]{strings});
+            Benchmark<String[]> benchmark = new Benchmark<>("LegacyMergeSort", null, sort, null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark);
+        }
+
     }
 
     /**
