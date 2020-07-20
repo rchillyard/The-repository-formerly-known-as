@@ -5,11 +5,38 @@ import org.ini4j.Ini;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import static org.junit.Assert.*;
 
 public class ConfigTest {
+
+    @Test
+    public void testConfigFromString1() throws IOException {
+        String s = "[x]\nx1=\nx2= \nx3=Hello\nx4= Hello\nx5=Hello World!\nx6= Hello World!\nx7= \"Hello\"";
+        Config config = new Config(new ByteArrayInputStream(s.getBytes()));
+        assertNull(config.get("x", "x1"));
+        assertNull(config.get("x", "x2"));
+        assertEquals("Hello", config.get("x", "x3"));
+        assertEquals("Hello", config.get("x", "x4"));
+        assertEquals("Hello World!", config.get("x", "x5"));
+        assertEquals("Hello World!", config.get("x", "x6"));
+        assertEquals("\"Hello\"", config.get("x", "x7"));
+    }
+
+    @Test
+    public void testConfigFromString2() throws IOException {
+        String s = "[x]\nx1=\nx2=\t\nx3=Hello\nx4=\tHello\nx5=Hello World!\nx6=\tHello World!\nx7=\t\"Hello\"";
+        Config config = new Config(new ByteArrayInputStream(s.getBytes()));
+        assertNull(config.get("x", "x1"));
+        assertNull(config.get("x", "x2"));
+        assertEquals("Hello", config.get("x", "x3"));
+        assertEquals("Hello", config.get("x", "x4"));
+        assertEquals("Hello World!", config.get("x", "x5"));
+        assertEquals("Hello World!", config.get("x", "x6"));
+        assertEquals("\"Hello\"", config.get("x", "x7"));
+    }
 
     @Test
     public void testConfig() throws IOException {
@@ -39,9 +66,9 @@ public class ConfigTest {
     @Ignore
     public void testUnLogged() throws IOException {
         final Config config = Config.load();
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(config);
-        assertTrue((Boolean) privateMethodTester.invokePrivate("unLogged", Config.HELPER + "." + SEED));
-        assertFalse((Boolean) privateMethodTester.invokePrivate("unLogged", Config.HELPER + "." + SEED));
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(config);
+        assertTrue((Boolean) privateMethodInvoker.invokePrivate("unLogged", Config.HELPER + "." + SEED));
+        assertFalse((Boolean) privateMethodInvoker.invokePrivate("unLogged", Config.HELPER + "." + SEED));
     }
 
     public static Config setupConfig(final String instrumenting, final String seed, final String inversions, String cutoff, String interimInversions) {

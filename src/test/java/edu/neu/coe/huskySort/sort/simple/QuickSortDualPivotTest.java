@@ -7,7 +7,7 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.*;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import edu.neu.coe.huskySort.util.StatPack;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -168,8 +168,8 @@ public class QuickSortDualPivotTest {
         Integer[] ys = s.sort(xs);
         assertTrue(helper.sorted(ys));
         helper.postProcess(ys);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
         final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
         final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
@@ -188,26 +188,26 @@ public class QuickSortDualPivotTest {
         int n = xs.length;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         QuickSort_DualPivot<String> sorter = new QuickSort_DualPivot<>(helper);
         int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
         Partitioner<String> partitioner = sorter.createPartitioner();
         List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
-        assertEquals(11, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(11, privateMethodInvoker.invokePrivate("getFixes"));
         Partition<String> p0 = partitions.get(0);
         sorter.sort(xs, 0, p0.to, 0);
-        assertEquals(11, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(11, privateMethodInvoker.invokePrivate("getFixes"));
         Partition<String> p1 = partitions.get(1);
         sorter.sort(xs, p1.from, p1.to, 0);
-        assertEquals(21, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(21, privateMethodInvoker.invokePrivate("getFixes"));
         Partition<String> p2 = partitions.get(2);
         sorter.sort(xs, p2.from, n, 0);
-        int fixes = (int) privateMethodTester.invokePrivate("getFixes");
+        int fixes = (int) privateMethodInvoker.invokePrivate("getFixes");
         // NOTE: there are at least as many fixes as inversions -- sort methods aren't necessarily perfectly efficient in terms of swaps.
         assertTrue(inversions <= fixes);
         assertEquals(0, helper.inversions(xs));
-        assertEquals(11, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(11, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test

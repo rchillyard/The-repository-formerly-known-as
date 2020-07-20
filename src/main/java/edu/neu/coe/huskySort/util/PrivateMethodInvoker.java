@@ -7,26 +7,26 @@ package edu.neu.coe.huskySort.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class PrivateMethodTester {
+public class PrivateMethodInvoker {
 
     private final Object object;
     private final Class<?> clazz;
 
-    public PrivateMethodTester(Object object, Class<?> clazz) {
+    public PrivateMethodInvoker(Object object, Class<?> clazz) {
         this.object = object;
         this.clazz = clazz;
     }
 
-    public PrivateMethodTester(Object object) {
+    public PrivateMethodInvoker(Object object) {
         this(object, object.getClass());
     }
 
-    public PrivateMethodTester(Class<?> clazz) {
+    public PrivateMethodInvoker(Class<?> clazz) {
         this(null, clazz);
     }
 
     /**
-     * Method to invoke a private method on the object of this PrivateMethodTester
+     * Method to invoke a private method on the object of this PrivateMethodInvoker
      *
      * @param name       the name of the private method
      * @param parameters a variable number of parameters, each of which determines its corresponding class
@@ -37,7 +37,7 @@ public class PrivateMethodTester {
     }
 
     /**
-     * Method to invoke a private method on the object of this PrivateMethodTester but where we look for a method matching an explicit set of parameter classes.
+     * Method to invoke a private method on the object of this PrivateMethodInvoker but where we look for a method matching an explicit set of parameter classes.
      *
      * @param name       the name of the private method
      * @param classes    the classes of the corresponding parameters

@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
-import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,11 +22,11 @@ public class HuskyCoderFactoryTest {
 
     @Test
     public void testStringToLong() {
-        final PrivateMethodTester tester = new PrivateMethodTester(HuskyCoderFactory.class);
+        final PrivateMethodInvoker tester = new PrivateMethodInvoker(HuskyCoderFactory.class);
         assertEquals(0x48cbb36000000000L, ((Long) tester.invokePrivate("stringToLong", "Hell", 9, 7, 0x7F)).longValue());
         assertEquals(0x48cbb366f0000000L, ((Long) tester.invokePrivate("stringToLong", "Hello", 9, 7, 0x7F)).longValue());
         assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Go", 9, 7, 0x7F)).longValue());
-        assertEquals(0x48cbb366f58823efL, ((Long) tester.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7, 0x7F)).longValue());
+        assertEquals(0xC8CBB366F58823EFL, ((Long) tester.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7, 0x7F)).longValue());
     }
 
     @Test
@@ -123,11 +123,11 @@ public class HuskyCoderFactoryTest {
         long expectedAase2 = 0x6280398032803CL;
         assertEquals(expectedAase2, coder.huskyEncode(sAase + "x"));
         final String sMoskva = "Mосква";
-        long expectedM = 0x26821F0220821DL;
+        long expectedM = 0x4026821F0220821DL;
         assertEquals(expectedM, coder.huskyEncode(sMoskva));
         assertFalse(coder.perfect(sMoskva));
         final String sSrebrenica = "Сребреница";
-        long expectedS = 0x2108220021A8218L;
+        long expectedS = 0x42108220021A8218L;
         assertEquals(expectedS, coder.huskyEncode(sSrebrenica));
         assertFalse(coder.perfect(sSrebrenica));
     }

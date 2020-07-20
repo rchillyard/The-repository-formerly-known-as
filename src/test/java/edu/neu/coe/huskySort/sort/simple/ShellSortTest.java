@@ -6,7 +6,7 @@ package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Sort;
-import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class ShellSortTest {
     @Test
     public void hSort3() {
         ShellSort<Integer> sorter = new ShellSort<>(3);
-        PrivateMethodTester t = new PrivateMethodTester(sorter);
+        PrivateMethodInvoker t = new PrivateMethodInvoker(sorter);
         Integer[] xs = {15, 3, -1, 2, 4, 1, 0, 5, 8, 6, 1, 9, 17, 7, 11};
         Integer[] zs = {4, 1, -1, 2, 8, 3, 0, 5, 15, 6, 1, 9, 17, 7, 11};
         Class[] classes = {int.class, Comparable[].class, int.class, int.class};
