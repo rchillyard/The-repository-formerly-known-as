@@ -26,7 +26,7 @@ public class HuskyCoderFactoryTest {
         assertEquals(0x48cbb36000000000L, ((Long) invoker.invokePrivate("stringToLong", "Hell", 9, 7, 0x7F)).longValue());
         assertEquals(0x48cbb366f0000000L, ((Long) invoker.invokePrivate("stringToLong", "Hello", 9, 7, 0x7F)).longValue());
         assertEquals(0x48cbb366f58823efL, ((Long) invoker.invokePrivate("stringToLong", "Hello, Go", 9, 7, 0x7F)).longValue());
-        assertEquals(0xC8CBB366F58823EFL, ((Long) invoker.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7, 0x7F)).longValue());
+        assertEquals(0x48CBB366F58823EFL, ((Long) invoker.invokePrivate("stringToLong", "Hello, Goodbye", 9, 7, 0x7F)).longValue());
     }
 
     @Test
@@ -39,12 +39,14 @@ public class HuskyCoderFactoryTest {
     @Test
     public void testAsciiCoder2() {
         final String apostroph = "apostroph";
-        final long expected = 0x61E1BF9F4E5BF868L;
+        final int length = apostroph.length();
+        final long expected1 = 0x61E1BF9F4E5BF868L;
         HuskySequenceCoder<String> coder = HuskyCoderFactory.asciiCoder;
-        assertEquals(expected, coder.huskyEncode(apostroph));
-        assertTrue(coder.perfect(apostroph));
-        assertEquals(expected, coder.huskyEncode(apostroph + "e"));
-        assertFalse(coder.perfect(apostroph + "e"));
+        assertEquals(expected1, coder.huskyEncode(apostroph));
+        assertTrue(coder.perfectForLength(length));
+        final long expected2 = 0x61E1BF9F4E5BF868L;
+        assertEquals(expected2, coder.huskyEncode(apostroph + "e"));
+        assertFalse(coder.perfectForLength(length + 1));
     }
 
     @Test
@@ -59,12 +61,14 @@ public class HuskyCoderFactoryTest {
     @Test
     public void testEnglishCoder2() {
         final String apostrophe = "apostrophe";
-        final long expected = 0x870BF3D32BF0A25L;
+        final int length = apostrophe.length();
+        final long expected1 = 0x870BF3D32BF0A25L;
+        final long expected2 = 0x870BF3D32BF0A25L;
         HuskySequenceCoder<String> coder = HuskyCoderFactory.englishCoder;
-        assertEquals(expected, coder.huskyEncode(apostrophe));
-        assertTrue(coder.perfect(apostrophe));
-        assertEquals(expected, coder.huskyEncode(apostrophe + "s"));
-        assertFalse(coder.perfect(apostrophe + "s"));
+        assertEquals(expected1, coder.huskyEncode(apostrophe));
+        assertTrue(coder.perfectForLength(length));
+        assertEquals(expected2, coder.huskyEncode(apostrophe + "s"));
+        assertFalse(coder.perfectForLength(length + 1));
     }
 
     @Test
@@ -117,19 +121,22 @@ public class HuskyCoderFactoryTest {
         HuskySequenceCoder<String> coder = HuskyCoderFactory.unicodeCoder;
         boolean java8 = HuskySortHelper.isPreJava11;
         final String sAase = "Åse";
+        final int lAase = sAase.length();
         long expectedAase1 = 0x62803980328000L;
         assertEquals(expectedAase1, coder.huskyEncode(sAase));
-        assertTrue(coder.perfect(sAase));
+        assertTrue(coder.perfectForLength(lAase));
         long expectedAase2 = 0x6280398032803CL;
         assertEquals(expectedAase2, coder.huskyEncode(sAase + "x"));
         final String sMoskva = "Mосква";
-        long expectedM = 0x4026821F0220821DL;
+        final int lMoskva = sMoskva.length();
+        long expectedM = 0x26821F0220821DL;
         assertEquals(expectedM, coder.huskyEncode(sMoskva));
-        assertFalse(coder.perfect(sMoskva));
+        assertFalse(coder.perfectForLength(lMoskva));
         final String sSrebrenica = "Сребреница";
-        long expectedS = 0x42108220021A8218L;
+        final int lSrebrenica = sSrebrenica.length();
+        long expectedS = 0x2108220021A8218L;
         assertEquals(expectedS, coder.huskyEncode(sSrebrenica));
-        assertFalse(coder.perfect(sSrebrenica));
+        assertFalse(coder.perfectForLength(lSrebrenica));
     }
 
     @Test

@@ -31,10 +31,12 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
+     * CONSIDER eliminating this method
+     *
      * @return the array of longs.
      */
     public long[] getLongs() {
-        return longs;
+        return coding.longs;
     }
 
     /**
@@ -259,6 +261,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
 
     // CONSIDER having a method less which compares the longs rather than having direct access to the longs array in sub-classes
     public void swap(X[] xs, int i, int j) {
+        long[] longs = coding.longs;
         // Swap longs
         long temp1 = longs[i];
         longs[i] = longs[j];
@@ -316,7 +319,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param n the size to be managed.
      */
     public void init(int n) {
-        if (n != getN()) longs = new long[n];
         helper.init(n);
     }
 
@@ -325,8 +327,12 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      *
      * @param array the array from which we build a long array by encoding.
      */
-    public void initLongArray(X[] array) {
-        for (int i = 0; i < array.length; i++) longs[i] = coder.huskyEncode(array[i]);
+    public void doCoding(X[] array) {
+        coding = coder.huskyEncode(array);
+    }
+
+    public Coding getCoding() {
+        return coding;
     }
 
     /**
@@ -340,7 +346,6 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     public HuskyHelper(Helper<X> helper, HuskyCoder<X> coder, Consumer<X[]> postSorter, boolean makeCopy) {
         this.helper = helper;
         this.coder = coder;
-        longs = new long[helper.getN()];
         this.postSorter = postSorter;
         this.makeCopy = makeCopy;
     }
@@ -372,11 +377,11 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     protected final Helper<X> helper;
-    protected long[] longs;
 
     // Delegate methods on helper
     private final HuskyCoder<X> coder;
     private final Consumer<X[]> postSorter;
     private final boolean makeCopy;
 
+    private Coding coding;
 }
