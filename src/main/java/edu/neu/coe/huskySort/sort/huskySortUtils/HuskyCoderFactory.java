@@ -117,18 +117,17 @@ public class HuskyCoderFactory {
     public final static HuskySequenceCoder<String> utf8Coder = new BaseHuskySequenceCoder<String>("UTF8") {
         /**
          * Method to determine if this Husky Coder is perfect for a sequence of the given length.
-         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
-         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
-         *
-         * NOTE: a length equal to MAX_LENGTH_UTF8 would not be perfect because we have to drop one bit.
+         * <p>
+         * NOTE: Because of the method of unpacking UTF8, we can't tell for sure based on the length.
+         * So, for now, we just say perfection is always false.
          *
          * @param length the length of a particular String.
-         * @return true if length < MAX_LENGTH_UTF8.
+         * @return false.
          */
         // TEST
         @Override
         public boolean perfectForLength(int length) {
-            return length < MAX_LENGTH_UTF8;
+            return false;
         }
 
         // TEST

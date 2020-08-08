@@ -21,14 +21,14 @@ public class PureHuskySort<X extends Comparable<X>> {
 
         int N = 50000;
         int m = 10000;
-        logger.info("PureHuskySort: sorting " + N + " random alphabetic ASCII words " + m + " times");
+        logger.info("PureHuskySort.main: sorting " + N + " random alphabetic ASCII words " + m + " times");
         // Just for test purpose: this should take about 3 minutes
         PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
         for (int i = 0; i < m; i++) {
             String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
             sorter.sort(alphaBetaArray);
         }
-        logger.info("Finished");
+        logger.info("PureHuskySort.main: finished");
     }
 
     /**
