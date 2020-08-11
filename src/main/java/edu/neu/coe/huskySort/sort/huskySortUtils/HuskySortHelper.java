@@ -69,10 +69,14 @@ public class HuskySortHelper {
      */
     static {
         sequenceCoderMap = new HashMap<>();
-        sequenceCoderMap.put("ASCII", asciiCoder);
-        sequenceCoderMap.put("UTF8", utf8Coder);
-        sequenceCoderMap.put("English", englishCoder);
-        sequenceCoderMap.put("Unicode", unicodeCoder);
+        addToSequenceCoderMap(asciiCoder);
+        addToSequenceCoderMap(utf8Coder);
+        addToSequenceCoderMap(englishCoder);
+        addToSequenceCoderMap(unicodeCoder);
+    }
+
+    private static void addToSequenceCoderMap(HuskySequenceCoder<String> asciiCoder) {
+        sequenceCoderMap.put(asciiCoder.name(), asciiCoder);
     }
 
     public final static boolean isPreJava11 = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;

@@ -32,7 +32,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     public X[] preSort(X[] xs, boolean makeCopy) {
         // NOTE: Prepare for first pass where we code to longs and sort according to those.
         X[] result = super.preSort(xs, makeCopy);
-        huskyHelper.initLongArray(result);
+        huskyHelper.doCoding(result);
         return result;
     }
 
@@ -44,11 +44,10 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      */
     @Override
     public X[] postSort(X[] xs) {
-        // NOTE: Second pass (if required) to fix any remaining inversions.
-        HuskyCoder<X> huskyCoder = huskyHelper.getCoder();
-        if (huskyCoder.isPerfectCallable() && huskyCoder.perfect())
+        if (huskyHelper.getCoding().perfect)
             return xs;
 
+        // NOTE: Second pass to fix any remaining inversions.
         huskyHelper.getPostSorter().accept(xs);
         return xs;
     }

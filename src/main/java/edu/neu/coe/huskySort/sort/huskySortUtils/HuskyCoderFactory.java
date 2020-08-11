@@ -27,7 +27,7 @@ public class HuskyCoderFactory {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskySequenceCoder<String> asciiCoder = new HuskySequenceCoder<String>() {
+    public final static HuskySequenceCoder<String> asciiCoder = new BaseHuskySequenceCoder<String>("ASCII") {
         /**
          * Method to determine if this Husky Coder is perfect for a sequence of the given length.
          * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
@@ -36,22 +36,23 @@ public class HuskyCoderFactory {
          * @param length the length of a particular String.
          * @return true if length <= MAX_LENGTH_ASCII.
          */
+        @Override
         public boolean perfectForLength(int length) {
             return length <= MAX_LENGTH_ASCII;
         }
 
+        /**
+         * Encode x as a long.
+         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
+         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
+         *
+         * @param str the X value to encode.
+         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
+         */
         public long huskyEncode(String str) {
-            long val = asciiToLong(str);
-            if (isPerfect) isPerfect = isPerfectlyEncoded(val);
-            return val & ~ tooLongMask;
+            return asciiToLong(str);
         }
 
-        @Override
-        public boolean perfect() {
-            return isPerfect;
-        }
-
-        private boolean isPerfect = true;
     };
 
     /**
@@ -65,7 +66,7 @@ public class HuskyCoderFactory {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskySequenceCoder<String> englishCoder = new HuskySequenceCoder<String>() {
+    public final static HuskySequenceCoder<String> englishCoder = new BaseHuskySequenceCoder<String>("English") {
         /**
          * Method to determine if this Husky Coder is perfect for a sequence of the given length.
          * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
@@ -80,23 +81,14 @@ public class HuskyCoderFactory {
         }
 
         public long huskyEncode(String str) {
-            long val = englishToLong(str);
-            if (isPerfect) isPerfect = isPerfectlyEncoded(val);
-            return val & ~ tooLongMask;
+            return englishToLong(str);
         }
-
-        @Override
-        public boolean perfect() {
-            return isPerfect;
-        }
-
-        private boolean isPerfect = true;
     };
 
     /**
      * A Husky Coder for unicode Strings.
      */
-    public final static HuskySequenceCoder<String> unicodeCoder = new HuskySequenceCoder<String>() {
+    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<String>("Unicode") {
         /**
          * Method to determine if this Husky Coder is perfect for a sequence of the given length.
          * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
@@ -115,53 +107,34 @@ public class HuskyCoderFactory {
         // TEST
         @Override
         public long huskyEncode(String str) {
-            long val = unicodeToLong(str);
-            if (isPerfect) isPerfect = isPerfectlyEncoded(val);
-            return val & ~ tooLongMask;
+            return unicodeToLong(str);
         }
-
-        @Override
-        public boolean perfect() {
-            return isPerfect;
-        }
-
-        private boolean isPerfect = true;
     };
 
     /**
      * A Husky Coder for UTF Strings.
      */
-    public final static HuskySequenceCoder<String> utf8Coder = new HuskySequenceCoder<String>() {
+    public final static HuskySequenceCoder<String> utf8Coder = new BaseHuskySequenceCoder<String>("UTF8") {
         /**
          * Method to determine if this Husky Coder is perfect for a sequence of the given length.
-         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
-         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
-         *
-         * NOTE: a length equal to MAX_LENGTH_UTF8 would not be perfect because we have to drop one bit.
+         * <p>
+         * NOTE: Because of the method of unpacking UTF8, we can't tell for sure based on the length.
+         * So, for now, we just say perfection is always false.
          *
          * @param length the length of a particular String.
-         * @return true if length < MAX_LENGTH_UTF8.
+         * @return false.
          */
         // TEST
         @Override
         public boolean perfectForLength(int length) {
-            return length < MAX_LENGTH_UTF8;
+            return false;
         }
 
         // TEST
         @Override
         public long huskyEncode(String str) {
-            long val = utf8ToLong(str);
-            if (isPerfect) isPerfect = isPerfectlyEncoded(val);
-            return val & ~ tooLongMask;
+            return utf8ToLong(str);
         }
-
-        @Override
-        public boolean perfect() {
-            return isPerfect;
-        }
-
-        private boolean isPerfect = true;
     };
 
     /**
@@ -276,15 +249,13 @@ public class HuskyCoderFactory {
     private static long stringToLong(String str, int maxLength, int bitWidth, int mask) {
         final int length = Math.min(str.length(), maxLength);
         final int padding = maxLength - length;
-        long result = 0L, tooLongMask = 1L << 63;
+        long result = 0L;
         if (((mask ^ 0xFFFF) & 0xFFFF) == 0)
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i);
         else
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i) & mask;
 
         result = result << bitWidth * padding;
-        if (str.length() > maxLength)
-            result = result | tooLongMask;
         return result;
     }
 
