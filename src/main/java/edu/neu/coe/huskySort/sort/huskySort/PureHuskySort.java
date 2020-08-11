@@ -1,5 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.sort.huskySortUtils.Coding;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
@@ -20,14 +21,14 @@ public class PureHuskySort<X extends Comparable<X>> {
 
         int N = 50000;
         int m = 10000;
-        logger.info("PureHuskySort: sorting " + N + " random alphabetic ASCII words " + m + " times");
+        logger.info("PureHuskySort.main: sorting " + N + " random alphabetic ASCII words " + m + " times");
         // Just for test purpose: this should take about 3 minutes
         PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
         for (int i = 0; i < m; i++) {
             String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
             sorter.sort(alphaBetaArray);
         }
-        logger.info("Finished");
+        logger.info("PureHuskySort.main: finished");
     }
 
     /**
@@ -37,11 +38,12 @@ public class PureHuskySort<X extends Comparable<X>> {
      */
     public void sort(X[] xs) {
         // NOTE: First pass where we code to longs and sort according to those.
-        long[] longs = huskyCoder.huskyEncode(xs);
+        Coding coding = huskyCoder.huskyEncode(xs);
+        long[] longs = coding.longs;
         introSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(xs.length));
 
         // NOTE: Second pass (if required) to fix any remaining inversions.
-        if (huskyCoder.isPerfectCallable() && huskyCoder.perfect())
+        if (coding.perfect)
             return;
         Arrays.sort(xs);
     }

@@ -43,4 +43,20 @@ public class PureHuskySortTest {
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
+
+    @Test
+    public void testSortString4() {
+        String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
+        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
+        sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(xs));
+    }
+
+    @Test
+    public void testSortString5() {
+        String[] xs = {"Hello", "Goodbye", "Ciao", "Welcome"};
+        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
+        sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(xs));
+    }
 }

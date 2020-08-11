@@ -1,5 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.sort.huskySortUtils.Coding;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
@@ -30,13 +31,14 @@ public class MergeHuskySort<X extends Comparable<X>> {
      */
     public void sort(X[] xs) {
         // NOTE: First pass where we code to longs and sort according to those.
-        long[] longs = huskyCoder.huskyEncode(xs);
+        Coding coding = huskyCoder.huskyEncode(xs);
+        long[] longs = coding.longs;
         auObject = Arrays.copyOf(xs, xs.length);
         auLong = Arrays.copyOf(longs, longs.length);
         mergeSort(xs, longs, 0, longs.length - 1);
 
         // NOTE: Second pass (if required) to fix any remaining inversions.
-        if (huskyCoder.isPerfectCallable() && huskyCoder.perfect())
+        if (coding.perfect)
             return;
         Arrays.sort(xs);
     }

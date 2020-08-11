@@ -19,9 +19,9 @@ public class InstrumentedHelperTest {
     public void testLess() {
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
         assertTrue(helper.less("a", "b"));
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        assertEquals(1, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(0, privateMethodTester.invokePrivate("getSwaps"));
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
@@ -31,88 +31,88 @@ public class InstrumentedHelperTest {
         assertEquals(-1, helper.compare(xs, 0, 1));
         assertEquals(0, helper.compare(xs, 0, 0));
         assertEquals(1, helper.compare(xs, 1, 0));
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        assertEquals(3, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(0, privateMethodTester.invokePrivate("getSwaps"));
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        assertEquals(3, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
     public void testSwap1() {
         String[] xs = new String[]{"b", "a"};
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(1, helper.inversions(xs));
-        assertEquals(0, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
         assertEquals(0, helper.inversions(xs));
-        assertEquals(1, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(1, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 1);
         assertEquals(1, helper.inversions(xs));
         assertArrayEquals(new String[]{"b", "a"}, xs);
         // NOTE that we do not check fixes here because we did a non-fixing swap which will have generated an incorrect total.
-        assertEquals(0, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(2, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(2, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
     public void testSwap2() {
         String[] xs = new String[]{"c", "b", "a"};
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(3, helper.inversions(xs));
-        assertEquals(0, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 2);
         assertArrayEquals(new String[]{"a", "b", "c"}, xs);
         assertEquals(0, helper.inversions(xs));
-        assertEquals(3, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(3, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 1);
         assertArrayEquals(new String[]{"b", "a", "c"}, xs);
         // NOTE that we do not check fixes here because we did a non-fixing swap which will have generated an incorrect total.
-        assertEquals(0, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(2, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(2, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
     public void testSwap3() {
         String[] xs = new String[]{"c", "b", "d", "a"};
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(4, helper.inversions(xs));
-        assertEquals(0, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 3);
         assertArrayEquals(new String[]{"a", "b", "d", "c"}, xs);
         assertEquals(1, helper.inversions(xs));
-        assertEquals(3, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(3, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 2, 3);
         assertArrayEquals(new String[]{"a", "b", "c", "d"}, xs);
         assertEquals(0, helper.inversions(xs));
-        assertEquals(4, privateMethodTester.invokePrivate("getFixes"));
-        assertEquals(0, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(2, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(4, privateMethodInvoker.invokePrivate("getFixes"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(2, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
     public void testSwap4() {
         String[] xs = new String[]{"c", "e", "b", "d", "a"};
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(7, helper.inversions(xs));
-        assertEquals(0, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 4);
         assertArrayEquals(new String[]{"a", "e", "b", "d", "c"}, xs);
         assertEquals(4, helper.inversions(xs));
-        assertEquals(3, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(3, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 1, 4);
         assertArrayEquals(new String[]{"a", "c", "b", "d", "e"}, xs);
         assertEquals(1, helper.inversions(xs));
-        assertEquals(6, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(6, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 1, 2);
         assertArrayEquals(new String[]{"a", "b", "c", "d", "e"}, xs);
         assertEquals(0, helper.inversions(xs));
-        assertEquals(7, privateMethodTester.invokePrivate("getFixes"));
-        assertEquals(0, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(3, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(7, privateMethodInvoker.invokePrivate("getFixes"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(3, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
@@ -120,16 +120,16 @@ public class InstrumentedHelperTest {
         String[] xs = new String[]{"f", "e", "d", "c", "b", "a"};
         int n = xs.length;
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
-        assertEquals(0, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, n - 1);
         assertArrayEquals(new String[]{"a", "e", "d", "c", "b", "f"}, xs);
         int fixes = 2 * n - 3;
-        assertEquals(fixes, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(fixes, privateMethodInvoker.invokePrivate("getFixes"));
         assertEquals(inversions - fixes, helper.inversions(xs));
-        assertEquals(1, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
@@ -137,16 +137,16 @@ public class InstrumentedHelperTest {
         String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
         int n = xs.length;
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
-        assertEquals(0, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, n - 1);
         assertArrayEquals(new String[]{"a", "f", "e", "d", "c", "b", "g"}, xs);
         int fixes = 2 * n - 3;
-        assertEquals(fixes, privateMethodTester.invokePrivate("getFixes"));
+        assertEquals(fixes, privateMethodInvoker.invokePrivate("getFixes"));
         assertEquals(inversions - fixes, helper.inversions(xs));
-        assertEquals(1, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
@@ -156,9 +156,9 @@ public class InstrumentedHelperTest {
         assertTrue(helper.sorted(xs));
         helper.swap(xs, 0, 1);
         assertFalse(helper.sorted(xs));
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        assertEquals(0, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(1, privateMethodTester.invokePrivate("getSwaps"));
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        assertEquals(0, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
@@ -235,55 +235,55 @@ public class InstrumentedHelperTest {
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        assertEquals(0, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(2, privateMethodTester.invokePrivate("getSwaps"));
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        assertEquals(0, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(2, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
     public void testFixInversion1() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         helper.fixInversion(xs, 1);
-        assertEquals(1, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(0, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
         assertArrayEquals(new String[]{"a", "b"}, xs);
         helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.fixInversion(xs, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
-        assertEquals(2, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(2, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(2, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(2, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
     public void testFixInversion2() {
         String[] xs = new String[]{"a", "b"};
         final Helper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         helper.fixInversion(xs, 0, 1);
-        assertEquals(1, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(0, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
         assertArrayEquals(new String[]{"a", "b"}, xs);
         helper.swap(xs, 0, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.fixInversion(xs, 0, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
-        assertEquals(2, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(2, privateMethodTester.invokePrivate("getSwaps"));
+        assertEquals(2, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(2, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test
     public void testMergeSort() {
         int N = 8;
         final Helper<Integer> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
         s.sort(xs);
-        final int compares = (Integer) privateMethodTester.invokePrivate("getCompares");
+        final int compares = (Integer) privateMethodInvoker.invokePrivate("getCompares");
         assertTrue(compares <= 20 && compares >= 11);
     }
 
@@ -292,7 +292,7 @@ public class InstrumentedHelperTest {
         int N = 8;
         int m = 10;
         final Helper<Integer> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
         for (int i = 0; i < m; i++) {
@@ -300,7 +300,7 @@ public class InstrumentedHelperTest {
             Integer[] ys = s.sort(xs);
             helper.postProcess(ys);
         }
-        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         final Statistics statistics = statPack.getStatistics(InstrumentedHelper.COMPARES);
         System.out.println(statistics);
         final int compares = statPack.getCount(InstrumentedHelper.COMPARES);
@@ -326,9 +326,9 @@ public class InstrumentedHelperTest {
         assertFalse(helper.sorted(xs));
         helper.swapConditional(xs, 0, 2);
         assertTrue(helper.sorted(xs));
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        assertEquals(1, privateMethodTester.invokePrivate("getCompares"));
-        assertEquals(1, privateMethodTester.invokePrivate("getSwaps"));
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
+        assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
     }
 
     @Test

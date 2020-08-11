@@ -66,9 +66,9 @@ public class ConfigTest {
     @Ignore
     public void testUnLogged() throws IOException {
         final Config config = Config.load();
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(config);
-        assertTrue((Boolean) privateMethodTester.invokePrivate("unLogged", Config.HELPER + "." + SEED));
-        assertFalse((Boolean) privateMethodTester.invokePrivate("unLogged", Config.HELPER + "." + SEED));
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(config);
+        assertTrue((Boolean) privateMethodInvoker.invokePrivate("unLogged", Config.HELPER + "." + SEED));
+        assertFalse((Boolean) privateMethodInvoker.invokePrivate("unLogged", Config.HELPER + "." + SEED));
     }
 
     public static Config setupConfig(final String instrumenting, final String seed, final String inversions, String cutoff, String interimInversions) {

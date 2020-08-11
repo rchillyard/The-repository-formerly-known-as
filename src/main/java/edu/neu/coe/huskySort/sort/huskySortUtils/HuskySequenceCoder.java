@@ -11,16 +11,6 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 public interface HuskySequenceCoder<X extends CharSequence> extends HuskyCoder<X> {
 
     /**
-     * Method to determine if this Husky Coder is perfect for a particular instance of X.
-     *
-     * @param x an element of type X.
-     * @return the result of invoking perfectForLength(x.length()).
-     */
-    default boolean perfect(X x) {
-        return perfectForLength(x.length());
-    }
-
-    /**
      * Method to determine if this Husky Coder is perfect for a sequence of the given length.
      * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
      * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
@@ -30,23 +20,11 @@ public interface HuskySequenceCoder<X extends CharSequence> extends HuskyCoder<X
      */
     boolean perfectForLength(int length);
 
-    /**
-     * Method to determine if it's OK to call the perfect() method.
-     *
-     * @return false.
-     */
-    @Override
-    default boolean isPerfectCallable() {
-        return false;
-    }
-
-    /**
+     /**
      * Method to determine if this Husky Coder is perfect for a class of objects (X).
      *
      * @throws RuntimeException this is the wrong method.
      */
     @Override
-    default boolean perfect() {
-        throw new RuntimeException("perfect() method is not applicable to an instance of HuskySequenceCoder");
-    }
+     boolean perfect();
 }

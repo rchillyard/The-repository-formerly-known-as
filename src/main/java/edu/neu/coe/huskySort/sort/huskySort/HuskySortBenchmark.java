@@ -51,22 +51,22 @@ public class HuskySortBenchmark {
     }
 
     private void sortStrings(Stream<Integer> wordCounts) throws IOException {
-        logger.info("Beginning String sorts");
+        logger.info("sortStrings: beginning String sorts");
 
         // NOTE: common words benchmark
-        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), 4000, 5000, englishCoder);
+        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), 5000, 10000, englishCoder);
 
         // NOTE: Leipzig English words benchmarks (according to command-line arguments)
         wordCounts.forEach(this::doLeipzigBenchmarkEnglish);
 
         // NOTE: Leipzig Chinese words benchmarks (according to command-line arguments)
-        doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", 5000, 1000, UNICODE_CODER);
+        doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", 5000, 10000, UNICODE_CODER);
     }
 
     private void doLeipzigBenchmarkEnglish(int x) {
         String resource = "eng-uk_web_2002_" + (x < 50000 ? "10K" : x < 200000 ? "100K" : "1M") + "-sentences.txt";
         try {
-            HuskyCoder<String> huskyCoder = HuskySortHelper.getSequenceCoderByName(config.get("huskysort", "huskycoder", "Unicode"));
+            HuskyCoder<String> huskyCoder = HuskySortHelper.getSequenceCoderByName(getConfigHuskyCoder());
             doLeipzigBenchmark(resource, x, Utilities.round(100000000 / minComparisons(x)), huskyCoder);
         } catch (FileNotFoundException e) {
             logger.warn("Unable to find resource: " + resource, e);
@@ -74,7 +74,7 @@ public class HuskySortBenchmark {
     }
 
     public void sortLocalDateTimes(final int n) {
-        logger.info("Beginning LocalDateTime sorts");
+        logger.info("sortLocalDateTimes: beginning LocalDateTime sorts");
         // TODO why do we have localDateTimeSupplier IN ADDITION TO localDateTimes?
         Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(n);
         BaseHelper<ChronoLocalDateTime<?>> helper = new BaseHelper<>("DateTimeHelper");
@@ -103,7 +103,7 @@ public class HuskySortBenchmark {
     }
 
     public void sortNumerics(final int n) {
-        logger.info("Beginning Numeric sorts");
+        logger.info("sortNumerics: beginning numeric sorts");
         String timsort = "timsort";
         String introhuskysort = "introhuskysort";
         String sInteger = "integer";
@@ -160,8 +160,8 @@ public class HuskySortBenchmark {
      * @param huskyCoder the Husky coder to use in the test of PureHuskySort.
      */
     void benchmarkStringSorters(String[] words, int nWords, int nRuns, final HuskyCoder<String> huskyCoder) {
-        logger.info("Testing pure sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
-        Random random = new Random();
+        logger.info("benchmarkStringSorters: testing pure sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words using coder: " + huskyCoder.name());
+        final Random random = new Random();
 
         if (isConfigBenchmarkStringSorter("purehuskysort")) {
             PureHuskySort<String> pureHuskySort = new PureHuskySort<>(huskyCoder);
@@ -173,6 +173,15 @@ public class HuskySortBenchmark {
             Benchmark<String[]> benchmark = new Benchmark<>("SystemSort", null, Arrays::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark);
         }
+
+        if (isConfigBenchmarkStringSorter("puremergesort")) {
+            final PrivateMethodInvoker invoker = new PrivateMethodInvoker(Arrays.class);
+            final Class<?>[] classes = new Class[]{Object[].class};
+            Consumer<String[]> sort = strings -> invoker.invokePrivateExplicit("legacyMergeSort", classes, new Object[]{strings});
+            Benchmark<String[]> benchmark = new Benchmark<>("LegacyMergeSort", null, sort, null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark);
+        }
+
     }
 
     /**
@@ -186,7 +195,7 @@ public class HuskySortBenchmark {
      * @param huskyCoder the Husky coder to be used for the runs of HuskySort.
      */
     void benchmarkStringSortersInstrumented(String[] words, int nWords, int nRuns, final HuskyCoder<String> huskyCoder) {
-        logger.info("Testing with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words" + (config.isInstrumented() ? " and instrumented" : ""));
+        logger.info("benchmarkStringSortersInstrumented: testing with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words" + (config.isInstrumented() ? " and instrumented" : ""));
 
         if (isConfigBenchmarkStringSorter("mergesort"))
             runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(nWords, config), timeLoggersLinearithmic);
@@ -350,13 +359,13 @@ public class HuskySortBenchmark {
     private static void logInterimInversions(int nWords, IntroHuskySort<String> sorter) {
         double mean = sorter.getMeanInterimInversions();
         String percentage = formatDecimal3Places((1.0 - mean / IntroHuskySort.expectedInversions(nWords)) * 100);
-        logger.debug("HuskySort interim inversions: " + asInt(mean));
-        logger.info("HuskySort first pass success rate: " + percentage + "%");
+        logger.debug("logInterimInversions: HuskySort interim inversions: " + asInt(mean));
+        logger.info("logInterimInversions: HuskySort first pass success rate: " + percentage + "%");
     }
 
     /**
      * For (basic) insertionsort, the number of array accesses is actually 6 times the number of comparisons.
-     * That's because, for each inversions, there will typically be one swap (four array accesses) and (at least) one comparision (two array accesses).
+     * That's because, for each inversions, there will typically be one swap (four array accesses) and (at least) one comparison (two array accesses).
      * Thus, in the case where comparisons are based on primitives,
      * the normalized time per run should approximate the time for one array access.
      */
@@ -385,6 +394,10 @@ public class HuskySortBenchmark {
 
     private boolean isConfigBoolean(String section, String option) {
         return config.getBoolean(section, option);
+    }
+
+    private String getConfigHuskyCoder() {
+        return config.get("huskysort", "huskycoder", "Unicode");
     }
 
     private final Config config;

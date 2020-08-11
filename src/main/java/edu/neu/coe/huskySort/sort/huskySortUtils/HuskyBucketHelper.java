@@ -49,7 +49,7 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
 
     public int loadBuckets(X[] xs) {
         // CONSIDER is this redundant?
-        initLongArray(xs);
+        doCoding(xs);
         long min = Long.MAX_VALUE;
         long max = Long.MIN_VALUE;
         long[] longs = getLongs();

@@ -16,6 +16,13 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 public interface HuskyCoder<X> {
 
     /**
+     * @return the name of this coder.
+     */
+    default String name() {
+        return "HuskyCoder";
+    }
+
+    /**
      * Encode x as a long.
      * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
      * If this cannot be guaranteed, then the result of imperfect(z) will be true.
@@ -31,19 +38,10 @@ public interface HuskyCoder<X> {
      * @param xs an array of X elements.
      * @return an array of longs corresponding to the the Husky codes of the X elements.
      */
-    default long[] huskyEncode(X[] xs) {
+    default Coding huskyEncode(X[] xs) {
         long[] result = new long[xs.length];
         for (int i = 0; i < xs.length; i++) result[i] = huskyEncode(xs[i]);
-        return result;
-    }
-
-    /**
-     * Method to determine if it's OK to call the perfect() method.
-     *
-     * @return true for a non-sequence type X.
-     */
-    default boolean isPerfectCallable() {
-        return true;
+        return new Coding(result, perfect());
     }
 
     /**

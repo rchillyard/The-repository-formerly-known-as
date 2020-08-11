@@ -7,7 +7,7 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.*;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import edu.neu.coe.huskySort.util.StatPack;
 import org.junit.Test;
 
@@ -52,8 +52,8 @@ public class IntroSortTest {
         Integer[] ys = s.sort(xs);
         assertTrue(helper.sorted(ys));
         helper.postProcess(ys);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
         final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
         final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
@@ -82,8 +82,8 @@ public class IntroSortTest {
         Integer[] ys = s.sort(xs);
         assertTrue(helper.sorted(ys));
         helper.postProcess(ys);
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(helper);
-        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
         final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
         final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
@@ -100,7 +100,7 @@ public class IntroSortTest {
     @Test
     public void testHeapSort() throws Exception {
         IntroSort<Integer> sorter = new IntroSort<>();
-        PrivateMethodTester t = new PrivateMethodTester(sorter);
+        PrivateMethodInvoker t = new PrivateMethodInvoker(sorter);
         Integer[] xs = {15, 3, -1, 2, 4, 1, 0, 5, 8, 6, 1, 9, 17, 7, 11};
         Class[] classes = {Comparable[].class, int.class, int.class};
         t.invokePrivateExplicit("heapSort", classes, xs, 0, xs.length);
@@ -110,7 +110,7 @@ public class IntroSortTest {
     @Test
     public void testInsertionSort() throws Exception {
         IntroSort<Integer> sorter = new IntroSort<>();
-        PrivateMethodTester t = new PrivateMethodTester(sorter);
+        PrivateMethodInvoker t = new PrivateMethodInvoker(sorter);
         Integer[] xs = {15, 3, -1, 2, 4, 1, 0, 5, 8, 6, 1, 9, 17, 7, 11};
         Sort<Integer> insertionSort = (Sort<Integer>) t.invokePrivate("getInsertionSort");
         insertionSort.sort(xs, 0, xs.length);

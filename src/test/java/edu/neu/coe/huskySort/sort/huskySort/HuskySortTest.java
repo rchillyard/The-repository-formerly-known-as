@@ -8,7 +8,7 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodTester;
+import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import edu.neu.coe.huskySort.util.StatPack;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,8 +31,8 @@ public class HuskySortTest {
 
     @Test
     public void testGetWords() {
-        final PrivateMethodTester tester = new PrivateMethodTester(HuskySortBenchmarkHelper.class);
-        @SuppressWarnings("unchecked") final List<String> words = (List<String>) tester.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
+        final PrivateMethodInvoker invoker = new PrivateMethodInvoker(HuskySortBenchmarkHelper.class);
+        @SuppressWarnings("unchecked") final List<String> words = (List<String>) invoker.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
         assertEquals(8, words.size());
     }
 
@@ -111,8 +111,8 @@ public class HuskySortTest {
         assertTrue("sorted", helper.sorted(ys));
         sorter.postProcess(ys);
         final Helper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper, (InstrumentedHelper<String>) helper.getHelper());
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(delegateHelper);
-        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(delegateHelper);
+        final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
         assertEquals(0, helper.inversions(ys));
         final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
@@ -138,8 +138,8 @@ public class HuskySortTest {
         assertTrue("sorted", helper.sorted(ys));
         sorter.postProcess(ys);
         final Helper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper, (InstrumentedHelper<String>) helper.getHelper());
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(delegateHelper);
-        final StatPack statPack = (StatPack) privateMethodTester.invokePrivate("getStatPack");
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(delegateHelper);
+        final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
         assertEquals(0, helper.inversions(ys));
         final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
@@ -193,7 +193,7 @@ public class HuskySortTest {
         sorter.postProcess(ys);
         sorter.close();
         final Helper<String> delegateHelper = InstrumentedHelper.getInstrumentedHelper(helper, (InstrumentedHelper<String>) helper.getHelper());
-        final PrivateMethodTester privateMethodTester = new PrivateMethodTester(delegateHelper);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(delegateHelper);
         assertEquals(0, helper.inversions(ys));
         double ii = sorter.getMeanInterimInversions();
         assertEquals(0.0, ii, 10);
