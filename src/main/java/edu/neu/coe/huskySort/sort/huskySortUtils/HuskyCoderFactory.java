@@ -13,7 +13,25 @@ import java.util.Date;
 /**
  * Factory class for HuskyCoders.
  */
-public class HuskyCoderFactory {
+public final class HuskyCoderFactory {
+
+    private static final int BITS_LONG = 64;
+
+    private static final int BIT_WIDTH_ASCII = 7;
+    private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
+    private static final int MASK_ASCII = 0x7F;
+
+    private static final int BIT_WIDTH_ENGLISH = 6;
+    private static final int MAX_LENGTH_ENGLISH = BITS_LONG / BIT_WIDTH_ENGLISH;
+    private static final int MASK_ENGLISH = 0x3F;
+
+    private static final int BIT_WIDTH_UNICODE = 16;
+    private static final int MAX_LENGTH_UNICODE = BITS_LONG / BIT_WIDTH_UNICODE;
+    private static final int MASK_UNICODE = 0xFFFF;
+
+    private static final int BIT_WIDTH_UTF8 = 8;
+    private static final int MAX_LENGTH_UTF8 = BITS_LONG / BIT_WIDTH_UTF8;
+    private static final int MASK_UTF8 = 0xFF;
 
     /**
      * A Husky Coder for ASCII Strings.
@@ -27,19 +45,7 @@ public class HuskyCoderFactory {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskySequenceCoder<String> asciiCoder = new BaseHuskySequenceCoder<String>("ASCII") {
-        /**
-         * Method to determine if this Husky Coder is perfect for a sequence of the given length.
-         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
-         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
-         *
-         * @param length the length of a particular String.
-         * @return true if length <= MAX_LENGTH_ASCII.
-         */
-        @Override
-        public boolean perfectForLength(int length) {
-            return length <= MAX_LENGTH_ASCII;
-        }
+    public final static HuskySequenceCoder<String> asciiCoder = new BaseHuskySequenceCoder<String>("ASCII", MAX_LENGTH_ASCII) {
 
         /**
          * Encode x as a long.
@@ -49,7 +55,7 @@ public class HuskyCoderFactory {
          * @param str the X value to encode.
          * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
          */
-        public long huskyEncode(String str) {
+        public long huskyEncode(final String str) {
             return asciiToLong(str);
         }
 
@@ -66,21 +72,16 @@ public class HuskyCoderFactory {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskySequenceCoder<String> englishCoder = new BaseHuskySequenceCoder<String>("English") {
+    public final static HuskySequenceCoder<String> englishCoder = new BaseHuskySequenceCoder<String>("English", MAX_LENGTH_ENGLISH) {
         /**
-         * Method to determine if this Husky Coder is perfect for a sequence of the given length.
-         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
-         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
+         * Encode x as a long.
+         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
+         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
          *
-         * @param length the length of a particular String.
-         * @return true if length <= MAX_LENGTH_ENGLISH.
+         * @param str the X value to encode.
+         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
          */
-        @Override
-        public boolean perfectForLength(int length) {
-            return length <= MAX_LENGTH_ENGLISH;
-        }
-
-        public long huskyEncode(String str) {
+        public long huskyEncode(final String str) {
             return englishToLong(str);
         }
     };
@@ -88,25 +89,16 @@ public class HuskyCoderFactory {
     /**
      * A Husky Coder for unicode Strings.
      */
-    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<String>("Unicode") {
+    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<String>("Unicode", MAX_LENGTH_UNICODE - 1) {
         /**
-         * Method to determine if this Husky Coder is perfect for a sequence of the given length.
-         * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
-         * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
+         * Encode x as a long.
+         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
+         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
          *
-         * NOTE: a length equal to MAX_LENGTH_UNICODE would not be perfect because we have to drop one bit.
-         *
-         * @param length the length of a particular String.
-         * @return true if length < MAX_LENGTH_UNICODE.
+         * @param str the X value to encode.
+         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
          */
-        @Override
-        public boolean perfectForLength(int length) {
-            return length < MAX_LENGTH_UNICODE;
-        }
-
-        // TEST
-        @Override
-        public long huskyEncode(String str) {
+        public long huskyEncode(final String str) {
             return unicodeToLong(str);
         }
     };
@@ -114,25 +106,16 @@ public class HuskyCoderFactory {
     /**
      * A Husky Coder for UTF Strings.
      */
-    public final static HuskySequenceCoder<String> utf8Coder = new BaseHuskySequenceCoder<String>("UTF8") {
+    public final static HuskySequenceCoder<String> utf8Coder = new BaseHuskySequenceCoder<String>("UTF8", 0) {
         /**
-         * Method to determine if this Husky Coder is perfect for a sequence of the given length.
-         * <p>
-         * NOTE: Because of the method of unpacking UTF8, we can't tell for sure based on the length.
-         * So, for now, we just say perfection is always false.
+         * Encode x as a long.
+         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
+         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
          *
-         * @param length the length of a particular String.
-         * @return false.
+         * @param str the X value to encode.
+         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
          */
-        // TEST
-        @Override
-        public boolean perfectForLength(int length) {
-            return false;
-        }
-
-        // TEST
-        @Override
-        public long huskyEncode(String str) {
+        public long huskyEncode(final String str) {
             return utf8ToLong(str);
         }
     };
@@ -141,8 +124,15 @@ public class HuskyCoderFactory {
      * A Husky Coder for Dates.
      */
     public final static HuskyCoder<Date> dateCoder = new HuskyCoder<Date>() {
-        @Override
-        public long huskyEncode(Date date) {
+        /**
+         * Encode x as a long.
+         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
+         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
+         *
+         * @param date the Date value to encode.
+         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
+         */
+        public long huskyEncode(final Date date) {
             return date.getTime();
         }
 
@@ -162,7 +152,7 @@ public class HuskyCoderFactory {
      */
     public final static HuskyCoder<ChronoLocalDateTime<?>> chronoLocalDateTimeCoder = new HuskyCoder<ChronoLocalDateTime<?>>() {
         @Override
-        public long huskyEncode(ChronoLocalDateTime<?> x) {
+        public long huskyEncode(final ChronoLocalDateTime<?> x) {
             return x.toEpochSecond(ZoneOffset.UTC);
         }
 
@@ -187,7 +177,7 @@ public class HuskyCoderFactory {
      */
     public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<Integer>() {
         @Override
-        public long huskyEncode(Integer x) {
+        public long huskyEncode(final Integer x) {
             return x.longValue();
         }
 
@@ -207,7 +197,7 @@ public class HuskyCoderFactory {
      */
     public final static HuskyCoder<Long> longCoder = new HuskyCoder<Long>() {
         @Override
-        public long huskyEncode(Long x) {
+        public long huskyEncode(final Long x) {
             return x;
         }
 
@@ -233,20 +223,20 @@ public class HuskyCoderFactory {
     public final static HuskyCoder<BigDecimal> bigDecimalCoder = x -> doubleToLong(x.doubleValue());
 
     // CONSIDER making this private
-    public static long asciiToLong(String str) {
+    public static long asciiToLong(final String str) {
         return stringToLong(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, MASK_ASCII);
     }
 
-    static long utf8ToLong(String str) {
+    static long utf8ToLong(final String str) {
         // TODO Need to test that the mask value is correct. I think it might not be.
         return longArrayToLong(toUTF8Array(str), MAX_LENGTH_UTF8, BIT_WIDTH_UTF8, MASK_UTF8) >>> 1;
     }
 
-    private static long unicodeToLong(String str) {
+    private static long unicodeToLong(final String str) {
         return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
     }
 
-    private static long stringToLong(String str, int maxLength, int bitWidth, int mask) {
+    private static long stringToLong(final String str, final int maxLength, final int bitWidth, final int mask) {
         final int length = Math.min(str.length(), maxLength);
         final int padding = maxLength - length;
         long result = 0L;
@@ -259,13 +249,13 @@ public class HuskyCoderFactory {
         return result;
     }
 
-    private static long englishToLong(String str) {
+    private static long englishToLong(final String str) {
         return stringToLong(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, MASK_ENGLISH);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private static long longArrayToLong(long[] xs, int maxLength, int bitWidth, int mask) {
-        int length = Math.min(xs.length, maxLength);
+    private static long longArrayToLong(final long[] xs, final int maxLength, final int bitWidth, final int mask) {
+        final int length = Math.min(xs.length, maxLength);
         long result = 0;
         if (((~mask)) == 0)
             for (int i = 0; i < length; i++) result = result << bitWidth | xs[i];
@@ -275,13 +265,13 @@ public class HuskyCoderFactory {
         return result;
     }
 
-    private static long[] toUTF8Array(String str) {
-        int length = str.length();
-        LongBuffer byteBuffer = LongBuffer.allocate(length << 2);
+    private static long[] toUTF8Array(final String str) {
+        final int length = str.length();
+        final LongBuffer byteBuffer = LongBuffer.allocate(length << 2);
         int count = 0;
-        char[] codes = str.toCharArray();
+        final char[] codes = str.toCharArray();
         for (int i = 0; i < length; i++) {
-            char code = codes[i];
+            final char code = codes[i];
             if (code < 0x80) {
                 count++;
                 byteBuffer.put(code);
@@ -296,7 +286,7 @@ public class HuskyCoderFactory {
                 byteBuffer.put(0x80 | (code & 0x3F));
             } else {
                 i++;
-                int tempCode = 0x10000 + (((code & 0x3FF) << 10) | codes[i] & 0x3FF);
+                final int tempCode = 0x10000 + (((code & 0x3FF) << 10) | codes[i] & 0x3FF);
                 count += 4;
                 byteBuffer.put(0xF0 | (tempCode >> 18));
                 byteBuffer.put(0x80 | ((tempCode >> 12) & 0x3F));
@@ -304,7 +294,7 @@ public class HuskyCoderFactory {
                 byteBuffer.put(0x80 | (tempCode & 0x3F));
             }
         }
-        long[] result = new long[count];
+        final long[] result = new long[count];
         byteBuffer.rewind();
         byteBuffer.get(result);
         return result;
@@ -316,29 +306,11 @@ public class HuskyCoderFactory {
      * @param value a double.
      * @return an appropriate long value.
      */
-    private static long doubleToLong(double value) {
-        long doubleToLongBits = Double.doubleToLongBits(value);
-        long sign = doubleToLongBits & 0x8000000000000000L;
-        long result = doubleToLongBits & 0x7FFFFFFFFFFFFFFFL;
+    private static long doubleToLong(final double value) {
+        final long doubleToLongBits = Double.doubleToLongBits(value);
+        final long sign = doubleToLongBits & 0x8000000000000000L;
+        final long result = doubleToLongBits & 0x7FFFFFFFFFFFFFFFL;
         return sign == 0 ? result : -result;
     }
-
-    private static final int BITS_LONG = 64;
-
-    private static final int BIT_WIDTH_ASCII = 7;
-    private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
-    private static final int MASK_ASCII = 0x7F;
-
-    private static final int BIT_WIDTH_ENGLISH = 6;
-    private static final int MAX_LENGTH_ENGLISH = BITS_LONG / BIT_WIDTH_ENGLISH;
-    private static final int MASK_ENGLISH = 0x3F;
-
-    private static final int BIT_WIDTH_UNICODE = 16;
-    private static final int MAX_LENGTH_UNICODE = BITS_LONG / BIT_WIDTH_UNICODE;
-    private static final int MASK_UNICODE = 0xFFFF;
-
-    private static final int BIT_WIDTH_UTF8 = 8;
-    private static final int MAX_LENGTH_UTF8 = BITS_LONG / BIT_WIDTH_UTF8;
-    private static final int MASK_UTF8 = 0xFF;
 
 }

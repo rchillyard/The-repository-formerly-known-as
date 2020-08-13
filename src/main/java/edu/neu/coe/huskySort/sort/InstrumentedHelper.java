@@ -14,11 +14,11 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  *
  * @param <X> the underlying type (must be Comparable).
  */
-public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
+public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     final static LazyLogger logger = new LazyLogger(InstrumentedHelper.class);
 
-    public static <Y extends Comparable<Y>> InstrumentedHelper<Y> getInstrumentedHelper(Helper<Y> helper, InstrumentedHelper<Y> alternative) {
+    public static <Y extends Comparable<Y>> InstrumentedHelper<Y> getInstrumentedHelper(final Helper<Y> helper, final InstrumentedHelper<Y> alternative) {
         return InstrumentedHelper.class.isAssignableFrom(helper.getClass()) ? (InstrumentedHelper<Y>) helper : alternative;
     }
 
@@ -33,7 +33,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param w the comparand element.
      * @return true only if v is less than w.
      */
-    public boolean less(X v, X w) {
+    public boolean less(final X v, final X w) {
         if (countCompares)
             compares++;
         return v.compareTo(w) < 0;
@@ -46,17 +46,17 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param i  one of the indices.
      * @param j  the other index.
      */
-    public void swap(X[] xs, int i, int j) {
+    public void swap(final X[] xs, final int i, final int j) {
         if (i == j) return;
         if (countSwaps)
             swaps++;
-        X v = xs[i];
-        X w = xs[j];
+        final X v = xs[i];
+        final X w = xs[j];
         if (countFixes) {
-            int sense = Integer.signum(v.compareTo(w));
+            final int sense = Integer.signum(v.compareTo(w));
             fixes += sense;
             for (int k = i + 1; k < j; k++) {
-                X x = xs[k];
+                final X x = xs[k];
                 if (w.compareTo(x) < 0 && x.compareTo(v) < 0) fixes += 2 * sense;
             }
         }
@@ -75,7 +75,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param j  the index of the right-most element to be involved in the swap.
      */
     @Override
-    public void swapInto(X[] xs, int i, int j) {
+    public void swapInto(final X[] xs, final int i, final int j) {
         if (countSwaps)
             swaps += (j - i);
         if (countFixes)
@@ -92,10 +92,10 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
      */
     @Override
-    public boolean swapConditional(X[] xs, int i, int j) {
+    public boolean swapConditional(final X[] xs, final int i, final int j) {
         if (countCompares)
             compares++;
-        int cf = xs[i].compareTo(xs[j]);
+        final int cf = xs[i].compareTo(xs[j]);
         if (cf > 0)
             swap(xs, i, j);
         return cf > 0;
@@ -109,11 +109,11 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
      */
     @Override
-    public boolean swapStableConditional(X[] xs, int i) {
+    public boolean swapStableConditional(final X[] xs, final int i) {
         // CONSIDER invoke super-method
         final X v = xs[i];
         final X w = xs[i - 1];
-        boolean result = v.compareTo(w) < 0;
+        final boolean result = v.compareTo(w) < 0;
         if (countCompares)
             compares++;
         if (result) {
@@ -137,7 +137,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param j      the source index.
      */
     @Override
-    public void copy(X[] source, int i, X[] target, int j) {
+    public void copy(final X[] source, final int i, final X[] target, final int j) {
         if (countCopies)
             copies++;
         target[j] = source[i];
@@ -149,7 +149,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param n the number of copies made.
      */
     @Override
-    public void incrementCopies(int n) {
+    public void incrementCopies(final int n) {
         if (countCopies) copies += n;
     }
 
@@ -161,7 +161,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param n the number of copies made.
      */
     @Override
-    public void incrementFixes(int n) {
+    public void incrementFixes(final int n) {
         if (countFixes) fixes += n;
     }
 
@@ -173,7 +173,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param j  the other index.
      * @return the result of compare(xs[i], xs[j]).
      */
-    public int compare(X[] xs, int i, int j) {
+    public int compare(final X[] xs, final int i, final int j) {
         // CONSIDER using compareTo method if it improves performance.
         return compare(xs[i], xs[j]);
     }
@@ -186,7 +186,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @return the result of comparing v and w.
      */
     @Override
-    public int compare(X v, X w) {
+    public int compare(final X v, final X w) {
         if (countCompares)
             compares++;
         return v.compareTo(w);
@@ -213,7 +213,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      *
      * @param n the size to be managed.
      */
-    public void init(int n) {
+    public void init(final int n) {
         compares = 0;
         swaps = 0;
         copies = 0;
@@ -231,7 +231,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @return the array after any pre-processing.
      */
     @Override
-    public X[] preProcess(X[] xs) {
+    public X[] preProcess(final X[] xs) {
         final X[] result = super.preProcess(xs);
         // NOTE: because counting inversions is so slow, we only do if for a (configured) number of samples.
         if (countInversions-- > 0) {
@@ -250,7 +250,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      *           TODO show the number of inversions
      */
     @Override
-    public void postProcess(X[] xs) {
+    public void postProcess(final X[] xs) {
         super.postProcess(xs);
         if (!sorted(xs)) throw new BaseHelper.HelperException("Array is not sorted");
         if (statPack == null) throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
@@ -265,7 +265,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
     }
 
     @Override
-    public void registerDepth(int depth) {
+    public void registerDepth(final int depth) {
         if (depth > maxDepth) maxDepth = depth;
     }
 
@@ -292,7 +292,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param random      a random number generator.
      * @param config      the configuration (note that the seed value is ignored).
      */
-    public InstrumentedHelper(String description, int n, Random random, Config config) {
+    public InstrumentedHelper(final String description, final int n, final Random random, final Config config) {
         super(description, n, random);
         this.countCopies = config.getBoolean(INSTRUMENTING, COPIES);
         this.countSwaps = config.getBoolean(INSTRUMENTING, SWAPS);
@@ -309,7 +309,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param config      The configuration.
      */
-    public InstrumentedHelper(String description, int n, Config config) {
+    public InstrumentedHelper(final String description, final int n, final Config config) {
         this(description, n, config.getLong("helper", "seed", System.currentTimeMillis()), config);
     }
 
@@ -321,7 +321,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      * @param seed        the seed for the random number generator.
      * @param config      the configuration.
      */
-    public InstrumentedHelper(String description, int n, long seed, Config config) {
+    public InstrumentedHelper(final String description, final int n, final long seed, final Config config) {
         this(description, n, new Random(seed), config);
     }
 
@@ -332,7 +332,7 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
      *
      * @param description the description of this Helper (for humans).
      */
-    public InstrumentedHelper(String description, Config config) {
+    public InstrumentedHelper(final String description, final Config config) {
         this(description, 0, config);
     }
 

@@ -24,7 +24,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      * @return the result of calling super.preSort(xs, makeCopy).
      */
     @Override
-    public X[] preSort(X[] xs, boolean makeCopy) {
+    public final X[] preSort(X[] xs, boolean makeCopy) {
         depthThreshold = 2 * floor_lg(xs.length);
         return super.preSort(xs, makeCopy);
     }
@@ -40,7 +40,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      * @return true if there is no further work to be done.
      */
     @Override
-    protected boolean terminator(X[] xs, int from, int to, int depth) {
+    protected final boolean terminator(X[] xs, int from, int to, int depth) {
         if (to - from <= sizeThreshold) {
             if (to > from + 1)
                 getInsertionSort().sort(xs, from, to);

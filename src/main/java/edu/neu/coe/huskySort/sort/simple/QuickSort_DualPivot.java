@@ -24,7 +24,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
         return new Partitioner_DualPivot(getHelper());
     }
 
-    public QuickSort_DualPivot(String description, int N, Config config) {
+    public QuickSort_DualPivot(final String description, final int N, final Config config) {
         super(description, N, config);
         setPartitioner(createPartitioner());
     }
@@ -34,7 +34,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public QuickSort_DualPivot(Helper<X> helper) {
+    public QuickSort_DualPivot(final Helper<X> helper) {
         super(helper);
         setPartitioner(createPartitioner());
     }
@@ -45,13 +45,13 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public QuickSort_DualPivot(int N, Config config) {
+    public QuickSort_DualPivot(final int N, final Config config) {
         this(DESCRIPTION, N, config);
     }
 
-    public class Partitioner_DualPivot implements Partitioner<X> {
+    public final class Partitioner_DualPivot implements Partitioner<X> {
 
-        public Partitioner_DualPivot(Helper<X> helper) {
+        public Partitioner_DualPivot(final Helper<X> helper) {
             this.helper = helper;
         }
 
@@ -61,7 +61,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
          * @param partition the partition to divide up.
          * @return an array of partitions, whose length depends on the sorting method being used.
          */
-        public List<Partition<X>> partition(Partition<X> partition) {
+        public List<Partition<X>> partition(final Partition<X> partition) {
             final X[] xs = partition.xs;
             final int lo = partition.from;
             final int hi = partition.to - 1;
@@ -81,7 +81,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
                 helper.swap(xs, hi, ++gt);
             } else {
                 while (i <= gt) {
-                    X x = xs[i];
+                    final X x = xs[i];
                     if (x.compareTo(xs[lo]) < 0) swap(xs, lt++, i++);
                     else if (x.compareTo(xs[hi]) > 0) swap(xs, i, gt--);
                     else i++;
@@ -90,7 +90,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
                 swap(xs, hi, ++gt);
             }
 
-            List<Partition<X>> partitions = new ArrayList<>();
+            final List<Partition<X>> partitions = new ArrayList<>();
             partitions.add(new Partition<>(xs, lo, lt));
             partitions.add(new Partition<>(xs, lt + 1, gt));
             partitions.add(new Partition<>(xs, gt + 1, hi + 1));
@@ -98,8 +98,8 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
         }
 
         // CONSIDER invoke swap in BaseHelper.
-        private void swap(X[] ys, int i, int j) {
-            X temp = ys[i];
+        private void swap(final X[] ys, final int i, final int j) {
+            final X temp = ys[i];
             ys[i] = ys[j];
             ys[j] = temp;
         }
