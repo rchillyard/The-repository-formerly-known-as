@@ -37,6 +37,7 @@ public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
         map.put("MacBookPro 2.8 GHz Quad Core Intel Core i7", 0.92);
         map.put("MacBookAir 1.6 GH Dual Core Intel Core i5", 0.68);
         map.put("Intel Core i7-8700K", 1.55);
+        map.put("Intel Core i7-8550U", 0.71);
         return map;
     }
 
