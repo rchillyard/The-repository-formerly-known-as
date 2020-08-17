@@ -3,6 +3,12 @@
  */
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
+/**
+ * Interface defining the behavior of a type X which can be HuskySorted.
+ * Beyond the requirement that such objects are Comparable, we require a method huskyCode which returns a long.
+ *
+ * @param <X> the generic type to be sorted.
+ */
 public interface HuskySortable<X> extends Comparable<X> {
     /**
      * This method returns a quasi-monotonically increasing long value corresponding to this.
@@ -10,21 +16,4 @@ public interface HuskySortable<X> extends Comparable<X> {
      * @return a long such that when comparison is done by longs, it is approximately 90% accurate.
      */
     long huskyCode();
-
-    /**
-     * implementation of compareTo based on the huskyCode of each comparand.
-     * Note that the huskyCode must be re-evaluated each time it is used in a compare,
-     * unless the object itself caches the huskyCode.
-     *
-     * @param x the object to be compared
-     * @return an int according to the ordering of this and x
-     */
-    // TEST
-    default int compareTo(X x) {
-        if (HuskySortable.class.isAssignableFrom(x.getClass()))
-            //noinspection unchecked
-            return Long.compare(huskyCode(), ((HuskySortable<X>) x).huskyCode());
-        else
-            throw new UnsupportedOperationException("compareTo must be implemented for " + getClass());
-    }
 }

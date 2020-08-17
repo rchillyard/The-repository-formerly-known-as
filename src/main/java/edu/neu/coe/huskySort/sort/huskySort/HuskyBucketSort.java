@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  *
  * @param <X> the type of elements to be sorted.
  */
-public class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<X> {
+public final class HuskyBucketSort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     /**
      * Perform the pre-processing before we do bucket sort.

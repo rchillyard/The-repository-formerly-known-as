@@ -32,16 +32,17 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @param <Y>        the underlying type.
      * @return a new instance of IntroHuskySort.
      */
-    public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(HuskyCoder<Y> huskyCoder, int N, Config config) {
-        String value = isCountInterimInversions(config) + "";
-        Config copy = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, value).copy(Config.HELPER, BaseHelper.INSTRUMENT, value);
+    public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(final HuskyCoder<Y> huskyCoder, final int N, final Config config) {
+        final String value = isCountInterimInversions(config) + "";
+        final Config copy = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, value).copy(Config.HELPER, BaseHelper.INSTRUMENT, value);
+        // CONSIDER using insertion sort instead of mergeSort.
         final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, copy);
         finisher.init(N);
         return new IntroHuskySort<>("IntroHuskySort/InversionCount", huskyCoder, finisher::mutatingSort, config.copy("huskyhelper", "countinteriminversions", ""), finisher);
     }
 
     // CONSIDER making this an instance method (carefully!)
-    public static boolean isCountInterimInversions(Config config) {
+    public static boolean isCountInterimInversions(final Config config) {
         return config.getBoolean("huskyhelper", "countinteriminversions");
     }
 
@@ -51,7 +52,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @param n the length of the array.
      * @return the expected number of inversions: n * (n-1) / 4.
      */
-    public static double expectedInversions(int n) {
+    public static double expectedInversions(final int n) {
         return 0.25 * n * (n - 1);
     }
 
@@ -62,8 +63,8 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    public void sort(X[] xs, int from, int to) {
-        long[] longs = getHelper().getLongs();
+    public void sort(final X[] xs, final int from, final int to) {
+        final long[] longs = getHelper().getLongs();
         quickSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(to - from));
     }
 
@@ -78,7 +79,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @return the array xs, which may have been changed by both the adjunctSort and the post-sorter.
      */
     @Override
-    public X[] postSort(X[] xs) {
+    public X[] postSort(final X[] xs) {
         if (adjunctSorter != null)
             adjunctSorter.preProcess(xs);
         huskyHelper.getPostSorter().accept(xs);
@@ -119,7 +120,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @param xs the array to be post-processed.
      */
     @Override
-    public void postProcess(X[] xs) {
+    public void postProcess(final X[] xs) {
         super.postProcess(xs);
         if (adjunctSorter != null)
             adjunctSorter.postProcess(xs);
@@ -145,9 +146,9 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             logger.warn("IntroHuskySort.getMeanInterimInversions: interim inversions is not enabled. Use createIntroHuskySortWithInversionCount() instead");
             return Double.NaN;
         } else {
-            StatPack statPack = getStatPack();
+            final StatPack statPack = getStatPack();
             if (closed && statPack != null) {
-                Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
+                final Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
                 if (fixes != null) return fixes.mean();
                 else throw new RuntimeException("Cannot get fixes from StatPack");
             } else throw new RuntimeException("Cannot get statPack or not closed");
@@ -163,7 +164,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @param config        the configuration.
      * @param adjunctSorter this sorter, if present, is the finisher and needs to be closed.
      */
-    public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config, SortWithHelper<X> adjunctSorter) {
+    public IntroHuskySort(final String name, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config, final SortWithHelper<X> adjunctSorter) {
         super(name, 0, huskyCoder, postSorter, config);
         this.adjunctSorter = adjunctSorter;
     }
@@ -176,7 +177,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      * @param postSorter the post-sorter which will eliminate any remaining inversions.
      * @param config     the configuration.
      */
-    public IntroHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+    public IntroHuskySort(final String name, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config) {
         this(name, huskyCoder, postSorter, config, null);
     }
 
@@ -187,9 +188,9 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     @SuppressWarnings({"UnnecessaryLocalVariable"})
-    private void quickSort(X[] objects, long[] longs, int from, int to, int depthThreshold) {
-        int lo = from;
-        int hi = to;
+    private void quickSort(final X[] objects, final long[] longs, final int from, final int to, final int depthThreshold) {
+        final int lo = from;
+        final int hi = to;
         if (hi <= lo) return;
         if (hi - lo <= sizeThreshold) {
             insertionSort(objects, longs, from, to);
@@ -199,16 +200,16 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
             heapSort(objects, longs, from, to);
             return;
         }
-        Partition partition = partition(objects, longs, lo, hi);
+        final Partition partition = partition(objects, longs, lo, hi);
         quickSort(objects, longs, lo, partition.lt - 1, depthThreshold - 1);
         quickSort(objects, longs, partition.gt + 1, hi, depthThreshold - 1);
     }
 
-    private Partition partition(X[] objects, long[] longs, int lo, int hi) {
+    private Partition partition(final X[] objects, final long[] longs, final int lo, final int hi) {
         // CONSIDER merge with partition from QuickHuskySort
         int lt = lo, gt = hi;
         if (longs[lo] > longs[hi]) swap(objects, lo, hi);
-        long v = longs[lo];
+        final long v = longs[lo];
         int i = lo + 1;
         while (i <= gt) {
             if (longs[i] < v) swap(objects, lt++, i++);
@@ -218,8 +219,8 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         return new Partition(lt, gt);
     }
 
-    private void heapSort(X[] objects, long[] longs, int from, int to) {
-        int n = to - from + 1;
+    private void heapSort(final X[] objects, final long[] longs, final int from, final int to) {
+        final int n = to - from + 1;
         for (int i = n / 2; i >= 1; i = i - 1) {
             downHeap(objects, longs, i, n, from);
         }
@@ -230,9 +231,9 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     // CONSIDER: use downHeap of PureHuskySort
-    private void downHeap(X[] objects, long[] longs, int i, int n, int lo) {
-        long d = longs[lo + i - 1];
-        X od = objects[lo + i - 1];
+    private void downHeap(final X[] objects, final long[] longs, int i, final int n, final int lo) {
+        final long d = longs[lo + i - 1];
+        final X od = objects[lo + i - 1];
         int child;
         while (i <= n / 2) {
             child = 2 * i;
@@ -246,7 +247,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         objects[lo + i - 1] = od;
     }
 
-    private void insertionSort(X[] objects, long[] longs, int from, int to) {
+    private void insertionSort(final X[] objects, final long[] longs, final int from, final int to) {
         for (int i = from + 1; i <= to; i++)
             for (int j = i; j > from && longs[j] < longs[j - 1]; j--)
                 swap(objects, j, j - 1);
@@ -254,12 +255,12 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
 
     private static final int sizeThreshold = 16;
 
-    private static int floor_lg(int a) {
+    private static int floor_lg(final int a) {
         return (int) Utilities.lg(a);
     }
 
     private static class Partition {
-        Partition(int lt, int gt) {
+        Partition(final int lt, final int gt) {
             this.lt = lt;
             this.gt = gt;
         }
