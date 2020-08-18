@@ -9,6 +9,7 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
+import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.sort.simple.*;
 import edu.neu.coe.huskySort.util.*;
 
@@ -18,10 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -41,41 +39,42 @@ public final class HuskySortBenchmark {
         this.config = config;
     }
 
-    public static void main(final String[] args) throws IOException {
-        final Config config = Config.load(HuskySortBenchmark.class);
-        logger.info("HuskySortBenchmark.main: " + config.get("huskysort", "version") + " with word counts: " + Arrays.toString(args));
-        if (args.length == 0) logger.warn("No word counts specified on the command line");
-        final HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
-        benchmark.sortNumerics(100000);
-        benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt));
-        benchmark.sortLocalDateTimes(100000);
-        benchmark.sortTuples(100000);
+    public void runBenchmarks(final String[] args) throws IOException {
+        sortNumerics(100000, 100);
+        sortStrings(Arrays.stream(args).map(Integer::parseInt), 5000, 10000, 100000000);
+        sortLocalDateTimes(100000, 100);
+        sortTuples(100000, 100);
     }
 
-    private void sortStrings(final Stream<Integer> wordCounts) throws IOException {
+    /**
+     * Benchmark the string sorts.
+     *
+     * @param wordCounts the numbers of words in the corpus files.
+     * @param n          the number of words to sort each time.
+     * @param m          the number of repetitions.
+     * @param totalOps   the total number of comparison operations for the LeipzigBenchmarkEnglish.
+     * @throws IOException problem opening a resource.
+     */
+    void sortStrings(final Stream<Integer> wordCounts, final int n, final int m, final int totalOps) throws IOException {
         logger.info("sortStrings: beginning String sorts");
 
         // NOTE: common words benchmark
-        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), 5000, 10000, englishCoder);
+        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), n, m, englishCoder);
 
         // NOTE: Leipzig English words benchmarks (according to command-line arguments)
-        wordCounts.forEach(this::doLeipzigBenchmarkEnglish);
+        wordCounts.forEach(x -> doLeipzigBenchmarkEnglish(x, n, round(totalOps / minComparisons(n))));
 
         // NOTE: Leipzig Chinese words benchmarks (according to command-line arguments)
-        doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", 5000, 10000, UNICODE_CODER);
+        doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", n, m, UNICODE_CODER);
     }
 
-    private void doLeipzigBenchmarkEnglish(final int x) {
-        final String resource = "eng-uk_web_2002_" + (x < 50000 ? "10K" : x < 200000 ? "100K" : "1M") + "-sentences.txt";
-        try {
-            final HuskyCoder<String> huskyCoder = HuskySortHelper.getSequenceCoderByName(getConfigHuskyCoder());
-            doLeipzigBenchmark(resource, x, Utilities.round(100000000 / minComparisons(x)), huskyCoder);
-        } catch (final FileNotFoundException e) {
-            logger.warn("Unable to find resource: " + resource, e);
-        }
-    }
-
-    public void sortLocalDateTimes(final int n) {
+    /**
+     * Run benchmarks on sorting LocalDateTime.
+     *
+     * @param n the number of elements to sort.
+     * @param m the number of repetitions.
+     */
+    void sortLocalDateTimes(final int n, final int m) {
         logger.info("sortLocalDateTimes: beginning LocalDateTime sorts");
         // TODO why do we have localDateTimeSupplier IN ADDITION TO localDateTimes?
         final Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(n);
@@ -86,42 +85,51 @@ public final class HuskySortBenchmark {
 
         // NOTE Test on date using pure tim sort.
         if (isConfigBenchmarkDateSorter("timsort"))
-            logger.info(dateBenchmarkFactory("Sort LocalDateTimes using Arrays::sort (TimSort)", Arrays::sort, null).run(localDateTimeSupplier, 100) + "ms");
+            logger.info(dateBenchmarkFactory("Sort LocalDateTimes using Arrays::sort (TimSort)", Arrays::sort, null).run(localDateTimeSupplier, m) + "ms");
 
         // NOTE this is supposed to match the previous benchmark run exactly. I don't understand why it takes rather less time.
         if (isConfigBenchmarkDateSorter("timsort")) {
-            logger.info(dateBenchmarkFactory("Repeat Sort LocalDateTimes using timSort::mutatingSort", new TimSort<>(helper)::mutatingSort, null).run(localDateTimeSupplier, 100) + "ms");
+            logger.info(dateBenchmarkFactory("Repeat Sort LocalDateTimes using timSort::mutatingSort", new TimSort<>(helper)::mutatingSort, null).run(localDateTimeSupplier, m) + "ms");
             // NOTE this is intended to replace the run two lines previous. It should take the exact same amount of time.
-            runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, n, 100, 0);
+            runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, n, m, 0);
         }
 
         // NOTE Test on date using husky sort.
         if (isConfigBenchmarkDateSorter("quickhuskysort"))
-            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, config), "Sort LocalDateTimes using huskySort with TimSort", 1);
+            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, config), "Sort LocalDateTimes using huskySort with TimSort", 1, n, m);
 
         // NOTE Test on date using husky sort with insertion sort.
         if (isConfigBenchmarkDateSorter("quickhuskyinsertionsort"))
-            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>("QuickHuskySort/Insertion", HuskyCoderFactory.chronoLocalDateTimeCoder, new InsertionSort<>(helper)::mutatingSort, config), "Sort LocalDateTimes using huskySort with insertionSort", 2);
+            dateSortBenchmark(localDateTimeSupplier, localDateTimes, new QuickHuskySort<>("QuickHuskySort/Insertion", HuskyCoderFactory.chronoLocalDateTimeCoder, new InsertionSort<>(helper)::mutatingSort, config), "Sort LocalDateTimes using huskySort with insertionSort", 2, n, m);
     }
 
-    public void sortTuples(final int n) {
+    /**
+     * Method to benchmark sorting of Tuples.
+     *
+     * @param n the number of elements to sort.
+     * @param m the number of repetitions.
+     */
+    public void sortTuples(final int n, final int m) {
         logger.info("sortTuples: beginning Tuple sorts");
         final Tuple[] tuples = new Tuple[n];
         for (int i = 0; i < n; i++) tuples[i] = Tuple.create();
         final Supplier<Tuple[]> tupleSupplier = getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]);
 
         // NOTE Test on Tuple using pure tim sort.
-        if (isConfigBenchmarkTupleSorter("timsort")) {
-            logger.info(tupleBenchmarkFactory("Sort Tuples using Arrays::sort (TimSort)", Arrays::sort, null).run(tupleSupplier, 100) + "ms");
-        }
+        if (isConfigBenchmarkTupleSorter("timsort"))
+            logger.info(tupleBenchmarkFactory("Sort Tuples using Arrays::sort (TimSort)", Arrays::sort, null).run(tupleSupplier, m) + "ms");
 
-        if (isConfigBenchmarkTupleSorter("huskysort")) {
-            final GenericHuskySort<Tuple> sort = new GenericHuskySort<>(config);
-            logger.info(tupleBenchmarkFactory("Sort Tuples using GenericHuskySort", sort::sort, null).run(tupleSupplier, 100) + "ms");
-        }
+        if (isConfigBenchmarkTupleSorter("huskysort"))
+            logger.info(tupleBenchmarkFactory("Sort Tuples using GenericHuskySort", new GenericHuskySort<Tuple>(config)::sort, null).run(tupleSupplier, m) + "ms");
     }
 
-    public void sortNumerics(final int n) {
+    /**
+     * Method to benchmark sorting of various number types: Integer, Double, Long, BigInteger, Decimal.
+     *
+     * @param n the number of elements to sort.
+     * @param m the number of repetitions.
+     */
+    public void sortNumerics(final int n, final int m) {
         logger.info("sortNumerics: beginning numeric sorts");
         final String timsort = "timsort";
         final String introhuskysort = "introhuskysort";
@@ -132,32 +140,43 @@ public final class HuskySortBenchmark {
         final String sBigDecimal = "bigdecimal";
 
         if (isConfigBenchmarkNumberSorter(timsort, sInteger))
-            sortNumeric(n, Integer.class, Random::nextInt, Arrays::sort, null);
+            sortNumeric(Integer.class, Random::nextInt, Arrays::sort, null, n, m);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sInteger))
-            sortNumeric(n, Integer.class, Random::nextInt, new PureHuskySort<>(HuskyCoderFactory.integerCoder)::sort, Utilities::checkSorted);
+            sortNumeric(Integer.class, Random::nextInt, new PureHuskySort<>(HuskyCoderFactory.integerCoder)::sort, Utilities::checkSorted, n, m);
 
         if (isConfigBenchmarkNumberSorter(timsort, sDouble))
-            sortNumeric(n, Double.class, Random::nextDouble, Arrays::sort, null);
+            sortNumeric(Double.class, Random::nextDouble, Arrays::sort, null, n, m);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sDouble))
-            sortNumeric(n, Double.class, Random::nextDouble, new PureHuskySort<>(HuskyCoderFactory.doubleCoder)::sort, Utilities::checkSorted);
+            sortNumeric(Double.class, Random::nextDouble, new PureHuskySort<>(HuskyCoderFactory.doubleCoder)::sort, Utilities::checkSorted, n, m);
 
         if (isConfigBenchmarkNumberSorter(timsort, sLong))
-            sortNumeric(n, Long.class, Random::nextLong, Arrays::sort, null);
+            sortNumeric(Long.class, Random::nextLong, Arrays::sort, null, n, m);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sLong))
-            sortNumeric(n, Long.class, Random::nextLong, new PureHuskySort<>(HuskyCoderFactory.longCoder)::sort, Utilities::checkSorted);
+            sortNumeric(Long.class, Random::nextLong, new PureHuskySort<>(HuskyCoderFactory.longCoder)::sort, Utilities::checkSorted, n, m);
 
         if (isConfigBenchmarkNumberSorter(timsort, sBigInteger))
-            sortNumeric(n, BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), Arrays::sort, null);
+            sortNumeric(BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), Arrays::sort, null, n, m);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sBigInteger))
-            sortNumeric(n, BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), new PureHuskySort<>(HuskyCoderFactory.bigIntegerCoder)::sort, Utilities::checkSorted);
+            sortNumeric(BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), new PureHuskySort<>(HuskyCoderFactory.bigIntegerCoder)::sort, Utilities::checkSorted, n, m);
 
         if (isConfigBenchmarkNumberSorter(timsort, sBigDecimal))
-            sortNumeric(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), Arrays::sort, null);
+            sortNumeric(BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), Arrays::sort, null, n, m);
         if (isConfigBenchmarkNumberSorter(introhuskysort, sBigDecimal))
-            sortNumeric(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), new PureHuskySort<>(HuskyCoderFactory.bigDecimalCoder)::sort, Utilities::checkSorted);
+            sortNumeric(BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), new PureHuskySort<>(HuskyCoderFactory.bigDecimalCoder)::sort, Utilities::checkSorted, n, m);
     }
 
-    public static <X extends Number & Comparable<X>> void sortNumeric(final int n, final Class<X> clazz, final Function<Random, X> randomNumberFunction, final Consumer<X[]> sortFunction, final Consumer<X[]> postProcessor) {
+    /**
+     * Sort Numeric.
+     *
+     * @param clazz                the specific class X of the elements to be sorted (must extend Number and Comparable).
+     * @param randomNumberFunction a function to generate a random X value from a random object.
+     * @param sortFunction         the function to perform sorting.
+     * @param postProcessor        the postProcessor function.
+     * @param n                    the number of elements to sort.
+     * @param m                    the number of repetitions.
+     * @param <X>                  the parametric type X (must extend Number and Comparable).
+     */
+    public static <X extends Number & Comparable<X>> void sortNumeric(final Class<X> clazz, final Function<Random, X> randomNumberFunction, final Consumer<X[]> sortFunction, final Consumer<X[]> postProcessor, final int n, final int m) {
         final Benchmark<X[]> benchmark = new Benchmark<>(
                 "System sort for " + clazz,
                 // CONSIDER do we actually need to copy here?
@@ -165,7 +184,7 @@ public final class HuskySortBenchmark {
                 sortFunction,
                 postProcessor
         );
-        logger.info(benchmark.run(getSupplier(n, clazz, randomNumberFunction), 100) + "ms");
+        logger.info(benchmark.run(getSupplier(n, clazz, randomNumberFunction), m) + "ms");
     }
 
     /**
@@ -256,6 +275,20 @@ public final class HuskySortBenchmark {
         // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (isConfigBenchmarkStringSorter("insertionsort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new InsertionSort<>(nWords, config), timeLoggersQuadratic);
+    }
+
+    /**
+     * Main program to run all the standard benchmarks.
+     *
+     * @param args a list of corpus file sizes, such as 10000, 100000, 1M.
+     * @throws IOException problem opening a resource.
+     */
+    public static void main(final String[] args) throws IOException {
+        final Config config = Config.load(HuskySortBenchmark.class);
+        logger.info("HuskySortBenchmark.main: " + config.get("huskysort", "version") + " with word counts: " + Arrays.toString(args));
+        if (args.length == 0) logger.warn("No word counts specified on the command line");
+        final HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
+        benchmark.runBenchmarks(args);
     }
 
     /**
@@ -360,7 +393,7 @@ public final class HuskySortBenchmark {
         );
     }
 
-    private static class Tuple implements HuskySortable<Tuple> {
+    static class Tuple implements HuskySortable<Tuple> {
         /**
          * Constructor.
          *
@@ -386,7 +419,7 @@ public final class HuskySortBenchmark {
         public int compareTo(final Tuple tuple) {
             final int cf1 = Integer.compare(zip, tuple.zip);
             if (cf1 != 0) return cf1;
-            final int cf2 = -Integer.compare(birthYear, tuple.birthYear);
+            final int cf2 = Integer.compare(birthYear, tuple.birthYear);
             if (cf2 != 0) return cf2;
             return name.compareTo(tuple.name);
         }
@@ -405,15 +438,39 @@ public final class HuskySortBenchmark {
             return result;
         }
 
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Tuple)) return false;
+            final Tuple tuple = (Tuple) o;
+            return zip == tuple.zip &&
+                    birthYear == tuple.birthYear &&
+                    name.equals(tuple.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(zip, name, birthYear);
+        }
+
+        @Override
+        public String toString() {
+            return "Tuple{" +
+                    "zip=" + zip +
+                    ", name='" + name + '\'' +
+                    ", birthYear=" + birthYear +
+                    '}';
+        }
+
         public static Tuple create() {
             return new Tuple(random.nextInt(99999) + 1, words[random.nextInt(words.length)], random.nextInt(171) + 1850);
         }
 
-        private final static Random random = new Random();
+        static Random random = new Random();
 
         private final static String[] commonWords = getCommonWords();
 
-        private final static String[] words = getWordSupplier(commonWords, 1000, random).get();
+        private final static String[] words = getWordSupplier(commonWords, 1000, new Random(0L)).get();
 
         private static String[] getCommonWords() {
             try {
@@ -432,6 +489,17 @@ public final class HuskySortBenchmark {
         private final int birthYear;
     }
 
+    // CONSIDER why don't we just go with "10K", etc. for x??
+    private void doLeipzigBenchmarkEnglish(final int x, final int n, final int m) {
+        final String resource = "eng-uk_web_2002_" + (x < 50000 ? "10K" : x < 200000 ? "100K" : "1M") + "-sentences.txt";
+        try {
+            final HuskyCoder<String> huskyCoder = HuskySortHelper.getSequenceCoderByName(getConfigHuskyCoder());
+            doLeipzigBenchmark(resource, n, m, huskyCoder);
+        } catch (final FileNotFoundException e) {
+            logger.warn("Unable to find resource: " + resource, e);
+        }
+    }
+
     private static void doPureBenchmark(final String[] words, final int nWords, final int nRuns, final Random random, final Benchmark<String[]> benchmark) {
         final double time = benchmark.run(getWordSupplier(words, nWords, random), nRuns);
         for (final TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(time, nWords);
@@ -441,17 +509,11 @@ public final class HuskySortBenchmark {
         return () -> fillRandomArray(String.class, random, nWords, r -> words[r.nextInt(words.length)]);
     }
 
-    private void dateSortBenchmark(final Supplier<LocalDateTime[]> localDateTimeSupplier, final LocalDateTime[] localDateTimes, final QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, final String s, final int i) {
-        logger.info(dateBenchmarkFactory(s, dateHuskySortSystemSort::sort, dateHuskySortSystemSort::postProcess).run(localDateTimeSupplier, 100) + "ms");
+    private void dateSortBenchmark(final Supplier<LocalDateTime[]> localDateTimeSupplier, final LocalDateTime[] localDateTimes, final QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, final String s, final int i, final int n, final int m) {
+        logger.info(dateBenchmarkFactory(s, dateHuskySortSystemSort::sort, dateHuskySortSystemSort::postProcess).run(localDateTimeSupplier, m) + "ms");
         // NOTE: this is intended to replace the run in the previous line. It should take the exact same amount of time.
-        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, 100000, 100, i);
+        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, n, m, i);
     }
-
-//    private void tupleSortBenchmark(Supplier<Tuple> tupleSupplier, Tuple tuples, AbstractHuskySort<Tuple> tupleSort, String s, int i) {
-//        logger.info(tupleBenchmarkFactory(s, tupleSort::sort, tupleSort::postProcess).run(tupleSupplier, 100) + "ms");
-//        // NOTE: this is intended to replace the run in the previous line. It should take the exact same amount of time.
-//        runTupleSortBenchmark(Tuple.class, tuples, 100000, 100, i);
-//    }
 
     private void doLeipzigBenchmark(final String resource, final int nWords, final int nRuns, final HuskyCoder<String> huskyCoder) throws FileNotFoundException {
         benchmarkStringSorters(getLeipzigWordsFromResource(resource), nWords, nRuns, huskyCoder);
