@@ -238,9 +238,22 @@ public final class HuskyCoderFactory {
     public final static HuskyCoder<BigInteger> bigIntegerCoder = x -> doubleToLong(x.doubleValue());
 
     /**
-     * A Husky Coder for Decimals.
+     * A Husky Coder for BigDecimals.
      */
-    public final static HuskyCoder<BigDecimal> bigDecimalCoder = x -> doubleToLong(x.doubleValue());
+    public final static HuskyCoder<BigDecimal> bigDecimalCoder = BigDecimal::longValue;
+
+    /**
+     * A Husky Coder for scaled BigDecimals.
+     * NOTE: use this if you know that your range of BigDecimals is particularly large or small.
+     *
+     * @param scale the power of ten by which each BigDecimal will be increased before conversion to long.
+     *              Thus, if you have say numbers in the range 0 to 1, you might want to choose a scale of 18.
+     *              Alternatively, if your numbers are in the range -1E100 through 1aE100, you should choose a scale of -82.
+     * @return a HuskyCoder&lt;BigDecimal@gt;
+     */
+    public static HuskyCoder<BigDecimal> scaledBigDecimalCoder(final int scale) {
+        return x -> x.movePointRight(scale).longValue();
+    }
 
     // CONSIDER making this private
     public static long asciiToLong(final String str) {
