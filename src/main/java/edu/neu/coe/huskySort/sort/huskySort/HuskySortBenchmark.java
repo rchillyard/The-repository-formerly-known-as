@@ -20,10 +20,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -87,11 +84,11 @@ public final class HuskySortBenchmark {
 
         // NOTE Test on date using pure tim sort.
         if (isConfigBenchmarkDateSorter("timsort"))
-            logger.info(dateBenchmarkFactory("Sort LocalDateTimes using Arrays::sort (TimSort)", Arrays::sort, null).run(localDateTimeSupplier, m) + "ms");
+            logger.info(HuskySortBenchmark.<LocalDateTime>benchmarkFactory("Sort LocalDateTimes using Arrays::sort (TimSort)", Arrays::sort, null).run(localDateTimeSupplier, m) + "ms");
 
         // NOTE this is supposed to match the previous benchmark run exactly. I don't understand why it takes rather less time.
         if (isConfigBenchmarkDateSorter("timsort")) {
-            logger.info(dateBenchmarkFactory("Repeat Sort LocalDateTimes using timSort::mutatingSort", new TimSort<>(helper)::mutatingSort, null).run(localDateTimeSupplier, m) + "ms");
+            logger.info(HuskySortBenchmark.<LocalDateTime>benchmarkFactory("Repeat Sort LocalDateTimes using timSort::mutatingSort", new TimSort<>(helper)::mutatingSort, null).run(localDateTimeSupplier, m) + "ms");
             // NOTE this is intended to replace the run two lines previous. It should take the exact same amount of time.
             runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, n, m, 0);
         }
@@ -116,13 +113,7 @@ public final class HuskySortBenchmark {
         logger.info("sortTuples: beginning Tuple sorts");
         final Tuple[] tuples = new Tuple[n];
         for (int i = 0; i < n; i++) tuples[i] = Tuple.create();
-        final Supplier<Tuple[]> tupleSupplier = getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]);
-
-        if (isConfigBenchmarkTupleSorter("timsort"))
-            logger.info(tupleBenchmarkFactory("Sort Tuples using Arrays::sort (TimSort)", Arrays::sort, null).run(tupleSupplier, m) + "ms");
-
-        if (isConfigBenchmarkTupleSorter("huskysort"))
-            logger.info(tupleBenchmarkFactory("Sort Tuples using GenericHuskySort", new PureHuskySort<Tuple>(HuskyCoderFactory.createGenericCoder())::sort, null).run(tupleSupplier, m) + "ms");
+        compareSystemAndPureHuskySorts("Tuple", getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]), HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
     }
 
     /**
@@ -134,60 +125,18 @@ public final class HuskySortBenchmark {
      */
     void sortNumerics(final int n, final int m) {
         logger.info("sortNumerics: beginning numeric sorts");
-        final String timsort = "timsort";
-        final String introhuskysort = "introhuskysort";
-        final String sInteger = "integer";
-        final String sDouble = "double";
-        final String sLong = "long";
-        final String sBigInteger = "biginteger";
-        final String sBigDecimal = "bigdecimal";
 
-        if (isConfigBenchmarkNumberSorter(timsort, sInteger))
-            sortNumeric(Integer.class, Random::nextInt, Arrays::sort, null, n, m);
-        if (isConfigBenchmarkNumberSorter(introhuskysort, sInteger))
-            sortNumeric(Integer.class, Random::nextInt, new PureHuskySort<>(HuskyCoderFactory.integerCoder)::sort, Utilities::checkSorted, n, m);
+        compareSystemAndPureHuskySorts("Integer", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m);
 
-        if (isConfigBenchmarkNumberSorter(timsort, sDouble))
-            sortNumeric(Double.class, Random::nextDouble, Arrays::sort, null, n, m);
-        if (isConfigBenchmarkNumberSorter(introhuskysort, sDouble))
-            sortNumeric(Double.class, Random::nextDouble, new PureHuskySort<>(HuskyCoderFactory.doubleCoder)::sort, Utilities::checkSorted, n, m);
+        // NOTE: Double sorting is much slower by HuskySort
+        compareSystemAndPureHuskySorts("Double", getSupplier(n, Double.class, Random::nextDouble), HuskyCoderFactory.doubleCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "double"), m);
 
-        if (isConfigBenchmarkNumberSorter(timsort, sLong))
-            sortNumeric(Long.class, Random::nextLong, Arrays::sort, null, n, m);
-        if (isConfigBenchmarkNumberSorter(introhuskysort, sLong))
-            sortNumeric(Long.class, Random::nextLong, new PureHuskySort<>(HuskyCoderFactory.longCoder)::sort, Utilities::checkSorted, n, m);
+        compareSystemAndPureHuskySorts("Long", getSupplier(n, Long.class, Random::nextLong), HuskyCoderFactory.longCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "long"), m);
 
-        if (isConfigBenchmarkNumberSorter(timsort, sBigInteger))
-            sortNumeric(BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), Arrays::sort, null, n, m);
-        if (isConfigBenchmarkNumberSorter(introhuskysort, sBigInteger))
-            sortNumeric(BigInteger.class, r -> BigInteger.valueOf(r.nextLong()), new PureHuskySort<>(HuskyCoderFactory.bigIntegerCoder)::sort, Utilities::checkSorted, n, m);
+        compareSystemAndPureHuskySorts("BigInteger", getSupplier(n, BigInteger.class, r1 -> BigInteger.valueOf(r1.nextLong())), HuskyCoderFactory.bigIntegerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "biginteger"), m);
 
-        if (isConfigBenchmarkNumberSorter(timsort, sBigDecimal))
-            sortNumeric(BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), Arrays::sort, null, n, m);
-        if (isConfigBenchmarkNumberSorter(introhuskysort, sBigDecimal))
-            sortNumeric(BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE), new PureHuskySort<>(HuskyCoderFactory.bigDecimalCoder)::sort, Utilities::checkSorted, n, m);
-    }
-
-    /**
-     * Sort Numeric.
-     *
-     * @param clazz                the specific class X of the elements to be sorted (must extend Number and Comparable).
-     * @param randomNumberFunction a function to generate a random X value from a random object.
-     * @param sortFunction         the function to perform sorting.
-     * @param postProcessor        the postProcessor function.
-     * @param n                    the number of elements to sort.
-     * @param m                    the number of repetitions.
-     * @param <X>                  the parametric type X (must extend Number and Comparable).
-     */
-    public static <X extends Number & Comparable<X>> void sortNumeric(final Class<X> clazz, final Function<Random, X> randomNumberFunction, final Consumer<X[]> sortFunction, final Consumer<X[]> postProcessor, final int n, final int m) {
-        final Benchmark<X[]> benchmark = new Benchmark<>(
-                "System sort for " + clazz,
-                // CONSIDER do we actually need to copy here?
-                (xs) -> Arrays.copyOf(xs, xs.length),
-                sortFunction,
-                postProcessor
-        );
-        logger.info(benchmark.run(getSupplier(n, clazz, randomNumberFunction), m) + "ms");
+        // NOTE: BigDecimal sorting is much slower by HuskySort
+        compareSystemAndPureHuskySorts("BigDecimal", getSupplier(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE)), HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m);
     }
 
     /**
@@ -375,21 +324,9 @@ public final class HuskySortBenchmark {
         return getWords(regexLeipzig, line);
     }
 
-    // TODO: to be eliminated soon.
-    private static Benchmark<LocalDateTime[]> dateBenchmarkFactory(final String description, final Consumer<LocalDateTime[]> sorter, final Consumer<LocalDateTime[]> checker) {
+    private static <Y> Benchmark<Y[]> benchmarkFactory(final String description, final Consumer<Y[]> sorter, final Consumer<Y[]> checker) {
         return new Benchmark<>(
                 description,
-                // CONSIDER do we actually need to copy here?
-                (xs) -> Arrays.copyOf(xs, xs.length),
-                sorter,
-                checker
-        );
-    }
-
-    private static Benchmark<Tuple[]> tupleBenchmarkFactory(final String description, final Consumer<Tuple[]> sorter, final Consumer<Tuple[]> checker) {
-        return new Benchmark<>(
-                description,
-                // CONSIDER do we actually need to copy here?
                 (xs) -> Arrays.copyOf(xs, xs.length),
                 sorter,
                 checker
@@ -497,6 +434,25 @@ public final class HuskySortBenchmark {
         private final int birthYear;
     }
 
+    /**
+     * Method to compare system sort with pure Husky sort
+     *
+     * @param <Y>        the underlying type of the array to be sorted.
+     * @param className  a String representing the class being sorted.
+     * @param supplier   a supplier of Y[] values.
+     * @param huskyCoder the coder for the given Y class.
+     * @param checker    a checker (may be null) which is applied only to the HuskySort results (not counted in the timings).
+     * @param isConfig   a predicate which returns a boolean for both "timsort" or "huskysort".
+     * @param m          the number of repetitions to be run.
+     */
+    private static <Y extends Comparable<Y>> void compareSystemAndPureHuskySorts(final String className, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m) {
+        if (isConfig.test("timsort"))
+            logger.info(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + className + "s using System sort", Arrays::sort, null).run(supplier, m) + "ms");
+
+        if (isConfig.test("huskysort"))
+            logger.info(benchmarkFactory("Sort " + className + "s using PureHuskySort", new PureHuskySort<>(huskyCoder)::sort, checker).run(supplier, m) + "ms");
+    }
+
     // CONSIDER why don't we just go with "10K", etc. for x??
     private void doLeipzigBenchmarkEnglish(final int x, final int n, final int m) {
         final String resource = "eng-uk_web_2002_" + (x < 50000 ? "10K" : x < 200000 ? "100K" : "1M") + "-sentences.txt";
@@ -518,7 +474,7 @@ public final class HuskySortBenchmark {
     }
 
     private void dateSortBenchmark(final Supplier<LocalDateTime[]> localDateTimeSupplier, final LocalDateTime[] localDateTimes, final QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, final String s, final int i, final int n, final int m) {
-        logger.info(dateBenchmarkFactory(s, dateHuskySortSystemSort::sort, dateHuskySortSystemSort::postProcess).run(localDateTimeSupplier, m) + "ms");
+        logger.info(HuskySortBenchmark.<LocalDateTime>benchmarkFactory(s, dateHuskySortSystemSort::sort, dateHuskySortSystemSort::postProcess).run(localDateTimeSupplier, m) + "ms");
         // NOTE: this is intended to replace the run in the previous line. It should take the exact same amount of time.
         runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, n, m, i);
     }
