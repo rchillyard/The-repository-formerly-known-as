@@ -55,6 +55,7 @@ public final class HuskySortBenchmark {
      * @param totalOps   the total number of comparison operations for the LeipzigBenchmarkEnglish.
      * @throws IOException problem opening a resource.
      */
+    @SuppressWarnings("SameParameterValue")
     void sortStrings(final Stream<Integer> wordCounts, final int n, final int m, final int totalOps) throws IOException {
         logger.info("sortStrings: beginning String sorts");
 
@@ -70,6 +71,7 @@ public final class HuskySortBenchmark {
 
     /**
      * Run benchmarks on sorting LocalDateTime.
+     * CONSIDER: having this method always compare the system sort with pure husky sort.
      *
      * @param n the number of elements to sort.
      * @param m the number of repetitions.
@@ -105,31 +107,32 @@ public final class HuskySortBenchmark {
 
     /**
      * Method to benchmark sorting of Tuples.
+     * NOTE: this method always compares the system sort with pure husky sort.
      *
      * @param n the number of elements to sort.
      * @param m the number of repetitions.
      */
-    public void sortTuples(final int n, final int m) {
+    void sortTuples(final int n, final int m) {
         logger.info("sortTuples: beginning Tuple sorts");
         final Tuple[] tuples = new Tuple[n];
         for (int i = 0; i < n; i++) tuples[i] = Tuple.create();
         final Supplier<Tuple[]> tupleSupplier = getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]);
 
-        // NOTE Test on Tuple using pure tim sort.
         if (isConfigBenchmarkTupleSorter("timsort"))
             logger.info(tupleBenchmarkFactory("Sort Tuples using Arrays::sort (TimSort)", Arrays::sort, null).run(tupleSupplier, m) + "ms");
 
         if (isConfigBenchmarkTupleSorter("huskysort"))
-            logger.info(tupleBenchmarkFactory("Sort Tuples using GenericHuskySort", new GenericHuskySort<Tuple>(config)::sort, null).run(tupleSupplier, m) + "ms");
+            logger.info(tupleBenchmarkFactory("Sort Tuples using GenericHuskySort", new PureHuskySort<Tuple>(HuskyCoderFactory.createGenericCoder())::sort, null).run(tupleSupplier, m) + "ms");
     }
 
     /**
      * Method to benchmark sorting of various number types: Integer, Double, Long, BigInteger, Decimal.
+     * NOTE: this method always compares the system sort with pure husky sort.
      *
      * @param n the number of elements to sort.
      * @param m the number of repetitions.
      */
-    public void sortNumerics(final int n, final int m) {
+    void sortNumerics(final int n, final int m) {
         logger.info("sortNumerics: beginning numeric sorts");
         final String timsort = "timsort";
         final String introhuskysort = "introhuskysort";
@@ -466,7 +469,12 @@ public final class HuskySortBenchmark {
             return new Tuple(random.nextInt(99999) + 1, words[random.nextInt(words.length)], random.nextInt(171) + 1850);
         }
 
+        static void setRandom(final Random random) {
+            Tuple.random = random;
+        }
+
         static Random random = new Random();
+
 
         private final static String[] commonWords = getCommonWords();
 

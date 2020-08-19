@@ -24,7 +24,7 @@ public class HuskySortBenchmarkTest {
 
     @Before
     public void setUp() throws Exception {
-        HuskySortBenchmark.Tuple.random = new Random(0L);
+        HuskySortBenchmark.Tuple.setRandom(new Random(0L));
         final Config config = Config.load(HuskySortBenchmark.class);
         benchmark = new HuskySortBenchmark(config);
     }
@@ -75,10 +75,13 @@ public class HuskySortBenchmarkTest {
 
     @Test
     public void minComparisons() {
+        double v = HuskySortBenchmark.minComparisons(1024);
+        assertEquals(8769.01, v, 1E-2);
     }
 
     @Test
     public void meanInversions() {
+        assertEquals(10.0 * 9 / 4, HuskySortBenchmark.meanInversions(10), 1E-7);
     }
 
     @Test
