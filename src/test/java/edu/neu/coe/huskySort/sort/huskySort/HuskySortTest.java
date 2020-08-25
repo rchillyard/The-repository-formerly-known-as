@@ -36,7 +36,7 @@ public class HuskySortTest {
         assertEquals(8, words.size());
     }
 
-    static class Person implements HuskySortable<Person> {
+    static final class Person implements HuskySortable<Person> {
 
         Person(String firstName, String lastName) {
             this.lastName = lastName;

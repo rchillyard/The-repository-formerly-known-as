@@ -31,7 +31,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public QuickSort_3way(Helper<X> helper) {
+    public QuickSort_3way(final Helper<X> helper) {
         super(helper);
         setPartitioner(createPartitioner());
     }
@@ -46,7 +46,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public QuickSort_3way(int N, Config config) {
+    public QuickSort_3way(final int N, final Config config) {
         super(DESCRIPTION, N, config);
         setPartitioner(createPartitioner());
     }
@@ -59,11 +59,11 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
      * @param N    the number of elements to be sorted.
      * @param seed the seed for the random number generator.
      */
-    public QuickSort_3way(int N, long seed, Config config) {
+    public QuickSort_3way(final int N, final long seed, final Config config) {
         this(new InstrumentedHelper<>(DESCRIPTION, N, config));
     }
 
-    class Partitioner_3Way implements Partitioner<X> {
+    final class Partitioner_3Way implements Partitioner<X> {
 
         /**
          * Method to partition the given partition into smaller partitions.
@@ -71,45 +71,45 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
          * @param partition the partition to divide up.
          * @return an array of partitions, whose length depends on the sorting method being used.
          */
-        public List<Partition<X>> partition(Partition<X> partition) {
+        public List<Partition<X>> partition(final Partition<X> partition) {
             // CONSIDER merge with Partitioner_DualPivot
-            X[] xs = partition.xs;
+            final X[] xs = partition.xs;
             int lt = partition.from;
             int gt = partition.to - 1;
             helper.swapConditional(xs, lt, gt);
-            X v = xs[lt];
+            final X v = xs[lt];
             int i = lt + 1;
             // NOTE: we are trying to avoid checking on instrumented for every time in the inner loop for performance reasons (probably a silly idea).
             // NOTE: if we were using Scala, it would be easy to set up a comparer function and a swapper function. With java, it's possible but much messier.
             if (helper.instrumented())
                 while (i <= gt) {
-                    int cmp = helper.compare(xs[i], v);
+                    final int cmp = helper.compare(xs[i], v);
                     if (cmp < 0) helper.swap(xs, lt++, i++);
                     else if (cmp > 0) helper.swap(xs, i, gt--);
                     else i++;
                 }
             else
                 while (i <= gt) {
-                    int cmp = xs[i].compareTo(v);
+                    final int cmp = xs[i].compareTo(v);
                     if (cmp < 0) swap(xs, lt++, i++);
                     else if (cmp > 0) swap(xs, i, gt--);
                     else i++;
                 }
 
-            List<Partition<X>> partitions = new ArrayList<>();
+            final List<Partition<X>> partitions = new ArrayList<>();
             partitions.add(new Partition<>(xs, partition.from, lt));
             partitions.add(new Partition<>(xs, gt + 1, partition.to));
             return partitions;
         }
 
-        public Partitioner_3Way(Helper<X> helper) {
+        public Partitioner_3Way(final Helper<X> helper) {
             this.helper = helper;
         }
 
-        private void swap(X[] ys, int i, int j) {
+        private void swap(final X[] ys, final int i, final int j) {
             if (helper != null) helper.swap(ys, i, j);
             else {
-                X temp = ys[i];
+                final X temp = ys[i];
                 ys[i] = ys[j];
                 ys[j] = temp;
             }

@@ -64,7 +64,7 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void testDates100K() throws Exception {
-        benchmark.sortLocalDateTimes(44000);
+        benchmark.sortLocalDateTimes(42500);
     }
 
     @Test

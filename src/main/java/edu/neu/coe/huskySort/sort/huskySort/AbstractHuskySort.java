@@ -29,9 +29,9 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @return the xs or a copy.
      */
     @Override
-    public X[] preSort(X[] xs, boolean makeCopy) {
+    public final X[] preSort(final X[] xs, final boolean makeCopy) {
         // NOTE: Prepare for first pass where we code to longs and sort according to those.
-        X[] result = super.preSort(xs, makeCopy);
+        final X[] result = super.preSort(xs, makeCopy);
         huskyHelper.doCoding(result);
         return result;
     }
@@ -43,7 +43,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @return either the array passed in or the result of invoking the post-sorter on that array.
      */
     @Override
-    public X[] postSort(X[] xs) {
+    public X[] postSort(final X[] xs) {
         if (huskyHelper.getCoding().perfect)
             return xs;
 
@@ -59,7 +59,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @return the sorted version of xs (or its copy).
      */
     @Override
-    public X[] sort(X[] xs) {
+    public final X[] sort(final X[] xs) {
         return sort(xs, huskyHelper.isMakeCopy());
     }
 
@@ -69,13 +69,13 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @return a HuskyHelper.
      */
     @Override
-    public HuskyHelper<X> getHelper() {
+    public final HuskyHelper<X> getHelper() {
         return huskyHelper;
     }
 
     // CONSIDER showing coder and postSorter (would need extra String for that).
     @Override
-    public String toString() {
+    public final String toString() {
         return name;
     }
 
@@ -87,7 +87,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @param i  the first index.
      * @param j  the second index.
      */
-    protected void swap(X[] xs, int i, int j) {
+    protected final void swap(final X[] xs, final int i, final int j) {
         huskyHelper.swap(xs, i, j);
     }
 
@@ -100,7 +100,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * @param postSorter post-sorter.
      * @param config     configuration.
      */
-    protected AbstractHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+    protected AbstractHuskySort(final String name, final int n, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config) {
         this(name, createHelper(name, n, huskyCoder, postSorter, config.isInstrumented(), config));
         closeHelper = true;
     }
@@ -112,17 +112,16 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     /**
      * NOTE: callers of this method should consider arranging for the helper to be closed on close of the sorter.
      */
-    private static <Y extends Comparable<Y>> HuskyHelper<Y> createHelper(String name, int n, HuskyCoder<Y> huskyCoder, Consumer<Y[]> postSorter, boolean instrumentation, Config config) {
+    private static <Y extends Comparable<Y>> HuskyHelper<Y> createHelper(final String name, final int n, final HuskyCoder<Y> huskyCoder, final Consumer<Y[]> postSorter, final boolean instrumentation, final Config config) {
         return instrumentation ? new HuskyHelper<>(HelperFactory.create("Husky Delegate Helper", n, config), huskyCoder, postSorter, false) : new HuskyHelper<>(name, n, huskyCoder, postSorter);
     }
 
     protected final HuskyHelper<X> huskyHelper;
     protected final String name;
 
-    private AbstractHuskySort(String name, HuskyHelper<X> helper) {
+    private AbstractHuskySort(final String name, final HuskyHelper<X> helper) {
         super(helper);
         this.name = name;
         this.huskyHelper = helper;
     }
-
 }

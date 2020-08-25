@@ -9,7 +9,7 @@ import edu.neu.coe.huskySort.util.Config;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
+public final class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     /**
      * Primary constructor to create an implementation of HuskySort which primarily uses Quicksort.

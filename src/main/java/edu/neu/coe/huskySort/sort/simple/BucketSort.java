@@ -12,22 +12,22 @@ import java.lang.reflect.Array;
 /**
  * @param <X> the underlying type which must
  */
-public class BucketSort<X extends Comparable<X>> implements Sort<X> {
+public final class BucketSort<X extends Comparable<X>> implements Sort<X> {
 
     public static final String DESCRIPTION = "Bucket sort";
 
     @Override
-    public void sort(X[] xs, int from, int to) {
+    public void sort(final X[] xs, final int from, final int to) {
         logger.info(helper.inversions(xs));
         // Determine the min, max and gap.
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
-        Number[] ys = (Number[]) xs;
+        final Number[] ys = (Number[]) xs;
         for (int i = from; i < to; i++) {
             if (ys[i].doubleValue() < min) min = ys[i].doubleValue();
             if (max < ys[i].doubleValue()) max = ys[i].doubleValue();
         }
-        double gap = (max - min) / bucket.length;
+        final double gap = (max - min) / bucket.length;
 
         // Assign the elements to buckets
         for (int i = from; i < to; i++) {
@@ -53,7 +53,7 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
      * @param n the number of elements to be sorted.
      */
     @Override
-    public void init(int n) {
+    public void init(final int n) {
 
     }
 
@@ -63,7 +63,7 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
      * @param xs an array of Xs.
      */
     @Override
-    public void postProcess(X[] xs) {
+    public void postProcess(final X[] xs) {
         helper.postProcess(xs);
     }
 
@@ -71,7 +71,7 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
         if (closeHelper) helper.close();
     }
 
-    BucketSort(int buckets, BaseHelper<X> helper) {
+    BucketSort(final int buckets, final BaseHelper<X> helper) {
         //noinspection unchecked
         bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
         for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
@@ -79,7 +79,7 @@ public class BucketSort<X extends Comparable<X>> implements Sort<X> {
         insertionSort = new InsertionSort<>();
     }
 
-    BucketSort(int buckets) {
+    BucketSort(final int buckets) {
         this(buckets, new BaseHelper<>(DESCRIPTION));
         closeHelper = true;
     }

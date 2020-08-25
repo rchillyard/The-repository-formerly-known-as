@@ -6,7 +6,7 @@ import static org.junit.Assert.*;
 
 public class BaseHelperTest {
 
-    static class BaseHelperWithSortedTest<X extends Comparable<X>> extends BaseHelper<X> {
+    static final class BaseHelperWithSortedTest<X extends Comparable<X>> extends BaseHelper<X> {
 
         public BaseHelperWithSortedTest() {
             super("test");
