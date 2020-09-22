@@ -20,7 +20,7 @@ import java.util.function.Consumer;
  *
  * @param <X> the underlying type of the elements to be sorted.
  */
-public final class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
+public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     /**
      * Factory method to create an IntroHuskySort instance which uses merge sort to finish up,
@@ -35,6 +35,7 @@ public final class IntroHuskySort<X extends Comparable<X>> extends AbstractHusky
     public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(final HuskyCoder<Y> huskyCoder, final int N, final Config config) {
         final String value = isCountInterimInversions(config) + "";
         final Config copy = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, value).copy(Config.HELPER, BaseHelper.INSTRUMENT, value);
+        // CONSIDER using insertion sort instead of mergeSort.
         final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, copy);
         finisher.init(N);
         return new IntroHuskySort<>("IntroHuskySort/InversionCount", huskyCoder, finisher::mutatingSort, config.copy("huskyhelper", "countinteriminversions", ""), finisher);

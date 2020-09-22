@@ -14,7 +14,7 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  *
  * @param <T> the underlying type to be sorted.
  */
-public class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
+public final class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[]> {
 
     /**
      * Run a benchmark on a sorting problem with N elements.

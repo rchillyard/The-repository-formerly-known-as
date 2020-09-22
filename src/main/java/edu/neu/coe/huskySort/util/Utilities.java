@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Random;
 import java.util.function.Function;
 
-public class Utilities {
+public final class Utilities {
     /**
      * There is really no better way that I could find to do this with library/language methods.
      * Don't try to inline this if the generic type extends something like Comparable, or you will get a ClassCastException.

@@ -34,6 +34,16 @@ public final class HuskyCoderFactory {
     private static final int MASK_UTF8 = 0xFF;
 
     /**
+     * Method to create a generic HuskyCoder for a class which is HuskySortable.
+     *
+     * @param <X> a class which is HuskySortable.
+     * @return a HuskyCoder&lt;X&gt;.
+     */
+    public static <X extends HuskySortable<X>> HuskyCoder<X> createGenericCoder() {
+        return HuskySortable::huskyCode;
+    }
+
+    /**
      * A Husky Coder for ASCII Strings.
      * <p>
      * This should work correctly for all 7-bit ASCII characters including all English letters (upper and lower case),
@@ -46,6 +56,7 @@ public final class HuskyCoderFactory {
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
     public final static HuskySequenceCoder<String> asciiCoder = new BaseHuskySequenceCoder<String>("ASCII", MAX_LENGTH_ASCII) {
+
 
         /**
          * Encode x as a long.
@@ -73,14 +84,8 @@ public final class HuskyCoderFactory {
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
     public final static HuskySequenceCoder<String> englishCoder = new BaseHuskySequenceCoder<String>("English", MAX_LENGTH_ENGLISH) {
-        /**
-         * Encode x as a long.
-         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
-         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
-         *
-         * @param str the X value to encode.
-         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
-         */
+
+
         public long huskyEncode(final String str) {
             return englishToLong(str);
         }
@@ -89,15 +94,11 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for unicode Strings.
      */
-    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<String>("Unicode", MAX_LENGTH_UNICODE - 1) {
-        /**
-         * Encode x as a long.
-         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
-         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
-         *
-         * @param str the X value to encode.
-         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
-         */
+    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<String>("Unicode", MAX_LENGTH_UNICODE-1) {
+
+
+        // TEST
+        @Override
         public long huskyEncode(final String str) {
             return unicodeToLong(str);
         }
@@ -107,14 +108,10 @@ public final class HuskyCoderFactory {
      * A Husky Coder for UTF Strings.
      */
     public final static HuskySequenceCoder<String> utf8Coder = new BaseHuskySequenceCoder<String>("UTF8", 0) {
-        /**
-         * Encode x as a long.
-         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
-         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
-         *
-         * @param str the X value to encode.
-         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
-         */
+
+
+        // TEST
+        @Override
         public long huskyEncode(final String str) {
             return utf8ToLong(str);
         }
@@ -124,14 +121,7 @@ public final class HuskyCoderFactory {
      * A Husky Coder for Dates.
      */
     public final static HuskyCoder<Date> dateCoder = new HuskyCoder<Date>() {
-        /**
-         * Encode x as a long.
-         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
-         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
-         *
-         * @param date the Date value to encode.
-         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
-         */
+        @Override
         public long huskyEncode(final Date date) {
             return date.getTime();
         }
@@ -218,9 +208,22 @@ public final class HuskyCoderFactory {
     public final static HuskyCoder<BigInteger> bigIntegerCoder = x -> doubleToLong(x.doubleValue());
 
     /**
-     * A Husky Coder for Decimals.
+     * A Husky Coder for BigDecimals.
      */
-    public final static HuskyCoder<BigDecimal> bigDecimalCoder = x -> doubleToLong(x.doubleValue());
+    public final static HuskyCoder<BigDecimal> bigDecimalCoder = BigDecimal::longValue;
+
+    /**
+     * A Husky Coder for scaled BigDecimals.
+     * NOTE: use this if you know that your range of BigDecimals is particularly large or small.
+     *
+     * @param scale the power of ten by which each BigDecimal will be increased before conversion to long.
+     *              Thus, if you have say numbers in the range 0 to 1, you might want to choose a scale of 18.
+     *              Alternatively, if your numbers are in the range -1E100 through 1aE100, you should choose a scale of -82.
+     * @return a HuskyCoder&lt;BigDecimal@gt;
+     */
+    public static HuskyCoder<BigDecimal> scaledBigDecimalCoder(final int scale) {
+        return x -> x.movePointRight(scale).longValue();
+    }
 
     // CONSIDER making this private
     public static long asciiToLong(final String str) {
@@ -312,5 +315,7 @@ public final class HuskyCoderFactory {
         final long result = doubleToLongBits & 0x7FFFFFFFFFFFFFFFL;
         return sign == 0 ? result : -result;
     }
+
+
 
 }
