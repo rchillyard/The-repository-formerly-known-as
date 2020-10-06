@@ -29,7 +29,7 @@ public final class GenericHuskySort<X extends HuskySortable<X>> extends IntroHus
      *
      * @param config the configuration.
      */
-    public GenericHuskySort( final Config config) {
+    public GenericHuskySort(final Config config) {
         this(Arrays::sort, config);
     }
 }

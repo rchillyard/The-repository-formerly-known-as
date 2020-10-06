@@ -37,10 +37,10 @@ public final class HuskySortBenchmark {
     }
 
     public void runBenchmarks(final String[] args) throws IOException {
-        sortNumerics(1000000, 100);
-        sortStrings(Arrays.stream(args).map(Integer::parseInt), 1000000, 100, 100000000);
-        //sortLocalDateTimes(100000, 100);
-        sortTuples(1000000, 100);
+        sortNumerics(100000, 100);
+        sortStrings(Arrays.stream(args).map(Integer::parseInt), 5000, 10000, 100000000);
+        sortLocalDateTimes(100000, 100);
+        sortTuples(100000, 100);
     }
 
     /**
@@ -57,7 +57,7 @@ public final class HuskySortBenchmark {
         logger.info("sortStrings: beginning String sorts");
 
         // NOTE: common words benchmark
-        //benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), n, m, englishCoder);
+        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), n, m, englishCoder);
 
         // NOTE: Leipzig English words benchmarks (according to command-line arguments)
         wordCounts.forEach(x -> doLeipzigBenchmarkEnglish(x, n, round(totalOps / minComparisons(n))));
