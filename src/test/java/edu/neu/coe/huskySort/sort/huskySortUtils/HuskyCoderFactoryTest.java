@@ -11,7 +11,9 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.asciiToLong;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.utf8ToLong;
@@ -184,15 +186,37 @@ public class HuskyCoderFactoryTest {
 
     @Test
     public void testBigDecimalCoder() {
-        Long[] expectedOrder = {ldMinusMax, ldZero, ldMin, ldOne, ldMax};
+        Long[] expectedOrder = {lllMin, 0L, ldZero, 0L, 0L, 1L, lllMax};
         HuskyCoder<BigDecimal> coder = HuskyCoderFactory.bigDecimalCoder;
         assertFalse(coder.perfect());
         assertEquals(ldZero, coder.huskyEncode(BigDecimal.valueOf(dZero)));
-        assertEquals(ldOne, coder.huskyEncode(BigDecimal.valueOf(dOne)));
-        assertEquals(ldMinusMax, coder.huskyEncode(BigDecimal.valueOf(dMaxMinus)));
-        assertEquals(ldMax, coder.huskyEncode(BigDecimal.valueOf(dMax)));
-        assertEquals(ldMin, coder.huskyEncode(BigDecimal.valueOf(dMin)));
-        List<BigDecimal> bigDecimals = Arrays.asList(BigDecimal.valueOf(0.0), BigDecimal.valueOf(Double.MAX_VALUE), BigDecimal.valueOf(-Double.MAX_VALUE), BigDecimal.valueOf(1.0), BigDecimal.valueOf(Double.MIN_VALUE));
+        assertEquals(1L, coder.huskyEncode(BigDecimal.valueOf(dOne)));
+        assertEquals(0L, coder.huskyEncode(BigDecimal.valueOf(dMaxMinus)));
+        assertEquals(0L, coder.huskyEncode(BigDecimal.valueOf(dMax)));
+        assertEquals(0L, coder.huskyEncode(BigDecimal.valueOf(dMin)));
+        assertEquals(lllMax, coder.huskyEncode(BigDecimal.valueOf(Long.MAX_VALUE)));
+        assertEquals(lllMin, coder.huskyEncode(BigDecimal.valueOf(Long.MIN_VALUE)));
+        List<BigDecimal> bigDecimals = Arrays.asList(BigDecimal.valueOf(0.0), BigDecimal.valueOf(Long.MAX_VALUE), BigDecimal.valueOf(Double.MAX_VALUE), BigDecimal.valueOf(-Double.MAX_VALUE), BigDecimal.valueOf(1.0), BigDecimal.valueOf(Long.MIN_VALUE), BigDecimal.valueOf(Double.MIN_VALUE));
+        final Object[] result = bigDecimals.stream().map(coder::huskyEncode).sorted().toArray();
+        assertArrayEquals(expectedOrder, result);
+    }
+
+    @Test
+    public void testScaledBigDecimalCoder() {
+        long lSmallPos = 163720000000000000L;
+        long lLargePos = 828340000000000000L;
+        long lLargeNeg = -636670000000000000L;
+        Long[] expectedOrder = {lLargeNeg, lSmallPos, lLargePos};
+        // NOTE we make the resulting Longs 1000x bigger, thus better able to discriminate.
+        HuskyCoder<BigDecimal> coder = HuskyCoderFactory.scaledBigDecimalCoder(18);
+        assertFalse(coder.perfect());
+        double smallPositive = 0.16372;
+        double largePositive = 0.82834;
+        double largeNegative = -0.63667;
+        assertEquals(lSmallPos, coder.huskyEncode(BigDecimal.valueOf(smallPositive)));
+        assertEquals(lLargePos, coder.huskyEncode(BigDecimal.valueOf(largePositive)));
+        assertEquals(lLargeNeg, coder.huskyEncode(BigDecimal.valueOf(largeNegative)));
+        List<BigDecimal> bigDecimals = Arrays.asList(BigDecimal.valueOf(smallPositive), BigDecimal.valueOf(largeNegative), BigDecimal.valueOf(largePositive));
         final Object[] result = bigDecimals.stream().map(coder::huskyEncode).sorted().toArray();
         assertArrayEquals(expectedOrder, result);
     }
@@ -232,6 +256,56 @@ public class HuskyCoderFactoryTest {
         assertTrue(long1 < long2);
     }
 
+    @Test
+    public void testDoubleToLong() {
+        compareEncodings(Math.PI, Math.E, this::doubleToLong, Double::compare);
+        compareEncodings(-Math.PI, -Math.E, this::doubleToLong, Double::compare);
+        compareEncodings(1E300, 1E301, this::doubleToLong, Double::compare);
+        compareEncodings(1E-300, 1E-301, this::doubleToLong, Double::compare);
+        compareEncodings(-1E300, -1E301, this::doubleToLong, Double::compare);
+        compareEncodings(-1E-300, -1E-301, this::doubleToLong, Double::compare);
+        compareEncodings(1E300, -1E301, this::doubleToLong, Double::compare);
+        compareEncodings(1E-300, -1E-301, this::doubleToLong, Double::compare);
+    }
+
+    @Test
+    public void testBigDecimalEncoder() {
+        compareHuskyEncodings(BigDecimal.valueOf(Math.PI), BigDecimal.valueOf(Math.E), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
+        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).negate(), BigDecimal.valueOf(Math.E).negate(), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
+//        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100), BigDecimal.valueOf(Math.E).movePointLeft(100), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
+//        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100), BigDecimal.valueOf(Math.E).movePointRight(100), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
+//        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100).negate(), BigDecimal.valueOf(Math.E).movePointLeft(100).negate(), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
+//        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100).negate(), BigDecimal.valueOf(Math.E).movePointRight(100).negate(), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
+    }
+
+//    @Test
+//    public void testBigDecimalToLong() {
+//        compareEncodings(BigDecimal.valueOf(Math.PI), BigDecimal.valueOf(Math.E), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+//        compareEncodings(BigDecimal.valueOf(Math.PI).negate(), BigDecimal.valueOf(Math.E).negate(), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+//        compareEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100), BigDecimal.valueOf(Math.E).movePointLeft(100), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+//        compareEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100), BigDecimal.valueOf(Math.E).movePointRight(100), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+//        compareEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100).negate(), BigDecimal.valueOf(Math.E).movePointLeft(100).negate(), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+//        compareEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100).negate(), BigDecimal.valueOf(Math.E).movePointRight(100).negate(), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+//    }
+
+    public <X> void compareEncodings(X x1, X x2, Function<X, Long> encoder, Comparator<X> comparator) {
+        assertEquals(comparator.compare(x1, x2), Long.compare(encoder.apply(x1), encoder.apply(x2)));
+    }
+
+    public <X> void compareHuskyEncodings(X x1, X x2, HuskyCoder encoder, Comparator<X> comparator) {
+        assertEquals(comparator.compare(x1, x2), Long.compare(encoder.huskyEncode(x1), encoder.huskyEncode(x2)));
+    }
+
+    private long doubleToLong(double x) {
+        return ((Long) huskyCoderFactoryinvoker.invokePrivate("doubleToLong", x)).longValue();
+    }
+
+    private long bigDecimalToLong(BigDecimal x) {
+        return ((Long) huskyCoderFactoryinvoker.invokePrivate("bigDecimalToLong", x)).longValue();
+    }
+
+
+    static final PrivateMethodInvoker huskyCoderFactoryinvoker = new PrivateMethodInvoker(HuskyCoderFactory.class);
     static final long llMaxMinus = 0xBC20000000000000L; // -4890909195324358656
     static final long llOneMinus = 0xC010000000000000L; // -4616189618054758400
     static final long llZero = 0L;
@@ -248,4 +322,6 @@ public class HuskyCoderFactoryTest {
     static final long ldOne = 0x3FF0000000000000L; // 4607182418800017408
     static final long ldMax = 0x7FEFFFFFFFFFFFFFL; // 9218868437227405311
 
+    public static final long lllMax = 0x7FFFFFFFFFFFFFFFL;
+    public static final long lllMin = 0x8000000000000000L;
 }
