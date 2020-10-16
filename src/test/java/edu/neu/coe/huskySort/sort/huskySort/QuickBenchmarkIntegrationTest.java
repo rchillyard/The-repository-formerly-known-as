@@ -47,7 +47,7 @@ public class QuickBenchmarkIntegrationTest {
 
     @Test
     public void testDatesHalfK() throws Exception {
-        benchmark.sortLocalDateTimes(500, 100);
+        benchmark.sortLocalDateTimes(500, 1000000);
     }
 
     @Test

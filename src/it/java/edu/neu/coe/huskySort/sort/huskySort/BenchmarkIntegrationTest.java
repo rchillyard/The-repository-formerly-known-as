@@ -64,12 +64,12 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void testDates10K() throws Exception {
-        benchmark.sortLocalDateTimes(37000, 100);
+        benchmark.sortLocalDateTimes(37000, 1000000);
     }
 
     @Test
     public void testDates100K() throws Exception {
-        benchmark.sortLocalDateTimes(44000, 100);
+        benchmark.sortLocalDateTimes(44000, 1000000);
     }
 
     @Test
