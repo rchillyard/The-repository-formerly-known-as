@@ -35,22 +35,22 @@ public class HuskySortBenchmarkTest {
 
     @Test
     public void sortTuples() {
-        benchmark.sortTuples(20, 100);
+        benchmark.sortTuples(20, 1000000);
     }
 
     @Test
     public void sortNumerics() {
-        benchmark.sortNumerics(100, 20);
+        benchmark.sortNumerics(100, 100000);
     }
 
     @Test
     public void sortStrings() throws IOException {
-        benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt), 50, 10, 10000000);
+        benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt), 1000);
     }
 
     @Test
     public void sortLocalDateTimes() {
-        benchmark.sortLocalDateTimes(100, 20);
+        benchmark.sortLocalDateTimes(100, 100000);
     }
 
     @Test
