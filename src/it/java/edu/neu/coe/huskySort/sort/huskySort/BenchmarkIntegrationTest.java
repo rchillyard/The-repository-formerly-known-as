@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -48,28 +49,32 @@ public class BenchmarkIntegrationTest {
 
     @Test
     public void testStrings10K() throws Exception {
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 1575, huskyCoder);
+        benchmark.benchmarkStringSorters(getWordsLeipzig("eng-uk_web_2002_10K-sentences.txt"), 10000, 1575, huskyCoder);
+    }
+
+    private final static String[] getWordsLeipzig(String s) throws FileNotFoundException {
+        return getWords(s, line -> getWords(regexLeipzig, line));
     }
 
     @Test
     public void testStrings100K() throws Exception {
         // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
-        benchmark.benchmarkStringSorters(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 72, huskyCoder);
+        benchmark.benchmarkStringSorters(getWordsLeipzig("eng-uk_web_2002_100K-sentences.txt"), 100000, 72, huskyCoder);
     }
 
     @Test
     public void testDates10K() throws Exception {
-        benchmark.sortLocalDateTimes(37000);
+        benchmark.sortLocalDateTimes(37000, 1000000);
     }
 
     @Test
     public void testDates100K() throws Exception {
-        benchmark.sortLocalDateTimes(42500);
+        benchmark.sortLocalDateTimes(44000, 1000000);
     }
 
     @Test
     public void testStrings10KInstrumented() throws Exception {
-        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_10K-sentences.txt", line -> getWords(regexLeipzig, line)), 10000, 950, huskyCoder);
+        benchmark.benchmarkStringSortersInstrumented(getWordsLeipzig("eng-uk_web_2002_10K-sentences.txt"), 10000, 950, huskyCoder);
     }
 
 //    @Test(timeout = 140000)

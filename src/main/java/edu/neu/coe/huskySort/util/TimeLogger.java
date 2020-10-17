@@ -9,16 +9,16 @@ public class TimeLogger {
     private final String prefix;
     private final BiFunction<Double, Integer, Double> normalizer;
 
-    public TimeLogger(String prefix, BiFunction<Double, Integer, Double> normalizer) {
+    public TimeLogger(final String prefix, final BiFunction<Double, Integer, Double> normalizer) {
         this.prefix = prefix;
         this.normalizer = normalizer;
     }
 
-    public void log(Double time, Integer N) {
+    public void log(final Double time, final Integer N) {
         logger.info(prefix + " " + formatTime(normalizer.apply(time, N)));
     }
 
-    private static String formatTime(double time) {
+    public static String formatTime(final double time) {
         decimalFormat.applyPattern(timePattern);
         return decimalFormat.format(time);
     }

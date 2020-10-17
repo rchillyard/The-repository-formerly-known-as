@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @SuppressWarnings("SuspiciousMethodCalls")
 public class Config {
@@ -24,23 +26,23 @@ public class Config {
      * @param value       the new value.
      * @return a new Config as described.
      */
-    public Config copy(String sectionName, String optionName, String value) {
-        Ini ini = new Ini();
-        for (Map.Entry<String, Profile.Section> entry : this.ini.entrySet())
-            for (Map.Entry<String, String> x : entry.getValue().entrySet())
+    public Config copy(final String sectionName, final String optionName, final String value) {
+        final Ini ini = new Ini();
+        for (final Map.Entry<String, Profile.Section> entry : this.ini.entrySet())
+            for (final Map.Entry<String, String> x : entry.getValue().entrySet())
                 ini.put(entry.getKey(), x.getKey(), x.getValue());
-        Config result = new Config(ini);
-        Profile.Section section = result.ini.get(sectionName);
+        final Config result = new Config(ini);
+        final Profile.Section section = result.ini.get(sectionName);
         section.replace(optionName, value);
         result.ini.replace(sectionName, section);
         return result;
     }
 
-    public String get(Object sectionName, Object optionName, String defaultValue) {
+    public String get(final Object sectionName, final Object optionName, final String defaultValue) {
         return get(sectionName, optionName, String.class, defaultValue);
     }
 
-    public String get(Object sectionName, Object optionName) {
+    public String get(final Object sectionName, final Object optionName) {
         return get(sectionName, optionName, (String) null);
     }
 
@@ -55,7 +57,7 @@ public class Config {
      * @param <T>          the type of the result.
      * @return the configured value as a T.
      */
-    public <T> T get(Object sectionName, Object optionName, Class<T> clazz, final T defaultValue) {
+    public <T> T get(final Object sectionName, final Object optionName, final Class<T> clazz, final T defaultValue) {
         T t = ini.get(sectionName, optionName, clazz);
         if (t == null || t.equals(""))
             t = defaultValue;
@@ -65,12 +67,17 @@ public class Config {
         return t;
     }
 
-    public <T> T get(Object sectionName, Object optionName, Class<T> clazz) {
+    public <T> T get(final Object sectionName, final Object optionName, final Class<T> clazz) {
         return get(sectionName, optionName, clazz, null);
     }
 
-    public boolean getBoolean(String sectionName, String optionName) {
+    public boolean getBoolean(final String sectionName, final String optionName) {
         return get(sectionName, optionName, boolean.class);
+    }
+
+    public Stream<Integer> getIntegerStream(final String sectionName, final String optionName) {
+        final String[] split = get(sectionName, optionName, String.class).split(",");
+        return Arrays.stream(split).map(Integer::parseInt);
     }
 
     /**
@@ -121,50 +128,50 @@ public class Config {
         return s;
     }
 
-    public String getComment(String key) {
+    public String getComment(final String key) {
         final String comment = ini.getComment(key);
         if (unLogged(key))
             logger.debug(() -> "Config.getComment(" + key + ") = " + comment);
         return comment;
     }
 
-    public List<Profile.Section> getAll(Object key) {
+    public List<Profile.Section> getAll(final Object key) {
         return ini.getAll(key);
     }
 
-    public Profile.Section get(Object key) {
+    public Profile.Section get(final Object key) {
         return ini.get(key);
     }
 
-    public Profile.Section get(Object key, int index) {
+    public Profile.Section get(final Object key, final int index) {
         return ini.get(key, index);
     }
 
-    public Profile.Section getOrDefault(Object key, Profile.Section defaultValue) {
+    public Profile.Section getOrDefault(final Object key, final Profile.Section defaultValue) {
         return ini.getOrDefault(key, defaultValue);
     }
 
-    public Config(Ini ini) {
+    public Config(final Ini ini) {
         this.ini = ini;
     }
 
-    public Config(Reader reader) throws IOException {
+    public Config(final Reader reader) throws IOException {
         this(new Ini(reader));
     }
 
-    public Config(InputStream stream) throws IOException {
+    public Config(final InputStream stream) throws IOException {
         this(new Ini(stream));
     }
 
-    public Config(URL resource) throws IOException {
+    public Config(final URL resource) throws IOException {
         this(new Ini(resource));
     }
 
-    public Config(File input) throws IOException {
+    public Config(final File input) throws IOException {
         this(new Ini(input));
     }
 
-    public Config(String file) throws IOException {
+    public Config(final String file) throws IOException {
         this(new File(file));
     }
 
@@ -207,8 +214,8 @@ public class Config {
         return load(null);
     }
 
-    private boolean unLogged(String s) {
-        Boolean value = logged.get(s);
+    private static boolean unLogged(final String s) {
+        final Boolean value = logged.get(s);
         if (value == null) {
             logged.put(s, true);
             return true;

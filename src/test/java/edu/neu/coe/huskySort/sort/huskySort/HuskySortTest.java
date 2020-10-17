@@ -174,7 +174,7 @@ public class HuskySortTest {
     public void testSortString7() {
         final int N = 1000;
         final Config config = ConfigTest.setupConfig("false", "0", "1", "", "");
-        doTestIntroHuskySort(N, config, "true", true, "00000000", 27398.0, 1600.0);
+        doTestIntroHuskySort(N, config, "true", true, "00000000", 27398.0, 1750.0);
     }
 
     @Test
