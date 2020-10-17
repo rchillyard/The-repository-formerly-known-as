@@ -43,10 +43,10 @@ public final class HuskySortBenchmark {
      */
     public void runBenchmarks() throws IOException {
         // CONSIDER refactoring the following to conform to the others
-        sortStrings(config.getIntegerStream("benchmarkstringsorters", "sizes"), 100000000);
-        config.getIntegerStream("benchmarktuplesorters", "sizes").forEach(x -> sortTuples(x, 50000000));
-        config.getIntegerStream("benchmarkdatesorters", "sizes").forEach(x -> sortLocalDateTimes(x, 50000000));
-        config.getIntegerStream("benchmarknumbersorters", "sizes").forEach(x -> sortNumerics(x, 50000000));
+        sortStrings(config.getIntegerStream("benchmarkstringsorters", "sizes"), 500000000);
+        config.getIntegerStream("benchmarktuplesorters", "sizes").forEach(x -> sortTuples(x, 250000000));
+//        config.getIntegerStream("benchmarkdatesorters", "sizes").forEach(x -> sortLocalDateTimes(x, 50000000));
+        config.getIntegerStream("benchmarknumbersorters", "sizes").forEach(x -> sortNumerics(x, 250000000));
     }
 
     /**
@@ -352,14 +352,14 @@ public final class HuskySortBenchmark {
         /**
          * Constructor.
          *
+         * @param birthYear 4-digit year.
          * @param zip       5-digit zip code.
          * @param name      last name, first name.
-         * @param birthYear 4-digit year.
          */
-        public Tuple(final int zip, final String name, final int birthYear) {
+        public Tuple(final int birthYear, final int zip, final String name) {
+            this.birthYear = birthYear;
             this.zip = zip;
             this.name = name;
-            this.birthYear = birthYear;
         }
 
         /**
@@ -372,9 +372,9 @@ public final class HuskySortBenchmark {
          */
         @Override
         public int compareTo(final Tuple tuple) {
-            final int cf1 = Integer.compare(zip, tuple.zip);
+            final int cf1 = Integer.compare(birthYear, tuple.birthYear);
             if (cf1 != 0) return cf1;
-            final int cf2 = Integer.compare(birthYear, tuple.birthYear);
+            final int cf2 = Integer.compare(zip, tuple.zip);
             if (cf2 != 0) return cf2;
             return name.compareTo(tuple.name);
         }
@@ -387,8 +387,8 @@ public final class HuskySortBenchmark {
          */
         @Override
         public long huskyCode() {
-            long result = zip;  // 17 bits
-            result = result << 8 | (long) (birthYear - 1850); // 8 bits
+            long result = birthYear - 1850;  // 8 bits
+            result = result << 17 | zip; // 17 bits
             result = result << 38 | englishCoder.huskyEncode(name) & 0x3FFFFFFFFFL; // 38 bits
             return result;
         }
@@ -418,7 +418,10 @@ public final class HuskySortBenchmark {
         }
 
         public static Tuple create() {
-            return new Tuple(random.nextInt(99999) + 1, words[random.nextInt(words.length)], random.nextInt(171) + 1850);
+            int zip = random.nextInt(99999) + 1;
+            String word = words[random.nextInt(words.length)];
+            int age = random.nextInt(171) + 1850;
+            return new Tuple(age, zip, word);
         }
 
         static void setRandom(final Random random) {

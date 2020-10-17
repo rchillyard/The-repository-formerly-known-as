@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class HuskySortBenchmarkTest {
 
     HuskySortBenchmark benchmark;
-    final static String[] args = new String[]{"10000"};
+    final static String[] args = new String[]{"1000"};
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -45,7 +45,7 @@ public class HuskySortBenchmarkTest {
 
     @Test
     public void sortStrings() throws IOException {
-        benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt), 1000);
+        benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt), 10000);
     }
 
     @Test
@@ -90,22 +90,24 @@ public class HuskySortBenchmarkTest {
 
     @Test
     public void tupleCompareTo() {
-        assertTrue(new HuskySortBenchmark.Tuple(57058, "okay", 1971).compareTo(new HuskySortBenchmark.Tuple(29469, "portray", 1978)) > 0);
-        assertTrue(new HuskySortBenchmark.Tuple(57058, "okay", 1972).compareTo(new HuskySortBenchmark.Tuple(57058, "portray", 1971)) > 0);
-        assertTrue(new HuskySortBenchmark.Tuple(57058, "okaz", 1972).compareTo(new HuskySortBenchmark.Tuple(57058, "okay", 1972)) > 0);
+        assertTrue(new HuskySortBenchmark.Tuple(1971, 57058, "okay").compareTo(new HuskySortBenchmark.Tuple(1978, 29469, "portray")) < 0);
+        assertTrue(new HuskySortBenchmark.Tuple(1972, 57058, "okay").compareTo(new HuskySortBenchmark.Tuple(1971, 57058, "portray")) > 0);
+        assertTrue(new HuskySortBenchmark.Tuple(1972, 57057, "okaz").compareTo(new HuskySortBenchmark.Tuple(1972, 57058, "okay")) < 0);
+        assertTrue(new HuskySortBenchmark.Tuple(1972, 57058, "okaz").compareTo(new HuskySortBenchmark.Tuple(1972, 57058, "okay")) > 0);
     }
 
     @Test
     public void tupleHuskyCode() {
-        assertTrue(new HuskySortBenchmark.Tuple(57058, "okay", 1971).huskyCode() > new HuskySortBenchmark.Tuple(29469, "portray", 1978).huskyCode());
-        assertTrue(new HuskySortBenchmark.Tuple(57058, "okay", 1972).huskyCode() > new HuskySortBenchmark.Tuple(57058, "portray", 1971).huskyCode());
-        assertTrue(new HuskySortBenchmark.Tuple(57058, "okaz", 1972).huskyCode() > new HuskySortBenchmark.Tuple(57058, "okay", 1972).huskyCode());
+        assertTrue(new HuskySortBenchmark.Tuple(1971, 57058, "okay").huskyCode() < new HuskySortBenchmark.Tuple(1978, 29469, "portray").huskyCode());
+        assertTrue(new HuskySortBenchmark.Tuple(1972, 57058, "okay").huskyCode() > new HuskySortBenchmark.Tuple(1971, 57058, "portray").huskyCode());
+        assertTrue(new HuskySortBenchmark.Tuple(1972, 57057, "okaz").huskyCode() < new HuskySortBenchmark.Tuple(1972, 57058, "okay").huskyCode());
+        assertTrue(new HuskySortBenchmark.Tuple(1972, 57058, "okaz").huskyCode() > new HuskySortBenchmark.Tuple(1972, 57058, "okay").huskyCode());
 
     }
 
     @Test
     public void tupleCreate() {
         HuskySortBenchmark.Tuple tuple = HuskySortBenchmark.Tuple.create();
-        assertEquals(new HuskySortBenchmark.Tuple(57058, "okay", 1971), tuple);
+        assertEquals(new HuskySortBenchmark.Tuple(1971, 57058, "okay"), tuple);
     }
 }
