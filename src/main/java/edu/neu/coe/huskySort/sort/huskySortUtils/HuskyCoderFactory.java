@@ -9,6 +9,7 @@ import java.nio.LongBuffer;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
+import java.util.Random;
 
 /**
  * Factory class for HuskyCoders.
@@ -221,6 +222,39 @@ public final class HuskyCoderFactory {
             return true;
         }
     };
+
+    /**
+     * Abstract class which implements a probabilistic encoder on generic type X.
+     *
+     * @param <X> the type of the input to huskyEncode.
+     */
+    public static abstract class ProbabilisticEncoder<X extends Number> implements HuskyCoder<X> {
+        @Override
+        public long huskyEncode(final X x) {
+            final boolean event = isEvent();
+            long longValue = x.longValue();
+            // We do not support the full range of X values: only the positive ones.
+            if (longValue < 0) longValue = 0L;
+            return (longValue ^ (event ? 0xFF : 0)) & 0xFF;
+        }
+
+        public ProbabilisticEncoder(final double p, final long seed) {
+            this.p = p;
+            this.random = new Random(seed);
+        }
+
+        public ProbabilisticEncoder(final double p) {
+            this(p, System.currentTimeMillis());
+        }
+
+        private final double p;
+
+        boolean isEvent() {
+            return random.nextDouble() < p;
+        }
+
+        private final Random random;
+    }
 
     /**
      * A Husky Coder for BigIntegers.

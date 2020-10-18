@@ -39,7 +39,7 @@ public final class HuskySortBenchmark {
     /**
      * Run the main four benchmarks: string sorts, tuple sorts, date sorts and number sorts.
      *
-     * @throws IOException
+     * @throws IOException an IO exception.
      */
     public void runBenchmarks() throws IOException {
         // CONSIDER refactoring the following to conform to the others
@@ -149,6 +149,11 @@ public final class HuskySortBenchmark {
 
         // NOTE: BigDecimal sorting is much slower by HuskySort
         compareSystemAndPureHuskySorts(n + " BigDecimals", getSupplier(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE)), HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m);
+
+        final HuskyCoder<Byte> byteCoder = new HuskyCoderFactory.ProbabilisticEncoder(0.15) {
+        };
+        compareSystemAndPureHuskySorts(n + " Bytes", getSupplier(n, Byte.class, byteFunction), byteCoder, null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m);
+
     }
 
     /**
@@ -302,6 +307,13 @@ public final class HuskySortBenchmark {
 
     final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
 
+    public static final Function<Random, Byte> byteFunction = r -> {
+        byte[] bytes = new byte[1];
+        r.nextBytes(bytes);
+        byte aByte = bytes[0];
+        return aByte >= 0 ? aByte : (byte) (aByte ^ 0xFF);
+    };
+
     /**
      * This is based on log2(n!)
      *
@@ -331,7 +343,7 @@ public final class HuskySortBenchmark {
         return words;
     }
 
-    private static <T extends Comparable<T>> Supplier<T[]> getSupplier(final int n, final Class<T> clazz, final Function<Random, T> randomNumberFunction) {
+    static <T extends Comparable<T>> Supplier<T[]> getSupplier(final int n, final Class<T> clazz, final Function<Random, T> randomNumberFunction) {
         return () -> Utilities.fillRandomArray(clazz, new Random(), n, randomNumberFunction);
     }
 
@@ -418,9 +430,9 @@ public final class HuskySortBenchmark {
         }
 
         public static Tuple create() {
-            int zip = random.nextInt(99999) + 1;
-            String word = words[random.nextInt(words.length)];
-            int age = random.nextInt(171) + 1850;
+            final int zip = random.nextInt(99999) + 1;
+            final String word = words[random.nextInt(words.length)];
+            final int age = random.nextInt(171) + 1850;
             return new Tuple(age, zip, word);
         }
 
@@ -459,7 +471,7 @@ public final class HuskySortBenchmark {
      * @param isConfig   a predicate which returns a boolean for both "timsort" or "huskysort".
      * @param m          the number of repetitions to be run.
      */
-    private static <Y extends Comparable<Y>> void compareSystemAndPureHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m) {
+    static <Y extends Comparable<Y>> void compareSystemAndPureHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m) {
         if (isConfig.test("timsort"))
             logBenchmarkRun(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + subject + " using System sort", Arrays::sort, null).run(supplier, m));
 

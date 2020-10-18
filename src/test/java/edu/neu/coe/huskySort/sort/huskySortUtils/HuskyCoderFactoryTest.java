@@ -269,6 +269,22 @@ public class HuskyCoderFactoryTest {
     }
 
     @Test
+    public void testProbabilisticEncoder() {
+        HuskyCoder<Byte> coder = new HuskyCoderFactory.ProbabilisticEncoder(0.15, 1L) {
+        };
+        assertFalse(coder.perfect());
+        assertEquals(1L, coder.huskyEncode(Byte.valueOf((byte) 1)));
+        assertEquals(0L, coder.huskyEncode(Byte.MIN_VALUE));
+        assertEquals(0L, coder.huskyEncode(Byte.valueOf((byte) 0)));
+        assertEquals((long) Byte.MAX_VALUE, coder.huskyEncode(Byte.MAX_VALUE));
+        assertEquals(2L, coder.huskyEncode(Byte.valueOf((byte) 2)));
+        assertEquals(252L, coder.huskyEncode(Byte.valueOf((byte) 3)));
+        assertEquals(4L, coder.huskyEncode(Byte.valueOf((byte) 4)));
+        assertEquals(5L, coder.huskyEncode(Byte.valueOf((byte) 5)));
+        assertEquals(6L, coder.huskyEncode(Byte.valueOf((byte) 6)));
+    }
+
+    @Test
     public void testBigDecimalEncoder() {
         compareHuskyEncodings(BigDecimal.valueOf(Math.PI), BigDecimal.valueOf(Math.E), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
         compareHuskyEncodings(BigDecimal.valueOf(Math.PI).negate(), BigDecimal.valueOf(Math.E).negate(), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));

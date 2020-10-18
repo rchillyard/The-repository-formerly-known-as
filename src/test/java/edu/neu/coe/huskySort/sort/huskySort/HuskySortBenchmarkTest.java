@@ -1,5 +1,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.util.Config;
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +43,13 @@ public class HuskySortBenchmarkTest {
     @Test
     public void sortNumerics() {
         benchmark.sortNumerics(100, 100000);
+    }
+
+    @Test
+    public void sortProbabilistic() {
+        HuskyCoder<Byte> byteCoder = new HuskyCoderFactory.ProbabilisticEncoder(0.15) {
+        };
+        HuskySortBenchmark.compareSystemAndPureHuskySorts(1000 + " Bytes", HuskySortBenchmark.getSupplier(1000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
     }
 
     @Test
