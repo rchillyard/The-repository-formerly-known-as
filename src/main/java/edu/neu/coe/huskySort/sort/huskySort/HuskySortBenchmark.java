@@ -13,7 +13,6 @@ import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.sort.simple.*;
 import edu.neu.coe.huskySort.util.*;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -39,13 +38,12 @@ public final class HuskySortBenchmark {
     /**
      * Run the main four benchmarks: string sorts, tuple sorts, date sorts and number sorts.
      *
-     * @throws IOException an IO exception.
      */
-    public void runBenchmarks() throws IOException {
+    public void runBenchmarks() {
         // CONSIDER refactoring the following to conform to the others
         sortStrings(config.getIntegerStream("benchmarkstringsorters", "sizes"), 500000000);
         config.getIntegerStream("benchmarktuplesorters", "sizes").forEach(x -> sortTuples(x, 250000000));
-//        config.getIntegerStream("benchmarkdatesorters", "sizes").forEach(x -> sortLocalDateTimes(x, 50000000));
+        config.getIntegerStream("benchmarkdatesorters", "sizes").forEach(x -> sortLocalDateTimes(x, 50000000));
         config.getIntegerStream("benchmarknumbersorters", "sizes").forEach(x -> sortNumerics(x, 250000000));
     }
 
@@ -140,20 +138,15 @@ public final class HuskySortBenchmark {
 
         compareSystemAndPureHuskySorts(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m);
 
-        // NOTE: Double sorting is much slower by HuskySort
         compareSystemAndPureHuskySorts(n + " Doubles", getSupplier(n, Double.class, Random::nextDouble), HuskyCoderFactory.doubleCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "double"), m);
 
         compareSystemAndPureHuskySorts(n + " Longs", getSupplier(n, Long.class, Random::nextLong), HuskyCoderFactory.longCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "long"), m);
 
         compareSystemAndPureHuskySorts(n + " BigIntegers", getSupplier(n, BigInteger.class, r1 -> BigInteger.valueOf(r1.nextLong())), HuskyCoderFactory.bigIntegerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "biginteger"), m);
 
-        // NOTE: BigDecimal sorting is much slower by HuskySort
         compareSystemAndPureHuskySorts(n + " BigDecimals", getSupplier(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE)), HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m);
 
-        final HuskyCoder<Byte> byteCoder = new HuskyCoderFactory.ProbabilisticEncoder(0.15) {
-        };
-        compareSystemAndPureHuskySorts(n + " Bytes", getSupplier(n, Byte.class, byteFunction), byteCoder, null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m);
-
+        compareSystemAndPureHuskySorts(n + " Bytes", getSupplier(n, Byte.class, byteFunction), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m);
     }
 
     /**
@@ -502,17 +495,13 @@ public final class HuskySortBenchmark {
     }
 
     private void doLeipzigBenchmark(final String resource, final int nWords, final int nRuns, final HuskyCoder<String> huskyCoder) {
-        try {
-            final String[] words = getLeipzigWordsFromResource(resource);
-            benchmarkStringSorters(words, nWords, nRuns, huskyCoder);
-            if (isConfigBoolean(Config.HELPER, BaseHelper.INSTRUMENT))
-                benchmarkStringSortersInstrumented(words, nWords, nRuns, huskyCoder);
-        } catch (final FileNotFoundException e) {
-            logger.warn("File not found: " + resource, e);
-        }
+        final String[] words = getLeipzigWordsFromResource(resource);
+        benchmarkStringSorters(words, nWords, nRuns, huskyCoder);
+        if (isConfigBoolean(Config.HELPER, BaseHelper.INSTRUMENT))
+            benchmarkStringSortersInstrumented(words, nWords, nRuns, huskyCoder);
     }
 
-    private static String[] getLeipzigWordsFromResource(final String resource) throws FileNotFoundException {
+    private static String[] getLeipzigWordsFromResource(final String resource) {
         return getWords(resource, HuskySortBenchmark::getLeipzigWords);
     }
 

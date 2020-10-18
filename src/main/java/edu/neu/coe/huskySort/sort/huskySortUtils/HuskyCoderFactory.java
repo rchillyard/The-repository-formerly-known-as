@@ -224,11 +224,25 @@ public final class HuskyCoderFactory {
     };
 
     /**
+     * Method to yield a probabilistic encoder based on the given probability p of coding errors.
+     *
+     * @param p   the probability that there will be a coding error.
+     * @param <X> the type of Number to be encoded.
+     * @return a long.
+     */
+    public static <X extends Number & Comparable<X>> ProbabilisticEncoder<X> createProbabilisticCoder(final double p) {
+        return new ProbabilisticEncoder<X>(p) {
+        };
+    }
+
+    /**
      * Abstract class which implements a probabilistic encoder on generic type X.
+     * <p>
+     * TODO: this only works correctly for where X is Byte -- need to generalize.
      *
      * @param <X> the type of the input to huskyEncode.
      */
-    public static abstract class ProbabilisticEncoder<X extends Number> implements HuskyCoder<X> {
+    static abstract class ProbabilisticEncoder<X extends Number & Comparable<X>> implements HuskyCoder<X> {
         @Override
         public long huskyEncode(final X x) {
             final boolean event = isEvent();
