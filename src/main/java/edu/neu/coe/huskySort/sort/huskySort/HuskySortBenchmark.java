@@ -147,6 +147,7 @@ public final class HuskySortBenchmark {
         compareSystemAndPureHuskySorts(n + " BigDecimals", getSupplier(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE)), HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m);
 
         compareSystemAndPureHuskySorts(n + " Bytes", getSupplier(n, Byte.class, byteFunction), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m);
+        compareSystemAndPureHuskySorts(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m);
     }
 
     /**

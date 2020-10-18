@@ -245,11 +245,8 @@ public final class HuskyCoderFactory {
     static abstract class ProbabilisticEncoder<X extends Number & Comparable<X>> implements HuskyCoder<X> {
         @Override
         public long huskyEncode(final X x) {
-            final boolean event = isEvent();
-            long longValue = x.longValue();
-            // We do not support the full range of X values: only the positive ones.
-            if (longValue < 0) longValue = 0L;
-            return (longValue ^ (event ? 0xFF : 0)) & 0xFF;
+            final long longValue = x.longValue();
+            return longValue ^ (isEvent() ? 0xFFFFFFFFFFFFFFFFL : 0);
         }
 
         public ProbabilisticEncoder(final double p, final long seed) {
