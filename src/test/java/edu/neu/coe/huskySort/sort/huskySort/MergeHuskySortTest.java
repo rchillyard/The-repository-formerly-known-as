@@ -2,39 +2,38 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
-import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import org.junit.Test;
 
 import java.math.BigInteger;
+import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class PureHuskySortTest {
+public class MergeHuskySortTest {
 
     private final BaseHelper<String> helper = new BaseHelper<>("dummy helper");
 
     @Test
     public void testSortString1() {
         String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.unicodeCoder, false);
+        MergeHuskySort<String> sorter = new MergeHuskySort<>(HuskyCoderFactory.unicodeCoder);
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
 
     @Test
     public void testSortString2() {
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false);
+        MergeHuskySort<String> sorter = new MergeHuskySort<>(HuskyCoderFactory.asciiCoder);
         final int N = 1000;
         helper.init(N);
-        final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
+        final String[] xs = helper.random(String.class, r -> nextPositiveLongString(r));
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
 
     @Test
     public void testSortString3() {
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false);
+        MergeHuskySort<String> sorter = new MergeHuskySort<>(HuskyCoderFactory.asciiCoder);
         final int N = 1000;
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> {
@@ -49,7 +48,7 @@ public class PureHuskySortTest {
     @Test
     public void testSortString4() {
         String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false);
+        MergeHuskySort<String> sorter = new MergeHuskySort<>(HuskyCoderFactory.asciiCoder);
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
@@ -57,26 +56,24 @@ public class PureHuskySortTest {
     @Test
     public void testSortString5() {
         String[] xs = {"Hello", "Goodbye", "Ciao", "Welcome"};
-        PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false);
+        MergeHuskySort<String> sorter = new MergeHuskySort<>(HuskyCoderFactory.asciiCoder);
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
 
     @Test
-    public void testFloorLg() {
-        PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(PureHuskySort.class);
-        assertEquals(Integer.valueOf(1), privateMethodInvoker.invokePrivate("floor_lg", 3));
-        assertEquals(Integer.valueOf(2), privateMethodInvoker.invokePrivate("floor_lg", 5));
+    public void testSortString6() {
+        MergeHuskySort<String> sorter = new MergeHuskySort<>(HuskyCoderFactory.asciiCoder);
+        final int N = 32;
+        helper.init(N);
+        final String[] xs = helper.random(String.class, r -> nextPositiveLongString(r));
+        sorter.sort(xs);
+        assertTrue("sorted", helper.sorted(xs));
     }
 
-//    @Test
-//    public void testIntroSort() {
-//        IntroSort<String> sorter = new IntroSort<>();
-//        final int N = 1000;
-//        helper.init(N);
-//        final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
-//        sorter.sort(xs);
-//        assertTrue("sorted", helper.sorted(xs));
-//    }
-
+    private String nextPositiveLongString(Random r) {
+        long l = r.nextLong();
+        long result = l >= 0L ? l : l == Long.MIN_VALUE ? 0L : -l;
+        return String.format("%19d", result);
+    }
 }

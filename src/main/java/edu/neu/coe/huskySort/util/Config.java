@@ -112,6 +112,12 @@ public class Config {
         return Long.parseLong(s);
     }
 
+    public double getDouble(final String sectionName, final String optionName, final double defaultValue) {
+        final String s = get(sectionName, optionName);
+        if (s == null || s.isEmpty()) return defaultValue;
+        return Double.parseDouble(s);
+    }
+
     /**
      * Method to get a String.
      * In this case, when the value is unset, the log message will show the default value, unless it perceives

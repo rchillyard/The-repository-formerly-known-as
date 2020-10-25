@@ -269,24 +269,50 @@ public class HuskyCoderFactoryTest {
     }
 
     @Test
+    public void testProbabilisticEncoder() {
+        HuskyCoder<Byte> byteCoder = new HuskyCoderFactory.ProbabilisticEncoder(0.15, 1L) {
+        };
+        assertFalse(byteCoder.perfect());
+        assertEquals(1L, byteCoder.huskyEncode(Byte.valueOf((byte) 1)));
+        assertEquals((long) Byte.MIN_VALUE, byteCoder.huskyEncode(Byte.MIN_VALUE));
+        assertEquals(0L, byteCoder.huskyEncode(Byte.valueOf((byte) 0)));
+        assertEquals((long) Byte.MAX_VALUE, byteCoder.huskyEncode(Byte.MAX_VALUE));
+        assertEquals(2L, byteCoder.huskyEncode(Byte.valueOf((byte) 2)));
+        assertEquals(-4L, byteCoder.huskyEncode(Byte.valueOf((byte) 3)));
+        assertEquals(4L, byteCoder.huskyEncode(Byte.valueOf((byte) 4)));
+        assertEquals(5L, byteCoder.huskyEncode(Byte.valueOf((byte) 5)));
+        assertEquals(6L, byteCoder.huskyEncode(Byte.valueOf((byte) 6)));
+        assertEquals(1L, byteCoder.huskyEncode(Byte.valueOf((byte) 1)));
+        HuskyCoder<Integer> integerHuskyCoder = new HuskyCoderFactory.ProbabilisticEncoder(0.15, 1L) {
+        };
+        assertEquals((long) Integer.MIN_VALUE, integerHuskyCoder.huskyEncode(Integer.MIN_VALUE));
+        assertEquals(0L, integerHuskyCoder.huskyEncode(Integer.valueOf(0)));
+        assertEquals((long) Integer.MAX_VALUE, integerHuskyCoder.huskyEncode(Integer.MAX_VALUE));
+        assertEquals(2L, integerHuskyCoder.huskyEncode(Integer.valueOf(2)));
+        assertEquals(3L, integerHuskyCoder.huskyEncode(Integer.valueOf(3)));
+        assertEquals(-5L, integerHuskyCoder.huskyEncode(Integer.valueOf(4)));
+        assertEquals(5L, integerHuskyCoder.huskyEncode(Integer.valueOf(5)));
+        assertEquals(6L, integerHuskyCoder.huskyEncode(Integer.valueOf(6)));
+    }
+
+    @Test
     public void testBigDecimalEncoder() {
         compareHuskyEncodings(BigDecimal.valueOf(Math.PI), BigDecimal.valueOf(Math.E), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
         compareHuskyEncodings(BigDecimal.valueOf(Math.PI).negate(), BigDecimal.valueOf(Math.E).negate(), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
-//        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100), BigDecimal.valueOf(Math.E).movePointLeft(100), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
-//        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100), BigDecimal.valueOf(Math.E).movePointRight(100), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
-//        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100).negate(), BigDecimal.valueOf(Math.E).movePointLeft(100).negate(), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
-//        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100).negate(), BigDecimal.valueOf(Math.E).movePointRight(100).negate(), HuskyCoderFactory.bigDecimalCoder, (x1, x2) -> x1.compareTo(x2));
+        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100), BigDecimal.valueOf(Math.E).movePointLeft(100), HuskyCoderFactory.scaledBigDecimalCoder(118), (x1, x2) -> x1.compareTo(x2));
+        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100), BigDecimal.valueOf(Math.E).movePointRight(100), HuskyCoderFactory.scaledBigDecimalCoder(-82), (x1, x2) -> x1.compareTo(x2));
+        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100).negate(), BigDecimal.valueOf(Math.E).movePointLeft(100).negate(), HuskyCoderFactory.scaledBigDecimalCoder(118), (x1, x2) -> x1.compareTo(x2));
+        compareHuskyEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100).negate(), BigDecimal.valueOf(Math.E).movePointRight(100).negate(), HuskyCoderFactory.scaledBigDecimalCoder(-82), (x1, x2) -> x1.compareTo(x2));
     }
 
-//    @Test
-//    public void testBigDecimalToLong() {
-//        compareEncodings(BigDecimal.valueOf(Math.PI), BigDecimal.valueOf(Math.E), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
-//        compareEncodings(BigDecimal.valueOf(Math.PI).negate(), BigDecimal.valueOf(Math.E).negate(), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
-//        compareEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100), BigDecimal.valueOf(Math.E).movePointLeft(100), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
-//        compareEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100), BigDecimal.valueOf(Math.E).movePointRight(100), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
-//        compareEncodings(BigDecimal.valueOf(Math.PI).movePointLeft(100).negate(), BigDecimal.valueOf(Math.E).movePointLeft(100).negate(), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
-//        compareEncodings(BigDecimal.valueOf(Math.PI).movePointRight(100).negate(), BigDecimal.valueOf(Math.E).movePointRight(100).negate(), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
-//    }
+    @Test
+    public void testBigDecimalToLong() {
+        // NOTE we don't have a scaled version of bigDecimalToLong
+        compareEncodings(BigDecimal.valueOf(Math.PI), BigDecimal.valueOf(Math.E), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+        compareEncodings(BigDecimal.valueOf(Math.PI).negate(), BigDecimal.valueOf(Math.E).negate(), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+        compareEncodings(BigDecimal.valueOf(Math.PI).movePointRight(20), BigDecimal.valueOf(Math.E).movePointRight(20), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+        compareEncodings(BigDecimal.valueOf(Math.PI).movePointRight(20).negate(), BigDecimal.valueOf(Math.E).movePointRight(20).negate(), this::bigDecimalToLong, (x1, x2) -> x1.compareTo(x2));
+    }
 
     public <X> void compareEncodings(X x1, X x2, Function<X, Long> encoder, Comparator<X> comparator) {
         assertEquals(comparator.compare(x1, x2), Long.compare(encoder.apply(x1), encoder.apply(x2)));
@@ -300,8 +326,14 @@ public class HuskyCoderFactoryTest {
         return ((Long) huskyCoderFactoryinvoker.invokePrivate("doubleToLong", x)).longValue();
     }
 
+    /**
+     * NOTE that this will not work precisely for small or large BigDecimals.
+     *
+     * @param x
+     * @return
+     */
     private long bigDecimalToLong(BigDecimal x) {
-        return ((Long) huskyCoderFactoryinvoker.invokePrivate("bigDecimalToLong", x)).longValue();
+        return x.longValue();
     }
 
 
