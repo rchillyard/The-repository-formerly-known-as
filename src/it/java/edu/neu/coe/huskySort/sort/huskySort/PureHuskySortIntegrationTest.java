@@ -31,7 +31,7 @@ public class PureHuskySortIntegrationTest {
         final int N = 1000;
         String[] words = getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         Random random = new Random();
-        PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskyCoderFactory.asciiCoder);
+        PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false);
         Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);
         final double time = benchmark.run(() -> Utilities.fillRandomArray(String.class, random, N, r -> words[r.nextInt(words.length)]), 200);
         double expected = getFactoredTimeout(475, MICROSECONDS, config, MICROSECONDS);
@@ -44,7 +44,7 @@ public class PureHuskySortIntegrationTest {
         final int N = 1000;
         String[] words = getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         Random random = new Random();
-        PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskyCoderFactory.englishCoder);
+        PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskyCoderFactory.englishCoder, false);
         Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);
         final double time = benchmark.run(() -> Utilities.fillRandomArray(String.class, random, N, r -> words[r.nextInt(words.length)]), 200);
         double expected = getFactoredTimeout(325, MICROSECONDS, config, MICROSECONDS);
