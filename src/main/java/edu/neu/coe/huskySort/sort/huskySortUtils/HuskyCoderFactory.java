@@ -6,6 +6,8 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.LongBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
@@ -17,6 +19,9 @@ import java.util.Random;
 public final class HuskyCoderFactory {
 
     private static final int BITS_LONG = 64;
+    private static final int BITS_BYTE = 8;
+    private static final int BYTES_LONG = BITS_LONG / BITS_BYTE;
+    private static final int MASK_BYTE = 0xFF;
 
     private static final int BIT_WIDTH_ASCII = 7;
     private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
@@ -305,10 +310,11 @@ public final class HuskyCoderFactory {
     }
 
     private static long unicodeToLong(final String str) {
+        return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
         // CONSIDER an alternative coding scheme which would use str.getBytes(Charset.forName("UTF-16"));
         // ignore the first two bytes and take the next eight bytes (or however many there are) and then pack them byte by byte into the long.
-        // NOTE: to be compatible with this current encoding, we would shift everything one bit to the right, thus ensuring a positive long.
-        return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
+//        int startingPos = 2; // We need to account for the BOM
+//        return stringToBytesToLong(str, MAX_LENGTH_UNICODE, StandardCharsets.UTF_16, startingPos) >>> 1;
     }
 
     private static long stringToLong(final String str, final int maxLength, final int bitWidth, final int mask) {
@@ -320,6 +326,18 @@ public final class HuskyCoderFactory {
         else
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i) & mask;
         result = result << bitWidth * padding;
+        return result;
+    }
+
+    // NOTE: this method seems considerably slower than stringToLong, even though it uses a Java library function (getBytes)
+    private static long stringToBytesToLong(final String str, final int maxLength, final Charset charSet, final int startingPos) {
+        final byte[] bytes = str.substring(0, Math.min(maxLength, str.length())).getBytes(charSet);
+        int bytesIndex = startingPos;
+        int resultIndex = 0;
+        long result = 0L;
+        for (; resultIndex < BYTES_LONG && bytesIndex < bytes.length; resultIndex++)
+            result = result << BITS_BYTE | bytes[bytesIndex++] & MASK_BYTE;
+        for (; resultIndex < BYTES_LONG; resultIndex++) result = result << BITS_BYTE;
         return result;
     }
 

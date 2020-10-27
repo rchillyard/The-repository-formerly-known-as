@@ -9,7 +9,6 @@ import edu.neu.coe.huskySort.util.Utilities;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Random;
 
@@ -27,7 +26,7 @@ public class PureHuskySortIntegrationTest {
     }
 
     @Test
-    public void testSortString4() throws FileNotFoundException {
+    public void testSortString4() {
         final int N = 1000;
         String[] words = getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         Random random = new Random();
@@ -40,7 +39,7 @@ public class PureHuskySortIntegrationTest {
     }
 
     @Test
-    public void testSortString5() throws FileNotFoundException {
+    public void testSortString5() {
         final int N = 1000;
         String[] words = getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         Random random = new Random();
