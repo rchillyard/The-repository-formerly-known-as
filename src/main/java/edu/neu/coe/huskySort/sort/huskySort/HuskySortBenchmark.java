@@ -511,6 +511,9 @@ public final class HuskySortBenchmark {
 
     private void doLeipzigBenchmark(final String resource, final int nWords, final int nRuns, final HuskyCoder<String> huskyCoder) {
         final String[] words = getLeipzigWordsFromResource(resource);
+        // NOTE that the words retrieved from the resource have variable number of Chinese characters in each string.
+        // I have noted strings with lengths from 2 up to 34 characters, with possibly more.
+        // CONSIDER shouldn't this be an if then else?
         benchmarkStringSorters(words, nWords, nRuns, huskyCoder);
         if (isConfigBoolean(Config.HELPER, BaseHelper.INSTRUMENT))
             benchmarkStringSortersInstrumented(words, nWords, nRuns, huskyCoder);

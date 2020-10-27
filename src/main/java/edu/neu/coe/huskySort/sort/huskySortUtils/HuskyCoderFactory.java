@@ -292,6 +292,10 @@ public final class HuskyCoderFactory {
 
     // CONSIDER making this private
     public static long asciiToLong(final String str) {
+        // CONSIDER an alternative coding scheme which would use str.getBytes(Charset.forName("ISO-8859-1"));
+        // and then pack the first 8 bytes into the long.
+        // NOTE: to be compatible with this current encoding, we would take only 7 bits from each byte, leaving the first bit unset,
+        // and thus allowing 9 characters to be significant.
         return stringToLong(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, MASK_ASCII);
     }
 
@@ -301,6 +305,9 @@ public final class HuskyCoderFactory {
     }
 
     private static long unicodeToLong(final String str) {
+        // CONSIDER an alternative coding scheme which would use str.getBytes(Charset.forName("UTF-16"));
+        // ignore the first two bytes and take the next eight bytes (or however many there are) and then pack them byte by byte into the long.
+        // NOTE: to be compatible with this current encoding, we would shift everything one bit to the right, thus ensuring a positive long.
         return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
     }
 
@@ -312,7 +319,6 @@ public final class HuskyCoderFactory {
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i);
         else
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i) & mask;
-
         result = result << bitWidth * padding;
         return result;
     }

@@ -151,6 +151,15 @@ public class PureHuskySort<X extends Comparable<X>> {
                     swap(objects, longs, j, j - 1);
     }
 
+    /**
+     * Regular swap of elements at indexes i and j, not necessarily adjacent.
+     * However, for insertion sort, they will always be adjacent.
+     *
+     * @param xs    the X array.
+     * @param longs the long array.
+     * @param i     the index of one element to be swapped.
+     * @param j     the index of the other element to be swapped.
+     */
     private void swap(final X[] xs, final long[] longs, final int i, final int j) {
         // Swap longs
         final long temp1 = longs[i];
@@ -162,12 +171,28 @@ public class PureHuskySort<X extends Comparable<X>> {
         xs[j] = temp2;
     }
 
+    /**
+     * Swap method for insertion sort which takes advantage of the known fact that the elements of the array
+     * at indices less than i are in order.
+     *
+     * @param xs    the X array.
+     * @param longs the long array.
+     * @param i     the index of the element to be moved.
+     */
     private void swapIntoSorted(final X[] xs, final long[] longs, final int i) {
         int j = binarySearch(longs, 0, i, longs[i]);
         if (j < 0) j = -j - 1;
         if (j < i) swapInto(xs, longs, j, i);
     }
 
+    /**
+     * Swap method which uses half-swaps.
+     *
+     * @param xs    the X array.
+     * @param longs the long array.
+     * @param i     the index of the element to be moved.
+     * @param j     the index of the destination of that element.
+     */
     void swapInto(final X[] xs, final long[] longs, final int i, final int j) {
         if (j > i) {
             final X x = xs[j];
@@ -183,7 +208,12 @@ public class PureHuskySort<X extends Comparable<X>> {
         return huskyCoder;
     }
 
-    private static final boolean OPTIMIZED = true;
+    // NOTE that we keep this false because, for the size of arrays that we need to sort via insertion sort,
+    // This optimization doesn't really help.
+    // That might be because (a) arrays are short and (b) the binary search will likely take quite a bit longer than
+    // necessary when the array is already close to being in order (since binary search starts in the middle).
+    // It would be like looking up aardvark in the dictionary using strict binary search.
+    private static final boolean OPTIMIZED = false;
 
     private final HuskyCoder<X> huskyCoder;
     private final boolean mayBeSorted;

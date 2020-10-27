@@ -119,7 +119,7 @@ public class HuskyCoderFactoryTest {
 
     @SuppressWarnings("SpellCheckingInspection")
     @Test
-    public void testUnicodeCoder() {
+    public void testUnicodeCoder1() {
         HuskySequenceCoder<String> coder = HuskyCoderFactory.unicodeCoder;
         boolean java8 = HuskySortHelper.isPreJava11;
         final String sAase = "Åse";
@@ -139,6 +139,41 @@ public class HuskyCoderFactoryTest {
         long expectedS = 0x2108220021A8218L;
         assertEquals(expectedS, coder.huskyEncode(sSrebrenica));
         assertFalse(coder.perfectForLength(lSrebrenica));
+    }
+
+    @Test
+    public void testUnicodeCoder2() {
+        HuskySequenceCoder<String> coder = HuskyCoderFactory.unicodeCoder;
+        final String s你好世界 = "你好世界";
+        final int l你好世界 = s你好世界.length();
+        long expected你好世界 = 0x27B02CBEA70B3AA6L;
+        assertEquals(expected你好世界, coder.huskyEncode(s你好世界));
+        assertFalse(coder.perfectForLength(l你好世界));
+        assertEquals(expected你好世界, coder.huskyEncode(s你好世界 + "人"));
+    }
+
+    @Test
+    public void testUnicodeCoder3() {
+        HuskySequenceCoder<String> coder = HuskyCoderFactory.unicodeCoder;
+        final String s送别 = "送别\n" + // requires 4 bytes of unicode
+                "下馬飲君酒\n" + // requires 10 bytes of unicode of which we can only pack 7 bytes and 7 bits.
+                "問君何所之\n" + // ditto
+                "君言不得意\n" + // ditto
+                "歸臥南山陲\n" + // ditto
+                "但去莫復問\n" + // ditto
+                "白雲無盡時"; // ditto
+        String[] xs = s送别.split("\n");
+        Coding coding = coder.huskyEncode(xs);
+        long[] longs = coding.longs;
+        assertFalse(coding.perfect);
+        assertEquals(7, longs.length);
+        assertEquals(0x4800A91580000000L, longs[0]);
+        assertEquals(0x2705CCD64C792A0DL, longs[1]);
+        assertEquals(0x2AA7AA0DA7AAB120L, longs[2]);
+        assertEquals(0x2A0DC5002706AFCBL, longs[3]);
+        assertEquals(0x35BC40F2A9ABAE38L, longs[4]);
+        assertEquals(0x27A329DDC1D5AFD4L, longs[5]);
+        assertEquals(0x3B3ECB793890BB70L, longs[6]);
     }
 
     @Test
