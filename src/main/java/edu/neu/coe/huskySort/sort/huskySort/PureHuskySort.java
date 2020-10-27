@@ -9,6 +9,8 @@ import edu.neu.coe.huskySort.util.LazyLogger;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static java.util.Arrays.binarySearch;
+
 /**
  * This class represents the purest form of Husky Sort based on IntroSort for pass 1 and the System sort for pass 2.
  * <p>
@@ -74,20 +76,20 @@ public class PureHuskySort<X extends Comparable<X>> {
 
     // TEST
     @SuppressWarnings({"UnnecessaryLocalVariable"})
-    private void introSort(final X[] objects, final long[] longs, final int from, final int to, final int depthThreshold) {
+    private void introSort(final X[] objects, final long[] longs, final int from, final int thru, final int depthThreshold) {
         // CONSIDER merge with IntroHuskySort
-        if (to <= from) return;
-        if (to - from <= sizeThreshold) {
-            insertionSort(objects, longs, from, to);
+        if (thru <= from) return;
+        if (thru - from <= sizeThreshold) {
+            insertionSort(objects, longs, from, thru + 1);
             return;
         }
         if (depthThreshold == 0) {
-            heapSort(objects, longs, from, to);
+            heapSort(objects, longs, from, thru);
             return;
         }
 
         final int lo = from;
-        final int hi = to;
+        final int hi = thru;
 
         if (longs[hi] < longs[lo]) swap(objects, longs, lo, hi);
 
@@ -106,14 +108,14 @@ public class PureHuskySort<X extends Comparable<X>> {
     }
 
     // TEST
-    private void heapSort(final X[] objects, final long[] longs, final int from, final int to) {
+    private void heapSort(final X[] objects, final long[] longs, final int from, final int thru) {
         // CONSIDER removing these size checks. They haven't really been tested.
-        if (to <= from) return;
-        if (to - from <= sizeThreshold) {
-            insertionSort(objects, longs, from, to);
+        if (thru <= from) return;
+        if (thru - from <= sizeThreshold) {
+            insertionSort(objects, longs, from, thru + 1);
             return;
         }
-        final int n = to - from + 1;
+        final int n = thru - from + 1;
         for (int i = n / 2; i >= 1; i = i - 1) {
             downHeap(objects, longs, i, n, from);
         }
@@ -140,11 +142,13 @@ public class PureHuskySort<X extends Comparable<X>> {
         objects[lo + i - 1] = od;
     }
 
-    // TEST
-    private void insertionSort(final X[] objects, final long[] longs, final int from, final int to) {
-        for (int i = from + 1; i <= to; i++)
-            for (int j = i; j > from && longs[j] < longs[j - 1]; j--)
-                swap(objects, longs, j, j - 1);
+    void insertionSort(final X[] objects, final long[] longs, final int from, final int to) {
+        for (int i = from + 1; i < to; i++)
+            if (OPTIMIZED)
+                swapIntoSorted(objects, longs, i);
+            else
+                for (int j = i; j > from && longs[j] < longs[j - 1]; j--)
+                    swap(objects, longs, j, j - 1);
     }
 
     private void swap(final X[] xs, final long[] longs, final int i, final int j) {
@@ -157,6 +161,29 @@ public class PureHuskySort<X extends Comparable<X>> {
         xs[i] = xs[j];
         xs[j] = temp2;
     }
+
+    private void swapIntoSorted(final X[] xs, final long[] longs, final int i) {
+        int j = binarySearch(longs, 0, i, longs[i]);
+        if (j < 0) j = -j - 1;
+        if (j < i) swapInto(xs, longs, j, i);
+    }
+
+    void swapInto(final X[] xs, final long[] longs, final int i, final int j) {
+        if (j > i) {
+            final X x = xs[j];
+            System.arraycopy(xs, i, xs, i + 1, j - i);
+            xs[i] = x;
+            final long l = longs[j];
+            System.arraycopy(longs, i, longs, i + 1, j - i);
+            longs[i] = l;
+        }
+    }
+
+    private HuskyCoder<X> getHuskyCoder() {
+        return huskyCoder;
+    }
+
+    private static final boolean OPTIMIZED = true;
 
     private final HuskyCoder<X> huskyCoder;
     private final boolean mayBeSorted;

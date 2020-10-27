@@ -479,7 +479,7 @@ public final class HuskySortBenchmark {
             logBenchmarkRun(benchmarkFactory("Sort " + subject + " using PureHuskySort", new PureHuskySort<>(huskyCoder, false)::sort, checker).run(supplier, m));
 
         if (isConfig.test("mergehuskysort"))
-            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using PureHuskySort", new MergeHuskySort<>(huskyCoder)::sort, checker).run(supplier, m));
+            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using MergeHuskySort", new MergeHuskySort<>(huskyCoder)::sort, checker).run(supplier, m));
     }
 
     // CONSIDER why don't we just go with "10K", etc. for x??
