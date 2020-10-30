@@ -14,6 +14,8 @@ import edu.neu.coe.huskySort.sort.simple.*;
 import edu.neu.coe.huskySort.util.*;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -40,11 +42,11 @@ public final class HuskySortBenchmark {
      *
      */
     public void runBenchmarks() {
+        config.getIntegerStream("benchmarknumbersorters", "sizes").forEach(x -> sortNumerics(x, 250000000));
         // CONSIDER refactoring the following to conform to the others
         sortStrings(config.getIntegerStream("benchmarkstringsorters", "sizes"), 500000000);
         config.getIntegerStream("benchmarktuplesorters", "sizes").forEach(x -> sortTuples(x, 250000000));
         config.getIntegerStream("benchmarkdatesorters", "sizes").forEach(x -> sortLocalDateTimes(x, 50000000));
-        config.getIntegerStream("benchmarknumbersorters", "sizes").forEach(x -> sortNumerics(x, 250000000));
     }
 
     /**
@@ -136,18 +138,18 @@ public final class HuskySortBenchmark {
         logger.info("sortNumerics: beginning numeric sorts");
         final int m = round(totalOps / minComparisons(n));
 
-        compareSystemAndPureHuskySorts(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m);
+        compareSystemAndPureHuskySortsNumeric(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m, Integer.class, true);
 
-        compareSystemAndPureHuskySorts(n + " Doubles", getSupplier(n, Double.class, Random::nextDouble), HuskyCoderFactory.doubleCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "double"), m);
+        compareSystemAndPureHuskySortsNumeric(n + " Doubles", getSupplier(n, Double.class, Random::nextDouble), HuskyCoderFactory.doubleCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "double"), m, Double.class, false);
 
-        compareSystemAndPureHuskySorts(n + " Longs", getSupplier(n, Long.class, Random::nextLong), HuskyCoderFactory.longCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "long"), m);
+        compareSystemAndPureHuskySortsNumeric(n + " Longs", getSupplier(n, Long.class, Random::nextLong), HuskyCoderFactory.longCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "long"), m, Long.class, true);
 
-        compareSystemAndPureHuskySorts(n + " BigIntegers", getSupplier(n, BigInteger.class, r1 -> BigInteger.valueOf(r1.nextLong())), HuskyCoderFactory.bigIntegerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "biginteger"), m);
+        compareSystemAndPureHuskySortsNumeric(n + " BigIntegers", getSupplier(n, BigInteger.class, r1 -> BigInteger.valueOf(r1.nextLong())), HuskyCoderFactory.bigIntegerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "biginteger"), m, BigInteger.class, true);
 
-        compareSystemAndPureHuskySorts(n + " BigDecimals", getSupplier(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE)), HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m);
+        compareSystemAndPureHuskySortsNumeric(n + " BigDecimals", getSupplier(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE)), HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m, BigDecimal.class, false);
 
-        compareSystemAndPureHuskySorts(n + " Bytes", getSupplier(n, Byte.class, byteFunction), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m);
-        compareSystemAndPureHuskySorts(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m);
+        compareSystemAndPureHuskySortsNumeric(n + " Bytes", getSupplier(n, Byte.class, byteFunction), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m, Byte.class, true);
+        compareSystemAndPureHuskySortsNumeric(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m, Integer.class, true);
     }
 
     /**
@@ -470,6 +472,27 @@ public final class HuskySortBenchmark {
      * @param checker    a checker (may be null) which is applied only to the HuskySort results (not counted in the timings).
      * @param isConfig   a predicate which returns a boolean for both "timsort" or "huskysort".
      * @param m          the number of repetitions to be run.
+     * @param clazz      the class of Y.
+     * @param isInt      true if Y is an integer-style type.
+     */
+    static <Y extends Number & Comparable<Y>> void compareSystemAndPureHuskySortsNumeric(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m, final Class<? extends Number> clazz, final boolean isInt) {
+        compareSystemAndPureHuskySorts(subject, supplier, huskyCoder, checker, isConfig, m);
+
+        if (isConfig.test("quicksort")) {
+            doNumericQuicksort(subject, supplier, m, clazz, isInt);
+        }
+    }
+
+    /**
+     * Method to compare system sort with pure Husky sort
+     *
+     * @param <Y>        the underlying type of the array to be sorted.
+     * @param subject    a String representing the number of instances and the class name being sorted.
+     * @param supplier   a supplier of Y[] values.
+     * @param huskyCoder the coder for the given Y class.
+     * @param checker    a checker (may be null) which is applied only to the HuskySort results (not counted in the timings).
+     * @param isConfig   a predicate which returns a boolean for both "timsort" or "huskysort".
+     * @param m          the number of repetitions to be run.
      */
     static <Y extends Comparable<Y>> void compareSystemAndPureHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m) {
         if (isConfig.test("timsort"))
@@ -521,6 +544,61 @@ public final class HuskySortBenchmark {
 
     private static String[] getLeipzigWordsFromResource(final String resource) {
         return getWords(resource, HuskySortBenchmark::getLeipzigWords);
+    }
+
+    private static <Y extends Number & Comparable<Y>> void doNumericQuicksort(final String subject, final Supplier<Y[]> supplier, final int m, final Class<? extends Number> clazz, final boolean isInt) {
+        if (clazz==Byte.class) {
+            logger.info("not attempting quicksort for: " + clazz);
+            return;
+        }
+        if (isInt)
+            try {
+                final Method method = clazz.getMethod("valueOf", long.class);
+                logBenchmarkRun(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + subject + " using quicksort", a -> doQuicksort(a, true, method, true), null).run(supplier, m));
+            } catch (final NoSuchMethodException e) {
+                try {
+                    final Method methodAlt = clazz.getMethod("valueOf", int.class);
+                    logBenchmarkRun(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + subject + " using quicksort", a -> doQuicksort(a, true, methodAlt, false), null).run(supplier, m));
+                } catch (final Exception e1) {
+                    logger.warn("cannot get valueOf method for int or long in " + clazz, e);
+                }
+            }
+        else {
+            try {
+                final Method method = clazz.getMethod("valueOf", double.class);
+                logBenchmarkRun(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + subject + " using quicksort", a -> doQuicksort(a, false, method, false), null).run(supplier, m));
+            } catch (final NoSuchMethodException e) {
+                logger.warn("cannot get valueOf method for double in " + clazz, e);
+            }
+        }
+    }
+
+    private static void doQuicksort(final Number[] a, final boolean isInt, final Method method, final boolean isLong) {
+        try {
+            if (isInt)
+                doSortInt(a, method, isLong);
+            else
+                doSortDouble(a, method);
+        } catch (final IllegalAccessException | InvocationTargetException e) {
+            logger.warn("Exception performing quicksort on array of numeric objects");
+        }
+    }
+
+    private static void doSortInt(final Number[] a, final Method method, final boolean isLong) throws IllegalAccessException, InvocationTargetException {
+        final int length = a.length;
+        final long[] xs = new long[length];
+        for (int i = 0; i < length; i++) xs[i] = a[i].longValue();
+        Arrays.sort(xs);
+        for (int i = 0; i < length; i++)
+            a[i] = isLong ? (Number) method.invoke(null, xs[i]) : (Number) method.invoke(null, (int) xs[i]);
+    }
+
+    private static void doSortDouble(final Number[] a, final Method method) throws IllegalAccessException, InvocationTargetException {
+        final int length = a.length;
+        final double[] xs = new double[length];
+        for (int i = 0; i < length; i++) xs[i] = a[i].doubleValue();
+        Arrays.sort(xs);
+        for (int i = 0; i < length; i++) a[i] = (Number) method.invoke(null, xs[i]);
     }
 
     @SuppressWarnings("SameParameterValue")
