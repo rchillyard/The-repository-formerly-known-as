@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.englishCoder;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static edu.neu.coe.huskySort.util.Utilities.*;
@@ -42,11 +41,11 @@ public final class HuskySortBenchmark {
      *
      */
     public void runBenchmarks() {
-        config.getIntegerStream("benchmarknumbersorters", "sizes").forEach(x -> sortNumerics(x, 250000000));
         // CONSIDER refactoring the following to conform to the others
         sortStrings(config.getIntegerStream("benchmarkstringsorters", "sizes"), 500000000);
         config.getIntegerStream("benchmarktuplesorters", "sizes").forEach(x -> sortTuples(x, 250000000));
         config.getIntegerStream("benchmarkdatesorters", "sizes").forEach(x -> sortLocalDateTimes(x, 50000000));
+        config.getIntegerStream("benchmarknumbersorters", "sizes").forEach(x -> sortNumerics(x, 250000000));
     }
 
     /**
@@ -63,11 +62,16 @@ public final class HuskySortBenchmark {
 
     private void doSortStrings(final int n, final int m) {
         // NOTE: Leipzig English words benchmarks (according to command-line arguments)
-        doLeipzigBenchmarkEnglish(n, m);
+        if (isConfigBenchmarkStringSorter("leipzigenglish"))
+            doLeipzigBenchmarkEnglish(n, m);
+
         // NOTE: Leipzig Chinese words benchmarks (according to command-line arguments)
-        doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", n, m, UNICODE_CODER);
+        if (isConfigBenchmarkStringSorter("leipzigchinese"))
+            doLeipzigBenchmark("zho-simp-tw_web_2014_10K-sentences.txt", n, m, UNICODE_CODER);
+
         // NOTE: common words benchmark
-        benchmarkStringSorters(getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), n, m, englishCoder);
+        if (isConfigBenchmarkStringSorter("english"))
+            benchmarkStringSorters(HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), n, m, englishCoder);
     }
 
     /**
@@ -259,7 +263,7 @@ public final class HuskySortBenchmark {
     public static void main(final String[] args) throws IOException {
         final Config config = Config.load(HuskySortBenchmark.class);
         logger.info("***********************************************************************************************\n" +
-                "HuskySortBenchmark.main: " + config.get("huskysort", "version") + " with word counts: " + Arrays.toString(args));
+                "HuskySortBenchmark.main: " + config.get("huskysort", "version"));
         final HuskySortBenchmark benchmark = new HuskySortBenchmark(config);
         benchmark.runBenchmarks();
         logger.info("***********************************************************************************************\n");
@@ -307,7 +311,7 @@ public final class HuskySortBenchmark {
 
     final static LazyLogger logger = new LazyLogger(HuskySortBenchmark.class);
 
-    final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+    final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
 
     public static final Function<Random, Byte> byteFunction = r -> {
         byte[] bytes = new byte[1];
@@ -350,7 +354,7 @@ public final class HuskySortBenchmark {
     }
 
     private static List<String> getLeipzigWords(final String line) {
-        return getWords(regexLeipzig, line);
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER);
     }
 
     private static <Y> Benchmark<Y[]> benchmarkFactory(final String description, final Consumer<Y[]> sorter, final Consumer<Y[]> checker) {
@@ -450,11 +454,11 @@ public final class HuskySortBenchmark {
         private final static String[] tupleWords = getWordSupplier(commonWords, 1000, new Random(0L), false).get();
 
         private static String[] getCommonWords() {
-                return getWords("3000-common-words.txt", s -> {
-                    final List<String> list = new ArrayList<>();
-                    list.add(s);
-                    return list;
-                });
+            return HuskySortBenchmarkHelper.getWords("3000-common-words.txt", s -> {
+                final List<String> list = new ArrayList<>();
+                list.add(s);
+                return list;
+            });
         }
 
         private final int zip;
@@ -543,7 +547,7 @@ public final class HuskySortBenchmark {
     }
 
     private static String[] getLeipzigWordsFromResource(final String resource) {
-        return getWords(resource, HuskySortBenchmark::getLeipzigWords);
+        return HuskySortBenchmarkHelper.getWords(resource, HuskySortBenchmark::getLeipzigWords);
     }
 
     private static <Y extends Number & Comparable<Y>> void doNumericQuicksort(final String subject, final Supplier<Y[]> supplier, final int m, final Class<? extends Number> clazz, final boolean isInt) {

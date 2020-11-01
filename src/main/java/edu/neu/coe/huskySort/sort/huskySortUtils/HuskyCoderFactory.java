@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.LongBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
@@ -22,6 +21,7 @@ public final class HuskyCoderFactory {
     private static final int BITS_BYTE = 8;
     private static final int BYTES_LONG = BITS_LONG / BITS_BYTE;
     private static final int MASK_BYTE = 0xFF;
+    private static final int MASK_SHORT = 0xFFFF;
 
     private static final int BIT_WIDTH_ASCII = 7;
     private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
@@ -33,11 +33,11 @@ public final class HuskyCoderFactory {
 
     private static final int BIT_WIDTH_UNICODE = 16;
     private static final int MAX_LENGTH_UNICODE = BITS_LONG / BIT_WIDTH_UNICODE;
-    private static final int MASK_UNICODE = 0xFFFF;
+    private static final int MASK_UNICODE = MASK_SHORT;
 
     private static final int BIT_WIDTH_UTF8 = 8;
     private static final int MAX_LENGTH_UTF8 = BITS_LONG / BIT_WIDTH_UTF8;
-    private static final int MASK_UTF8 = 0xFF;
+    private static final int MASK_UTF8 = MASK_BYTE;
 
     /**
      * Method to create a generic HuskyCoder for a class which is HuskySortable.
@@ -321,7 +321,7 @@ public final class HuskyCoderFactory {
         final int length = Math.min(str.length(), maxLength);
         final int padding = maxLength - length;
         long result = 0L;
-        if (((mask ^ 0xFFFF) & 0xFFFF) == 0)
+        if (((mask ^ MASK_SHORT) & MASK_SHORT) == 0)
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i);
         else
             for (int i = 0; i < length; i++) result = result << bitWidth | str.charAt(i) & mask;

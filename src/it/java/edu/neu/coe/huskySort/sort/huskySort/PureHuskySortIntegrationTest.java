@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.Random;
 
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.timeLoggersLinearithmic;
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
 import static edu.neu.coe.huskySort.util.ProcessorDependentTimeout.getFactoredTimeout;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.junit.Assert.assertEquals;
@@ -28,7 +27,7 @@ public class PureHuskySortIntegrationTest {
     @Test
     public void testSortString4() {
         final int N = 1000;
-        String[] words = getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
+        String[] words = HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         Random random = new Random();
         PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false);
         Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);
@@ -41,7 +40,7 @@ public class PureHuskySortIntegrationTest {
     @Test
     public void testSortString5() {
         final int N = 1000;
-        String[] words = getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
+        String[] words = HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         Random random = new Random();
         PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskyCoderFactory.englishCoder, false);
         Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);

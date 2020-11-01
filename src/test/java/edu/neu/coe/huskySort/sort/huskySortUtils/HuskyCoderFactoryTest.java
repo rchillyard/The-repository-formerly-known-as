@@ -125,8 +125,7 @@ public class HuskyCoderFactoryTest {
         final String sAase = "Åse";
         final int lAase = sAase.length();
         long expectedAase1 = 0x62803980328000L;
-        long actual = coder.huskyEncode(sAase);
-        assertEquals(expectedAase1, actual);
+        assertEquals(expectedAase1, coder.huskyEncode(sAase));
         assertTrue(coder.perfectForLength(lAase));
         long expectedAase2 = 0x6280398032803CL;
         assertEquals(expectedAase2, coder.huskyEncode(sAase + "x"));

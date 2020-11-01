@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.getWords;
-
 /**
  * Benchmark Integration Test.
  * This is suitable for inclusion in integration tests, but not unit tests.
@@ -53,7 +51,7 @@ public class BenchmarkIntegrationTest {
     }
 
     private final static String[] getWordsLeipzig(String s) throws FileNotFoundException {
-        return getWords(s, line -> getWords(regexLeipzig, line));
+        return HuskySortBenchmarkHelper.getWords(s, line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER));
     }
 
     @Test
@@ -84,7 +82,7 @@ public class BenchmarkIntegrationTest {
 //        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, huskyCoder);
 //    }
 
-    private final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+    private final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
     private static Logger logger = new LazyLogger(BenchmarkIntegrationTest.class);
     private static HuskySortBenchmark benchmark;
     private static Config config;

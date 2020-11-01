@@ -46,7 +46,7 @@ public class PureHuskySort<X extends Comparable<X>> {
         // NOTE: First pass where we code to longs and sort according to those.
         final Coding coding = huskyCoder.huskyEncode(xs);
         final long[] longs = coding.longs;
-        introSort(xs, longs, 0, longs.length - 1, 2 * floor_lg(xs.length));
+        introSort(xs, longs, 0, longs.length, 2 * floor_lg(xs.length));
 
         // NOTE: Second pass (if required) to fix any remaining inversions.
         if (coding.perfect)
@@ -76,20 +76,19 @@ public class PureHuskySort<X extends Comparable<X>> {
 
     // TEST
     @SuppressWarnings({"UnnecessaryLocalVariable"})
-    private void introSort(final X[] objects, final long[] longs, final int from, final int thru, final int depthThreshold) {
+    private void introSort(final X[] objects, final long[] longs, final int from, final int to, final int depthThreshold) {
         // CONSIDER merge with IntroHuskySort
-        if (thru <= from) return;
-        if (thru - from <= sizeThreshold) {
-            insertionSort(objects, longs, from, thru + 1);
+        if (to - from <= sizeThreshold + 1) {
+            insertionSort(objects, longs, from, to);
             return;
         }
         if (depthThreshold == 0) {
-            heapSort(objects, longs, from, thru);
+            heapSort(objects, longs, from, to);
             return;
         }
 
         final int lo = from;
-        final int hi = thru;
+        final int hi = to - 1;
 
         if (longs[hi] < longs[lo]) swap(objects, longs, lo, hi);
 
@@ -102,20 +101,19 @@ public class PureHuskySort<X extends Comparable<X>> {
         }
         swap(objects, longs, lo, --lt);
         swap(objects, longs, hi, ++gt);
-        introSort(objects, longs, lo, lt - 1, depthThreshold - 1);
-        if (longs[lt] < longs[gt]) introSort(objects, longs, lt + 1, gt - 1, depthThreshold - 1);
-        introSort(objects, longs, gt + 1, hi, depthThreshold - 1);
+        introSort(objects, longs, lo, lt, depthThreshold - 1);
+        if (longs[lt] < longs[gt]) introSort(objects, longs, lt + 1, gt, depthThreshold - 1);
+        introSort(objects, longs, gt + 1, hi + 1, depthThreshold - 1);
     }
 
     // TEST
-    private void heapSort(final X[] objects, final long[] longs, final int from, final int thru) {
+    private void heapSort(final X[] objects, final long[] longs, final int from, final int to) {
         // CONSIDER removing these size checks. They haven't really been tested.
-        if (thru <= from) return;
-        if (thru - from <= sizeThreshold) {
-            insertionSort(objects, longs, from, thru + 1);
+        if (to - from <= sizeThreshold + 1) {
+            insertionSort(objects, longs, from, to);
             return;
         }
-        final int n = thru - from + 1;
+        final int n = to - from;
         for (int i = n / 2; i >= 1; i = i - 1) {
             downHeap(objects, longs, i, n, from);
         }
