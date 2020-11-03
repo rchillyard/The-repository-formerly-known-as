@@ -4,6 +4,7 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.Coding;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Arrays;
@@ -26,7 +27,7 @@ public class PureHuskySort<X extends Comparable<X>> {
         final int m = 10000;
         logger.info("PureHuskySort.main: sorting " + N + " random alphabetic ASCII words " + m + " times");
         // Just for test purpose: this should take about 3 minutes
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false);
+        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
         for (int i = 0; i < m; i++) {
             final String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
             sorter.sort(alphaBetaArray);
@@ -51,20 +52,24 @@ public class PureHuskySort<X extends Comparable<X>> {
         // NOTE: Second pass (if required) to fix any remaining inversions.
         if (coding.perfect)
             return;
-        Arrays.sort(xs);
+        if (useInsertionSort)
+            new InsertionSort<X>().mutatingSort(xs);
+        else
+            Arrays.sort(xs);
     }
 
     /**
      * Primary constructor.
      *
-     * @param huskyCoder  the Husky coder to be used for the encoding to longs.
-     * @param mayBeSorted if this is true, then we should perform a random shuffle to prevent an O(N*N) performance.
-     *                    NOTE: that even though we are using IntroSort, the random shuffle precaution is necessary when
-     *                    we know in advance that the array is sorted or partially-sorted.
+     * @param huskyCoder       the Husky coder to be used for the encoding to longs.
+     * @param mayBeSorted      if this is true, then we should perform a random shuffle to prevent an O(N*N) performance.
+     *                         NOTE: that even though we are using IntroSort, the random shuffle precaution is necessary when
+     * @param useInsertionSort if true, then insertion sort will be used to mop up remaining inversions instead of system sort.
      */
-    public PureHuskySort(final HuskyCoder<X> huskyCoder, final boolean mayBeSorted) {
+    public PureHuskySort(final HuskyCoder<X> huskyCoder, final boolean mayBeSorted, final boolean useInsertionSort) {
         this.huskyCoder = huskyCoder;
         this.mayBeSorted = mayBeSorted;
+        this.useInsertionSort = useInsertionSort;
     }
 
     // CONSIDER invoke method in IntroSort
@@ -215,6 +220,7 @@ public class PureHuskySort<X extends Comparable<X>> {
 
     private final HuskyCoder<X> huskyCoder;
     private final boolean mayBeSorted;
+    private final boolean useInsertionSort;
 
     private final static LazyLogger logger = new LazyLogger(PureHuskySort.class);
 }

@@ -38,7 +38,7 @@ public class SortTest {
         final Helper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         final Integer[] ys = sorter.sort(xs);
-        assertTrue(ys[0] < ys[1]);
+        assertTrue(ys[0] <= ys[1]);
         helper.postProcess(ys); // test that ys is properly sorted.
     }
 
@@ -50,7 +50,7 @@ public class SortTest {
         helper.init(N);
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         sorter.sort(xs, 0, xs.length);
-        assertTrue(xs[0] < xs[1]);
+        assertTrue(xs[0] <= xs[1]);
         helper.postProcess(xs); // test that xs is properly sorted.
     }
 

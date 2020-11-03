@@ -71,7 +71,7 @@ public final class HuskySortBenchmark {
 
         // NOTE: common words benchmark
         if (isConfigBenchmarkStringSorter("english"))
-            benchmarkStringSorters(HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList), n, m, englishCoder);
+            benchmarkStringSorters(COMMON_WORDS_CORPUS, HuskySortBenchmarkHelper.getWords(COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList), n, m, englishCoder);
     }
 
     /**
@@ -94,11 +94,11 @@ public final class HuskySortBenchmark {
 
         // NOTE Test on date using pure tim sort.
         if (isConfigBenchmarkDateSorter("timsort"))
-            logBenchmarkRun(HuskySortBenchmark.<LocalDateTime>benchmarkFactory("Sort " + n + " LocalDateTimes using Arrays::sort (TimSort)", Arrays::sort, null).run(localDateTimeSupplier, m));
+            logBenchmarkRun(HuskySortBenchmark.<LocalDateTime>benchmarkFactory(getDescription(n, "Sort ", " LocalDateTimes using Arrays::sort (TimSort)"), Arrays::sort, null).run(localDateTimeSupplier, m));
 
         // NOTE this is supposed to match the previous benchmark run exactly. I don't understand why it takes rather less time.
         if (isConfigBenchmarkDateSorter("timsort")) {
-            logBenchmarkRun(HuskySortBenchmark.<LocalDateTime>benchmarkFactory("Repeat Sort " + n + " LocalDateTimes using timSort::mutatingSort", new TimSort<>(helper)::mutatingSort, null).run(localDateTimeSupplier, m));
+            logBenchmarkRun(HuskySortBenchmark.<LocalDateTime>benchmarkFactory(getDescription(n, "Repeat Sort ", " LocalDateTimes using timSort::mutatingSort"), new TimSort<>(helper)::mutatingSort, null).run(localDateTimeSupplier, m));
             // NOTE this is intended to replace the run two lines previous. It should take the exact same amount of time.
             runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, n, m, 0);
         }
@@ -160,33 +160,37 @@ public final class HuskySortBenchmark {
      * Method to run pure (non-instrumented) string sorter benchmarks.
      * <p>
      * NOTE: this is package-private because it is used by unit tests.
-     *
+     * <p>
      * CONSIDER merging this with compareSystemAndPureHuskySorts
      *
+     * @param corpus     the name of the corpus file to be used as a source of Strings.
      * @param words      the word source.
      * @param nWords     the number of words to be sorted.
      * @param nRuns      the number of runs.
      * @param huskyCoder the Husky coder to use in the test of PureHuskySort.
      */
-    void benchmarkStringSorters(final String[] words, final int nWords, final int nRuns, final HuskyCoder<String> huskyCoder) {
+    void benchmarkStringSorters(final String corpus, final String[] words, final int nWords, final int nRuns, final HuskyCoder<String> huskyCoder) {
         logger.info("benchmarkStringSorters: testing pure sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words using coder: " + huskyCoder.name());
         final Random random = new Random();
         final boolean preSorted = isConfigBenchmarkStringSorter("presorted");
+        final String s2 = ") words from " + corpus;
 
         if (isConfigBenchmarkStringSorter("puresystemsort")) {
-            final Benchmark<String[]> benchmark = new Benchmark<>("SystemSort (" + nWords + " words)", null, Arrays::sort, null);
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "SystemSort", s2), null, Arrays::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
 
         if (isConfigBenchmarkStringSorter("purehuskysort")) {
-            final PureHuskySort<String> pureHuskySort = new PureHuskySort<>(huskyCoder, preSorted);
-            final Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort (" + nWords + " words)", null, pureHuskySort::sort, null);
+            final boolean purehuskysortwithinsertionsort = isConfigBenchmarkStringSorter("purehuskysortwithinsertionsort");
+            final PureHuskySort<String> pureHuskySort = new PureHuskySort<>(huskyCoder, preSorted, purehuskysortwithinsertionsort);
+            final String s1 = "PureHuskySort" + (purehuskysortwithinsertionsort ? " with insertion sort" : "");
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, s1, s2), null, pureHuskySort::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
 
         if (isConfigBenchmarkStringSorter("mergehuskysort")) {
             final MergeHuskySort<String> mergeHuskySort = new MergeHuskySort<>(huskyCoder);
-            final Benchmark<String[]> benchmark = new Benchmark<>("MergeHuskySort (" + nWords + " words)", null, mergeHuskySort::sort, null);
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MergeHuskySort", s2), null, mergeHuskySort::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
 
@@ -194,9 +198,13 @@ public final class HuskySortBenchmark {
             final PrivateMethodInvoker invoker = new PrivateMethodInvoker(Arrays.class);
             final Class<?>[] classes = new Class[]{Object[].class};
             final Consumer<String[]> sort = strings -> invoker.invokePrivateExplicit("legacyMergeSort", classes, new Object[]{strings});
-            final Benchmark<String[]> benchmark = new Benchmark<>("Legacy MergeSort (" + nWords + " words)", null, sort, null);
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "Legacy MergeSort", s2), null, sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
+    }
+
+    private static String getDescription(final int nWords, final String s1, final String s2) {
+        return s1 + " (" + nWords + s2;
     }
 
     /**
@@ -454,7 +462,7 @@ public final class HuskySortBenchmark {
         private final static String[] tupleWords = getWordSupplier(commonWords, 1000, new Random(0L), false).get();
 
         private static String[] getCommonWords() {
-            return HuskySortBenchmarkHelper.getWords("3000-common-words.txt", s -> {
+            return HuskySortBenchmarkHelper.getWords(COMMON_WORDS_CORPUS, s -> {
                 final List<String> list = new ArrayList<>();
                 list.add(s);
                 return list;
@@ -503,7 +511,7 @@ public final class HuskySortBenchmark {
             logBenchmarkRun(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + subject + " using System sort", Arrays::sort, null).run(supplier, m));
 
         if (isConfig.test("huskysort"))
-            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using PureHuskySort", new PureHuskySort<>(huskyCoder, false)::sort, checker).run(supplier, m));
+            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using PureHuskySort", new PureHuskySort<>(huskyCoder, false, false)::sort, checker).run(supplier, m));
 
         if (isConfig.test("mergehuskysort"))
             logBenchmarkRun(benchmarkFactory("Sort " + subject + " using MergeHuskySort", new MergeHuskySort<>(huskyCoder)::sort, checker).run(supplier, m));
@@ -519,6 +527,7 @@ public final class HuskySortBenchmark {
     // CONSIDER making this an instance method of Benchmark
     private static void doPureBenchmark(final String[] words, final int nWords, final int nRuns, final Random random, final Benchmark<String[]> benchmark, final boolean preSorted) {
         final double time = benchmark.run(getWordSupplier(words, nWords, random, preSorted), nRuns);
+        logger.info("CSV, " + benchmark + ", " + nWords + ", " + time);
         for (final TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(time, nWords);
     }
 
@@ -540,10 +549,10 @@ public final class HuskySortBenchmark {
         final String[] words = getLeipzigWordsFromResource(resource);
         // NOTE that the words retrieved from the resource have variable number of Chinese characters in each string.
         // I have noted strings with lengths from 2 up to 34 characters, with possibly more.
-        // CONSIDER shouldn't this be an if then else?
-        benchmarkStringSorters(words, nWords, nRuns, huskyCoder);
         if (isConfigBoolean(Config.HELPER, BaseHelper.INSTRUMENT))
             benchmarkStringSortersInstrumented(words, nWords, nRuns, huskyCoder);
+        else
+            benchmarkStringSorters(resource, words, nWords, nRuns, huskyCoder);
     }
 
     private static String[] getLeipzigWordsFromResource(final String resource) {
@@ -630,6 +639,8 @@ public final class HuskySortBenchmark {
             new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
             new TimeLogger("Normalized time per run (n^2): ", (time, n) -> time / meanInversions(n) / 6 * 1e6)
     };
+
+    static final String COMMON_WORDS_CORPUS = "3000-common-words.txt";
 
     static private void logBenchmarkRun(final double time) {
         logger.info(TimeLogger.formatTime(time) + " ms");

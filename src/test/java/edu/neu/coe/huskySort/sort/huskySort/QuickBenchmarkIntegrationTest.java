@@ -40,7 +40,8 @@ public class QuickBenchmarkIntegrationTest {
     @Test
     public void testStrings1K() throws Exception {
         // NOTE: this is a very quick version of the other integration tests.
-        benchmark.benchmarkStringSorters(HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, regexLeipzig, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER)), 1000, 100, huskyCoder);
+        String corpus = "eng-uk_web_2002_10K-sentences.txt";
+        benchmark.benchmarkStringSorters(corpus, HuskySortBenchmarkHelper.getWords(corpus, line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, regexLeipzig, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER)), 1000, 100, huskyCoder);
     }
 
     @Test
