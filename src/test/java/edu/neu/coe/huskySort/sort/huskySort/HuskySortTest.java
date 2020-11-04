@@ -30,9 +30,9 @@ import static org.junit.Assert.assertTrue;
 public class HuskySortTest {
 
     @Test
-    public void testGetWords() {
+    public void testSplitLineIntoStrings() {
         final PrivateMethodInvoker invoker = new PrivateMethodInvoker(HuskySortBenchmarkHelper.class);
-        @SuppressWarnings("unchecked") final List<String> words = (List<String>) invoker.invokePrivate("getWords", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n");
+        @SuppressWarnings("unchecked") final List<String> words = (List<String>) invoker.invokePrivate("splitLineIntoStrings", "11204341\tConsider the extras not usually included with any 'FREE' car offer: CDW/LDW @ $12.95 to $13.95 a day.\n", Pattern.compile("[~\\t]*\\t((\\s*[a-zA-Z]*)*)"), HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER);
         assertEquals(8, words.size());
     }
 

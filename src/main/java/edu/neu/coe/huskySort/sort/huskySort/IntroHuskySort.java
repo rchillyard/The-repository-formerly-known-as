@@ -220,6 +220,10 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     private void heapSort(final X[] objects, final long[] longs, final int from, final int to) {
+        if (to - from <= sizeThreshold + 1) {
+            insertionSort(objects, longs, from, to);
+            return;
+        }
         final int n = to - from + 1;
         for (int i = n / 2; i >= 1; i = i - 1) {
             downHeap(objects, longs, i, n, from);

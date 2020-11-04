@@ -22,7 +22,7 @@ public class Benchmark<T> {
      * @param m the number of runs.
      * @return at least 2 and at most m/10.
      */
-    static int getWarmupRuns(int m) {
+    static int getWarmupRuns(final int m) {
         return Integer.max(2, Integer.min(10, m / 10));
     }
 
@@ -33,7 +33,7 @@ public class Benchmark<T> {
      * @param m the number of times the function f will be called.
      * @return the average number of milliseconds taken for each run of function f.
      */
-    public double run(T t, int m) {
+    public double run(final T t, final int m) {
         return run(() -> t, m);
     }
 
@@ -44,7 +44,7 @@ public class Benchmark<T> {
      * @param m        the number of times the function f will be called.
      * @return the average number of milliseconds taken for each run of function f.
      */
-    public double run(Supplier<T> supplier, int m) {
+    public double run(final Supplier<T> supplier, final int m) {
         logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
         // Warmup phase
         final Function<T, T> function = t -> {
@@ -55,6 +55,11 @@ public class Benchmark<T> {
 
         // Timed phase
         return new Timer().repeat(m, supplier, function, fPre, fPost);
+    }
+
+    @Override
+    public String toString() {
+        return "Benchmark " + description;
     }
 
     /**
@@ -69,7 +74,7 @@ public class Benchmark<T> {
      *                    When you create a lambda defining fRun, you must return "null."
      * @param fPost       a Consumer function (i.e. a function of T => Void).
      */
-    public Benchmark(String description, UnaryOperator<T> fPre, Consumer<T> fRun, Consumer<T> fPost) {
+    public Benchmark(final String description, final UnaryOperator<T> fPre, final Consumer<T> fRun, final Consumer<T> fPost) {
         this.description = description;
         this.fPre = fPre;
         this.fRun = fRun;
@@ -86,7 +91,7 @@ public class Benchmark<T> {
      * @param fRun        a Consumer function (i.e. a function of T => Void).
      *                    Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      */
-    public Benchmark(String description, UnaryOperator<T> fPre, Consumer<T> fRun) {
+    public Benchmark(final String description, final UnaryOperator<T> fPre, final Consumer<T> fRun) {
         this(description, fPre, fRun, null);
     }
 
@@ -99,7 +104,7 @@ public class Benchmark<T> {
      *                    When you create a lambda defining fRun, you must return "null."
      * @param fPost       a Consumer function (i.e. a function of T => Void).
      */
-    public Benchmark(String description, Consumer<T> fRun, Consumer<T> fPost) {
+    public Benchmark(final String description, final Consumer<T> fRun, final Consumer<T> fPost) {
         this(description, null, fRun, fPost);
     }
 
@@ -110,7 +115,7 @@ public class Benchmark<T> {
      * @param f           a Consumer function (i.e. a function of T => Void).
      *                    Function f is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      */
-    public Benchmark(String description, Consumer<T> f) {
+    public Benchmark(final String description, final Consumer<T> f) {
         this(description, null, f, null);
     }
 

@@ -108,6 +108,15 @@ public class IntroSortTest {
     }
 
     @Test
+    public void testIntroSort() throws Exception {
+        IntroSort<Integer> sorter = new IntroSort<>();
+        PrivateMethodInvoker t = new PrivateMethodInvoker(sorter);
+        Integer[] xs = {15, 3, -1, 2, 4, 1, 0, 5, 8, 6, 1, 9, 17, 7, 11};
+        sorter.mutatingSort(xs);
+        assertTrue(sorter.getHelper().sorted(xs));
+    }
+
+    @Test
     public void testInsertionSort() throws Exception {
         IntroSort<Integer> sorter = new IntroSort<>();
         PrivateMethodInvoker t = new PrivateMethodInvoker(sorter);
