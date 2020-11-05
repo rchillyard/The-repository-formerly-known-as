@@ -3,7 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
-import java.lang.reflect.Field;
+//import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.LongBuffer;
@@ -331,27 +331,28 @@ public final class HuskyCoderFactory {
     }
 
     // NOTE: this method ought to be faster but I don't think it is.
-    private static long stringToLongAvoidLength(final String str, final int maxLength, final int bitWidth, final int mask) {
-        char[] chars = new char[maxLength];
-        try {
-            char[] value = (char[]) fieldStringValue.get(str);
-            final int length = Math.min(value.length, maxLength);
-            System.arraycopy(value, 0, chars, 0, length);
-
-        str.getChars(0, length, chars, 0);
-        final int padding = maxLength - length;
-        long result = 0L;
-        if (((mask ^ MASK_SHORT) & MASK_SHORT) == 0)
-            for (int i = 0; i < length; i++) result = result << bitWidth | chars[i];
-        else
-            for (int i = 0; i < length; i++) result = result << bitWidth | chars[i] & mask;
-        result = result << bitWidth * padding;
-        return result;
-        } catch (IllegalAccessException e) {
-            System.err.println("Cannot get value of private field value of String class: "+e.getLocalizedMessage());
-            return 0L;
-        }
-    }
+    // If you uncomment this, you must also uncomment the static initializer at the end of this file.
+//    private static long stringToLongAvoidLength(final String str, final int maxLength, final int bitWidth, final int mask) {
+//        char[] chars = new char[maxLength];
+//        try {
+//            char[] value = (char[]) fieldStringValue.get(str);
+//            final int length = Math.min(value.length, maxLength);
+//            System.arraycopy(value, 0, chars, 0, length);
+//
+//            str.getChars(0, length, chars, 0);
+//            final int padding = maxLength - length;
+//            long result = 0L;
+//            if (((mask ^ MASK_SHORT) & MASK_SHORT) == 0)
+//                for (int i = 0; i < length; i++) result = result << bitWidth | chars[i];
+//            else
+//                for (int i = 0; i < length; i++) result = result << bitWidth | chars[i] & mask;
+//            result = result << bitWidth * padding;
+//            return result;
+//        } catch (IllegalAccessException e) {
+//            System.err.println("Cannot get value of private field value of String class: " + e.getLocalizedMessage());
+//            return 0L;
+//        }
+//    }
 
     // NOTE: this method seems considerably slower than stringToLong, even though it uses a Java library function (getBytes)
     private static long stringToBytesToLong(final String str, final int maxLength, final Charset charSet, final int startingPos) {
@@ -429,14 +430,15 @@ public final class HuskyCoderFactory {
         return sign == 0 ? result : -result;
     }
 
-    private static Field fieldStringValue;
-
-    static {
-        try {
-            fieldStringValue = String.class.getDeclaredField("value");
-            fieldStringValue.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            System.err.println("Cannot access private field value of String class: "+e.getLocalizedMessage());
-        }
-    }
+    // NOTE: uncomment the following if you want to use the method stringToLongAvoidLength
+//    private static Field fieldStringValue;
+//
+//    static {
+//        try {
+//            fieldStringValue = String.class.getDeclaredField("value");
+//            fieldStringValue.setAccessible(true);
+//        } catch (NoSuchFieldException e) {
+//            System.err.println("Cannot access private field value of String class: " + e.getLocalizedMessage());
+//        }
+//    }
 }

@@ -24,7 +24,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      * @return the result of calling super.preSort(xs, makeCopy).
      */
     @Override
-    public final X[] preSort(X[] xs, boolean makeCopy) {
+    public final X[] preSort(final X[] xs, final boolean makeCopy) {
         depthThreshold = 2 * floor_lg(xs.length);
         return super.preSort(xs, makeCopy);
     }
@@ -40,7 +40,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      * @return true if there is no further work to be done.
      */
     @Override
-    protected final boolean terminator(X[] xs, int from, int to, int depth) {
+    protected final boolean terminator(final X[] xs, final int from, final int to, final int depth) {
         if (to - from <= sizeThreshold) {
             if (to > from + 1)
                 getInsertionSort().sort(xs, from, to);
@@ -62,7 +62,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public IntroSort(Helper<X> helper) {
+    public IntroSort(final Helper<X> helper) {
         super(helper);
     }
 
@@ -72,7 +72,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public IntroSort(int N, Config config) {
+    public IntroSort(final int N, final Config config) {
         super(DESCRIPTION, N, config);
     }
 
@@ -85,7 +85,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      * @param seed   the seed for the random number generator.
      * @param config the configuration for this sorter.
      */
-    public IntroSort(int N, long seed, Config config) {
+    public IntroSort(final int N, final long seed, final Config config) {
         super(DESCRIPTION, N, config);
     }
 
@@ -96,9 +96,9 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
     /*
      * Heapsort algorithm
      */
-    private void heapSort(X[] a, int from, int to) {
-        Helper<X> helper = getHelper();
-        int n = to - from;
+    private void heapSort(final X[] a, final int from, final int to) {
+        final Helper<X> helper = getHelper();
+        final int n = to - from;
         for (int i = n / 2; i >= 1; i = i - 1) {
             downHeap(a, i, n, from, helper);
         }
@@ -108,8 +108,8 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
         }
     }
 
-    private void downHeap(X[] a, int i, int n, int lo, Helper<X> helper) {
-        X d = a[lo + i - 1];
+    private void downHeap(final X[] a, int i, final int n, final int lo, final Helper<X> helper) {
+        final X d = a[lo + i - 1];
         int child;
         while (i <= n / 2) {
             child = 2 * i;
@@ -134,13 +134,13 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      * @param i one index.
      * @param j other index.
      */
-    private static void swap(Object[] a, int i, int j) {
-        Object temp = a[i];
+    private static void swap(final Object[] a, final int i, final int j) {
+        final Object temp = a[i];
         a[i] = a[j];
         a[j] = temp;
     }
 
-    private static int floor_lg(int a) {
+    private static int floor_lg(final int a) {
         return (int) Utilities.lg(a);
     }
 

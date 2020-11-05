@@ -20,7 +20,7 @@ public final class QuickHuskySort<X extends Comparable<X>> extends AbstractHusky
      * @param postSorter the post-sorter (i.e. the sort method which will fix any remaining inversions).
      * @param config     the configuration.
      */
-    public QuickHuskySort(String name, int n, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+    public QuickHuskySort(final String name, final int n, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config) {
         super(name, n, huskyCoder, postSorter, config);
     }
 
@@ -33,7 +33,7 @@ public final class QuickHuskySort<X extends Comparable<X>> extends AbstractHusky
      * @param postSorter the post-sorter (i.e. the sort method which will fix any remaining inversions).
      * @param config     the configuration.
      */
-    public QuickHuskySort(String name, HuskyCoder<X> huskyCoder, Consumer<X[]> postSorter, Config config) {
+    public QuickHuskySort(final String name, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config) {
         this(name, 0, huskyCoder, postSorter, config);
     }
 
@@ -45,7 +45,7 @@ public final class QuickHuskySort<X extends Comparable<X>> extends AbstractHusky
      * @param huskyCoder the Husky coder.
      * @param config     the configuration.
      */
-    public QuickHuskySort(HuskyCoder<X> huskyCoder, Config config) {
+    public QuickHuskySort(final HuskyCoder<X> huskyCoder, final Config config) {
         this("QuickHuskySort/System", huskyCoder, Arrays::sort, config);
     }
 
@@ -56,26 +56,27 @@ public final class QuickHuskySort<X extends Comparable<X>> extends AbstractHusky
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    public void sort(X[] xs, int from, int to) {
+    public void sort(final X[] xs, final int from, final int to) {
         quickSort(xs, getHelper().getLongs(), from, to - 1);
     }
 
     // CONSIDER inlining this private method
     // CONSIDER redefining to to be one higher.
     @SuppressWarnings({"UnnecessaryLocalVariable"})
-    private void quickSort(X[] objects, long[] longs, int from, int to) {
-        int lo = from, hi = to;
+    private void quickSort(final X[] objects, final long[] longs, final int from, final int to) {
+        final int lo = from;
+        final int hi = to;
         if (hi <= lo) return;
-        Partition partition = partition(objects, longs, lo, hi);
+        final Partition partition = partition(objects, longs, lo, hi);
         quickSort(objects, longs, lo, partition.lt - 1);
         quickSort(objects, longs, partition.gt + 1, hi);
     }
 
-    private Partition partition(X[] objects, long[] longs, int lo, int hi) {
+    private Partition partition(final X[] objects, final long[] longs, final int lo, final int hi) {
         // CONSIDER creating a method less in order to avoid having direct access to the longs.
         int lt = lo, gt = hi;
         if (longs[lo] > longs[hi]) swap(objects, lo, hi);
-        long v = longs[lo];
+        final long v = longs[lo];
         int i = lo + 1;
         while (i <= gt) {
             if (longs[i] < v) swap(objects, lt++, i++);
@@ -89,7 +90,7 @@ public final class QuickHuskySort<X extends Comparable<X>> extends AbstractHusky
         final int lt;
         final int gt;
 
-        Partition(int lt, int gt) {
+        Partition(final int lt, final int gt) {
             this.lt = lt;
             this.gt = gt;
         }

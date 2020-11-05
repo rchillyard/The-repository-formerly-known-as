@@ -16,7 +16,7 @@ import edu.neu.coe.huskySort.util.Config;
  */
 public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
-    public SelectionSort(Helper<X> helper) {
+    public SelectionSort(final Helper<X> helper) {
         super(helper);
     }
 
@@ -26,7 +26,7 @@ public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public SelectionSort(int N, Config config) {
+    public SelectionSort(final int N, final Config config) {
         super(DESCRIPTION, N, config);
     }
 
@@ -39,11 +39,11 @@ public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public SelectionSort(BaseHelper<X> helper) {
+    public SelectionSort(final BaseHelper<X> helper) {
         super(helper);
     }
 
-    public void sort(X[] xs, int from, int to) {
+    public void sort(final X[] xs, final int from, final int to) {
         final Helper<X> helper = getHelper();
         for (int i = from; i < to; i++) {
             int min = i;

@@ -25,13 +25,14 @@ package edu.neu.coe.huskySort.sort.simple;/*
 
 /**
  * Copied directly from java.util.DualPivotQuicksort (which is invisible to regular Java programmers).
- *
+ * This class implements an object-based version of DualPivotQuicksort.
+ * <p>
  * This class implements the Dual-Pivot Quicksort algorithm by
  * Vladimir Yaroslavskiy, Jon Bentley, and Josh Bloch. The algorithm
  * offers O(n log(n)) performance on many data sets that cause other
  * quicksorts to degrade to quadratic performance, and is typically
  * faster than traditional (one-pivot) Quicksort implementations.
- *
+ * <p>
  * All exposed methods are package-private, designed to be invoked
  * from public methods (in class Arrays) after performing any
  * necessary array bounds checks and expanding parameters into the
@@ -40,24 +41,25 @@ package edu.neu.coe.huskySort.sort.simple;/*
  * @author Vladimir Yaroslavskiy
  * @author Jon Bentley
  * @author Josh Bloch
- *
  * @version 2011.02.11 m765.827.12i:5\7pm
  * @since 1.7
  */
 public final class PureDualPivotQuicksort {
 
     /**
-     * This method is the only thing added to this class.
+     * This method was copied and adapted from Arrays.
+     *
      * @param a the array to be sorted.
      */
-    public static <X extends Comparable<X>> void sort(X[] a) {
+    public static <X extends Comparable<X>> void sort(final X[] a) {
         PureDualPivotQuicksort.sort(a, 0, a.length - 1, null, 0, 0);
     }
 
     /**
      * Prevents instantiation.
      */
-    private PureDualPivotQuicksort() {}
+    private PureDualPivotQuicksort() {
+    }
 
     /*
      * Tuning parameters.
@@ -105,15 +107,15 @@ public final class PureDualPivotQuicksort {
      * Sorts the specified range of the array using the given
      * workspace array slice if possible for merging
      *
-     * @param a the array to be sorted
-     * @param left the index of the first element, inclusive, to be sorted
-     * @param right the index of the last element, inclusive, to be sorted
-     * @param work a workspace array (slice)
+     * @param a        the array to be sorted
+     * @param left     the index of the first element, inclusive, to be sorted
+     * @param right    the index of the last element, inclusive, to be sorted
+     * @param work     a workspace array (slice)
      * @param workBase origin of usable space in work array
-     * @param workLen usable size of work array
+     * @param workLen  usable size of work array
      */
     static <X extends Comparable<X>> void sort(X[] a, final int left, int right,
-                     X[] work, int workBase, final int workLen) {
+                                               X[] work, int workBase, final int workLen) {
         // Use Quicksort on small arrays
         if (right - left < QUICKSORT_THRESHOLD) {
             sort(a, left, right, true);
@@ -125,16 +127,19 @@ public final class PureDualPivotQuicksort {
          * (ascending or descending sequence).
          */
         final int[] run = new int[MAX_RUN_COUNT + 1];
-        int count = 0; run[0] = left;
+        int count = 0;
+        run[0] = left;
 
         // Check if the array is nearly sorted
         for (int k = left; k < right; run[count] = k) {
             if (a[k].compareTo(a[k + 1]) < 0) { // ascending
-                while (++k <= right && a[k - 1].compareTo(a[k]) <= 0);
+                while (++k <= right && a[k - 1].compareTo(a[k]) <= 0) ;
             } else if (a[k].compareTo(a[k + 1]) > 0) { // descending
-                while (++k <= right && a[k - 1].compareTo(a[k]) >= 0);
+                while (++k <= right && a[k - 1].compareTo(a[k]) >= 0) ;
                 for (int lo = run[count] - 1, hi = k; ++lo < --hi; ) {
-                    final X t = a[lo]; a[lo] = a[hi]; a[hi] = t;
+                    final X t = a[lo];
+                    a[lo] = a[hi];
+                    a[hi] = t;
                 }
             } else { // equal
                 for (int m = MAX_RUN_LENGTH; ++k <= right && a[k - 1] == a[k]; ) {
@@ -165,13 +170,14 @@ public final class PureDualPivotQuicksort {
 
         // Determine alternation base for merge
         byte odd = 0;
-        for (int n = 1; (n <<= 1) < count; odd ^= 1);
+        for (int n = 1; (n <<= 1) < count; odd ^= 1) ;
 
         // Use or create temporary array b for merging
         X[] b;                 // temp array; alternates with a
         int ao, bo;              // array offsets from 'left'
         final int blen = right - left; // space needed for b
         if (work == null || workLen < blen || workBase + blen > work.length) {
+            //noinspection unchecked,ConstantConditions
             work = (X[]) new Object[blen];
             workBase = 0;
         }
@@ -204,20 +210,25 @@ public final class PureDualPivotQuicksort {
             if ((count & 1) != 0) {
                 for (int i = right, lo = run[count - 1]; --i >= lo;
                      b[i + bo] = a[i + ao]
-                );
+                )
+                    ;
                 run[++last] = right;
             }
-            final X[] t = a; a = b; b = t;
-            final int o = ao; ao = bo; bo = o;
+            final X[] t = a;
+            a = b;
+            b = t;
+            final int o = ao;
+            ao = bo;
+            bo = o;
         }
     }
 
     /**
      * Sorts the specified range of the array by Dual-Pivot Quicksort.
      *
-     * @param a the array to be sorted
-     * @param left the index of the first element, inclusive, to be sorted
-     * @param right the index of the last element, inclusive, to be sorted
+     * @param a        the array to be sorted
+     * @param left     the index of the first element, inclusive, to be sorted
+     * @param right    the index of the last element, inclusive, to be sorted
      * @param leftmost indicates if this part is the leftmost in the range
      */
     private static <X extends Comparable<X>> void sort(final X[] a, int left, int right, final boolean leftmost) {
@@ -263,7 +274,8 @@ public final class PureDualPivotQuicksort {
                     X a1 = a[k], a2 = a[left];
 
                     if (a1.compareTo(a2) < 0) {
-                        a2 = a1; a1 = a[left];
+                        a2 = a1;
+                        a1 = a[left];
                     }
                     while (a1.compareTo(a[--k]) < 0) {
                         a[k + 2] = a[k];
@@ -302,26 +314,54 @@ public final class PureDualPivotQuicksort {
         final int e5 = e4 + seventh;
 
         // Sort these elements using insertion sort
-        if (a[e2].compareTo(a[e1]) < 0) { final X t = a[e2]; a[e2] = a[e1]; a[e1] = t; }
-
-        if (a[e3].compareTo(a[e2]) < 0) { final X t = a[e3]; a[e3] = a[e2]; a[e2] = t;
-            if (t.compareTo(a[e1]) < 0) { a[e2] = a[e1]; a[e1] = t; }
+        if (a[e2].compareTo(a[e1]) < 0) {
+            final X t = a[e2];
+            a[e2] = a[e1];
+            a[e1] = t;
         }
-        if (a[e4].compareTo(a[e3]) < 0) { final X t = a[e4]; a[e4] = a[e3]; a[e3] = t;
-            if (t.compareTo(a[e2]) < 0) { a[e3] = a[e2]; a[e2] = t;
-                if (t.compareTo(a[e1]) < 0) { a[e2] = a[e1]; a[e1] = t; }
+
+        if (a[e3].compareTo(a[e2]) < 0) {
+            final X t = a[e3];
+            a[e3] = a[e2];
+            a[e2] = t;
+            if (t.compareTo(a[e1]) < 0) {
+                a[e2] = a[e1];
+                a[e1] = t;
             }
         }
-        if (a[e5].compareTo(a[e4]) < 0) { final X t = a[e5]; a[e5] = a[e4]; a[e4] = t;
-            if (t.compareTo(a[e3]) < 0) { a[e4] = a[e3]; a[e3] = t;
-                if (t.compareTo(a[e2]) < 0) { a[e3] = a[e2]; a[e2] = t;
-                    if (t.compareTo(a[e1]) < 0) { a[e2] = a[e1]; a[e1] = t; }
+        if (a[e4].compareTo(a[e3]) < 0) {
+            final X t = a[e4];
+            a[e4] = a[e3];
+            a[e3] = t;
+            if (t.compareTo(a[e2]) < 0) {
+                a[e3] = a[e2];
+                a[e2] = t;
+                if (t.compareTo(a[e1]) < 0) {
+                    a[e2] = a[e1];
+                    a[e1] = t;
+                }
+            }
+        }
+        if (a[e5].compareTo(a[e4]) < 0) {
+            final X t = a[e5];
+            a[e5] = a[e4];
+            a[e4] = t;
+            if (t.compareTo(a[e3]) < 0) {
+                a[e4] = a[e3];
+                a[e3] = t;
+                if (t.compareTo(a[e2]) < 0) {
+                    a[e3] = a[e2];
+                    a[e2] = t;
+                    if (t.compareTo(a[e1]) < 0) {
+                        a[e2] = a[e1];
+                        a[e1] = t;
+                    }
                 }
             }
         }
 
         // Pointers
-        int less  = left;  // The index of the first element of center part
+        int less = left;  // The index of the first element of center part
         int great = right; // The index before the first element of right part
 
         if (a[e1] != a[e2] && a[e2] != a[e3] && a[e3] != a[e4] && a[e4] != a[e5]) {
@@ -345,8 +385,8 @@ public final class PureDualPivotQuicksort {
             /*
              * Skip elements, which are less or greater than pivot values.
              */
-            while (a[++less].compareTo(pivot1) < 0);
-            while (a[--great].compareTo(pivot2) > 0);
+            while (a[++less].compareTo(pivot1) < 0) ;
+            while (a[--great].compareTo(pivot2) > 0) ;
 
             /*
              * Partitioning:
@@ -401,8 +441,10 @@ public final class PureDualPivotQuicksort {
             }
 
             // Swap pivots into their final positions
-            a[left]  = a[less  - 1]; a[less  - 1] = pivot1;
-            a[right] = a[great + 1]; a[great + 1] = pivot2;
+            a[left] = a[less - 1];
+            a[less - 1] = pivot1;
+            a[right] = a[great + 1];
+            a[great + 1] = pivot2;
 
             // Sort left and right parts recursively, excluding known pivots
             sort(a, left, less - 2, leftmost);

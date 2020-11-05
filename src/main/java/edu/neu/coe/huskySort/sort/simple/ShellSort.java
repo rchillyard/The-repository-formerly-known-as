@@ -22,9 +22,9 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *
      * @param xs an array of Xs to be sorted in place.
      */
-    public void sort(X[] xs, int from, int to) {
-        int N = to - from;
-        H hh = new H(N);
+    public void sort(final X[] xs, final int from, final int to) {
+        final int N = to - from;
+        final H hh = new H(N);
         int h = hh.first();
         while (h > 0) {
             hSort(h, xs, from, to);
@@ -42,7 +42,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public ShellSort(int m, int N, Config config) {
+    public ShellSort(final int m, final int N, final Config config) {
         super(DESCRIPTION, N, config);
         this.m = m;
     }
@@ -57,7 +57,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *               4: Sedgewick's sequence (not implemented).
      * @param helper an explicit instance of Helper to be used.
      */
-    public ShellSort(int m, BaseHelper<X> helper) {
+    public ShellSort(final int m, final BaseHelper<X> helper) {
         super(helper);
         this.m = m;
     }
@@ -71,7 +71,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *          3: use the sequence based on 3 (the one in the book): 1, 4, 13, etc.
      *          4: Sedgewick's sequence (not implemented).
      */
-    public ShellSort(int m) {
+    public ShellSort(final int m) {
         this(m, new BaseHelper<>(DESCRIPTION));
     }
 
@@ -83,7 +83,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param from the first index to be considered in array xs.
      * @param to   one plus the last index to be considered in array xs.
      */
-    private void hSort(int h, X[] xs, int from, int to) {
+    private void hSort(final int h, final X[] xs, final int from, final int to) {
         final Helper<X> helper = getHelper();
         for (int i = h + from; i < to; i++) {
             int j = i;
@@ -101,7 +101,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
         private int h = 1;
         private boolean started = false;
 
-        H(int N) {
+        H(final int N) {
             switch (m) {
                 case 1:
                     break;

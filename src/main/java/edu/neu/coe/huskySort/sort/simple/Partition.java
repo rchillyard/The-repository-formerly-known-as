@@ -10,7 +10,7 @@ public class Partition<X extends Comparable<X>> {
     public final int from;
     public final int to;
 
-    public Partition(X[] xs, int from, int to) {
+    public Partition(final X[] xs, final int from, final int to) {
         this.xs = xs;
         this.from = from;
         this.to = to;

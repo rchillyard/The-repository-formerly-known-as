@@ -22,11 +22,11 @@ public final class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[
      * @param N the number of elements.
      *          Not to be confused with nRuns, an instance field, which specifies the number of repetitions of the function.
      */
-    public void run(int N) {
+    public void run(final int N) {
         logger.info("run: sort " + formatWhole(N) + " elements using " + this);
         sorter.init(N);
         final double time = super.run(() -> generateRandomArray(ts), nRuns);
-        for (TimeLogger timeLogger : timeLoggers) timeLogger.log(time, N);
+        for (final TimeLogger timeLogger : timeLoggers) timeLogger.log(time, N);
     }
 
     @Override
@@ -45,7 +45,7 @@ public final class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[
      * @param nRuns         the number of runs to perform in this benchmark.
      * @param timeLoggers   the time-loggers.
      */
-    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, SortWithHelper<T> sorter, Consumer<T[]> postProcessor, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
+    public SorterBenchmark(final Class<T> tClass, final UnaryOperator<T[]> preProcessor, final SortWithHelper<T> sorter, final Consumer<T[]> postProcessor, final T[] ts, final int nRuns, final TimeLogger[] timeLoggers) {
         super(sorter.toString(), preProcessor, sorter::mutatingSort, postProcessor);
         this.sorter = sorter;
         this.tClass = tClass;
@@ -65,7 +65,7 @@ public final class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[
      * @param nRuns        the number of runs to perform in this benchmark.
      * @param timeLoggers  the time-loggers.
      */
-    public SorterBenchmark(Class<T> tClass, UnaryOperator<T[]> preProcessor, SortWithHelper<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
+    public SorterBenchmark(final Class<T> tClass, final UnaryOperator<T[]> preProcessor, final SortWithHelper<T> sorter, final T[] ts, final int nRuns, final TimeLogger[] timeLoggers) {
         this(tClass, preProcessor, sorter, sorter::postProcess, ts, nRuns, timeLoggers);
     }
 
@@ -80,18 +80,18 @@ public final class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[
      * @param nRuns       the number of runs to perform in this benchmark.
      * @param timeLoggers the time-loggers.
      */
-    public SorterBenchmark(Class<T> tClass, SortWithHelper<T> sorter, T[] ts, int nRuns, TimeLogger[] timeLoggers) {
+    public SorterBenchmark(final Class<T> tClass, final SortWithHelper<T> sorter, final T[] ts, final int nRuns, final TimeLogger[] timeLoggers) {
         this(tClass, null, sorter, ts, nRuns, timeLoggers);
     }
 
-    private T[] generateRandomArray(T[] lookupArray) {
+    private T[] generateRandomArray(final T[] lookupArray) {
         return sorter.getHelper().random(tClass, (r) -> lookupArray[r.nextInt(lookupArray.length)]);
     }
 
-    protected final SortWithHelper<T> sorter;
-    protected final T[] ts;
-    protected final int nRuns;
-    protected final TimeLogger[] timeLoggers;
+    private final SortWithHelper<T> sorter;
+    private final T[] ts;
+    private final int nRuns;
+    private final TimeLogger[] timeLoggers;
     private final static LazyLogger logger = new LazyLogger(SorterBenchmark.class);
     private final Class<T> tClass;
 

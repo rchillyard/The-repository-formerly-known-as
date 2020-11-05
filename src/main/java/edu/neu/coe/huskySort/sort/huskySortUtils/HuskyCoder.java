@@ -38,8 +38,8 @@ public interface HuskyCoder<X> {
      * @param xs an array of X elements.
      * @return an array of longs corresponding to the the Husky codes of the X elements.
      */
-    default Coding huskyEncode(X[] xs) {
-        long[] result = new long[xs.length];
+    default Coding huskyEncode(final X[] xs) {
+        final long[] result = new long[xs.length];
         for (int i = 0; i < xs.length; i++) result[i] = huskyEncode(xs[i]);
         return new Coding(result, perfect());
     }

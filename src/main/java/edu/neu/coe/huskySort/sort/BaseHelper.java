@@ -21,7 +21,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param w the comparand element.
      * @return true only if v is less than w.
      */
-    public boolean less(X v, X w) {
+    public boolean less(final X v, final X w) {
         return v.compareTo(w) < 0;
     }
 
@@ -33,7 +33,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param j  the other index.
      * @return the result of comparing xs[i] to xs[j]
      */
-    public int compare(X[] xs, int i, int j) {
+    public int compare(final X[] xs, final int i, final int j) {
         // CONSIDER invoking the other compare signature
         return xs[i].compareTo(xs[j]);
     }
@@ -46,7 +46,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @return the result of comparing v and w.
      */
     @Override
-    public int compare(X v, X w) {
+    public int compare(final X v, final X w) {
         return v.compareTo(w);
     }
 
@@ -57,8 +57,8 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param i  one of the indices.
      * @param j  the other index.
      */
-    public void swap(X[] xs, int i, int j) {
-        X temp = xs[i];
+    public void swap(final X[] xs, final int i, final int j) {
+        final X temp = xs[i];
         xs[i] = xs[j];
         xs[j] = temp;
     }
@@ -73,9 +73,9 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param i  the index of the destination of xs[j].
      * @param j  the index of the right-most element to be involved in the swap.
      */
-    public void swapInto(X[] xs, int i, int j) {
+    public void swapInto(final X[] xs, final int i, final int j) {
         if (j > i) {
-            X x = xs[j];
+            final X x = xs[j];
             System.arraycopy(xs, i, xs, i + 1, j - i);
             xs[i] = x;
         }
@@ -90,7 +90,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param j      the source index.
      */
     @Override
-    public void copy(X[] source, int i, X[] target, int j) {
+    public void copy(final X[] source, final int i, final X[] target, final int j) {
         target[j] = source[i];
     }
 
@@ -100,7 +100,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param xs an array of Xs.
      * @return false as soon as an inversion is found; otherwise return true.
      */
-    public boolean sorted(X[] xs) {
+    public boolean sorted(final X[] xs) {
         return Utilities.isSorted(xs);
     }
 
@@ -110,7 +110,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param xs an array of Xs.
      * @return the number of inversions.
      */
-    public int inversions(X[] xs) {
+    public int inversions(final X[] xs) {
         int result = 0;
         for (int i = 0; i < xs.length; i++)
             for (int j = i + 1; j < xs.length; j++)
@@ -118,7 +118,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         return result;
     }
 
-    public X[] random(Class<X> clazz, Function<Random, X> f) {
+    public X[] random(final Class<X> clazz, final Function<Random, X> f) {
         if (n <= 0) throw new HelperException("Helper.random: not initialized");
         return Utilities.fillRandomArray(clazz, random, n, f);
     }
@@ -130,7 +130,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param xs the array to be tested.
      */
     @Override
-    public void postProcess(X[] xs) {
+    public void postProcess(final X[] xs) {
     }
 
     @Override
@@ -146,7 +146,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param n the size to be managed.
      * @throws HelperException if n is inconsistent.
      */
-    public void init(int n) {
+    public void init(final int n) {
         if (this.n == 0 || this.n == n) this.n = n;
         else throw new HelperException("Helper: n is already set to a different value");
     }
@@ -165,7 +165,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param random      a random number generator.
      */
-    public BaseHelper(String description, int n, Random random) {
+    public BaseHelper(final String description, final int n, final Random random) {
         this.n = n;
         this.description = description;
         this.random = random;
@@ -178,7 +178,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param seed        the seed for the random number generator.
      */
-    public BaseHelper(String description, int n, long seed) {
+    public BaseHelper(final String description, final int n, final long seed) {
         this(description, n, new Random(seed));
     }
 
@@ -188,7 +188,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      */
-    public BaseHelper(String description, int n) {
+    public BaseHelper(final String description, final int n) {
         this(description, n, System.currentTimeMillis());
     }
 
@@ -197,7 +197,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      *
      * @param description the description of this Helper (for humans).
      */
-    public BaseHelper(String description) {
+    public BaseHelper(final String description) {
         this(description, 0);
     }
 
@@ -205,19 +205,19 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
 
     public static class HelperException extends RuntimeException {
 
-        public HelperException(String message) {
+        public HelperException(final String message) {
             super(message);
         }
 
-        public HelperException(String message, Throwable cause) {
+        public HelperException(final String message, final Throwable cause) {
             super(message, cause);
         }
 
-        public HelperException(Throwable cause) {
+        public HelperException(final Throwable cause) {
             super(cause);
         }
 
-        public HelperException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        public HelperException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
             super(message, cause, enableSuppression, writableStackTrace);
         }
     }

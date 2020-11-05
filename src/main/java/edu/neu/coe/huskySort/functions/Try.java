@@ -11,25 +11,25 @@ import java.util.function.Supplier;
 
 public abstract class Try<V> {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public static <V> Try<V> toTry(Optional<V> optionalV) {
+    public static <V> Try<V> toTry(final Optional<V> optionalV) {
         return optionalV.map(Try::success).orElseGet(() -> failure(new NoSuchElementException()));
     }
 
-    public static <V> Try<V> failure(Throwable t) {
+    public static <V> Try<V> failure(final Throwable t) {
         Objects.requireNonNull(t);
         return new Failure<>(t);
     }
 
-    public static <V> Try<V> success(V value) {
+    public static <V> Try<V> success(final V value) {
         Objects.requireNonNull(value);
         return new Success<>(value);
     }
 
-    public static <T> Try<T> fallible(Supplier<T> f) {
+    public static <T> Try<T> fallible(final Supplier<T> f) {
         Objects.requireNonNull(f);
         try {
             return Try.success(f.get());
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             return Try.failure(t);
         }
     }
@@ -51,7 +51,7 @@ public abstract class Try<V> {
     private static class Failure<V> extends Try<V> {
         private final RuntimeException exception;
 
-        public Failure(Throwable t) {
+        public Failure(final Throwable t) {
             super();
             this.exception = new RuntimeException(t);
         }
@@ -72,12 +72,12 @@ public abstract class Try<V> {
             return true;
         }
 
-        public <U> Try<U> map(Function<? super V, ? extends U> f) {
+        public <U> Try<U> map(final Function<? super V, ? extends U> f) {
             Objects.requireNonNull(f);
             return Try.failure(exception);
         }
 
-        public <U> Try<U> flatMap(Function<? super V, Try<U>> f) {
+        public <U> Try<U> flatMap(final Function<? super V, Try<U>> f) {
             Objects.requireNonNull(f);
             return Try.failure(exception);
         }
@@ -90,7 +90,7 @@ public abstract class Try<V> {
     private static class Success<V> extends Try<V> {
         private final V value;
 
-        public Success(V value) {
+        public Success(final V value) {
             super();
             this.value = value;
         }
@@ -110,20 +110,20 @@ public abstract class Try<V> {
             return false;
         }
 
-        public <U> Try<U> map(Function<? super V, ? extends U> f) {
+        public <U> Try<U> map(final Function<? super V, ? extends U> f) {
             Objects.requireNonNull(f);
             try {
                 return Try.success(f.apply(value));
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 return Try.failure(t);
             }
         }
 
-        public <U> Try<U> flatMap(Function<? super V, Try<U>> f) {
+        public <U> Try<U> flatMap(final Function<? super V, Try<U>> f) {
             Objects.requireNonNull(f);
             try {
                 return f.apply(value);
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 return Try.failure(t);
             }
         }

@@ -23,7 +23,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      * @return either the original or a copy of the array.
      */
     @Override
-    public X[] preSort(X[] xs, boolean makeCopy) {
+    public X[] preSort(final X[] xs, final boolean makeCopy) {
         // CONSIDER don't copy but just allocate according to the xs/aux interchange optimization
         aux = Arrays.copyOf(xs, xs.length);
         return super.preSort(xs, makeCopy);
@@ -37,13 +37,13 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param to   the index of the first element of the sub-array NOT to sort.
      */
     @Override
-    public void sort(X[] xs, int from, int to) {
-        @SuppressWarnings("UnnecessaryLocalVariable") int lo = from;
+    public void sort(final X[] xs, final int from, final int to) {
+        @SuppressWarnings("UnnecessaryLocalVariable") final int lo = from;
         if (to <= lo + getHelper().cutoff()) {
             insertionSort.sort(xs, from, to);
             return;
         }
-        int mid = from + (to - from) / 2;
+        final int mid = from + (to - from) / 2;
         sort(xs, lo, mid);
         sort(xs, mid, to);
         System.arraycopy(xs, from, aux, from, to - from);
@@ -60,7 +60,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public MergeSortBasic(Helper<X> helper) {
+    public MergeSortBasic(final Helper<X> helper) {
         super(helper);
         insertionSort = new InsertionSort<>(helper);
     }
@@ -71,12 +71,12 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public MergeSortBasic(int N, Config config) {
+    public MergeSortBasic(final int N, final Config config) {
         super(DESCRIPTION, N, config);
         insertionSort = new InsertionSort<>(getHelper());
     }
 
-    private void merge(X[] aux, X[] a, int lo, int mid, int hi) {
+    private void merge(final X[] aux, final X[] a, final int lo, final int mid, final int hi) {
         final Helper<X> helper = getHelper();
         int i = lo;
         int j = mid;

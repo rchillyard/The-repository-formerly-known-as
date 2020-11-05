@@ -51,7 +51,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param w the second value.
      * @return true if v is less than w.
      */
-    public boolean less(X v, X w) {
+    public boolean less(final X v, final X w) {
         return helper.less(v, w);
     }
 
@@ -59,7 +59,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param xs an array of Xs.
      * @return true if xs is sorted.
      */
-    public boolean sorted(X[] xs) {
+    public boolean sorted(final X[] xs) {
         return helper.sorted(xs);
     }
 
@@ -67,14 +67,14 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param xs an array of Xs.
      * @return the number of inversions in xs.
      */
-    public int inversions(X[] xs) {
+    public int inversions(final X[] xs) {
         return helper.inversions(xs);
     }
 
     /**
      * @param xs the array that has been sorted.
      */
-    public void postProcess(X[] xs) {
+    public void postProcess(final X[] xs) {
         helper.postProcess(xs);
     }
 
@@ -87,7 +87,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
      */
     @Override
-    public boolean swapConditional(X[] xs, int i, int j) {
+    public boolean swapConditional(final X[] xs, final int i, final int j) {
         return helper.swapConditional(xs, i, j);
     }
 
@@ -99,7 +99,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
      */
     @Override
-    public boolean swapStableConditional(X[] xs, int i) {
+    public boolean swapStableConditional(final X[] xs, final int i) {
         return helper.swapStableConditional(xs, i);
     }
 
@@ -113,7 +113,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param i  the index of the element to be swapped into the ordered array xs[0..i-1].
      */
     @Override
-    public void swapIntoSorted(X[] xs, int i) {
+    public void swapIntoSorted(final X[] xs, final int i) {
         helper.swapIntoSorted(xs, i);
     }
 
@@ -126,7 +126,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param j  the index of the higher of the elements to be swapped.
      */
     @Override
-    public void fixInversion(X[] xs, int i, int j) {
+    public void fixInversion(final X[] xs, final int i, final int j) {
         helper.fixInversion(xs, i, j);
     }
 
@@ -138,7 +138,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
     @Override
-    public void fixInversion(X[] xs, int i) {
+    public void fixInversion(final X[] xs, final int i) {
         helper.fixInversion(xs, i);
     }
 
@@ -158,7 +158,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param n the number of copies made.
      */
     @Override
-    public void incrementCopies(int n) {
+    public void incrementCopies(final int n) {
         helper.incrementCopies(n);
     }
 
@@ -168,7 +168,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param n the number of copies made.
      */
     @Override
-    public void incrementFixes(int n) {
+    public void incrementFixes(final int n) {
         helper.incrementFixes(n);
     }
 
@@ -179,7 +179,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @return the array after any pre-processing.
      */
     @Override
-    public X[] preProcess(X[] xs) {
+    public X[] preProcess(final X[] xs) {
         return helper.preProcess(xs);
     }
 
@@ -189,7 +189,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param depth the depth.
      */
     @Override
-    public void registerDepth(int depth) {
+    public void registerDepth(final int depth) {
         helper.registerDepth(depth);
     }
 
@@ -208,7 +208,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param f     a function which takes a Random and generates a random value of X.
      * @return an array of randomly chosen X values.
      */
-    public X[] random(Class<X> clazz, Function<Random, X> f) {
+    public X[] random(final Class<X> clazz, final Function<Random, X> f) {
         return helper.random(clazz, f);
     }
 
@@ -246,7 +246,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param j  the other index.
      * @return the result of comparing xs[i] with xs[j].
      */
-    public int compare(X[] xs, int i, int j) {
+    public int compare(final X[] xs, final int i, final int j) {
         return helper.compare(xs, i, j);
     }
 
@@ -255,15 +255,15 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param w the second value.
      * @return The result of comparing v with w.
      */
-    public int compare(X v, X w) {
+    public int compare(final X v, final X w) {
         return helper.compare(v, w);
     }
 
     // CONSIDER having a method less which compares the longs rather than having direct access to the longs array in sub-classes
-    public void swap(X[] xs, int i, int j) {
-        long[] longs = coding.longs;
+    public void swap(final X[] xs, final int i, final int j) {
+        final long[] longs = coding.longs;
         // Swap longs
-        long temp1 = longs[i];
+        final long temp1 = longs[i];
         longs[i] = longs[j];
         longs[j] = temp1;
         // CONSIDER incrementing the swaps here since we are in fact doing two swaps.
@@ -276,7 +276,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param xs the array of Y elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
-    public void swapStable(X[] xs, int i) {
+    public void swapStable(final X[] xs, final int i) {
         helper.swapStable(xs, i);
     }
 
@@ -291,7 +291,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param j  the index of the right-most element to be involved in the swap.
      */
     @Override
-    public void swapInto(X[] xs, int i, int j) {
+    public void swapInto(final X[] xs, final int i, final int j) {
         helper.swapInto(xs, i, j);
     }
 
@@ -304,7 +304,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param j      the source index.
      */
     @Override
-    public void copy(X[] source, int i, X[] target, int j) {
+    public void copy(final X[] source, final int i, final X[] target, final int j) {
         helper.copy(source, i, target, j);
     }
 
@@ -318,7 +318,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * @param n the size to be managed.
      */
-    public void init(int n) {
+    public void init(final int n) {
         helper.init(n);
     }
 
@@ -327,7 +327,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      *
      * @param array the array from which we build a long array by encoding.
      */
-    public void doCoding(X[] array) {
+    public void doCoding(final X[] array) {
         coding = coder.huskyEncode(array);
     }
 
@@ -343,7 +343,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param postSorter the postSorter Consumer function.
      * @param makeCopy   explicit setting of the makeCopy value used in sort(Y[] xs)
      */
-    public HuskyHelper(Helper<X> helper, HuskyCoder<X> coder, Consumer<X[]> postSorter, boolean makeCopy) {
+    public HuskyHelper(final Helper<X> helper, final HuskyCoder<X> coder, final Consumer<X[]> postSorter, final boolean makeCopy) {
         this.helper = helper;
         this.coder = coder;
         this.postSorter = postSorter;
@@ -360,7 +360,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param seed        the seed for the random number generator
      * @param makeCopy    explicit setting of the makeCopy value used in sort(Y[] xs)
      */
-    public HuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, long seed, boolean makeCopy) {
+    public HuskyHelper(final String description, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter, final long seed, final boolean makeCopy) {
         this(new BaseHelper<>(description, n, seed), coder, postSorter, makeCopy);
     }
 
@@ -372,7 +372,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param description the description of this Helper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      */
-    public HuskyHelper(String description, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter) {
+    public HuskyHelper(final String description, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter) {
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
     }
 

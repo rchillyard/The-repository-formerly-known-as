@@ -24,7 +24,7 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
      * @param n the number of elements to be sorted.
      */
     @Override
-    public void init(int n) {
+    public void init(final int n) {
         getHelper().init(n);
     }
 
@@ -34,7 +34,7 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
      * @param xs the elements to be pre-processed.
      */
     @Override
-    public X[] preProcess(X[] xs) {
+    public X[] preProcess(final X[] xs) {
         return helper.preProcess(xs);
     }
 
@@ -45,7 +45,7 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
      *
      * @param xs the array to be post-processed.
      */
-    public void postProcess(X[] xs) {
+    public void postProcess(final X[] xs) {
         helper.postProcess(xs);
     }
 
@@ -66,7 +66,7 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
      *
      * @param helper the helper to use.
      */
-    public SortWithHelper(Helper<X> helper) {
+    public SortWithHelper(final Helper<X> helper) {
         this.helper = helper;
     }
 
@@ -77,7 +77,7 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
      * @param N           the number of elements expected.
      * @param config      the configuration.
      */
-    public SortWithHelper(String description, int N, Config config) {
+    public SortWithHelper(final String description, final int N, final Config config) {
         this(HelperFactory.create(description, N, config));
         closeHelper = true;
     }

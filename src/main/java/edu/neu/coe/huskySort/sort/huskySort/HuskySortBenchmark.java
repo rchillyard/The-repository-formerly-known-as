@@ -38,7 +38,6 @@ public final class HuskySortBenchmark {
 
     /**
      * Run the main four benchmarks: string sorts, tuple sorts, date sorts and number sorts.
-     *
      */
     public void runBenchmarks() {
         // CONSIDER refactoring the following to conform to the others
@@ -372,7 +371,7 @@ public final class HuskySortBenchmark {
     }
 
     private static List<String> getLeipzigWords(final String line) {
-        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER);
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
     }
 
     private static <Y> Benchmark<Y[]> benchmarkFactory(final String description, final Consumer<Y[]> sorter, final Consumer<Y[]> checker) {
@@ -573,7 +572,7 @@ public final class HuskySortBenchmark {
     }
 
     private static <Y extends Number & Comparable<Y>> void doNumericQuicksort(final String subject, final Supplier<Y[]> supplier, final int m, final Class<? extends Number> clazz, final boolean isInt) {
-        if (clazz==Byte.class) {
+        if (clazz == Byte.class) {
             logger.info("not attempting quicksort for: " + clazz);
             return;
         }

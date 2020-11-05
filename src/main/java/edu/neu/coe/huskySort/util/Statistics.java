@@ -2,12 +2,12 @@ package edu.neu.coe.huskySort.util;
 
 public class Statistics {
 
-    public Statistics(String property, int N) {
+    public Statistics(final String property, final int N) {
         this.property = property;
         doubles = new double[N];
     }
 
-    public void add(double x) {
+    public void add(final double x) {
         if (count >= doubles.length) resize(2 * doubles.length);
         doubles[count] = x;
         count = count + 1;
@@ -33,7 +33,7 @@ public class Statistics {
 
     public double stdDev() {
         if (stdDev == null) {
-            double mean = mean();
+            final double mean = mean();
             double variance = 0;
             for (int i = 0; i < count; i++) variance += (doubles[i] - mean) * (doubles[i] - mean);
             stdDev = Math.sqrt(variance / count);
@@ -55,8 +55,8 @@ public class Statistics {
         return sb.toString();
     }
 
-    private void resize(int n) {
-        double[] result = new double[n];
+    private void resize(final int n) {
+        final double[] result = new double[n];
         System.arraycopy(doubles, 0, result, 0, doubles.length);
         doubles = result;
     }

@@ -24,7 +24,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param to   the index of the first element not to sort
      */
     @Override
-    public void sort(X[] xs, int from, int to) {
+    public void sort(final X[] xs, final int from, final int to) {
         final Helper<X> helper = getHelper();
         for (int i = from + 1; i < to; i++) {
             // TODO implement using swapIntoSorted
@@ -33,7 +33,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
         }
     }
 
-    public static <Y extends Comparable<Y>> void mutatingInsertionSort(Y[] ys) {
+    public static <Y extends Comparable<Y>> void mutatingInsertionSort(final Y[] ys) {
         new InsertionSort<Y>().mutatingSort(ys);
     }
 
@@ -45,7 +45,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public InsertionSort(int N, Config config) {
+    public InsertionSort(final int N, final Config config) {
         super(DESCRIPTION, N, config);
     }
 
@@ -58,7 +58,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public InsertionSort(Helper<X> helper) {
+    public InsertionSort(final Helper<X> helper) {
         super(helper);
     }
 

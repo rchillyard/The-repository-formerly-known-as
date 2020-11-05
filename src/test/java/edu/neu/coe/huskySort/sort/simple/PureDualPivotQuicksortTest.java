@@ -4,22 +4,9 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.*;
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
-import edu.neu.coe.huskySort.util.StatPack;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.List;
-
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.runStringSortBenchmark;
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.timeLoggersLinearithmic;
-import static edu.neu.coe.huskySort.util.Utilities.round;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("ALL")
 public class PureDualPivotQuicksortTest {
