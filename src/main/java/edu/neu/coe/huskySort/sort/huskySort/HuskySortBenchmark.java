@@ -201,6 +201,12 @@ public final class HuskySortBenchmark {
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "Legacy MergeSort", s2), null, sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
+
+        if (isConfigBenchmarkStringSorter("purequicksort")) {
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "DualPivotQuicksort", s2), null, PureDualPivotQuicksort::sort, null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+        }
+
     }
 
     private static String getDescription(final int nWords, final String s1, final String s2) {
