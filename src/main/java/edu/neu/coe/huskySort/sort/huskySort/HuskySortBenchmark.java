@@ -57,7 +57,7 @@ public final class HuskySortBenchmark {
     @SuppressWarnings("SameParameterValue")
     void sortStrings(final Stream<Integer> wordCounts, final int totalOps) {
         logger.info("sortStrings: beginning String sorts");
-        wordCounts.forEach(x -> doSortStrings(x, round(totalOps / minComparisons(x))));
+        wordCounts.forEach(x -> doSortStrings(x, getRepetitions(x, totalOps)));
     }
 
     private void doSortStrings(final int n, final int m) {
@@ -83,7 +83,7 @@ public final class HuskySortBenchmark {
      */
     void sortLocalDateTimes(final int n, final int totalOps) {
         logger.info("sortLocalDateTimes: beginning LocalDateTime sorts");
-        final int m = round(totalOps / minComparisons(n));
+        final int m = getRepetitions(n, totalOps);
 
         // TODO why do we have localDateTimeSupplier IN ADDITION TO localDateTimes?
         final Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(n);
@@ -121,10 +121,14 @@ public final class HuskySortBenchmark {
      */
     void sortTuples(final int n, final int totalOps) {
         logger.info("sortTuples: beginning Tuple sorts");
-        final int m = round(totalOps / minComparisons(n));
+        final int m = getRepetitions(n, totalOps);
         final Tuple[] tuples = new Tuple[n];
         for (int i = 0; i < n; i++) tuples[i] = Tuple.create();
         compareSystemAndPureHuskySorts(n + " Tuples", getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]), HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
+    }
+
+    private static int getRepetitions(final int n, final int totalOps) {
+        return MIN_REPS + round(totalOps / minComparisons(n));
     }
 
     /**
@@ -140,7 +144,7 @@ public final class HuskySortBenchmark {
      */
     void sortNumerics(final int n, final int totalOps) {
         logger.info("sortNumerics: beginning numeric sorts");
-        final int m = round(totalOps / minComparisons(n));
+        final int m = getRepetitions(n, totalOps);
 
         compareSystemAndPureHuskySortsNumeric(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m, Integer.class, true);
 
@@ -519,6 +523,9 @@ public final class HuskySortBenchmark {
         if (isConfig.test("huskysort"))
             logBenchmarkRun(benchmarkFactory("Sort " + subject + " using PureHuskySort", new PureHuskySort<>(huskyCoder, false, false)::sort, checker).run(supplier, m));
 
+        if (isConfig.test("quicksort"))
+            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using DualPivotQuicksort", PureDualPivotQuicksort::sort, checker).run(supplier, m));
+
         if (isConfig.test("mergehuskysort"))
             logBenchmarkRun(benchmarkFactory("Sort " + subject + " using MergeHuskySort", new MergeHuskySort<>(huskyCoder)::sort, checker).run(supplier, m));
     }
@@ -647,6 +654,7 @@ public final class HuskySortBenchmark {
     };
 
     static final String COMMON_WORDS_CORPUS = "3000-common-words.txt";
+    static final int MIN_REPS = 20;
 
     static private void logBenchmarkRun(final double time) {
         logger.info(TimeLogger.formatTime(time) + " ms");
