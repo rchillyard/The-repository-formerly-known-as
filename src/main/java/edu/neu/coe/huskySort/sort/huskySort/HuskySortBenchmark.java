@@ -9,6 +9,8 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
+import edu.neu.coe.huskySort.sort.radix.Alphabet;
+import edu.neu.coe.huskySort.sort.radix.MSDStringSort;
 import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.sort.simple.*;
 import edu.neu.coe.huskySort.util.*;
@@ -211,7 +213,8 @@ public final class HuskySortBenchmark {
         }
 
         if (isConfigBenchmarkStringSorter("msdstringsort")) {
-            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), null, MSDStringSort::sort, HuskySortBenchmark::checkSorted);
+            final MSDStringSort sorter = new MSDStringSort(new Alphabet(256));
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), null, sorter::sort, HuskySortBenchmark::checkSorted);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
     }

@@ -1,4 +1,4 @@
-package edu.neu.coe.huskySort.sort.simple;
+package edu.neu.coe.huskySort.sort.radix;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.Helper;
@@ -18,7 +18,8 @@ public class MSDStringSortTest {
         final String[] input = "she sells seashells by the seashore the shells she sells are surely seashells".split(" ");
         final String[] expected = "are by seashells seashells seashore sells sells she she shells surely the the".split(" ");
 
-        MSDStringSort.sort(input);
+        MSDStringSort msdStringSort = new MSDStringSort(Alphabet.ASCII);
+        msdStringSort.sort(input);
         System.out.println(Arrays.toString(input));
         assertArrayEquals(expected, input);
     }
@@ -29,7 +30,8 @@ public class MSDStringSortTest {
         final String[] words = HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         final String[] xs = helper.random(String.class, r -> words[r.nextInt(words.length)]);
         assertEquals(1000, xs.length);
-        MSDStringSort.sort(xs);
+        MSDStringSort msdStringSort = new MSDStringSort(Alphabet.ASCII);
+        msdStringSort.sort(xs);
         assertEquals("African-American", xs[0]);
         assertEquals("Palestinian", xs[16]);
     }

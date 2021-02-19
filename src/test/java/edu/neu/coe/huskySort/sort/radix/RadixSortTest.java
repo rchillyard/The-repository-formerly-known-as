@@ -1,5 +1,7 @@
-package edu.neu.coe.huskySort.sort.simple;
+package edu.neu.coe.huskySort.sort.radix;
 
+import edu.neu.coe.huskySort.sort.radix.RadixSort;
+import edu.neu.coe.huskySort.sort.radix.RadixSortIntegral;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;

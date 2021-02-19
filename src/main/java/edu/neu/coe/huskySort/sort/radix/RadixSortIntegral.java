@@ -1,4 +1,4 @@
-package edu.neu.coe.huskySort.sort.simple;
+package edu.neu.coe.huskySort.sort.radix;
 
 import java.util.ArrayList;
 import java.util.Arrays;
