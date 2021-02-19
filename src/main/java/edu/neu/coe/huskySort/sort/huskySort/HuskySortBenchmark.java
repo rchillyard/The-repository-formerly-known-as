@@ -210,6 +210,21 @@ public final class HuskySortBenchmark {
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
 
+        if (isConfigBenchmarkStringSorter("msdstringsort")) {
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), null, MSDStringSort::sort, HuskySortBenchmark::checkSorted);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+        }
+    }
+
+    /**
+     * NOTE: this may be duplicated elsewhere.
+     *
+     * @param xs an array of Comparables.
+     */
+    private static void checkSorted(final Comparable[] xs) {
+        if (xs.length < 2) return;
+        for (int i = 1; i < xs.length; i++)
+            if (xs[i].compareTo(xs[i - 1]) < 0) throw new RuntimeException("not in order");
     }
 
     private static String getDescription(final int nWords, final String s1, final String s2) {
@@ -269,6 +284,8 @@ public final class HuskySortBenchmark {
         // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (isConfigBenchmarkStringSorter("insertionsort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new InsertionSort<>(nWords, config), timeLoggersQuadratic);
+
+        // NOTE: we do not invoke MSDStringSort here at all.
     }
 
     /**
@@ -360,7 +377,7 @@ public final class HuskySortBenchmark {
         return 0.25 * n * (n - 1);
     }
 
-    static List<String> lineAsList(final String line) {
+    public static List<String> lineAsList(final String line) {
         final List<String> words = new ArrayList<>();
         words.add(line);
         return words;
