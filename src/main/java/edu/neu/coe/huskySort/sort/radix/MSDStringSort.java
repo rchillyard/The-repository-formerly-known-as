@@ -1,9 +1,6 @@
 package edu.neu.coe.huskySort.sort.radix;
 
 
-import edu.neu.coe.huskySort.sort.SortException;
-import edu.neu.coe.huskySort.sort.radix.Alphabet;
-
 /**
  * Class to implement Most significant digit string sort (a radix sort).
  */
@@ -38,11 +35,10 @@ public final class MSDStringSort {
         assert hi <= a.length : "hi " + hi + " is out of bounds: " + a.length;
         if (hi < lo + cutoff) insertionSort(a, lo, hi, d);
         else {
-            final int[] count = new int[alphabet.radix + 2];        // Compute frequency counts.
+            int countLength = alphabet.getCountLength();
+            final int[] count = new int[countLength];
             for (int i = lo; i < hi; i++) {
-                final int x = charAt(a[i], d);
-                if (x + 2 < 0 || x + 2 >= count.length)
-                    throw new SortException("char " + x + " is out of bounds for count array: " + count.length);
+                final int x = alphabet.getCountIndex(charAt(a[i], d));
                 count[x + 2]++;
             }
             for (int r = 0; r < alphabet.radix + 1; r++)      // Transform counts to indices.
