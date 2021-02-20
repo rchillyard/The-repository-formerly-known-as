@@ -35,4 +35,16 @@ public class MSDStringSortTest {
         assertEquals("African-American", xs[0]);
         assertEquals("Palestinian", xs[16]);
     }
+
+    @Test
+    public void sort2() {
+        final Helper<String> helper = new BaseHelper<>("test", 1000, 1L);
+        final String[] words = HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
+        final String[] xs = helper.random(String.class, r -> words[r.nextInt(words.length)]);
+        assertEquals(1000, xs.length);
+        MSDStringSort msdStringSort = new MSDStringSort(new Alphabet(Alphabet.RADIX_UNICODE));
+        msdStringSort.sort(xs);
+        assertEquals("African-American", xs[0]);
+        assertEquals("Palestinian", xs[16]);
+    }
 }

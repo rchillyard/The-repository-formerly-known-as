@@ -213,8 +213,11 @@ public final class HuskySortBenchmark {
         }
 
         if (isConfigBenchmarkStringSorter("msdstringsort")) {
-            final MSDStringSort sorter = new MSDStringSort(new Alphabet(256));
-            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), null, sorter::sort, HuskySortBenchmark::checkSorted);
+            final MSDStringSort sorter = new MSDStringSort(new Alphabet(Alphabet.RADIX_UNICODE));
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), (x) -> {
+                sorter.reset();
+                return x;
+            }, sorter::sort, HuskySortBenchmark::checkSorted);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
     }

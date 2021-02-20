@@ -24,6 +24,14 @@ public class Alphabet {
         return position;
     }
 
+    public void reset() {
+        spareCount = RADIX_ASCII;
+    }
+
+    public int counts() {
+        return spareCount;
+    }
+
     public Alphabet(final int radix) {
         this.radix = radix;
         this.spare = radix > RADIX_ASCII ? 256 : 0;

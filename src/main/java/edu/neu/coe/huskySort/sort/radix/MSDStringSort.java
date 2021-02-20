@@ -21,6 +21,10 @@ public final class MSDStringSort {
         sort(a, 0, n, 0);
     }
 
+    public void reset() {
+        alphabet.reset();
+    }
+
     /**
      * Sort from a[lo] to a[hi] (exclusive), ignoring the first d characters of each String.
      * This method is recursive.
@@ -41,14 +45,14 @@ public final class MSDStringSort {
                 final int x = alphabet.getCountIndex(charAt(a[i], d));
                 count[x + 2]++;
             }
-            for (int r = 0; r < alphabet.radix + 1; r++)      // Transform counts to indices.
+            for (int r = 0; r < alphabet.counts() + 1; r++)      // Transform counts to indices.
                 count[r + 1] += count[r];
-            for (int i = lo; i < hi; i++)     // Distribute.
-                aux[count[charAt(a[i], d) + 1]++] = a[i];
+            for (int i = lo; i < hi; i++)
+                aux[count[alphabet.getCountIndex(charAt(a[i], d)) + 1]++] = a[i];
             // Copy back.
             if (hi - lo >= 0) System.arraycopy(aux, 0, a, lo, hi - lo);
             // Recursively sort for each character value.
-            for (int r = 0; r < alphabet.radix; r++)
+            for (int r = 0; r < alphabet.counts(); r++)
                 sort(a, lo + count[r], lo + count[r + 1], d + 1);
         }
     }
