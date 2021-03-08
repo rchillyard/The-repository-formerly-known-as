@@ -217,7 +217,8 @@ public final class HuskySortBenchmark {
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), (x) -> {
                 sorter.reset();
                 return x;
-            }, sorter::sort, HuskySortBenchmark::checkSorted);
+            }, sorter::sort);
+//  XXX Use this line instead to double-check sorting success:      }, sorter::sort, HuskySortBenchmark::checkSorted);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
     }
