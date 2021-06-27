@@ -25,6 +25,14 @@ public final class MSDStringSort {
         alphabet.reset();
     }
 
+    public Alphabet getAlphabet() {
+        return alphabet;
+    }
+
+    public static void setCutoff(final int cutoff) {
+        MSDStringSort.cutoff = cutoff;
+    }
+
     /**
      * Sort from a[lo] to a[hi] (exclusive), ignoring the first d characters of each String.
      * This method is recursive.
@@ -39,7 +47,7 @@ public final class MSDStringSort {
         assert hi <= a.length : "hi " + hi + " is out of bounds: " + a.length;
         if (hi < lo + cutoff) insertionSort(a, lo, hi, d);
         else {
-            int countLength = alphabet.getCountLength();
+            final int countLength = alphabet.getCountLength();
             final int[] count = new int[countLength];
             for (int i = lo; i < hi; i++) {
                 final int x = alphabet.getCountIndex(charAt(a[i], d));
@@ -57,9 +65,9 @@ public final class MSDStringSort {
         }
     }
 
-    private static int charAt(final String s, final int d) {
+    private static char charAt(final String s, final int d) {
         if (d < s.length()) return s.charAt(d);
-        else return -1;
+        else return (char) 0;
     }
 
     private static void insertionSort(final String[] a, final int lo, final int hi, final int d) {
@@ -78,7 +86,8 @@ public final class MSDStringSort {
         a[i] = temp;
     }
 
-    private static final int cutoff = 15;
+    private static int cutoff = 15;
     private static String[] aux;       // auxiliary array for distribution
+
     private final Alphabet alphabet;
 }

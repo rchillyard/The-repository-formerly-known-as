@@ -3,6 +3,7 @@ package edu.neu.coe.huskySort.sort.radix;
 import edu.neu.coe.huskySort.sort.SortException;
 
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public class Alphabet {
 
@@ -10,8 +11,9 @@ public class Alphabet {
         return length;
     }
 
-    int getCountIndex(int x) {
-        if (x + 2 < 0 || x >= radix)
+    int getCountIndex(final char x) {
+        // TODO this cannot be right (first part always false)
+        if ((int) x + 2 < 0 || (int) x >= radix)
             throw new SortException("char " + x + " is out of bounds for radix: " + radix);
         if (x < 256) return x;
         Integer position = map.get(x);
@@ -43,6 +45,20 @@ public class Alphabet {
         this(RADIX_ASCII);
     }
 
+    @Override
+    public String toString() {
+        final String mapAsString = map.keySet().stream()
+                .map(key -> key + "=" + map.get(key))
+                .collect(Collectors.joining(", ", "{", "}"));
+        return "Alphabet{" +
+                "radix=" + radix +
+                ", spare=" + spare +
+                ", spareCount=" + spareCount +
+                ", map=" + mapAsString +
+                ", length=" + length +
+                '}';
+    }
+
     final int radix;
     private final int spare;
     int spareCount = RADIX_ASCII;
@@ -50,6 +66,6 @@ public class Alphabet {
     public static final int RADIX_ASCII = 256;
     public static final int RADIX_UNICODE = 256 * 256;
     public static Alphabet ASCII = new Alphabet(RADIX_ASCII);
-    private final HashMap<Integer, Integer> map;
+    private final HashMap<Character, Integer> map;
     private final int length;
 }

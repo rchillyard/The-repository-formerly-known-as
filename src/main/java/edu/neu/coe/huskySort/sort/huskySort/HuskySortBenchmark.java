@@ -4,6 +4,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.SortException;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
@@ -217,9 +218,15 @@ public final class HuskySortBenchmark {
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), (x) -> {
                 sorter.reset();
                 return x;
-            }, sorter::sort);
-//  XXX Use this line instead to double-check sorting success:      }, sorter::sort, HuskySortBenchmark::checkSorted);
-            doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+//            }, sorter::sort);
+            }, sorter::sort, HuskySortBenchmark::checkSorted);
+            try {
+                doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+            } catch (final SortException e) {
+                final Alphabet alphabet = sorter.getAlphabet();
+                System.out.println(alphabet);
+                throw new RuntimeException("sort exception", e);
+            }
         }
     }
 
@@ -228,10 +235,18 @@ public final class HuskySortBenchmark {
      *
      * @param xs an array of Comparables.
      */
-    private static void checkSorted(final Comparable[] xs) {
+    private static void checkSorted(final String[] xs) {
         if (xs.length < 2) return;
         for (int i = 1; i < xs.length; i++)
-            if (xs[i].compareTo(xs[i - 1]) < 0) throw new RuntimeException("not in order");
+            if (xs[i].compareTo(xs[i - 1]) < 0) {
+                System.out.println(Arrays.toString(xs));
+                // TODO what are these two variables for?
+                final char[] charsXsi_1 = ((String) xs[i - 1]).toCharArray();
+                final char[] charsXsi = ((String) xs[i]).toCharArray();
+                System.out.println(xs[i - 1]);
+                System.out.println(xs[i]);
+                throw new SortException("not in order at index " + i);
+            }
     }
 
     private static String getDescription(final int nWords, final String s1, final String s2) {
