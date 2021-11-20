@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
+import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.chineseEncoder;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.englishCoder;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static edu.neu.coe.huskySort.util.Utilities.*;
@@ -74,6 +75,10 @@ public final class HuskySortBenchmark {
         // NOTE: common words benchmark
         if (isConfigBenchmarkStringSorter("english"))
             benchmarkStringSorters(COMMON_WORDS_CORPUS, HuskySortBenchmarkHelper.getWords(COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList), n, m, englishCoder);
+
+        // NOTE: Chinese Name corpus benchmarks (according to command-line arguments)
+        if (isConfigBenchmarkStringSorter("chinesenames"))
+            benchmarkStringSorters(CHINESE_NAMES_CORPUS, HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList), n, m, chineseEncoder);
     }
 
     /**
@@ -241,8 +246,8 @@ public final class HuskySortBenchmark {
             if (xs[i].compareTo(xs[i - 1]) < 0) {
                 System.out.println(Arrays.toString(xs));
                 // TODO what are these two variables for?
-                final char[] charsXsi_1 = ((String) xs[i - 1]).toCharArray();
-                final char[] charsXsi = ((String) xs[i]).toCharArray();
+                final char[] charsXsi_1 = xs[i - 1].toCharArray();
+                final char[] charsXsi = xs[i].toCharArray();
                 System.out.println(xs[i - 1]);
                 System.out.println(xs[i]);
                 throw new SortException("not in order at index " + i);
@@ -399,6 +404,12 @@ public final class HuskySortBenchmark {
         return 0.25 * n * (n - 1);
     }
 
+    /**
+     * Method to return a String as a (singleton) List of Strings.
+     *
+     * @param line a String
+     * @return a list with just the one String element in it.
+     */
     public static List<String> lineAsList(final String line) {
         final List<String> words = new ArrayList<>();
         words.add(line);
@@ -578,7 +589,7 @@ public final class HuskySortBenchmark {
     // CONSIDER making this an instance method of Benchmark
     private static void doPureBenchmark(final String[] words, final int nWords, final int nRuns, final Random random, final Benchmark<String[]> benchmark, final boolean preSorted) {
         final double time = benchmark.run(getWordSupplier(words, nWords, random, preSorted), nRuns);
-        logger.info("CSV, " + benchmark + ", " + nWords + ", " + time);
+        logger.info("CSV, " + benchmark + ", " + nWords + ", " + time); // XXX What does CSV mean in this context?
         for (final TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(time, nWords);
     }
 
@@ -692,6 +703,8 @@ public final class HuskySortBenchmark {
     };
 
     static final String COMMON_WORDS_CORPUS = "3000-common-words.txt";
+    static final String CHINESE_NAMES_CORPUS = "Chinese_Names_Corpus.txt";
+
     static final int MIN_REPS = 20;
 
     static private void logBenchmarkRun(final double time) {

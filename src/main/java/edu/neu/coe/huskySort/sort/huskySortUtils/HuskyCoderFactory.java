@@ -8,9 +8,11 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.LongBuffer;
 import java.nio.charset.Charset;
+import java.text.Collator;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -121,21 +123,9 @@ public final class HuskyCoderFactory {
     };
 
     /**
-     * A Husky Coder for UTF Strings.
+     * A Husky Coder for Chinese UTF8 Strings.
      */
-    public final static HuskySequenceCoder<String> utf8Coder = new BaseHuskySequenceCoder<String>("UTF8", 0) {
-        /**
-         * Encode x as a long.
-         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
-         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
-         *
-         * @param str the X value to encode.
-         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
-         */
-        public long huskyEncode(final String str) {
-            return utf8ToLong(str);
-        }
-    };
+    public final static HuskySequenceCoder<String> chineseEncoder = new SequenceEncoder_Collator(Collator.getInstance(Locale.CHINA));
 
     /**
      * A Husky Coder for Dates.
@@ -357,6 +347,10 @@ public final class HuskyCoderFactory {
     // NOTE: this method seems considerably slower than stringToLong, even though it uses a Java library function (getBytes)
     private static long stringToBytesToLong(final String str, final int maxLength, final Charset charSet, final int startingPos) {
         final byte[] bytes = str.substring(0, Math.min(maxLength, str.length())).getBytes(charSet);
+        return bytesToLong(startingPos, bytes);
+    }
+
+    static long bytesToLong(final int startingPos, final byte[] bytes) {
         int bytesIndex = startingPos;
         int resultIndex = 0;
         long result = 0L;
