@@ -7,6 +7,7 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
+import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -54,8 +55,11 @@ public class PureHuskySort<X extends Comparable<X>> {
             return;
         if (useInsertionSort)
             new InsertionSort<X>().mutatingSort(xs);
-        else
-            Arrays.sort(xs);
+        else {
+            final Collator collator = huskyCoder.getCollator();
+            if (collator == null) Arrays.sort(xs);
+            else Arrays.sort(xs, collator);
+        }
     }
 
     /**

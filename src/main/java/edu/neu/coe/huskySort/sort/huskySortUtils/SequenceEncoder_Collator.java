@@ -36,5 +36,14 @@ public class SequenceEncoder_Collator extends BaseHuskySequenceCoder<String> {
         throw new SortException("inappropriate call to huskyEncode(String)");
     }
 
+    /**
+     * Method to get the value of the Collator.
+     *
+     * @return collator
+     */
+    public Collator getCollator() {
+        return collator;
+    }
+
     private final Collator collator;
 }
