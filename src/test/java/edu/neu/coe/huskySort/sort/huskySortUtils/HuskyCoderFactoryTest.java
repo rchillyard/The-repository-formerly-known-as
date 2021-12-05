@@ -74,6 +74,14 @@ public class HuskyCoderFactoryTest {
     }
 
     @Test
+    public void testChineseCoder() {
+        HuskySequenceCoder<String> coder = HuskyCoderFactory.chineseEncoder;
+        assertEquals(0x3E1101404E100L, coder.huskyEncode("曹玉德"));
+        assertEquals(0x5890727072700L, coder.huskyEncode("樊辉辉"));
+        assertEquals(0x6180A3410DD00L, coder.huskyEncode("高民政"));
+    }
+
+    @Test
     public void testUTF8ToLong() {
         String[] words = {"中文", "太长的中文", "asdfghjkl", "¥", "c", "a𐍈", "𝒑𝒒"};
         long[] codes = new long[7];

@@ -1,7 +1,5 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
-import edu.neu.coe.huskySort.sort.SortException;
-
 import java.text.CollationKey;
 import java.text.Collator;
 
@@ -20,7 +18,7 @@ public class SequenceEncoder_Collator extends BaseHuskySequenceCoder<String> {
     public Coding huskyEncode(final String[] xs) {
         final int length = xs.length;
         final CollationKey[] keys = new CollationKey[length];
-        for (int i = 0; i < length; i++) keys[i] = this.collator.getCollationKey(xs[i]);
+        for (int i = 0; i < length; i++) keys[i] = getCollationKey(xs[i]);
         return huskyEncode(keys);
     }
 
@@ -33,7 +31,7 @@ public class SequenceEncoder_Collator extends BaseHuskySequenceCoder<String> {
      * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
      */
     public long huskyEncode(final String str) {
-        throw new SortException("inappropriate call to huskyEncode(String)");
+        return getCode(getCollationKey(str).toByteArray());
     }
 
     /**
@@ -43,6 +41,10 @@ public class SequenceEncoder_Collator extends BaseHuskySequenceCoder<String> {
      */
     public Collator getCollator() {
         return collator;
+    }
+
+    private CollationKey getCollationKey(final String x) {
+        return this.collator.getCollationKey(x);
     }
 
     private final Collator collator;

@@ -45,7 +45,7 @@ public interface HuskyCoder<X> {
      */
     default long huskyEncode(final byte[] bs) {
         long result = 0L;
-        for (int i = 0; i < bs.length && i < 7; i++) result = (result << 8) | bs[i];
+        for (int i = 0; i < bs.length && i < 7; i++) result = (result << 8) | bs[i] & 0xFF;
         return result;
     }
 
@@ -76,10 +76,15 @@ public interface HuskyCoder<X> {
         final long[] result = new long[xs.length];
         for (int i = 0; i < xs.length; i++) {
             final byte[] byteArray = xs[i].toByteArray();
+            final long code = getCode(byteArray);
             if (byteArray.length > 7) perfect = false;
-            result[i] = huskyEncode(byteArray);
+            result[i] = code;
         }
         return new Coding(result, perfect);
+    }
+
+    default long getCode(final byte[] byteArray) {
+        return huskyEncode(byteArray);
     }
 
     /**
