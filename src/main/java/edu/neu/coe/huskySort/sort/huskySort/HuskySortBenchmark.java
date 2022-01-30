@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.Collator;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.*;
@@ -187,7 +188,9 @@ public final class HuskySortBenchmark {
         final String s2 = ") words from " + corpus;
 
         if (isConfigBenchmarkStringSorter("puresystemsort")) {
-            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "SystemSort", s2), null, Arrays::sort, null);
+            Collator collator = huskyCoder.getCollator();
+            // FIXME this causes a NullPointerException in unit test testStrings1K.
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "SystemSort", s2), null, xs -> Arrays.sort(xs, collator::compare), null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
 
