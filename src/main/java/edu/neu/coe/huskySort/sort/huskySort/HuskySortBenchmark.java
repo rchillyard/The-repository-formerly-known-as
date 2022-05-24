@@ -188,9 +188,9 @@ public final class HuskySortBenchmark {
         final String s2 = ") words from " + corpus;
 
         if (isConfigBenchmarkStringSorter("puresystemsort")) {
-            Collator collator = huskyCoder.getCollator();
-            // FIXME this causes a NullPointerException in unit test testStrings1K.
-            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "SystemSort", s2), null, xs -> Arrays.sort(xs, collator::compare), null);
+            final Collator collator = huskyCoder.getCollator();
+            final Comparator<String> comparator = collator != null ? collator::compare : null;
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "SystemSort", s2), null, xs -> Arrays.sort(xs, comparator), null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
 
@@ -249,8 +249,8 @@ public final class HuskySortBenchmark {
             if (xs[i].compareTo(xs[i - 1]) < 0) {
                 System.out.println(Arrays.toString(xs));
                 // TODO what are these two variables for?
-                final char[] charsXsi_1 = xs[i - 1].toCharArray();
-                final char[] charsXsi = xs[i].toCharArray();
+//                final char[] charsXsi_1 = xs[i - 1].toCharArray();
+//                final char[] charsXsi = xs[i].toCharArray();
                 System.out.println(xs[i - 1]);
                 System.out.println(xs[i]);
                 throw new SortException("not in order at index " + i);
@@ -591,7 +591,8 @@ public final class HuskySortBenchmark {
 
     // CONSIDER making this an instance method of Benchmark
     private static void doPureBenchmark(final String[] words, final int nWords, final int nRuns, final Random random, final Benchmark<String[]> benchmark, final boolean preSorted) {
-        final double time = benchmark.run(getWordSupplier(words, nWords, random, preSorted), nRuns);
+        final Supplier<String[]> wordSupplier = getWordSupplier(words, nWords, random, preSorted);
+        final double time = benchmark.run(wordSupplier, nRuns);
         logger.info("CSV, " + benchmark + ", " + nWords + ", " + time); // XXX What does CSV mean in this context?
         for (final TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(time, nWords);
     }
@@ -696,7 +697,7 @@ public final class HuskySortBenchmark {
 
     /**
      * For (basic) insertionsort, the number of array accesses is actually 6 times the number of comparisons.
-     * That's because, for each inversions, there will typically be one swap (four array accesses) and (at least) one comparison (two array accesses).
+     * That's because, for each inversion, there will typically be one swap (four array accesses) and (at least) one comparison (two array accesses).
      * Thus, in the case where comparisons are based on primitives,
      * the normalized time per run should approximate the time for one array access.
      */
