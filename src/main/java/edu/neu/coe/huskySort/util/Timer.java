@@ -53,18 +53,23 @@ public class Timer {
      * @return the average milliseconds per repetition.
      */
     public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function, final UnaryOperator<T> preFunction, final Consumer<U> postFunction) {
+        pause();
         if (n > 0) logger.trace("repeat: with " + n + " runs");
         else logger.warn("repeat: zero runs");
-        pause();
+        final int k = n / 60 + 1;
         for (int i = 0; i < n; i++) {
             final T t = supplier.get();
             final T t1 = preFunction != null ? preFunction.apply(t) : t;
+            if (i % k == 0) System.out.print(".");
             resume();
             final U u = function.apply(t1);
             pauseAndLap();
             if (postFunction != null) postFunction.accept(u);
         }
-        return meanLapTime();
+        System.out.print("\r");
+        final double meanLapTime = meanLapTime();
+        resume();
+        return meanLapTime;
     }
 
     /**
@@ -179,7 +184,7 @@ public class Timer {
      * NOTE: (Maintain consistency) There are two system methods for getting the clock time.
      * Ensure that this method is consistent with toMillisecs.
      *
-     * @return the number of ticks for the system clock. Currently defined as nano time.
+     * @return the number of ticks for the system clock. Currently, defined as nano time.
      */
     private static long getClock() {
         return System.nanoTime();
