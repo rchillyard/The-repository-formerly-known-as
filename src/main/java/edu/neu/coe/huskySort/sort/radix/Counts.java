@@ -45,6 +45,21 @@ public class Counts {
         return counts.keySet();
     }
 
+    public void countCharacters(final UnicodeMSDStringSort.UnicodeString[] xs, final int d) {
+        for (final UnicodeMSDStringSort.UnicodeString x : xs) increment(x.charAt(d));
+    }
+
+    public UnicodeCharacter[] accumulateCounts() {
+        final Set<UnicodeCharacter> keySet = keySet();
+        int total = 0;
+        for (final UnicodeCharacter key : keySet) {
+            final int cumulativeCount = get(key) + total;
+            counts.put(key, cumulativeCount);
+            total = cumulativeCount;
+        }
+        return keySet.toArray(new UnicodeCharacter[0]);
+    }
+
     @Override
     public String toString() {
         return "Counts{" +

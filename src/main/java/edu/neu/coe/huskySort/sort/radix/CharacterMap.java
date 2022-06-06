@@ -18,7 +18,7 @@ public class CharacterMap {
     public UnicodeCharacter get(final char x) {
         UnicodeCharacter unicodeCharacter = characters.get(x);
         if (unicodeCharacter == null) {
-            unicodeCharacter = toUnicode.apply(x);
+            unicodeCharacter = toUnicodeCharacter.apply(x);
             put(x, unicodeCharacter);
         }
         return unicodeCharacter;
@@ -42,8 +42,24 @@ public class CharacterMap {
         return characters.size();
     }
 
-    public CharacterMap(final Function<Character, UnicodeCharacter> toUnicode) {
-        this.toUnicode = toUnicode;
+    public CharacterMap(final Function<Character, UnicodeCharacter> toUnicodeCharacter, final Character initialValue) {
+        this.toUnicodeCharacter = toUnicodeCharacter;
+        if (initialValue != null) get(initialValue);
+    }
+
+    public CharacterMap(final Function<Character, UnicodeCharacter> toUnicodeCharacter) {
+        this(toUnicodeCharacter, null);
+    }
+
+    /**
+     * Removes all the mappings from this map (optional operation).
+     * The map will be empty after this call returns.
+     *
+     * @throws UnsupportedOperationException if the {@code clear} operation
+     *                                       is not supported by this map
+     */
+    public void clear() {
+        characters.clear();
     }
 
     final Map<Character, UnicodeCharacter> characters = new HashMap<>();
@@ -52,5 +68,5 @@ public class CharacterMap {
         characters.put(x, value);
     }
 
-    private final Function<Character, UnicodeCharacter> toUnicode;
+    private final Function<Character, UnicodeCharacter> toUnicodeCharacter;
 }
