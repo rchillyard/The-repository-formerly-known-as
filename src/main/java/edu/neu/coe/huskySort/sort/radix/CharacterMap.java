@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.radix;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -16,9 +17,14 @@ public class CharacterMap {
             for (int i = 0; i < word.length(); i++) unicodes[i] = get(word.charAt(i));
         }
 
+        public boolean valid(final int i) {
+            assert (i >= 0) : "UnicodeString: negative index " + i;
+            return i < unicodes.length;
+        }
+
         public UnicodeCharacter charAt(final int i) {
-            assert (i >= 0 && i < unicodes.length) : "UnicodeString does not support character " + i;
-            return unicodes[i];
+            if (valid(i)) return unicodes[i];
+            return UnicodeCharacter.NullChar;
         }
 
         public int compare(final UnicodeString other, final int d) {
@@ -29,6 +35,16 @@ public class CharacterMap {
         private final UnicodeCharacter[] unicodes;
     }
 
+    /**
+     * A Comparator of String that can be used.
+     *
+     * NOTE: currently only used by test code.
+     */
+    public final Comparator<String> stringComparator = (o1, o2) -> {
+        final CharacterMap.UnicodeString unicodeString1 = new UnicodeString(o1);
+        final CharacterMap.UnicodeString unicodeString2 = new UnicodeString(o2);
+        return unicodeString1.compare(unicodeString2, 0); // should test for the other positions, too.
+    };
 
     /**
      * Returns the value to which the specified char is mapped,

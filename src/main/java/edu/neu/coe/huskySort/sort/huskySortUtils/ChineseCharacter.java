@@ -11,13 +11,8 @@ public class ChineseCharacter extends UnicodeCharacter {
     @Override
     public String alt(final char x) {
         final String[] pinyinStrings = PinyinHelper.toHanyuPinyinStringArray(x);
-        if (pinyinStrings.length > 0) {
-            final String pinyin = pinyinStrings[0];
-            final String tone = pinyin.substring(pinyin.length() - 1);
-            final String py = pinyin.substring(0, pinyin.length() - 1);
-            System.out.println(x + ": " + py + "-" + tone);
-            return pinyin;
-        } else throw new RuntimeException("no pinyin available for: " + x);
+        if (pinyinStrings.length > 0) return pinyinStrings[0];
+        else throw new RuntimeException("no pinyin available for: " + x);
     }
 
     public ChineseCharacter(final char unicode) {

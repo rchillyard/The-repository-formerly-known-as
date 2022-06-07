@@ -12,6 +12,16 @@ public abstract class UnicodeCharacter implements Comparable<UnicodeCharacter> {
 
     public abstract String alt(char x);
 
+    public static final UnicodeCharacter NullChar = new UnicodeCharacter((char) 0) {
+        public long encode(final String x) {
+            return 0;
+        }
+
+        public String alt(final char x) {
+            return "";
+        }
+    };
+
     public UnicodeCharacter(final char unicode) {
         this.unicode = unicode;
         this.alt = alt(unicode);

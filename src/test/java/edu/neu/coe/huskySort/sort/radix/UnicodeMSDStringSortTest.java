@@ -54,13 +54,19 @@ public class UnicodeMSDStringSortTest {
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
         final Random random = new Random(0L);
         final Supplier<String[]> wordSupplier = getWordSupplier(words, 1000, random);
-        final Benchmark<String[]> benchmark = new Benchmark<>("TestN1", null, xs -> Arrays.sort(xs, (o1, o2) -> {
-            final CharacterMap.UnicodeString unicodeString1 = characterMap.new UnicodeString(o1);
-            final CharacterMap.UnicodeString unicodeString2 = characterMap.new UnicodeString(o2);
-            return unicodeString1.compare(unicodeString2, 0); // should test for the other positions, too.
-        }), null);
+        final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap);
+        final Benchmark<String[]> benchmark = new Benchmark<>("TestN1", null, sorter::sort, null);
         final double time = benchmark.run(wordSupplier, 1);
+    }
 
+    @Test
+    public void sortN1SystemSort() {
+        final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
+        final Random random = new Random(0L);
+        final Supplier<String[]> wordSupplier = getWordSupplier(words, 1000, random);
+        final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap);
+        final Benchmark<String[]> benchmark = new Benchmark<>("TestN1", null, xs -> Arrays.sort(xs, characterMap.stringComparator), null);
+        final double time = benchmark.run(wordSupplier, 1);
     }
 
     @Test

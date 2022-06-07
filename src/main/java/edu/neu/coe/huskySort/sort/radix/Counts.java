@@ -45,19 +45,25 @@ public class Counts {
         return counts.keySet();
     }
 
-    public void countCharacters(final CharacterMap.UnicodeString[] xs, final int d) {
-        for (final CharacterMap.UnicodeString x : xs) increment(x.charAt(d));
+    public void countCharacters(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
+        for (int i = from; i < to; i++) increment(xs[i].charAt(d));
     }
 
     public UnicodeCharacter[] accumulateCounts() {
         final Set<UnicodeCharacter> keySet = keySet();
         int total = 0;
         for (final UnicodeCharacter key : keySet) {
-            final int cumulativeCount = get(key) + total;
-            counts.put(key, cumulativeCount);
-            total = cumulativeCount;
+            final int count = get(key);
+            counts.put(key, total);
+            total = count + total;
         }
         return keySet.toArray(new UnicodeCharacter[0]);
+    }
+
+    void copyAndIncrementCount(final CharacterMap.UnicodeString[] aux, final CharacterMap.UnicodeString xs, final int d) {
+        final UnicodeCharacter x = xs.charAt(d);
+        aux[get(x)] = xs;
+        increment(x);
     }
 
     @Override

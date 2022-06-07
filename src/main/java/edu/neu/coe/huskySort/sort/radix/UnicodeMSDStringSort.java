@@ -30,38 +30,34 @@ public final class UnicodeMSDStringSort {
         characterMap.clear();
     }
 
-    public CharacterMap getCharacterMap() {
-        return characterMap;
-    }
-
     public static void setCutoff(final int cutoff) {
         UnicodeMSDStringSort.cutoff = cutoff;
     }
 
     /**
-     * Sort from xs[lo] to xs[hi] (exclusive), ignoring the first d characters of each String.
+     * Sort from xs[from] to xs[to] (exclusive), ignoring the first d characters of each String.
      * This method is recursive.
      *
-     * @param xs the array to be sorted.
-     * @param lo the low index.
-     * @param hi the high index (one above the highest actually processed).
-     * @param d  the number of characters in each String to be skipped.
+     * @param xs   the array to be sorted.
+     * @param from the low index.
+     * @param to   the high index (one above the highest actually processed).
+     * @param d    the number of characters in each String to be skipped.
      */
-    private void sort(final CharacterMap.UnicodeString[] xs, final int lo, final int hi, final int d) {
-        assert lo >= 0 : "lo " + lo + " is negative";
-        assert hi <= xs.length : "hi " + hi + " is out of bounds: " + xs.length;
-        if (hi < lo + cutoff) insertionSort(xs, lo, hi, d);
-        else doRecursiveSort(xs, lo, hi, d);
+    private void sort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
+        assert from >= 0 : "from " + from + " is negative";
+        assert to <= xs.length : "to " + to + " is out of bounds: " + xs.length;
+        if (to < from + cutoff) insertionSort(xs, from, to, d);
+        else doRecursiveSort(xs, from, to, d);
     }
 
     private void doRecursiveSort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
+        if (from >= to - 1) return;
         final Counts counts = new Counts();
-        counts.countCharacters(xs, d);
+        counts.countCharacters(xs, from, to, d);
         final UnicodeCharacter[] keys = counts.accumulateCounts();
         for (int i = from; i < to; i++) {
-            final UnicodeCharacter x = xs[i].charAt(d);
-            aux[counts.get(x)] = xs[i];
-            counts.increment(x);
+            final CharacterMap.UnicodeString xsi = xs[i];
+            counts.copyAndIncrementCount(aux, xsi, d);
         }
         // Copy back.
         if (to - from >= 0) System.arraycopy(aux, 0, xs, from, to - from);
@@ -69,10 +65,11 @@ public final class UnicodeMSDStringSort {
         int offset = 0;
         for (final UnicodeCharacter key : keys) {
             final int index = counts.get(key);
-            sort(xs, from + offset, from + index, d);
+            sort(xs, from + offset, from + index, d + 1);
             offset = index;
         }
     }
+
 
     private static void insertionSort(final CharacterMap.UnicodeString[] a, final int from, final int to, final int d) {
         for (int i = from; i < to; i++)
