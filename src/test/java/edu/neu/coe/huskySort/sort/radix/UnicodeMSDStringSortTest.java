@@ -1,9 +1,18 @@
 package edu.neu.coe.huskySort.sort.radix;
 
+import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark;
+import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.ChineseCharacter;
+import edu.neu.coe.huskySort.util.Benchmark;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Random;
+import java.util.function.Supplier;
+
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.CHINESE_NAMES_CORPUS;
+import static edu.neu.coe.huskySort.util.Utilities.fillRandomArray;
 import static org.junit.Assert.assertArrayEquals;
 
 public class UnicodeMSDStringSortTest {
@@ -41,6 +50,20 @@ public class UnicodeMSDStringSortTest {
     }
 
     @Test
+    public void sortN1() {
+        final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
+        final Random random = new Random(0L);
+        final Supplier<String[]> wordSupplier = getWordSupplier(words, 1000, random);
+        final Benchmark<String[]> benchmark = new Benchmark<>("TestN1", null, xs -> Arrays.sort(xs, (o1, o2) -> {
+            final CharacterMap.UnicodeString unicodeString1 = characterMap.new UnicodeString(o1);
+            final CharacterMap.UnicodeString unicodeString2 = characterMap.new UnicodeString(o2);
+            return unicodeString1.compare(unicodeString2, 0); // should test for the other positions, too.
+        }), null);
+        final double time = benchmark.run(wordSupplier, 1);
+
+    }
+
+    @Test
     public void reset() {
     }
 
@@ -52,5 +75,8 @@ public class UnicodeMSDStringSortTest {
     public void setCutoff() {
     }
 
+    static Supplier<String[]> getWordSupplier(final String[] words, final int nWords, final Random random) {
+        return () -> fillRandomArray(String.class, random, nWords, r -> words[r.nextInt(words.length)]);
+    }
 
 }

@@ -45,8 +45,8 @@ public class Counts {
         return counts.keySet();
     }
 
-    public void countCharacters(final UnicodeMSDStringSort.UnicodeString[] xs, final int d) {
-        for (final UnicodeMSDStringSort.UnicodeString x : xs) increment(x.charAt(d));
+    public void countCharacters(final CharacterMap.UnicodeString[] xs, final int d) {
+        for (final CharacterMap.UnicodeString x : xs) increment(x.charAt(d));
     }
 
     public UnicodeCharacter[] accumulateCounts() {

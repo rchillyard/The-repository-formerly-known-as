@@ -8,26 +8,6 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
  */
 public final class UnicodeMSDStringSort {
 
-    class UnicodeString {
-        public UnicodeString(final String word) {
-            this.word = word;
-            this.unicodes = new UnicodeCharacter[word.length()];
-            for (int i = 0; i < word.length(); i++) unicodes[i] = characterMap.get(word.charAt(i));
-        }
-
-        public UnicodeCharacter charAt(final int i) {
-            assert (i >= 0 && i < unicodes.length) : "UnicodeString does not support character " + i;
-            return unicodes[i];
-        }
-
-        public int compare(final UnicodeString other, final int d) {
-            return charAt(d).compareTo(other.charAt(d));
-        }
-
-        private final String word;
-        private final UnicodeCharacter[] unicodes;
-    }
-
     public UnicodeMSDStringSort(final CharacterMap characterMap) {
         this.characterMap = characterMap;
     }
@@ -39,9 +19,9 @@ public final class UnicodeMSDStringSort {
      */
     public void sort(final String[] a) {
         final int n = a.length;
-        final UnicodeString[] xs = new UnicodeString[n];
-        for (int i = 0; i < n; i++) xs[i] = new UnicodeString(a[i]);
-        aux = new UnicodeString[n];
+        final CharacterMap.UnicodeString[] xs = new CharacterMap.UnicodeString[n];
+        for (int i = 0; i < n; i++) xs[i] = characterMap.new UnicodeString(a[i]);
+        aux = new CharacterMap.UnicodeString[n];
         sort(xs, 0, n, 0);
         for (int i = 0; i < n; i++) a[i] = xs[i].word;
     }
@@ -67,14 +47,14 @@ public final class UnicodeMSDStringSort {
      * @param hi the high index (one above the highest actually processed).
      * @param d  the number of characters in each String to be skipped.
      */
-    private void sort(final UnicodeString[] xs, final int lo, final int hi, final int d) {
+    private void sort(final CharacterMap.UnicodeString[] xs, final int lo, final int hi, final int d) {
         assert lo >= 0 : "lo " + lo + " is negative";
         assert hi <= xs.length : "hi " + hi + " is out of bounds: " + xs.length;
         if (hi < lo + cutoff) insertionSort(xs, lo, hi, d);
         else doRecursiveSort(xs, lo, hi, d);
     }
 
-    private void doRecursiveSort(final UnicodeString[] xs, final int from, final int to, final int d) {
+    private void doRecursiveSort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
         final Counts counts = new Counts();
         counts.countCharacters(xs, d);
         final UnicodeCharacter[] keys = counts.accumulateCounts();
@@ -94,18 +74,13 @@ public final class UnicodeMSDStringSort {
         }
     }
 
-    private static char charAt(final String s, final int d) {
-        if (d < s.length()) return s.charAt(d);
-        else return (char) 0;
-    }
-
-    private static void insertionSort(final UnicodeString[] a, final int from, final int to, final int d) {
+    private static void insertionSort(final CharacterMap.UnicodeString[] a, final int from, final int to, final int d) {
         for (int i = from; i < to; i++)
             for (int j = i; j > from && less(a[j], a[j - 1], d); j--)
                 swap(a, j, j - 1);
     }
 
-    private static boolean less(final UnicodeString v, final UnicodeString w, final int d) {
+    private static boolean less(final CharacterMap.UnicodeString v, final CharacterMap.UnicodeString w, final int d) {
         return v.compare(w, d) < 0;
     }
 
@@ -116,7 +91,7 @@ public final class UnicodeMSDStringSort {
     }
 
     private static int cutoff = 15;
-    private static UnicodeString[] aux;       // auxiliary array for distribution
+    private static CharacterMap.UnicodeString[] aux;       // auxiliary array for distribution
 
     private final CharacterMap characterMap;
 }

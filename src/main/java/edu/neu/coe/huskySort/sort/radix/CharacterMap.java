@@ -9,6 +9,27 @@ import java.util.function.Function;
 
 public class CharacterMap {
 
+    class UnicodeString {
+        public UnicodeString(final String word) {
+            this.word = word;
+            this.unicodes = new UnicodeCharacter[word.length()];
+            for (int i = 0; i < word.length(); i++) unicodes[i] = get(word.charAt(i));
+        }
+
+        public UnicodeCharacter charAt(final int i) {
+            assert (i >= 0 && i < unicodes.length) : "UnicodeString does not support character " + i;
+            return unicodes[i];
+        }
+
+        public int compare(final UnicodeString other, final int d) {
+            return charAt(d).compareTo(other.charAt(d));
+        }
+
+        final String word;
+        private final UnicodeCharacter[] unicodes;
+    }
+
+
     /**
      * Returns the value to which the specified char is mapped,
      * or {@code null} if this map contains no mapping for x.

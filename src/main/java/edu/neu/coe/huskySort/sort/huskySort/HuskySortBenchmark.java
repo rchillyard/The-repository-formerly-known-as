@@ -707,7 +707,7 @@ public final class HuskySortBenchmark {
     };
 
     static final String COMMON_WORDS_CORPUS = "3000-common-words.txt";
-    static final String CHINESE_NAMES_CORPUS = "Chinese_Names_Corpus.txt";
+    public static final String CHINESE_NAMES_CORPUS = "Chinese_Names_Corpus.txt";
 
     static final int MIN_REPS = 20;
 
