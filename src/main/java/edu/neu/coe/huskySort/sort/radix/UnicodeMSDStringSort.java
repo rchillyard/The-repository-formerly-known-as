@@ -1,6 +1,5 @@
 package edu.neu.coe.huskySort.sort.radix;
 
-
 import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
 
 /**
@@ -23,6 +22,7 @@ public final class UnicodeMSDStringSort {
         for (int i = 0; i < n; i++) xs[i] = characterMap.new UnicodeString(a[i]);
         aux = new CharacterMap.UnicodeString[n];
         sort(xs, 0, n, 0);
+//        System.out.println(Arrays.toString(xs));
         for (int i = 0; i < n; i++) a[i] = xs[i].word;
     }
 
@@ -57,7 +57,7 @@ public final class UnicodeMSDStringSort {
         final UnicodeCharacter[] keys = counts.accumulateCounts();
         for (int i = from; i < to; i++) {
             final CharacterMap.UnicodeString xsi = xs[i];
-            counts.copyAndIncrementCount(aux, xsi, d);
+            counts.copyAndIncrementCount(xsi, aux, d);
         }
         // Copy back.
         if (to - from >= 0) System.arraycopy(aux, 0, xs, from, to - from);

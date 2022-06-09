@@ -6,12 +6,11 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.BaseHelper;
 import edu.neu.coe.huskySort.sort.SortException;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
+import edu.neu.coe.huskySort.sort.huskySortUtils.*;
 import edu.neu.coe.huskySort.sort.radix.Alphabet;
+import edu.neu.coe.huskySort.sort.radix.CharacterMap;
 import edu.neu.coe.huskySort.sort.radix.MSDStringSort;
+import edu.neu.coe.huskySort.sort.radix.UnicodeMSDStringSort;
 import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.sort.simple.*;
 import edu.neu.coe.huskySort.util.*;
@@ -30,7 +29,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
-import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.chineseEncoder;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.englishCoder;
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static edu.neu.coe.huskySort.util.Utilities.*;
@@ -79,7 +77,7 @@ public final class HuskySortBenchmark {
 
         // NOTE: Chinese Name corpus benchmarks (according to command-line arguments)
         if (isConfigBenchmarkStringSorter("chinesenames"))
-            benchmarkStringSorters(CHINESE_NAMES_CORPUS, HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList), n, m, chineseEncoder);
+            benchmarkUnicodeStringSorters(CHINESE_NAMES_CORPUS, HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList), n, m);
     }
 
     /**
@@ -220,16 +218,37 @@ public final class HuskySortBenchmark {
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "DualPivotQuicksort", s2), null, PureDualPivotQuicksort::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
+    }
+
+    /**
+     * Method to run pure (non-instrumented) string sorter benchmarks.
+     * <p>
+     * NOTE: this is package-private because it is used by unit tests.
+     * <p>
+     * CONSIDER merging this with compareSystemAndPureHuskySorts
+     *  @param corpus     the name of the corpus file to be used as a source of Strings.
+     *
+     * @param words  the word source.
+     * @param nWords the number of words to be sorted.
+     * @param nRuns  the number of runs.
+     */
+    void benchmarkUnicodeStringSorters(final String corpus, final String[] words, final int nWords, final int nRuns) {
+        logger.info("benchmarkUnicodeStringSorters: testing unicode string sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
+        if (isConfigBenchmarkStringSorter("unicodemsdstringsort")) {
+            final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, '阿'));
+            final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sort, HuskySortBenchmark::checkChineseSorted);
+            doPureBenchmark(words, nWords, nRuns, new Random(), benchmark, false);
+        }
 
         if (isConfigBenchmarkStringSorter("msdstringsort")) {
+            final String s2 = ") words from " + corpus;
             final MSDStringSort sorter = new MSDStringSort(new Alphabet(Alphabet.RADIX_UNICODE));
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), (x) -> {
                 sorter.reset();
                 return x;
-//            }, sorter::sort);
             }, sorter::sort, HuskySortBenchmark::checkSorted);
             try {
-                doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+                doPureBenchmark(words, nWords, nRuns, new Random(), benchmark, false);
             } catch (final SortException e) {
                 final Alphabet alphabet = sorter.getAlphabet();
                 System.out.println(alphabet);
@@ -243,18 +262,26 @@ public final class HuskySortBenchmark {
      *
      * @param xs an array of Comparables.
      */
-    private static void checkSorted(final String[] xs) {
+    public static void checkSorted(final String[] xs) {
         if (xs.length < 2) return;
         for (int i = 1; i < xs.length; i++)
             if (xs[i].compareTo(xs[i - 1]) < 0) {
                 System.out.println(Arrays.toString(xs));
-                // TODO what are these two variables for?
-//                final char[] charsXsi_1 = xs[i - 1].toCharArray();
-//                final char[] charsXsi = xs[i].toCharArray();
                 System.out.println(xs[i - 1]);
                 System.out.println(xs[i]);
                 throw new SortException("not in order at index " + i);
             }
+    }
+
+    /**
+     * NOTE: this may be duplicated elsewhere.
+     *
+     * @param xs an array of Comparables.
+     */
+    public static void checkChineseSorted(final String[] xs) {
+        for (int i = 0; i < xs.length; i++)
+            xs[i] = ChineseCharacter.convertToPinyin(xs[i]);
+        checkSorted(xs);
     }
 
     private static String getDescription(final int nWords, final String s1, final String s2) {
@@ -603,6 +630,10 @@ public final class HuskySortBenchmark {
             final String[] strings = Arrays.copyOf(words, Math.min(nWords, words.length));
             return () -> strings;
         } else return () -> fillRandomArray(String.class, random, nWords, r -> words[r.nextInt(words.length)]);
+    }
+
+    public static Supplier<String[]> getWordSupplier(final String[] words, final int nWords, final Random random) {
+        return getWordSupplier(words, nWords, random, false);
     }
 
     private void dateSortBenchmark(final Supplier<LocalDateTime[]> localDateTimeSupplier, final LocalDateTime[] localDateTimes, final QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, final String s, final int i, final int n, final int m) {

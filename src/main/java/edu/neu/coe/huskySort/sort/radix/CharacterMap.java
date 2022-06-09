@@ -2,35 +2,75 @@ package edu.neu.coe.huskySort.sort.radix;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
+/**
+ * Class to model the mapping of Unicode characters to a (long) proxy value which can be used for sorting.
+ * There is also an intermediate mapping possible to a form such as Pinyin for Chinese characters.
+ */
 public class CharacterMap {
 
+    /**
+     * Inner instance class which represents a string of UnicodeCharacter instances.
+     */
     class UnicodeString {
+        /**
+         * Constructor which takes a String representing a "word" or name.
+         * We expect each of the characters of word to be a unicode representation.
+         *
+         * @param word a sequence of unicode characters.
+         */
         public UnicodeString(final String word) {
             this.word = word;
             this.unicodes = new UnicodeCharacter[word.length()];
             for (int i = 0; i < word.length(); i++) unicodes[i] = get(word.charAt(i));
         }
 
+        /**
+         * Method to determine if the ith unicode character is valid, i.e. is i < the length of the string.
+         *
+         * @param i the index of the desired unicode character (equivalent to "d" in UnicodeMSDStringSort).
+         * @return true or false.
+         */
         public boolean valid(final int i) {
             assert (i >= 0) : "UnicodeString: negative index " + i;
             return i < unicodes.length;
         }
 
+        /**
+         * Method to get the character at position i.
+         *
+         * @param i the index of the desired unicode character (equivalent to "d" in UnicodeMSDStringSort).
+         * @return a UnicodeCharacter or (if not a valid character) the Null character.
+         */
         public UnicodeCharacter charAt(final int i) {
             if (valid(i)) return unicodes[i];
             return UnicodeCharacter.NullChar;
         }
 
+        /**
+         * Method to compare this UnicodeString with other -- at the dth character.
+         *
+         * @param other another UnicodeString.
+         * @param d     the offset of the character in each of the strings.
+         * @return negative, zero, or positive according to this less than, = or greater than other.
+         */
         public int compare(final UnicodeString other, final int d) {
             return charAt(d).compareTo(other.charAt(d));
         }
 
+        @Override
+        public String toString() {
+            return "UnicodeString{" +
+                    "word='" + word + '\'' +
+                    ", unicodes=" + Arrays.toString(unicodes) +
+                    '}';
+        }
+
+        /**
+         * The original representation of the String, before being converted to UnicodeCharacter form.
+         */
         final String word;
         private final UnicodeCharacter[] unicodes;
     }
@@ -79,11 +119,22 @@ public class CharacterMap {
         return characters.size();
     }
 
+    /**
+     * Constructor with specified initialValue.
+     *
+     * @param toUnicodeCharacter a function which turns a Character into a UnicodeCharacter.
+     * @param initialValue       a value which, if present, will be added to the characters immediately.
+     */
     public CharacterMap(final Function<Character, UnicodeCharacter> toUnicodeCharacter, final Character initialValue) {
         this.toUnicodeCharacter = toUnicodeCharacter;
         if (initialValue != null) get(initialValue);
     }
 
+    /**
+     * Constructor without a specified initialValue.
+     *
+     * @param toUnicodeCharacter a function which turns a Character into a UnicodeCharacter.
+     */
     public CharacterMap(final Function<Character, UnicodeCharacter> toUnicodeCharacter) {
         this(toUnicodeCharacter, null);
     }
@@ -99,7 +150,7 @@ public class CharacterMap {
         characters.clear();
     }
 
-    final Map<Character, UnicodeCharacter> characters = new HashMap<>();
+    private final Map<Character, UnicodeCharacter> characters = new HashMap<>();
 
     private void put(final char x, final UnicodeCharacter value) {
         characters.put(x, value);

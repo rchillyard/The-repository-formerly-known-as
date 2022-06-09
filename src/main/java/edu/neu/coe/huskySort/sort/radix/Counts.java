@@ -6,6 +6,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+/**
+ * Class to maintain a set of character counts for MSD radix sort.
+ * <p>
+ * NOTE: At present this is not generic: and is specific to Unicode Characters.
+ */
 public class Counts {
 
     /**
@@ -45,10 +50,24 @@ public class Counts {
         return counts.keySet();
     }
 
+    /**
+     * Method to count characters.
+     *
+     * @param xs   an array of UnicodeString objects.
+     * @param from the starting index of xs.
+     * @param to   the ending index of xs (first element NOT to be counted).
+     * @param d    the offset into the UnicodeStrings specifying which character position is to be counted.
+     */
     public void countCharacters(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
         for (int i = from; i < to; i++) increment(xs[i].charAt(d));
     }
 
+    /**
+     * Method to accumulate the character counts.
+     * Called after countCharacters has been completed.
+     *
+     * @return an array of UnicodeCharacters in order.
+     */
     public UnicodeCharacter[] accumulateCounts() {
         final Set<UnicodeCharacter> keySet = keySet();
         int total = 0;
@@ -60,7 +79,15 @@ public class Counts {
         return keySet.toArray(new UnicodeCharacter[0]);
     }
 
-    void copyAndIncrementCount(final CharacterMap.UnicodeString[] aux, final CharacterMap.UnicodeString xs, final int d) {
+    /**
+     * Method to copy characters from xs to aux.
+     * NOTE: both aux and this will be mutated by this method.
+     *
+     * @param xs  the UnicodeString to be copied into aux.
+     * @param aux the auxiliary storage of UnicodeString elements.
+     * @param d   the offset into xs.
+     */
+    void copyAndIncrementCount(final CharacterMap.UnicodeString xs, final CharacterMap.UnicodeString[] aux, final int d) {
         final UnicodeCharacter x = xs.charAt(d);
         aux[get(x)] = xs;
         increment(x);
