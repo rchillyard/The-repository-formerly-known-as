@@ -77,14 +77,29 @@ public class CharacterMap {
 
     /**
      * A Comparator of String that can be used.
-     *
-     * NOTE: currently only used by test code.
+     * <p>
+     * NOTE: currently only used by test code and for checking sorts.
      */
     public final Comparator<String> stringComparator = (o1, o2) -> {
-        final CharacterMap.UnicodeString unicodeString1 = new UnicodeString(o1);
-        final CharacterMap.UnicodeString unicodeString2 = new UnicodeString(o2);
-        return unicodeString1.compare(unicodeString2, 0); // should test for the other positions, too.
+        final CharacterMap.UnicodeString unicodeString1 = getUnicodeString(o1);
+        final CharacterMap.UnicodeString unicodeString2 = getUnicodeString(o2);
+        int d = 0;
+        while (unicodeString1.valid(d) || unicodeString2.valid(d)) {
+            int cf = unicodeString1.compare(unicodeString2, d++);
+            if (cf != 0) return cf;
+        }
+        return 0;
     };
+
+    /**
+     * Construct a UnicodeString for the given String s.
+     *
+     * @param s a String made up of unicode characters.
+     * @return an instance of UnicodeString.
+     */
+    public UnicodeString getUnicodeString(final String s) {
+        return new UnicodeString(s);
+    }
 
     /**
      * Returns the value to which the specified char is mapped,

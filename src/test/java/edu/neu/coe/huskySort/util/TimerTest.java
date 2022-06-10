@@ -144,15 +144,16 @@ public class TimerTest {
     int run = 0;
     int post = 0;
 
-    private void GoToSleep(long mSecs, int which) {
+    private boolean GoToSleep(final long mSecs, final int which) {
         try {
             Thread.sleep(mSecs);
             if (which == 0) run++;
             else if (which > 0) post++;
             else pre++;
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             e.printStackTrace();
         }
+        return true;
     }
 
     public static final int TENTH = 100;

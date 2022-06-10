@@ -26,7 +26,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     * Compare elements i and j of xs within the subarray lo..hi
+     * Compare elements i and j of xs within the subarray lo...hi
      *
      * @param xs the array.
      * @param i  one of the indices.
@@ -51,7 +51,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     * Swap the elements of array a at indices i and j.
+     * Swap the elements of array "a" at indices i and j.
      *
      * @param xs the array.
      * @param i  one of the indices.
@@ -128,9 +128,11 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * By default, this method does nothing.
      *
      * @param xs the array to be tested.
+     * @return true.
      */
     @Override
-    public void postProcess(final X[] xs) {
+    public boolean postProcess(final X[] xs) {
+        return true;
     }
 
     @Override

@@ -106,7 +106,7 @@ public final class UnicodeMSDStringSort {
     }
 
     private static int cutoff = 15; // XXX default value for the insertion sort cutoff.
-    
+
     private static CharacterMap.UnicodeString[] aux; // XXX auxiliary array for distribution.
 
     private final CharacterMap characterMap; // NOTE this is used, despite IDEA's analysis.

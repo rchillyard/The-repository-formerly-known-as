@@ -83,6 +83,15 @@ public class UnicodeMSDStringSortTest {
     }
 
     @Test
+    public void sortM3() {
+        UnicodeMSDStringSort.setCutoff(0);
+        final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap);
+        final String[] strings = {"卞燕燕", "卞艳红"}; // bian4 yan4 yan4 AND bian4 yan4 hong2
+        sorter.sort(strings);
+        assertArrayEquals(new String[]{"卞艳红", "卞燕燕"}, strings);
+    }
+
+    @Test
     public void sortN1() {
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
         final Random random = new Random(0L);
@@ -100,7 +109,7 @@ public class UnicodeMSDStringSortTest {
         final Random random = new Random(0L);
         final Supplier<String[]> wordSupplier = getWordSupplier(words, 1000, random);
         final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap);
-        final Benchmark<String[]> benchmark = new Benchmark<>("TestN1", null, xs -> Arrays.sort(xs, characterMap.stringComparator), null);
+        final Benchmark<String[]> benchmark = new Benchmark<>("TestN1", null, xs -> Arrays.sort(xs, characterMap.stringComparator), HuskySortBenchmark::checkChineseSorted);
         final double time = benchmark.run(wordSupplier, 1);
         System.out.println("Time: " + time);
     }

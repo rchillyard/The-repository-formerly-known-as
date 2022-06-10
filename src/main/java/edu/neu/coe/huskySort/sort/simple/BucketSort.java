@@ -61,10 +61,11 @@ public final class BucketSort<X extends Comparable<X>> implements Sort<X> {
      * Post-process the given array, i.e. after sorting has been completed.
      *
      * @param xs an array of Xs.
+     * @return the result of calling helper.postProcess(xs).
      */
     @Override
-    public void postProcess(final X[] xs) {
-        helper.postProcess(xs);
+    public boolean postProcess(final X[] xs) {
+        return helper.postProcess(xs);
     }
 
     public void close() {

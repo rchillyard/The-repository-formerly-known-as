@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 public class SortTest {
 
     static class TestSorter extends SortWithHelper<Integer> {
-        public TestSorter(String description, int N, boolean instrumenting, Config config) {
+        public TestSorter(final String description, final int N, final boolean instrumenting, final Config config) {
             super(description, N, config);
         }
 
@@ -27,7 +27,7 @@ public class SortTest {
          * @param to   the index of the first element not to sort
          */
         @Override
-        public void sort(Integer[] xs, int from, int to) {
+        public void sort(final Integer[] xs, final int from, final int to) {
             Arrays.sort(xs, from, to);
         }
     }
@@ -59,7 +59,7 @@ public class SortTest {
         final Config config = Config.load(getClass());
         final SortWithHelper<Integer> sorter = new SortWithHelper<Integer>("test", 100, config) {
             @Override
-            public void sort(Integer[] xs, int from, int to) {
+            public void sort(final Integer[] xs, final int from, final int to) {
                 // Do nothing.
             }
 
@@ -69,11 +69,13 @@ public class SortTest {
              * In this implementation, the post-processing verifies that xs is sorted.
              *
              * @param xs the array to be post-processed.
+             * @return true.
              * @throws BaseHelper.HelperException if the array xs is not sorted.
              */
             @Override
-            public void postProcess(Integer[] xs) {
+            public boolean postProcess(final Integer[] xs) {
                 if (!getHelper().sorted(xs)) throw new BaseHelper.HelperException("Array is not sorted");
+                return true;
             }
         };
         final Helper<Integer> helper = sorter.getHelper();
@@ -111,8 +113,8 @@ public class SortTest {
         final List<Integer> list = Arrays.asList(xs);
         final Iterable<Integer> ys = sorter.sort(list);
         final Iterator<Integer> iterator = ys.iterator();
-        int first = iterator.next();
-        int second = iterator.next();
+        final int first = iterator.next();
+        final int second = iterator.next();
         assertTrue(first < second);
     }
 

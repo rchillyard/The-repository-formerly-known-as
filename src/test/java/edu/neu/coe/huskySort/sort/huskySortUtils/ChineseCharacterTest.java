@@ -6,7 +6,6 @@ import static org.junit.Assert.assertEquals;
 
 public class ChineseCharacterTest {
 
-
     @Test
     public void testEncode() {
         assertEquals(0x8A986E834000000L, new ChineseCharacter('卞').longCode);

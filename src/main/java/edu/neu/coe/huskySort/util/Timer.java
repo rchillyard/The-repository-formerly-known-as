@@ -1,7 +1,9 @@
 package edu.neu.coe.huskySort.util;
 
-import java.util.function.Consumer;
+import edu.neu.coe.huskySort.sort.SortException;
+
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -45,14 +47,15 @@ public class Timer {
     /**
      * Pause (without counting a lap); run the given functions n times while being timed, i.e. once per "lap", and finally return the result of calling meanLapTime().
      *
-     * @param n            the number of repetitions.
-     * @param supplier     a function which supplies a T value.
-     * @param function     a function T=>U and which is to be timed.
-     * @param preFunction  a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null).
-     * @param postFunction a function which consumes a U and which succeeds the call of function, but which is not timed (may be null).
+     * @param n             the number of repetitions.
+     * @param supplier      a function which supplies a T value.
+     * @param function      a function T=>U and which is to be timed.
+     * @param preFunction   a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null).
+     * @param postPredicate a predicate on a U and which succeeds the call of function, but which is not timed (may be null).
+     *                      If defined and false is returned, an exception will be thrown.
      * @return the average milliseconds per repetition.
      */
-    public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function, final UnaryOperator<T> preFunction, final Consumer<U> postFunction) {
+    public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function, final UnaryOperator<T> preFunction, final Predicate<U> postPredicate) {
         pause();
         if (n > 0) logger.trace("repeat: with " + n + " runs");
         else logger.warn("repeat: zero runs");
@@ -64,7 +67,11 @@ public class Timer {
             resume();
             final U u = function.apply(t1);
             pauseAndLap();
-            if (postFunction != null) postFunction.accept(u);
+            if (postPredicate != null && !postPredicate.test(u)) {
+                postPredicate.test(u);
+                throw new SortException("postPredicate returned false", t1);
+            }
+
         }
         System.out.print("\r");
         final double meanLapTime = meanLapTime();

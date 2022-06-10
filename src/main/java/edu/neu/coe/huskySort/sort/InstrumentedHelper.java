@@ -40,7 +40,7 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
     }
 
     /**
-     * Swap the elements of array a at indices i and j.
+     * Swap the elements of array "a" at indices i and j.
      *
      * @param xs the array.
      * @param i  one of the indices.
@@ -89,7 +89,7 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
      * @param xs the array of elements under consideration
      * @param i  the index of the lower element.
      * @param j  the index of the upper element.
-     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     * @return true if there was an inversion (i.e. the order was wrong and had to be fixed).
      */
     @Override
     public boolean swapConditional(final X[] xs, final int i, final int j) {
@@ -106,7 +106,7 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
      *
      * @param xs the array of elements under consideration
      * @param i  the index of the upper element.
-     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     * @return true if there was an inversion (i.e. the order was wrong and had to be fixed).
      */
     @Override
     public boolean swapStableConditional(final X[] xs, final int i) {
@@ -246,12 +246,13 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
      * By default, this method checks that an array is sorted.
      *
      * @param xs the array to be tested.
-     *           TODO log the message
-     *           TODO show the number of inversions
+     *                               TODO log the message
+     *                               TODO show the number of inversions
+     * @return the result of invoking super.postProcess(xs).
      */
     @Override
-    public void postProcess(final X[] xs) {
-        super.postProcess(xs);
+    public boolean postProcess(final X[] xs) {
+        final boolean result = super.postProcess(xs);
         if (!sorted(xs)) throw new BaseHelper.HelperException("Array is not sorted");
         if (statPack == null) throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
         if (countCompares)
@@ -262,6 +263,7 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
             statPack.add(COPIES, copies);
         if (countFixes)
             statPack.add(FIXES, fixes);
+        return result;
     }
 
     @Override

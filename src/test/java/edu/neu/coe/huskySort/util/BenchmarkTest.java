@@ -29,6 +29,7 @@ public class BenchmarkTest {
                 },
                 b -> {
                     GoToSleep(50L, 1);
+                    return true;
                 });
         double x = bm.run(true, nRuns);
         assertEquals(nRuns, post);

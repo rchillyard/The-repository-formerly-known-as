@@ -82,8 +82,9 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      * WHen benchmarking, this step is typically not timed.
      *
      * @param xs an array of Xs.
+     * @return an indication of the success of the postProcess operation.
      */
-    void postProcess(X[] xs);
+    boolean postProcess(X[] xs);
 
     /**
      * Close this sorter, performing any appropriate cleanup.

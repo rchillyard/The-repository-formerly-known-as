@@ -262,15 +262,15 @@ public final class HuskySortBenchmark {
      *
      * @param xs an array of Comparables.
      */
-    public static void checkSorted(final String[] xs) {
-        if (xs.length < 2) return;
+    public static boolean checkSorted(final String[] xs) {
+        if (xs.length < 2) return true;
+        return checkSortedWithClues(xs) < 0;
+    }
+
+    private static int checkSortedWithClues(final String[] xs) {
         for (int i = 1; i < xs.length; i++)
-            if (xs[i].compareTo(xs[i - 1]) < 0) {
-                System.out.println(Arrays.toString(xs));
-                System.out.println(xs[i - 1]);
-                System.out.println(xs[i]);
-                throw new SortException("not in order at index " + i);
-            }
+            if (xs[i].compareTo(xs[i - 1]) < 0) return i;
+        return -1;
     }
 
     /**
@@ -278,10 +278,16 @@ public final class HuskySortBenchmark {
      *
      * @param xs an array of Comparables.
      */
-    public static void checkChineseSorted(final String[] xs) {
+    public static boolean checkChineseSorted(final String[] xs) {
+        final String[] pinyin = new String[xs.length];
         for (int i = 0; i < xs.length; i++)
-            xs[i] = ChineseCharacter.convertToPinyin(xs[i]);
-        checkSorted(xs);
+            pinyin[i] = ChineseCharacter.convertToPinyin(xs[i]);
+        final int i = checkSortedWithClues(pinyin);
+        if (i < 0) return true;
+        else {
+            System.out.println(xs[i - 1] + " (" + pinyin[i - 1] + ") should appear after " + xs[i] + " (" + pinyin[i] + ") at index " + i);
+            return false;
+        }
     }
 
     private static String getDescription(final int nWords, final String s1, final String s2) {
@@ -454,7 +460,7 @@ public final class HuskySortBenchmark {
         return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
     }
 
-    private static <Y> Benchmark<Y[]> benchmarkFactory(final String description, final Consumer<Y[]> sorter, final Consumer<Y[]> checker) {
+    private static <Y> Benchmark<Y[]> benchmarkFactory(final String description, final Consumer<Y[]> sorter, final Predicate<Y[]> checker) {
         return new Benchmark<>(
                 description,
                 (xs) -> Arrays.copyOf(xs, xs.length),
@@ -576,7 +582,7 @@ public final class HuskySortBenchmark {
      * @param clazz      the class of Y.
      * @param isInt      true if Y is an integer-style type.
      */
-    static <Y extends Number & Comparable<Y>> void compareSystemAndPureHuskySortsNumeric(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m, final Class<? extends Number> clazz, final boolean isInt) {
+    static <Y extends Number & Comparable<Y>> void compareSystemAndPureHuskySortsNumeric(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Predicate<Y[]> checker, final Predicate<String> isConfig, final int m, final Class<? extends Number> clazz, final boolean isInt) {
         compareSystemAndPureHuskySorts(subject, supplier, huskyCoder, checker, isConfig, m);
 
         if (isConfig.test("quicksort")) {
@@ -595,7 +601,7 @@ public final class HuskySortBenchmark {
      * @param isConfig   a predicate which returns a boolean for both "timsort" or "huskysort".
      * @param m          the number of repetitions to be run.
      */
-    static <Y extends Comparable<Y>> void compareSystemAndPureHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m) {
+    static <Y extends Comparable<Y>> void compareSystemAndPureHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Predicate<Y[]> checker, final Predicate<String> isConfig, final int m) {
         if (isConfig.test("timsort"))
             logBenchmarkRun(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + subject + " using System sort", Arrays::sort, null).run(supplier, m));
 

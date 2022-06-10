@@ -44,9 +44,10 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
      * In this implementation, we delegate the post-processing to the helper.
      *
      * @param xs the array to be post-processed.
+     * @return the result of calling helper.postProcess(xs).
      */
-    public void postProcess(final X[] xs) {
-        helper.postProcess(xs);
+    public boolean postProcess(final X[] xs) {
+        return helper.postProcess(xs);
     }
 
     /**

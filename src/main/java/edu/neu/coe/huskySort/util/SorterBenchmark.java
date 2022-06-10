@@ -2,7 +2,7 @@ package edu.neu.coe.huskySort.util;
 
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 
-import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
@@ -45,7 +45,7 @@ public final class SorterBenchmark<T extends Comparable<T>> extends Benchmark<T[
      * @param nRuns         the number of runs to perform in this benchmark.
      * @param timeLoggers   the time-loggers.
      */
-    public SorterBenchmark(final Class<T> tClass, final UnaryOperator<T[]> preProcessor, final SortWithHelper<T> sorter, final Consumer<T[]> postProcessor, final T[] ts, final int nRuns, final TimeLogger[] timeLoggers) {
+    public SorterBenchmark(final Class<T> tClass, final UnaryOperator<T[]> preProcessor, final SortWithHelper<T> sorter, final Predicate<T[]> postProcessor, final T[] ts, final int nRuns, final TimeLogger[] timeLoggers) {
         super(sorter.toString(), preProcessor, sorter::mutatingSort, postProcessor);
         this.sorter = sorter;
         this.tClass = tClass;

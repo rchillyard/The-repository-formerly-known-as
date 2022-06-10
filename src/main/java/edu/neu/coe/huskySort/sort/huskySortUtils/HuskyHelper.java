@@ -74,8 +74,8 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * @param xs the array that has been sorted.
      */
-    public void postProcess(final X[] xs) {
-        helper.postProcess(xs);
+    public boolean postProcess(final X[] xs) {
+        return helper.postProcess(xs);
     }
 
     /**
@@ -84,7 +84,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      * @param xs the array of elements under consideration
      * @param i  the index of the lower element.
      * @param j  the index of the upper element.
-     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     * @return true if there was an inversion (i.e. the order was wrong and had to be fixed).
      */
     @Override
     public boolean swapConditional(final X[] xs, final int i, final int j) {
@@ -96,7 +96,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
      *
      * @param xs the array of elements under consideration
      * @param i  the index of the upper element.
-     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     * @return true if there was an inversion (i.e. the order was wrong and had to be fixed).
      */
     @Override
     public boolean swapStableConditional(final X[] xs, final int i) {

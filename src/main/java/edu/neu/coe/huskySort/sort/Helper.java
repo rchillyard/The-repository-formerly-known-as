@@ -22,7 +22,7 @@ public interface Helper<X extends Comparable<X>> {
     boolean instrumented();
 
     /**
-     * Compare elements i and j of xs within the subarray lo..hi
+     * Compare elements i and j of xs within the subarray lo...hi
      *
      * @param xs the array.
      * @param i  one of the indices.
@@ -74,7 +74,7 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array of elements under consideration
      * @param i  the index of the lower element.
      * @param j  the index of the upper element.
-     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     * @return true if there was an inversion (i.e. the order was wrong and had to be fixed).
      */
     default boolean swapConditional(final X[] xs, final int i, final int j) {
         final X v = xs[i];
@@ -93,7 +93,7 @@ public interface Helper<X extends Comparable<X>> {
      *
      * @param xs the array of elements under consideration
      * @param i  the index of the upper element.
-     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     * @return true if there was an inversion (i.e. the order was wrong and had to be fixed).
      */
     default boolean swapStableConditional(final X[] xs, final int i) {
         final X v = xs[i];
@@ -188,8 +188,9 @@ public interface Helper<X extends Comparable<X>> {
      * Method to post-process the array xs after sorting.
      *
      * @param xs the array that has been sorted.
+     * @return whether the postProcessing was successful.
      */
-    void postProcess(X[] xs);
+    boolean postProcess(X[] xs);
 
     /**
      * Method to generate an array of randomly chosen X elements.
