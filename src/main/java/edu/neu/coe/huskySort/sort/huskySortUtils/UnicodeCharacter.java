@@ -50,6 +50,11 @@ public abstract class UnicodeCharacter implements Comparable<UnicodeCharacter> {
         this.longCode = encode();
     }
 
+    @Override
+    public String toString() {
+        return "UnicodeCharacter{" + "unicode=" + unicode + ", alt='" + alt + '\'' + ", longCode=" + longCode + '}';
+    }
+
     protected final char unicode;
     protected final long longCode;
 

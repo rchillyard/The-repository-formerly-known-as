@@ -2,6 +2,8 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import net.sourceforge.pinyin4j.PinyinHelper;
 
+import java.util.regex.Pattern;
+
 /**
  * Concrete implementation of UnicodeCharacter for Chinese characters.
  */
@@ -27,7 +29,8 @@ public class ChineseCharacter extends UnicodeCharacter {
         if (pinyinStrings == null)
             return unicode + "";
         else if (pinyinStrings.length > 0) {
-            final String pinyin = pinyinStrings[0];
+            // NOTE: there are a few superfluous (?) colons in the pinyin strings (e.g. "lu:") which need to be replaced.
+            final String pinyin = colonPattern.matcher(pinyinStrings[0]).replaceAll(" ");
             final String tone = pinyin.substring(pinyin.length() - 1);
             final String py = pinyin.substring(0, pinyin.length() - 1);
             return py + " " + tone;
@@ -56,4 +59,5 @@ public class ChineseCharacter extends UnicodeCharacter {
 
     private final static HuskyCoder<String> pinyinCoder = HuskyCoderFactory.englishCoder;
 
+    private static final Pattern colonPattern = Pattern.compile(":");
 }

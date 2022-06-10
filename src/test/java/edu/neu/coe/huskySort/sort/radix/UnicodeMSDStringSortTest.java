@@ -65,7 +65,6 @@ public class UnicodeMSDStringSortTest {
         assertArrayEquals(new String[]{"林", "涛"}, strings);
     }
 
-
     @Test
     public void sortM1() {
         final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap);
@@ -74,9 +73,16 @@ public class UnicodeMSDStringSortTest {
         assertArrayEquals(new String[]{"邓世林", "邓世涛"}, strings);
     }
 
-    // FIXME this should work correctly.
-    //    邓世林
-//    @Test
+    @Test
+    public void sortM2() {
+        UnicodeMSDStringSort.setCutoff(0);
+        final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap);
+        final String[] strings = {"邓世林", "邓世涛"};
+        sorter.sort(strings);
+        assertArrayEquals(new String[]{"邓世林", "邓世涛"}, strings);
+    }
+
+    @Test
     public void sortN1() {
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
         final Random random = new Random(0L);
