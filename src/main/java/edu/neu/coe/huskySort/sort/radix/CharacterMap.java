@@ -49,6 +49,7 @@ public class CharacterMap {
             return UnicodeCharacter.NullChar;
         }
 
+
         /**
          * Method to compare this UnicodeString with other -- at the dth character.
          *
@@ -58,6 +59,18 @@ public class CharacterMap {
          */
         public int compare(final UnicodeString other, final int d) {
             return charAt(d).compareTo(other.charAt(d));
+        }
+
+        /**
+         * Method to compare this UnicodeString with other -- starting at the dth character, but if necessary continuing to later characters.
+         * This is particularly used by the insertion sort mechanism.
+         *
+         * @param other another UnicodeString.
+         * @param d     the offset of the first character to compare in each of the strings.
+         * @return negative, zero, or positive according to this less than, = or greater than other.
+         */
+        public int compareFromD(final UnicodeString other, final int d) {
+            return compareUnicodeStringsFromD(this, other, d);
         }
 
         @Override
@@ -99,7 +112,10 @@ public class CharacterMap {
     public final Comparator<String> stringComparator = (o1, o2) -> compareUnicodeStrings(getUnicodeString(o1), getUnicodeString(o2));
 
     public int compareUnicodeStrings(final UnicodeString s1, final UnicodeString s2) {
-        int d = 0;
+        return compareUnicodeStringsFromD(s1, s2, 0);
+    }
+
+    private int compareUnicodeStringsFromD(final UnicodeString s1, final UnicodeString s2, int d) {
         while (s1.valid(d) || s2.valid(d)) {
             final int cf = s1.compare(s2, d++); // NOTE: comparison according to long code.
             if (cf != 0) return cf;

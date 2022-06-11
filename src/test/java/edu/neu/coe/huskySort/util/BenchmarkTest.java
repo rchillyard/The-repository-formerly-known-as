@@ -56,5 +56,7 @@ public class BenchmarkTest {
         assertEquals(3, Benchmark.getWarmupRuns(30));
         assertEquals(10, Benchmark.getWarmupRuns(100));
         assertEquals(10, Benchmark.getWarmupRuns(1000));
+        Benchmark.setMinWarmupRuns(0);
+        assertEquals(0, Benchmark.getWarmupRuns(1));
     }
 }

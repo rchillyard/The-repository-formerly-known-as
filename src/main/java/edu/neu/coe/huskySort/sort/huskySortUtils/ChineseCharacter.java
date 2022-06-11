@@ -29,8 +29,9 @@ public class ChineseCharacter extends UnicodeCharacter {
         if (pinyinStrings == null)
             return unicode + "";
         else if (pinyinStrings.length > 0) {
-            // NOTE: there are a few superfluous (?) colons in the pinyin strings (e.g. "lu:") which need to be replaced.
-            final String pinyin = colonPattern.matcher(pinyinStrings[0]).replaceAll(" ");
+            final String pinyin = colonPattern.matcher(pinyinStrings[0]).replaceAll("~");
+            // NOTE: not everything has a tone and I think we need to do this more carefully.
+            // However, this is the code in a (private) method in the library.
             final String tone = pinyin.substring(pinyin.length() - 1);
             final String py = pinyin.substring(0, pinyin.length() - 1);
             return py + " " + tone;

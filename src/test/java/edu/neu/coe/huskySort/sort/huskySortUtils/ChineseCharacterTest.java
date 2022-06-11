@@ -19,6 +19,13 @@ public class ChineseCharacterTest {
     }
 
     @Test
+    public void testCompare1() {
+        final ChineseCharacter 鹿 = new ChineseCharacter('鹿'); // lu4
+        final ChineseCharacter 绿 = new ChineseCharacter('绿'); // lu:4
+        assertEquals(-1, 鹿.compareTo(绿));
+    }
+
+    @Test
     public void testToString() {
     }
 

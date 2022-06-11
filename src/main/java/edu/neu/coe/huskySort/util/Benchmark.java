@@ -20,7 +20,7 @@ public class Benchmark<T> {
      * @return at least 2 and at most m/10.
      */
     static int getWarmupRuns(final int m) {
-        return Integer.max(2, Integer.min(10, m / 10));
+        return Integer.max(MIN_WARMUP_RUNS, Integer.min(10, m / 10));
     }
 
     /**
@@ -116,6 +116,17 @@ public class Benchmark<T> {
      */
     public Benchmark(final String description, final Consumer<T> f) {
         this(description, null, f, null);
+    }
+
+    private static int MIN_WARMUP_RUNS = 2;
+
+    /**
+     * Method used by unit tests to allow for a small number of warmup runs.
+     *
+     * @param m the minimum number of warmup runs to use.
+     */
+    public static void setMinWarmupRuns(final int m) {
+        MIN_WARMUP_RUNS = m;
     }
 
     private final String description;

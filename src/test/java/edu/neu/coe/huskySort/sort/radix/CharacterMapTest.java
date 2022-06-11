@@ -125,6 +125,36 @@ public class CharacterMapTest {
     }
 
     @Test
+    public void testComparison4() {
+        final String 王略 = "王略";
+        final String 王卢城 = "王卢城";
+        final CharacterMap.UnicodeString u王略 = characterMap.getUnicodeString(王略);// XXX wang2 lu: e4
+        final CharacterMap.UnicodeString u王卢城 = characterMap.getUnicodeString(王卢城);// XXX wang2 lu2 cheng2
+        final long codeLue4 = 0xB35FA5834000000L;
+        final long codeLu2 = 0xA2FBA7832000000L;
+        final String wang2 = "wang 2";
+        final String lue4 = "lu~e 4";
+        final long codeNull = 0L;
+        assertEquals(wang2, u王略.charAt(0).alt());
+        assertEquals(0xDE1BA7832000000L, u王略.charAt(0).encode());
+        assertEquals(lue4, u王略.charAt(1).alt());
+        final long encode = u王略.charAt(1).encode();
+        assertEquals(codeLue4, encode);
+        assertEquals(wang2, u王卢城.charAt(0).alt());
+        assertEquals(0xDE1BA7832000000L, u王卢城.charAt(0).encode());
+        assertEquals("lu 2", u王卢城.charAt(1).alt());
+        assertEquals(0xB35832000000000L, u王卢城.charAt(1).encode());
+        assertEquals("cheng 2", u王卢城.charAt(2).alt());
+        assertEquals(0x8E896E9E0C80000L, u王卢城.charAt(2).encode());
+        assertEquals(1, Long.compare(codeLue4, codeLu2));
+        assertEquals(0, u王略.compare(u王卢城, 0));
+        assertEquals(1, u王略.compare(u王卢城, 1));
+        assertEquals(-1, u王略.compare(u王卢城, 2));
+        assertEquals(1, characterMap.stringComparator.compare(王略, 王卢城));
+        assertEquals(94, characterMap.stringComparatorPinyin.compare(王略, 王卢城));
+    }
+
+    @Test
     public void testComparisonP1() {
         final Comparator<String> stringComparator = characterMap.stringComparatorPinyin;
         assertTrue(stringComparator.compare("卞燕燕", "卞艳红") > 0);
