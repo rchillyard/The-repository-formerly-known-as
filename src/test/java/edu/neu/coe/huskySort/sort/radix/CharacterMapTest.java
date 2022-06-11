@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class CharacterMapTest {
 
@@ -84,7 +85,7 @@ public class CharacterMapTest {
         assertEquals(0xA25832000000000L, 何昕.charAt(0).encode());
         assertEquals(xin1, 何昕.charAt(1).alt());
         assertEquals(codeXin1, 何昕.charAt(1).encode());
-        assertEquals("", 何昕.charAt(2).alt());
+        assertEquals(" ", 何昕.charAt(2).alt());
         assertEquals(codeNull, 何昕.charAt(2).encode());
         assertEquals(1, Long.compare(codeXin1, codeNull));
         assertEquals(0, 何欣蔚.compare(何昕, 0));
@@ -92,6 +93,47 @@ public class CharacterMapTest {
         assertEquals(1, 何欣蔚.compare(何昕, 2));
         final Comparator<String> stringComparator = characterMap.stringComparator;
         assertEquals(1, stringComparator.compare("何欣蔚", "何昕"));
+    }
+
+    @Test
+    public void testComparison3() {
+        final String 卞佳丽 = "卞佳丽";
+        final String 卞佳 = "卞佳";
+        final CharacterMap.UnicodeString u卞佳丽 = characterMap.getUnicodeString(卞佳丽);// XXX bian4 jia1 li4
+        final CharacterMap.UnicodeString u卞佳 = characterMap.getUnicodeString(卞佳);// XXX bian4 jia1
+        final long codeJia1 = 0xAA9860C40000000L;
+        final long codeHong2 = 0xA2FBA7832000000L;
+        final String bian4 = "bian 4";
+        final String jia1 = "jia 1";
+        final long codeNull = 0L;
+        assertEquals(bian4, u卞佳丽.charAt(0).alt());
+        assertEquals(0x8A986E834000000L, u卞佳丽.charAt(0).encode());
+        assertEquals(jia1, u卞佳丽.charAt(1).alt());
+        assertEquals(codeJia1, u卞佳丽.charAt(1).encode());
+        assertEquals(bian4, u卞佳.charAt(0).alt());
+        assertEquals(0x8A986E834000000L, u卞佳.charAt(0).encode());
+        assertEquals(jia1, u卞佳.charAt(1).alt());
+        assertEquals(codeJia1, u卞佳.charAt(1).encode());
+        assertEquals(" ", u卞佳.charAt(2).alt());
+        assertEquals(codeNull, u卞佳.charAt(2).encode());
+        assertEquals(1, Long.compare(codeJia1, codeHong2));
+        assertEquals(0, u卞佳丽.compare(u卞佳, 0));
+        assertEquals(0, u卞佳丽.compare(u卞佳, 1));
+        assertEquals(1, u卞佳丽.compare(u卞佳, 2));
+        assertEquals(1, characterMap.stringComparator.compare(卞佳丽, 卞佳));
+        assertEquals(1, characterMap.stringComparatorPinyin.compare(卞佳丽, 卞佳));
+    }
+
+    @Test
+    public void testComparisonP1() {
+        final Comparator<String> stringComparator = characterMap.stringComparatorPinyin;
+        assertTrue(stringComparator.compare("卞燕燕", "卞艳红") > 0);
+    }
+
+    @Test
+    public void testComparisonP2() {
+        final Comparator<String> stringComparator = characterMap.stringComparatorPinyin;
+        assertTrue(stringComparator.compare("何欣蔚", "何昕") > 0);
     }
 
     CharacterMap characterMap;

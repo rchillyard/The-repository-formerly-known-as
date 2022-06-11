@@ -62,10 +62,7 @@ public class CharacterMap {
 
         @Override
         public String toString() {
-            return "UnicodeString{" +
-                    "word='" + word + '\'' +
-                    ", unicodes=" + Arrays.toString(unicodes) +
-                    '}';
+            return "UnicodeString{" + "word='" + word + '\'' + ", unicodes=" + Arrays.toString(unicodes) + '}';
         }
 
         /**
@@ -80,16 +77,35 @@ public class CharacterMap {
      * <p>
      * NOTE: currently only used by test code and for checking sorts.
      */
-    public final Comparator<String> stringComparator = (o1, o2) -> {
+    public final Comparator<String> stringComparatorPinyin = (o1, o2) -> {
         final CharacterMap.UnicodeString unicodeString1 = getUnicodeString(o1);
         final CharacterMap.UnicodeString unicodeString2 = getUnicodeString(o2);
         int d = 0;
-        while (unicodeString1.valid(d) || unicodeString2.valid(d)) {
-            int cf = unicodeString1.compare(unicodeString2, d++);
+        while (unicodeString1.valid(d) && unicodeString2.valid(d)) {
+            int cf = unicodeString1.unicodes[d].alt().compareTo(unicodeString2.unicodes[d].alt());
+            d++;
+            if (cf != 0) return cf;
+        }
+        if (unicodeString1.valid(d)) return 1;
+        else if (unicodeString2.valid(d)) return -1;
+        else return 0;
+    };
+
+    /**
+     * A Comparator of String that can be used.
+     * <p>
+     * NOTE: currently only used by test code and for checking sorts.
+     */
+    public final Comparator<String> stringComparator = (o1, o2) -> compareUnicodeStrings(getUnicodeString(o1), getUnicodeString(o2));
+
+    public int compareUnicodeStrings(final UnicodeString s1, final UnicodeString s2) {
+        int d = 0;
+        while (s1.valid(d) || s2.valid(d)) {
+            final int cf = s1.compare(s2, d++); // NOTE: comparison according to long code.
             if (cf != 0) return cf;
         }
         return 0;
-    };
+    }
 
     /**
      * Construct a UnicodeString for the given String s.

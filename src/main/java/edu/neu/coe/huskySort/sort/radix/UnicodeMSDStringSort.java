@@ -51,7 +51,7 @@ public final class UnicodeMSDStringSort {
     private void doRecursiveSort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
         assert from >= 0 : "from " + from + " is negative";
         assert to <= xs.length : "to " + to + " is out of bounds: " + xs.length;
-//        System.out.println("doRecursiveSort: from="+from+", to="+to+", d="+d);
+//        System.out.println("doRecursiveSort: on " +(d > 0 ? xs[from].charAt(d-1) : "root")+ " from="+from+", to="+to+", d="+d);
         // XXX if there are fewer than two elements, we return immediately.
         if (from >= to - 1) return;
         // XXX if there is a small number of elements, we switch to insertion sort.
@@ -72,7 +72,7 @@ public final class UnicodeMSDStringSort {
             // XXX For each key, recursively sort the appropriate sub-array on the next character position.
             for (final UnicodeCharacter key : keys) {
                 if (key == UnicodeCharacter.NullChar)
-                    return;
+                    continue;
                 final int index = counts.get(key);
 //                System.out.println("   key="+key+", offset="+offset+", index="+index);
                 doRecursiveSort(xs, from + offset, from + index, d + 1);

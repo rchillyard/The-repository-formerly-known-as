@@ -226,18 +226,36 @@ public final class HuskySortBenchmark {
      * NOTE: this is package-private because it is used by unit tests.
      * <p>
      * CONSIDER merging this with compareSystemAndPureHuskySorts
-     *  @param corpus     the name of the corpus file to be used as a source of Strings.
      *
+     *  @param corpus     the name of the corpus file to be used as a source of Strings.
      * @param words  the word source.
      * @param nWords the number of words to be sorted.
      * @param nRuns  the number of runs.
      */
-    void benchmarkUnicodeStringSorters(final String corpus, final String[] words, final int nWords, final int nRuns) {
+    public void benchmarkUnicodeStringSorters(final String corpus, final String[] words, final int nWords, final int nRuns) {
+        logger.info("benchmarkUnicodeStringSorters: testing unicode string sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
+        benchmarkUnicodeStringSortersSeeded(corpus, words, nWords, nRuns, new Random());
+    }
+
+    /**
+     * Method to run pure (non-instrumented) string sorter benchmarks.
+     * <p>
+     * NOTE: this is package-private because it is used by unit tests.
+     * <p>
+     * CONSIDER merging this with compareSystemAndPureHuskySorts
+     *
+     * @param corpus the name of the corpus file to be used as a source of Strings.
+     * @param words  the word source.
+     * @param nWords the number of words to be sorted.
+     * @param nRuns  the number of runs.
+     * @param random a random source.
+     */
+    public void benchmarkUnicodeStringSortersSeeded(final String corpus, final String[] words, final int nWords, final int nRuns, final Random random) {
         logger.info("benchmarkUnicodeStringSorters: testing unicode string sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
         if (isConfigBenchmarkStringSorter("unicodemsdstringsort")) {
             final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, '阿'));
             final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sort, HuskySortBenchmark::checkChineseSorted);
-            doPureBenchmark(words, nWords, nRuns, new Random(), benchmark, false);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
         }
 
         if (isConfigBenchmarkStringSorter("msdstringsort")) {
@@ -248,7 +266,7 @@ public final class HuskySortBenchmark {
                 return x;
             }, sorter::sort, HuskySortBenchmark::checkSorted);
             try {
-                doPureBenchmark(words, nWords, nRuns, new Random(), benchmark, false);
+                doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
             } catch (final SortException e) {
                 final Alphabet alphabet = sorter.getAlphabet();
                 System.out.println(alphabet);
@@ -279,13 +297,20 @@ public final class HuskySortBenchmark {
      * @param xs an array of Comparables.
      */
     public static boolean checkChineseSorted(final String[] xs) {
+        final CharacterMap characterMap = new CharacterMap(ChineseCharacter::new);
         final String[] pinyin = new String[xs.length];
-        for (int i = 0; i < xs.length; i++)
+        final Object[] unicodeString = new Object[xs.length];
+        for (int i = 0; i < xs.length; i++) {
             pinyin[i] = ChineseCharacter.convertToPinyin(xs[i]);
+            unicodeString[i] = characterMap.getUnicodeString(xs[i]);
+        }
         final int i = checkSortedWithClues(pinyin);
         if (i < 0) return true;
         else {
             System.out.println(xs[i - 1] + " (" + pinyin[i - 1] + ") should appear after " + xs[i] + " (" + pinyin[i] + ") at index " + i);
+            System.out.println("pinyin comparison: " + pinyin[i - 1].compareTo(pinyin[i]));
+            System.out.println("unicode strings: " + unicodeString[i - 1] + ", " + unicodeString[i]);
+            System.out.println("UnicodeString comparison (by long code): " + characterMap.compareUnicodeStrings(characterMap.getUnicodeString(xs[i - 1]), characterMap.getUnicodeString(xs[i])));
             return false;
         }
     }

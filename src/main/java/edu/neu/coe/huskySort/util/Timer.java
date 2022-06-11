@@ -69,7 +69,7 @@ public class Timer {
             pauseAndLap();
             if (postPredicate != null && !postPredicate.test(u)) {
                 postPredicate.test(u);
-                throw new SortException("postPredicate returned false", t1);
+                throw new SortException("postPredicate returned false", u);
             }
 
         }

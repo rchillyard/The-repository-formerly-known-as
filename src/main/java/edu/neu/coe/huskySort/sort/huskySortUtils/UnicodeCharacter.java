@@ -21,9 +21,15 @@ public abstract class UnicodeCharacter implements Comparable<UnicodeCharacter> {
      */
     public abstract String alt();
 
+    /**
+     * Compare this UnicodeCharacter with "other".
+     *
+     * @param other the UnicodeCharacter to be compared.
+     * @return the comparison of the longCodes.
+     */
     @Override
-    public int compareTo(final UnicodeCharacter o) {
-        return Long.compare(longCode, o.longCode);
+    public int compareTo(final UnicodeCharacter other) {
+        return Long.compare(longCode, other.longCode);
     }
 
     /**
@@ -35,7 +41,7 @@ public abstract class UnicodeCharacter implements Comparable<UnicodeCharacter> {
         }
 
         public String alt() {
-            return "";
+            return " ";
         }
     };
 
