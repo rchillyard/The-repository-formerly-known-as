@@ -21,7 +21,7 @@ public class Timer {
      * @param function a function which yields a T (T may be Void).
      * @return the average milliseconds per repetition.
      */
-    public <T> double repeat(int n, Supplier<T> function) {
+    public <T> double repeat(final int n, final Supplier<T> function) {
         for (int i = 0; i < n; i++) {
             function.get();
             lap();
@@ -38,7 +38,7 @@ public class Timer {
      * @param function a function T=>U and which is to be timed (U may be Void).
      * @return the average milliseconds per repetition.
      */
-    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function) {
+    public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function) {
         return repeat(n, supplier, function, null, null);
     }
 
@@ -52,15 +52,15 @@ public class Timer {
      * @param postFunction a function which consumes a U and which succeeds the call of function, but which is not timed (may be null).
      * @return the average milliseconds per repetition.
      */
-    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function, UnaryOperator<T> preFunction, Consumer<U> postFunction) {
+    public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function, final UnaryOperator<T> preFunction, final Consumer<U> postFunction) {
         if (n > 0) logger.trace("repeat: with " + n + " runs");
         else logger.warn("repeat: zero runs");
         pause();
         for (int i = 0; i < n; i++) {
-            T t = supplier.get();
-            T t1 = preFunction != null ? preFunction.apply(t) : t;
+            final T t = supplier.get();
+            final T t1 = preFunction != null ? preFunction.apply(t) : t;
             resume();
-            U u = function.apply(t1);
+            final U u = function.apply(t1);
             pauseAndLap();
             if (postFunction != null) postFunction.accept(u);
         }
@@ -192,7 +192,7 @@ public class Timer {
      * @param ticks the number of clock ticks -- currently in nanoseconds.
      * @return the corresponding number of milliseconds.
      */
-    private static double toMillisecs(long ticks) {
+    private static double toMillisecs(final long ticks) {
         return ticks / 1e6;
     }
 
@@ -202,15 +202,15 @@ public class Timer {
         public TimerException() {
         }
 
-        public TimerException(String message) {
+        public TimerException(final String message) {
             super(message);
         }
 
-        public TimerException(String message, Throwable cause) {
+        public TimerException(final String message, final Throwable cause) {
             super(message, cause);
         }
 
-        public TimerException(Throwable cause) {
+        public TimerException(final Throwable cause) {
             super(cause);
         }
     }

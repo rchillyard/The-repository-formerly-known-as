@@ -11,7 +11,7 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 public class InversionCounter {
     private final Comparable[] arr;
 
-    public InversionCounter(Comparable[] arr) {
+    public InversionCounter(final Comparable[] arr) {
         this.arr = arr;
     }
 
@@ -21,8 +21,8 @@ public class InversionCounter {
 
     /* An auxiliary recursive method that sorts the input array and
       returns the number of inversions in the array. */
-    private long _inversionsRecursive(Comparable[] arr, Comparable[] temp, int left, int right) {
-        int mid;
+    private long _inversionsRecursive(final Comparable[] arr, final Comparable[] temp, final int left, final int right) {
+        final int mid;
         long result = 0;
         if (right > left) {
             /* Divide the array into two parts and call _mergeSortAndCountInv()
@@ -42,7 +42,7 @@ public class InversionCounter {
 
     /* This method merges two sorted arrays and returns inversion count in
        the arrays.*/
-    private long inversionsMerge(Comparable[] arr, Comparable[] temp, int left, int mid, int right) {
+    private long inversionsMerge(final Comparable[] arr, final Comparable[] temp, final int left, final int mid, final int right) {
         int i, j, k;
         long result = 0;
 

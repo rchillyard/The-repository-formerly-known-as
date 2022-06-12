@@ -14,9 +14,9 @@ public final class Utilities {
      * @param <T> the underlying type of ts.
      * @return an array T[].
      */
-    public static <T> T[] asArray(Collection<T> ts) {
+    public static <T> T[] asArray(final Collection<T> ts) {
         if (ts.isEmpty()) throw new RuntimeException("ts may not be empty");
-        @SuppressWarnings("unchecked") T[] result = (T[]) Array.newInstance(ts.iterator().next().getClass(), 0);
+        @SuppressWarnings("unchecked") final T[] result = (T[]) Array.newInstance(ts.iterator().next().getClass(), 0);
         return ts.toArray(result);
     }
 
@@ -26,8 +26,8 @@ public final class Utilities {
      * @param x the number to show.
      * @return a String representing the number rounded to three decimal places.
      */
-    public static String formatDecimal3Places(double x) {
-        double scaleFactor = 1000.0;
+    public static String formatDecimal3Places(final double x) {
+        final double scaleFactor = 1000.0;
         return String.format("%.3f", round(x * scaleFactor) / scaleFactor);
     }
 
@@ -37,21 +37,21 @@ public final class Utilities {
      * @param x the integer.
      * @return a String representing the number with commas.
      */
-    public static String formatWhole(int x) {
+    public static String formatWhole(final int x) {
         return String.format("%,d", x);
     }
 
-    public static String asInt(double x) {
+    public static String asInt(final double x) {
         final int i = round(x);
         return formatWhole(i);
     }
 
-    public static int round(double x) {
+    public static int round(final double x) {
         return (int) (Math.round(x));
     }
 
-    public static <T> T[] fillRandomArray(Class<T> clazz, Random random, int n, Function<Random, T> f) {
-        @SuppressWarnings("unchecked") T[] result = (T[]) Array.newInstance(clazz, n);
+    public static <T> T[] fillRandomArray(final Class<T> clazz, final Random random, final int n, final Function<Random, T> f) {
+        @SuppressWarnings("unchecked") final T[] result = (T[]) Array.newInstance(clazz, n);
         for (int i = 0; i < n; i++) result[i] = f.apply(random);
         return result;
     }
@@ -63,7 +63,7 @@ public final class Utilities {
      * @param <T> the underlying type of ts.
      * @return false as soon as an inversion is found; otherwise return true.
      */
-    public static <T extends Comparable<T>> boolean isSorted(T[] ts) {
+    public static <T extends Comparable<T>> boolean isSorted(final T[] ts) {
         for (int i = 1; i < ts.length; i++) if (ts[i - 1].compareTo(ts[i]) > 0) return false;
         return true;
     }
@@ -75,7 +75,7 @@ public final class Utilities {
      * @param <T> the underlying type of ts.
      * @throws RuntimeException if an inversion is found.
      */
-    public static <T extends Comparable<T>> void checkSorted(T[] ts) {
+    public static <T extends Comparable<T>> void checkSorted(final T[] ts) {
         if (!isSorted(ts))
             throw new RuntimeException("array is not sorted");
     }
@@ -86,7 +86,7 @@ public final class Utilities {
      * @param x the number whose log we require.
      * @return lg(x).
      */
-    public static double lg(double x) {
+    public static double lg(final double x) {
         return Math.log(x) / Math.log(2);
     }
 }

@@ -15,7 +15,7 @@ public class Bag_Array<Item> implements Bag<Item> {
      *
      * @param item the item to add.
      */
-    public void add(Item item) {
+    public void add(final Item item) {
         assert items != null;
         if (full())
             grow(items, 2 * capacity());
@@ -34,18 +34,18 @@ public class Bag_Array<Item> implements Bag<Item> {
         count = 0;
     }
 
-    public boolean contains(Item item) {
-        for (Item i : items) {
+    public boolean contains(final Item item) {
+        for (final Item i : items) {
             if (i != null && i.equals(item))
                 return true;
         }
         return false;
     }
 
-    public int multiplicity(Item item) {
+    public int multiplicity(final Item item) {
         int result = 0;
         if (isEmpty()) return 0;
-        for (Item i : items) {
+        for (final Item i : items) {
             if (i != null && i.equals(item))
                 result++;
         }
@@ -90,14 +90,14 @@ public class Bag_Array<Item> implements Bag<Item> {
      * @param from the source array
      * @param size the size of the new array
      */
-    private static <T> T[] growFrom(T[] from, int size) {
+    private static <T> T[] growFrom(final T[] from, final int size) {
         // NOTE that we cannot use Arrays.copyOf here because we are extending the length of the array.
-        @SuppressWarnings("unchecked") T[] result = (T[]) new Object[size];
+        @SuppressWarnings("unchecked") final T[] result = (T[]) new Object[size];
         System.arraycopy(from, 0, result, 0, from.length);
         return result;
     }
 
-    private void grow(Item[] source, int size) {
+    private void grow(final Item[] source, final int size) {
         items = growFrom(source, size);
     }
 

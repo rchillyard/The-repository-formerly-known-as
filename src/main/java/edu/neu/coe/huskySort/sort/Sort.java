@@ -22,7 +22,7 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      * @param makeCopy true if we need to work on a copy of the array.
      * @return either the original or a copy of the array.
      */
-    default X[] preSort(X[] xs, boolean makeCopy) {
+    default X[] preSort(final X[] xs, final boolean makeCopy) {
         init(xs.length);
         return makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
     }
@@ -39,8 +39,8 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
      * @param makeCopy if set to true, we make a copy first and sort that.
      */
-    default X[] sort(X[] xs, boolean makeCopy) {
-        X[] result = preSort(xs, makeCopy);
+    default X[] sort(final X[] xs, final boolean makeCopy) {
+        final X[] result = preSort(xs, makeCopy);
         sort(result, 0, result.length);
         return postSort(result);
     }
@@ -52,7 +52,7 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      * @param xs the sorted array.
      * @return the sorted array.
      */
-    default X[] postSort(X[] xs) {
+    default X[] postSort(final X[] xs) {
         return xs;
     }
 
@@ -72,7 +72,7 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      *
      * @param xs the elements to be pre-processed.
      */
-    default X[] preProcess(X[] xs) {
+    default X[] preProcess(final X[] xs) {
         init(xs.length);
         return xs;
     }

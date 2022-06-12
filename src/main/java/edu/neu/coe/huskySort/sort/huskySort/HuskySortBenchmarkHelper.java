@@ -19,7 +19,7 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 /**
  * Singleton class HuskySortBenchmarkHelper
  */
-final class HuskySortBenchmarkHelper {
+public final class HuskySortBenchmarkHelper {
 
     final static LazyLogger logger = new LazyLogger(HuskySortBenchmarkHelper.class);
 
@@ -30,7 +30,7 @@ final class HuskySortBenchmarkHelper {
      * @param stringListFunction a function which takes a String and splits into a List of Strings.
      * @return an array of Strings.
      */
-    static String[] getWords(final String resource, final Function<String, List<String>> stringListFunction) {
+    public static String[] getWords(final String resource, final Function<String, List<String>> stringListFunction) {
         try {
             final File file = new File(getPathname(resource, QuickHuskySort.class));
             final String[] result = getWordArray(file, stringListFunction, 2);
@@ -64,12 +64,12 @@ final class HuskySortBenchmarkHelper {
      *
      * @param line           a line of text.
      * @param lineMatcher    The regular expression used to match tokens in line.
-     * @param stringsplitter The regular expression used to split Strings into words.
+     * @param stringSplitter The regular expression used to split Strings into words.
      * @return a list of Strings.
      */
-    static List<String> splitLineIntoStrings(final String line, final Pattern lineMatcher, final Pattern stringsplitter) {
+    static List<String> splitLineIntoStrings(final String line, final Pattern lineMatcher, final Pattern stringSplitter) {
         final Matcher matcher = lineMatcher.matcher(line);
-        if (matcher.find()) return Arrays.asList(stringsplitter.split(matcher.group(1)));
+        if (matcher.find()) return Arrays.asList(stringSplitter.split(matcher.group(1)));
         else return new ArrayList<>();
     }
 
@@ -112,5 +112,5 @@ final class HuskySortBenchmarkHelper {
     private HuskySortBenchmarkHelper() {
     }
 
-    public static final Pattern REGEX_STRINGSPLITTER = Pattern.compile("[\\s\\p{Punct}\\uFF0C]");
+    public static final Pattern REGEX_STRING_SPLITTER = Pattern.compile("[\\s\\p{Punct}\\uFF0C]");
 }

@@ -41,7 +41,7 @@ public class QuickBenchmarkIntegrationTest {
     public void testStrings1K() throws Exception {
         // NOTE: this is a very quick version of the other integration tests.
         String corpus = "eng-uk_web_2002_10K-sentences.txt";
-        benchmark.benchmarkStringSorters(corpus, HuskySortBenchmarkHelper.getWords(corpus, line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, regexLeipzig, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER)), 1000, 100, huskyCoder);
+        benchmark.benchmarkStringSorters(corpus, HuskySortBenchmarkHelper.getWords(corpus, line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, regexLeipzig, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER)), 1000, 100, huskyCoder);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class QuickBenchmarkIntegrationTest {
     @Test
     public void testStrings1KInstrumented() throws Exception {
         // NOTE: this is a very quick version of the other integration tests.
-        benchmark.benchmarkStringSortersInstrumented(HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, regexLeipzig, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER)), 1000, 100, huskyCoder);
+        benchmark.benchmarkStringSortersInstrumented(HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, regexLeipzig, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER)), 1000, 100, huskyCoder);
     }
 
     private final static Pattern regexLeipzig = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");

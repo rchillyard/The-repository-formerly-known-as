@@ -4,34 +4,34 @@ import java.util.HashMap;
 
 public class StatPack {
 
-    public StatPack(int N, String... keys) {
+    public StatPack(final int N, final String... keys) {
         map = new HashMap<>();
-        for (String key : keys) map.put(key, new Statistics(key, N));
+        for (final String key : keys) map.put(key, new Statistics(key, N));
     }
 
-    public void add(String key, double x) {
+    public void add(final String key, final double x) {
         getStatistics(key).add(x);
     }
 
-    public Statistics getStatistics(String key) {
+    public Statistics getStatistics(final String key) {
         final Statistics statistics = map.get(key);
         if (statistics == null) throw new RuntimeException("StatPack.getStatistics(" + key + "): key not valid");
         return statistics;
     }
 
-    public int getCount(String key) {
+    public int getCount(final String key) {
         return getStatistics(key).getCount();
     }
 
-    public double total(String key) {
+    public double total(final String key) {
         return getStatistics(key).total();
     }
 
-    public double mean(String key) {
+    public double mean(final String key) {
         return getStatistics(key).mean();
     }
 
-    public double stdDev(String key) {
+    public double stdDev(final String key) {
         return getStatistics(key).stdDev();
     }
 
@@ -39,7 +39,7 @@ public class StatPack {
     public String toString() {
         final StringBuilder stringBuilder = new StringBuilder("StatPack {");
         if (map.isEmpty()) stringBuilder.append("<empty>}");
-        for (String key : map.keySet()) {
+        for (final String key : map.keySet()) {
             final Statistics statistics = map.get(key);
             stringBuilder.append(statistics.toString()).append("; ");
         }

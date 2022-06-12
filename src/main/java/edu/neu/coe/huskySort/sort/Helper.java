@@ -64,7 +64,7 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
-    default void swapStable(X[] xs, int i) {
+    default void swapStable(final X[] xs, final int i) {
         swap(xs, i - 1, i);
     }
 
@@ -76,10 +76,10 @@ public interface Helper<X extends Comparable<X>> {
      * @param j  the index of the upper element.
      * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
      */
-    default boolean swapConditional(X[] xs, int i, int j) {
+    default boolean swapConditional(final X[] xs, final int i, final int j) {
         final X v = xs[i];
         final X w = xs[j];
-        boolean result = v.compareTo(w) > 0;
+        final boolean result = v.compareTo(w) > 0;
         if (result) {
             // CONSIDER invoking swap
             xs[i] = w;
@@ -95,10 +95,10 @@ public interface Helper<X extends Comparable<X>> {
      * @param i  the index of the upper element.
      * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
      */
-    default boolean swapStableConditional(X[] xs, int i) {
+    default boolean swapStableConditional(final X[] xs, final int i) {
         final X v = xs[i];
         final X w = xs[i - 1];
-        boolean result = v.compareTo(w) < 0;
+        final boolean result = v.compareTo(w) < 0;
         if (result) {
             xs[i] = w;
             xs[i - 1] = v;
@@ -129,7 +129,7 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
      * @param i  the index of the element to be swapped into the ordered array xs[0..i-1].
      */
-    default void swapIntoSorted(X[] xs, int i) {
+    default void swapIntoSorted(final X[] xs, final int i) {
         int j = binarySearch(xs, 0, i, xs[i]);
         if (j < 0) j = -j - 1;
         if (j < i) swapInto(xs, j, i);
@@ -153,7 +153,7 @@ public interface Helper<X extends Comparable<X>> {
      * @param i  the index of the lower of the elements to be swapped.
      * @param j  the index of the higher of the elements to be swapped.
      */
-    default void fixInversion(X[] xs, int i, int j) {
+    default void fixInversion(final X[] xs, final int i, final int j) {
         swapConditional(xs, i, j);
     }
 
@@ -164,7 +164,7 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
-    default void fixInversion(X[] xs, int i) {
+    default void fixInversion(final X[] xs, final int i) {
         swapStableConditional(xs, i);
     }
 
@@ -233,7 +233,7 @@ public interface Helper<X extends Comparable<X>> {
      *
      * @param n the number of copies made.
      */
-    default void incrementCopies(int n) {
+    default void incrementCopies(final int n) {
         // do nothing.
     }
 
@@ -242,7 +242,7 @@ public interface Helper<X extends Comparable<X>> {
      *
      * @param n the number of copies made.
      */
-    default void incrementFixes(int n) {
+    default void incrementFixes(final int n) {
         // do nothing.
     }
 
@@ -252,12 +252,12 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array to be sorted.
      * @return the array after any pre-processing.
      */
-    default X[] preProcess(X[] xs) {
+    default X[] preProcess(final X[] xs) {
         // CONSIDER invoking init from here.
         return xs;
     }
 
-    default void registerDepth(int depth) {
+    default void registerDepth(final int depth) {
     }
 
     default int maxDepth() {

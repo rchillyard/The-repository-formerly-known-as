@@ -23,7 +23,7 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param to   the index of the first element not to sort.
      */
     @Override
-    public void sort(X[] xs, int from, int to) {
+    public void sort(final X[] xs, final int from, final int to) {
         Arrays.sort(xs, from, to);
     }
 
@@ -34,7 +34,7 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *
      * @param helper an explicit instance of Helper to be used.
      */
-    public TimSort(Helper<X> helper) {
+    public TimSort(final Helper<X> helper) {
         super(helper);
     }
 
@@ -44,7 +44,7 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public TimSort(int N, Config config) {
+    public TimSort(final int N, final Config config) {
         super(DESCRIPTION, N, config);
     }
 

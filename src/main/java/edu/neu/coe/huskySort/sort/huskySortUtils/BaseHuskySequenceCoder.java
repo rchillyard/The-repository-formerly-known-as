@@ -42,7 +42,7 @@ public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements 
      * @return an array of longs corresponding to the the Husky codes of the X elements.
      */
     @Override
-    final public Coding huskyEncode(final X[] xs) {
+    public Coding huskyEncode(final X[] xs) {
         boolean isPerfect = true;
         final long[] result = new long[xs.length];
         for (int i = 0; i < xs.length; i++) {

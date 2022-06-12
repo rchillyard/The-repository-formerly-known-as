@@ -26,7 +26,7 @@ public final class HuskyBucketSort<X extends Comparable<X>> extends AbstractHusk
      * @return the value of xs (unchanged in any way).
      */
     @Override
-    public X[] preProcess(X[] xs) {
+    public X[] preProcess(final X[] xs) {
         bucketHelper = new HuskyBucketHelper<>(name, bucketSize, xs.length, getHelper().getCoder(), getHelper().getPostSorter());
         return xs;
     }
@@ -39,11 +39,11 @@ public final class HuskyBucketSort<X extends Comparable<X>> extends AbstractHusk
      * @return the sorted array.
      */
     @Override
-    public X[] sort(X[] xs, boolean makeCopy) {
-        int n = xs.length;
-        X[] result = makeCopy ? Arrays.copyOf(xs, n) : xs;
+    public X[] sort(final X[] xs, final boolean makeCopy) {
+        final int n = xs.length;
+        final X[] result = makeCopy ? Arrays.copyOf(xs, n) : xs;
         assert (bucketHelper != null);
-        int t = bucketHelper.loadBuckets(result);
+        final int t = bucketHelper.loadBuckets(result);
         assert (t == n);
         bucketHelper.unloadBuckets(result);
         return result;
@@ -56,7 +56,7 @@ public final class HuskyBucketSort<X extends Comparable<X>> extends AbstractHusk
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    public void sort(X[] xs, int from, int to) {
+    public void sort(final X[] xs, final int from, final int to) {
         throw new RuntimeException("logic error not implemented");
     }
 
@@ -69,7 +69,7 @@ public final class HuskyBucketSort<X extends Comparable<X>> extends AbstractHusk
      * @param sorter     the sorter.
      * @param config     the configuration.
      */
-    public HuskyBucketSort(String name, int bucketSize, HuskyCoder<X> huskyCoder, Consumer<X[]> sorter, Config config) {
+    public HuskyBucketSort(final String name, final int bucketSize, final HuskyCoder<X> huskyCoder, final Consumer<X[]> sorter, final Config config) {
         super(name, 0, huskyCoder, sorter, config);
         this.bucketSize = bucketSize;
     }
@@ -81,7 +81,7 @@ public final class HuskyBucketSort<X extends Comparable<X>> extends AbstractHusk
      * @param huskyCoder the Husky coder.
      * @param config     the configuration.
      */
-    public HuskyBucketSort(int bucketSize, HuskyCoder<X> huskyCoder, Config config) {
+    public HuskyBucketSort(final int bucketSize, final HuskyCoder<X> huskyCoder, final Config config) {
         this("HuskyBucketSort", bucketSize, huskyCoder, InsertionSort::mutatingInsertionSort, config);
     }
 

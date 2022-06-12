@@ -20,12 +20,12 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
      * @param <X>     the underlying type of the array and the Helper.
      */
     @SuppressWarnings("unchecked")
-    public static <X extends Comparable<X>> void unloadBuckets(Bag<X>[] buckets, X[] xs, final Helper<X> helper) {
-        Index index = new Index();
+    public static <X extends Comparable<X>> void unloadBuckets(final Bag<X>[] buckets, final X[] xs, final Helper<X> helper) {
+        final Index index = new Index();
         Arrays.stream(buckets).forEach(xes -> {
             final Object[] objects = xes.asArray();
             Arrays.sort(objects, (o, t1) -> helper.compare((X) o, (X) t1));
-            for (Object x : objects) xs[index.getNext()] = (X) x;
+            for (final Object x : objects) xs[index.getNext()] = (X) x;
         });
     }
 
@@ -34,7 +34,7 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
      *
      * @param xs the array of Xs in which to unload the buckets.
      */
-    public void unloadBuckets(X[] xs) {
+    public void unloadBuckets(final X[] xs) {
         unloadBuckets(buckets, xs, this);
     }
 
@@ -47,20 +47,20 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
         return getSpread();
     }
 
-    public int loadBuckets(X[] xs) {
+    public int loadBuckets(final X[] xs) {
         // CONSIDER is this redundant?
         doCoding(xs);
         long min = Long.MAX_VALUE;
         long max = Long.MIN_VALUE;
-        long[] longs = getLongs();
-        for (long x : longs) {
+        final long[] longs = getLongs();
+        for (final long x : longs) {
             if (x > max) max = x;
             if (x < min) min = x;
         }
-        int nBuckets = buckets.length;
-        BigInteger stride = BigInteger.valueOf(max).add(BigInteger.valueOf(min).negate()).divide(BigInteger.valueOf(nBuckets)).add(BigInteger.ONE);
+        final int nBuckets = buckets.length;
+        final BigInteger stride = BigInteger.valueOf(max).add(BigInteger.valueOf(min).negate()).divide(BigInteger.valueOf(nBuckets)).add(BigInteger.ONE);
         for (int i = 0; i < xs.length; i++) {
-            int k = BigInteger.valueOf(longs[i]).add(BigInteger.valueOf(min).negate()).divide(stride).intValue();
+            final int k = BigInteger.valueOf(longs[i]).add(BigInteger.valueOf(min).negate()).divide(stride).intValue();
             if (0 <= k && k < nBuckets) buckets[k].add(xs[i]);
             else throw new RuntimeException("Logic error: k=" + k + ", with " + nBuckets + " buckets");
         }
@@ -82,7 +82,7 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
      * @param makeCopy    whether to make a copy or not
      */
     @SuppressWarnings("unchecked")
-    public HuskyBucketHelper(String description, int m, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter, long seed, boolean makeCopy) {
+    public HuskyBucketHelper(final String description, final int m, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter, final long seed, final boolean makeCopy) {
         super(description, n, coder, postSorter, seed, makeCopy);
         // CONSIDER merge with HuskyBucketHelper lines 103-104
         buckets = (Bag<X>[]) Array.newInstance(Bag.class, n / m);
@@ -99,7 +99,7 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
      * @param postSorter  the post-sorter
      */
     @SuppressWarnings("unchecked")
-    public HuskyBucketHelper(String description, int m, int n, HuskyCoder<X> coder, Consumer<X[]> postSorter) {
+    public HuskyBucketHelper(final String description, final int m, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter) {
         super(description, n, coder, postSorter);
         buckets = (Bag<X>[]) Array.newInstance(Bag.class, n / m);
         for (int i = 0; i < buckets.length; i++) buckets[i] = new Bag_Array<>();
@@ -115,15 +115,15 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
 
     private int getTotal() {
         int result = 0;
-        for (Bag<X> bucket : buckets) result += bucket.size();
+        for (final Bag<X> bucket : buckets) result += bucket.size();
         return result;
     }
 
     private int getSpread() {
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
-        for (Bag<X> bucket : buckets) {
-            int size = bucket.size();
+        for (final Bag<X> bucket : buckets) {
+            final int size = bucket.size();
             if (size > max) max = size;
             if (size < min) min = size;
         }

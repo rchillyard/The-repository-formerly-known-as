@@ -31,3 +31,8 @@ temp/
 logs/
 
 ExtendedHelper/
+/api/
+
+shuffledChinese.txt
+
+src/main/resources/Chinese_Names_Corpus.txt
