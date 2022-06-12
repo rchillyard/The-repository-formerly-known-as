@@ -12,8 +12,18 @@ import java.text.Collator;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
+<<<<<<< Updated upstream
 import java.util.Locale;
+=======
+import java.util.HashMap;
+>>>>>>> Stashed changes
 import java.util.Random;
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
+import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 /**
  * Factory class for HuskyCoders.
@@ -29,6 +39,10 @@ public final class HuskyCoderFactory {
     private static final int BIT_WIDTH_ASCII = 7;
     private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
     private static final int MASK_ASCII = 0x7F;
+
+    private static final int BIT_WIDTH_PINYIN = 11;
+    private static final int MAX_LENGTH_PINYIN= BITS_LONG / BIT_WIDTH_ASCII;
+    private static final int MASK_PINYIN = 0x7FF;
 
     private static final int BIT_WIDTH_ENGLISH = 6;
     private static final int MAX_LENGTH_ENGLISH = BITS_LONG / BIT_WIDTH_ENGLISH;
@@ -301,11 +315,50 @@ public final class HuskyCoderFactory {
     }
 
     private static long unicodeToLong(final String str) {
+        int n=0;
+        boolean isChinese = false;
+        int pos = 0;
+        while(!isChinese){
+            n = (int)str.charAt(pos);
+            if(n>=19968&&n<40869){
+                isChinese=true;
+            }
+        }
+        if(isChinese){
+            return chineseToLong(str);
+        }
         return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
         // CONSIDER an alternative coding scheme which would use str.getBytes(Charset.forName("UTF-16"));
         // ignore the first two bytes and take the next eight bytes (or however many there are) and then pack them byte by byte into the long.
 //        int startingPos = 2; // We need to account for the BOM
 //        return stringToBytesToLong(str, MAX_LENGTH_UNICODE, StandardCharsets.UTF_16, startingPos) >>> 1;
+    }
+
+    private static long chineseToLong(final String str){
+        HuskyChineseHelper chineseHelper = new HuskyChineseHelper();
+        String[][] pinyin = new String[str.length()][];
+        chineseHelper.help();
+        HashMap<String,Integer> pinyinHash = chineseHelper.result;
+        pinyin = chineseHelper.getPinyin(str);
+        return pinyinArrayToLong(pinyin, MAX_LENGTH_PINYIN, BIT_WIDTH_PINYIN, MASK_PINYIN, pinyinHash);
+    }
+
+    private static long pinyinArrayToLong(String[][] pinyinArray, final int maxLength, final int bitWidth, final int mask, HashMap<String,Integer> pinyinHash) {
+        String[] str = new String[pinyinArray.length];
+        for(int i = 0; i<pinyinArray.length; i++){
+            str[i] = pinyinArray[i][0];
+        }
+        final int length = Math.min(str.length, maxLength);
+        final int padding = maxLength - length;
+        long result = 1L;
+        if (((mask ^ MASK_SHORT) & MASK_SHORT) == 0)
+            for (int i = 0; i < length; i++) result = result << bitWidth | pinyinHash.get(str[i]);
+        else
+            for (int i = 0; i < length; i++) {
+                result = result << bitWidth | pinyinHash.get(str[i]) & mask;
+            }
+        result = result << bitWidth * padding;
+        return result;
     }
 
     private static long stringToLong(final String str, final int maxLength, final int bitWidth, final int mask) {

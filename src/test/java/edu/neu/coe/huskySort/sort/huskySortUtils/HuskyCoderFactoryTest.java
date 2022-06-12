@@ -171,7 +171,7 @@ public class HuskyCoderFactoryTest {
                 "但去莫復問\n" + // ditto
                 "白雲無盡時"; // ditto
         String[] xs = s送别.split("\n");
-        Coding coding = coder.huskyEncode(xs);
+        HuskySequenceCoder.Coding coding = coder.huskyEncode(xs);
         long[] longs = coding.longs;
         assertFalse(coding.perfect);
         assertEquals(7, longs.length);

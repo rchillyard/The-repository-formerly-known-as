@@ -1,9 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.huskySortUtils.Coding;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.sort.huskySortUtils.*;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
@@ -46,7 +43,7 @@ public class PureHuskySort<X extends Comparable<X>> {
         // This is necessary if we might be sorting a pre-sorted array. Otherwise, we usually don't need it.
         if (mayBeSorted) Collections.shuffle(Arrays.asList(xs));
         // NOTE: First pass where we code to longs and sort according to those.
-        final Coding coding = huskyCoder.huskyEncode(xs);
+        final HuskySequenceCoder.Coding coding = huskyCoder.huskyEncode(xs);
         final long[] longs = coding.longs;
         introSort(xs, longs, 0, longs.length, 2 * floor_lg(xs.length));
 
