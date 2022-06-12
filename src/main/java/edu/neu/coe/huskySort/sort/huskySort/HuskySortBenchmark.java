@@ -3,7 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortException;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.*;
@@ -93,7 +93,7 @@ public final class HuskySortBenchmark {
 
         // TODO why do we have localDateTimeSupplier IN ADDITION TO localDateTimes?
         final Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(n);
-        final BaseHelper<ChronoLocalDateTime<?>> helper = new BaseHelper<>("DateTimeHelper");
+        final BaseComparisonSortHelper<ChronoLocalDateTime<?>> helper = new BaseComparisonSortHelper<>("DateTimeHelper");
         final LocalDateTime[] localDateTimes = generateRandomLocalDateTimeArray(n);
 
         // CONSIDER finding the common ground amongst these sorts and get them all working together.
@@ -677,7 +677,7 @@ public final class HuskySortBenchmark {
         final String[] words = getLeipzigWordsFromResource(resource);
         // NOTE that the words retrieved from the resource have variable number of Chinese characters in each string.
         // I have noted strings with lengths from 2 up to 34 characters, with possibly more.
-        if (isConfigBoolean(Config.HELPER, BaseHelper.INSTRUMENT))
+        if (isConfigBoolean(Config.HELPER, BaseComparisonSortHelper.INSTRUMENT))
             benchmarkStringSortersInstrumented(words, nWords, nRuns, huskyCoder);
         else
             benchmarkStringSorters(resource, words, nWords, nRuns, huskyCoder);

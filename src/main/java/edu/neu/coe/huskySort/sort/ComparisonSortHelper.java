@@ -1,25 +1,19 @@
 package edu.neu.coe.huskySort.sort;
 
-import java.util.Random;
-import java.util.function.Function;
+import edu.neu.coe.huskySort.util.Helper;
 
 import static java.util.Arrays.binarySearch;
 
 /**
- * Helper interface.
+ * ComparisonSortHelper interface.
  * <p>
- * A Helper provides all of the utilities that are needed by sort methods, for example, compare and swap.
+ * A ComparisonSortHelper provides all of the utilities that are needed by sort methods, for example, compare and swap.
  * <p>
  * CONSIDER having the concept of a current sub-array, then we could dispense with the lo, hi parameters.
  *
  * @param <X>
  */
-public interface Helper<X extends Comparable<X>> {
-
-    /**
-     * @return true if this is an instrumented Helper.
-     */
-    boolean instrumented();
+public interface ComparisonSortHelper<X extends Comparable<X>> extends Helper<X> {
 
     /**
      * Compare elements i and j of xs within the subarray lo...hi
@@ -136,16 +130,6 @@ public interface Helper<X extends Comparable<X>> {
     }
 
     /**
-     * Copy the element at source[j] into target[i]
-     *
-     * @param source the source array.
-     * @param i      the target index.
-     * @param target the target array.
-     * @param j      the source index.
-     */
-    void copy(X[] source, int i, X[] target, int j);
-
-    /**
      * TODO eliminate this method as it has been superseded by swapConditional. However, maybe the latter is a better name.
      * Method to fix a potentially unstable inversion.
      *
@@ -169,65 +153,17 @@ public interface Helper<X extends Comparable<X>> {
     }
 
     /**
-     * Return true if xs is sorted, i.e. has no inversions.
+     * If instrumenting, increment the number of fixes by n.
      *
-     * @param xs an array of Xs.
-     * @return true if there are no inversions, else false.
+     * @param n the number of copies made.
      */
-    boolean sorted(X[] xs);
-
-    /**
-     * Count the number of inversions of this array.
-     *
-     * @param xs an array of Xs.
-     * @return the number of inversions.
-     */
-    int inversions(X[] xs);
-
-    /**
-     * Method to post-process the array xs after sorting.
-     *
-     * @param xs the array that has been sorted.
-     * @return whether the postProcessing was successful.
-     */
-    boolean postProcess(X[] xs);
-
-    /**
-     * Method to generate an array of randomly chosen X elements.
-     *
-     * @param clazz the class of X.
-     * @param f     a function which takes a Random and generates a random value of X.
-     * @return an array of X of length determined by the current value according to setN.
-     */
-    X[] random(Class<X> clazz, Function<Random, X> f);
-
-    /**
-     * @return the description of this Helper.
-     */
-    String getDescription();
+    default void incrementFixes(final int n) {
+        // do nothing.
+    }
 
     default int cutoff() {
         return 7;
     }
-
-    /**
-     * Initialize this Helper with the size of the array to be managed.
-     *
-     * @param n the size to be managed.
-     */
-    void init(int n);
-
-    /**
-     * Get the current value of N.
-     *
-     * @return the value of N.
-     */
-    int getN();
-
-    /**
-     * Close this Helper, freeing up any resources used.
-     */
-    void close();
 
     /**
      * If instrumenting, increment the number of copies by n.
@@ -238,13 +174,17 @@ public interface Helper<X extends Comparable<X>> {
         // do nothing.
     }
 
+
     /**
-     * If instrumenting, increment the number of fixes by n.
+     * Method to post-process the array xs after sorting.
+     * By default, this method does nothing.
      *
-     * @param n the number of copies made.
+     * @param xs the array to be tested.
+     * @return true.
      */
-    default void incrementFixes(final int n) {
-        // do nothing.
+    @Override
+    default boolean postProcess(final X[] xs) {
+        return true;
     }
 
     /**
@@ -264,4 +204,5 @@ public interface Helper<X extends Comparable<X>> {
     default int maxDepth() {
         return 0;
     }
+
 }

@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
@@ -110,7 +110,7 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
         insertionSort = new InsertionSort<>(getHelper());
     }
 
-    public QuickSort(final Helper<X> helper) {
+    public QuickSort(final ComparisonSortHelper<X> helper) {
         super(helper);
         insertionSort = new InsertionSort<>(helper);
     }

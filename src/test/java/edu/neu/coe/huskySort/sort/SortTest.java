@@ -35,7 +35,7 @@ public class SortTest {
     @Test
     public void testSort1() {
         final TestSorter sorter = new TestSorter("test", 100, true, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         final Integer[] ys = sorter.sort(xs);
         assertTrue(ys[0] <= ys[1]);
@@ -46,7 +46,7 @@ public class SortTest {
     public void testSort2() {
         final int N = 100;
         final TestSorter sorter = new TestSorter("test", N, true, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         helper.init(N);
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         sorter.sort(xs, 0, xs.length);
@@ -70,15 +70,15 @@ public class SortTest {
              *
              * @param xs the array to be post-processed.
              * @return true.
-             * @throws BaseHelper.HelperException if the array xs is not sorted.
+             * @throws BaseComparisonSortHelper.HelperException if the array xs is not sorted.
              */
             @Override
             public boolean postProcess(final Integer[] xs) {
-                if (!getHelper().sorted(xs)) throw new BaseHelper.HelperException("Array is not sorted");
+                if (!getHelper().sorted(xs)) throw new BaseComparisonSortHelper.HelperException("Array is not sorted");
                 return true;
             }
         };
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         sorter.sort(xs, 0, xs.length);
         assertFalse("array should not be sorted - except under extremely rare circumstances", helper.sorted(xs));
@@ -87,7 +87,7 @@ public class SortTest {
     @Test
     public void mutatingSort() {
         final TestSorter sorter = new TestSorter("test", 100, true, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         sorter.mutatingSort(xs);
         assertTrue(xs[0] < xs[1]);
@@ -97,7 +97,7 @@ public class SortTest {
     @Test
     public void testSort4() {
         final TestSorter sorter = new TestSorter("test", 100, true, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         final Integer[] ys = sorter.sort(xs, false);
         assertArrayEquals(xs, ys);
@@ -108,7 +108,7 @@ public class SortTest {
     @Test
     public void testSort5() {
         final TestSorter sorter = new TestSorter("test", 100, true, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000000));
         final List<Integer> list = Arrays.asList(xs);
         final Iterable<Integer> ys = sorter.sort(list);

@@ -8,16 +8,16 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class InstrumentedHelperTest {
+public class InstrumentedComparisonSortHelperTest {
 
     @Test
     public void testInstrumented() {
-        assertTrue(new InstrumentedHelper<String>("test", config).instrumented());
+        assertTrue(new InstrumentedComparisonSortHelper<String>("test", config).instrumented());
     }
 
     @Test
     public void testLess() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         assertTrue(helper.less("a", "b"));
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
@@ -26,8 +26,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testCompare() {
-        String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"a", "b"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         assertEquals(-1, helper.compare(xs, 0, 1));
         assertEquals(0, helper.compare(xs, 0, 0));
         assertEquals(1, helper.compare(xs, 1, 0));
@@ -38,8 +38,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testSwap1() {
-        String[] xs = new String[]{"b", "a"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"b", "a"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(1, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
@@ -57,8 +57,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testSwap2() {
-        String[] xs = new String[]{"c", "b", "a"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"c", "b", "a"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(3, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
@@ -75,8 +75,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testSwap3() {
-        String[] xs = new String[]{"c", "b", "d", "a"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"c", "b", "d", "a"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(4, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
@@ -94,8 +94,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testSwap4() {
-        String[] xs = new String[]{"c", "e", "b", "d", "a"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"c", "e", "b", "d", "a"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         assertEquals(7, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
@@ -117,16 +117,16 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testSwap5() {
-        String[] xs = new String[]{"f", "e", "d", "c", "b", "a"};
-        int n = xs.length;
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"f", "e", "d", "c", "b", "a"};
+        final int n = xs.length;
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
-        int inversions = n * (n - 1) / 2;
+        final int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, n - 1);
         assertArrayEquals(new String[]{"a", "e", "d", "c", "b", "f"}, xs);
-        int fixes = 2 * n - 3;
+        final int fixes = 2 * n - 3;
         assertEquals(fixes, privateMethodInvoker.invokePrivate("getFixes"));
         assertEquals(inversions - fixes, helper.inversions(xs));
         assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
@@ -134,16 +134,16 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testSwap6() {
-        String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
-        int n = xs.length;
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
+        final int n = xs.length;
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
-        int inversions = n * (n - 1) / 2;
+        final int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, n - 1);
         assertArrayEquals(new String[]{"a", "f", "e", "d", "c", "b", "g"}, xs);
-        int fixes = 2 * n - 3;
+        final int fixes = 2 * n - 3;
         assertEquals(fixes, privateMethodInvoker.invokePrivate("getFixes"));
         assertEquals(inversions - fixes, helper.inversions(xs));
         assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
@@ -151,8 +151,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testSorted() {
-        String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"a", "b"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         assertTrue(helper.sorted(xs));
         helper.swap(xs, 0, 1);
         assertFalse(helper.sorted(xs));
@@ -163,8 +163,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testInversions() {
-        String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"a", "b"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         assertEquals(0, helper.inversions(xs));
         helper.swap(xs, 0, 1);
         assertEquals(1, helper.inversions(xs));
@@ -172,42 +172,42 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testPostProcess1() {
-        String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"a", "b"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         helper.init(3);
         helper.postProcess(xs);
     }
 
-    @Test(expected = BaseHelper.HelperException.class)
+    @Test(expected = BaseComparisonSortHelper.HelperException.class)
     public void testPostProcess2() {
-        String[] xs = new String[]{"b", "a"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"b", "a"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         helper.postProcess(xs);
     }
 
     @Test
     public void testRandom() {
-        String[] words = new String[]{"Hello", "World"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", 3, 0L, config);
+        final String[] words = new String[]{"Hello", "World"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", 3, 0L, config);
         final String[] strings = helper.random(String.class, r -> words[r.nextInt(2)]);
         assertArrayEquals(new String[]{"World", "World", "Hello"}, strings);
     }
 
     @Test
     public void testToString() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", 3, config);
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", 3, config);
         assertEquals("Instrumenting helper for test with 3 elements", helper.toString());
     }
 
     @Test
     public void testGetDescription() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", 3, config);
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", 3, config);
         assertEquals("test", helper.getDescription());
     }
 
     @Test(expected = RuntimeException.class)
     public void testGetSetN() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", 3, config);
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", 3, config);
         assertEquals(3, helper.getN());
         helper.init(4);
         assertEquals(4, helper.getN());
@@ -215,7 +215,7 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testGetSetNBis() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         assertEquals(0, helper.getN());
         helper.init(4);
         assertEquals(4, helper.getN());
@@ -223,14 +223,14 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testClose() {
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         helper.close();
     }
 
     @Test
     public void testSwapStable() {
-        String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"a", "b"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.swapStable(xs, 1);
@@ -242,8 +242,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testFixInversion1() {
-        String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"a", "b"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         helper.fixInversion(xs, 1);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
@@ -259,8 +259,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testFixInversion2() {
-        String[] xs = new String[]{"a", "b"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"a", "b"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         helper.fixInversion(xs, 0, 1);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
@@ -276,10 +276,10 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testMergeSort() {
-        int N = 8;
-        final Helper<Integer> helper = new InstrumentedHelper<>("test", config);
+        final int N = 8;
+        final ComparisonSortHelper<Integer> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
-        Sort<Integer> s = new MergeSortBasic<>(helper);
+        final Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
         s.sort(xs);
@@ -289,21 +289,21 @@ public class InstrumentedHelperTest {
 
     @Ignore // TODO fix this test
     public void testMergeSortMany() {
-        int N = 8;
-        int m = 10;
-        final Helper<Integer> helper = new InstrumentedHelper<>("test", config);
+        final int N = 8;
+        final int m = 10;
+        final ComparisonSortHelper<Integer> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
-        Sort<Integer> s = new MergeSortBasic<>(helper);
+        final Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
         for (int i = 0; i < m; i++) {
             final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
-            Integer[] ys = s.sort(xs);
+            final Integer[] ys = s.sort(xs);
             helper.postProcess(ys);
         }
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
-        final Statistics statistics = statPack.getStatistics(InstrumentedHelper.COMPARES);
+        final Statistics statistics = statPack.getStatistics(InstrumentedComparisonSortHelper.COMPARES);
         System.out.println(statistics);
-        final int compares = statPack.getCount(InstrumentedHelper.COMPARES);
+        final int compares = statPack.getCount(InstrumentedComparisonSortHelper.COMPARES);
         System.out.println(statPack);
         assertTrue(12 <= compares && compares <= 17);
     }
@@ -321,8 +321,8 @@ public class InstrumentedHelperTest {
 
     @Test
     public void testSwapConditional1() {
-        String[] xs = new String[]{"c", "b", "a"};
-        final Helper<String> helper = new InstrumentedHelper<>("test", config);
+        final String[] xs = new String[]{"c", "b", "a"};
+        final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         assertFalse(helper.sorted(xs));
         helper.swapConditional(xs, 0, 2);
         assertTrue(helper.sorted(xs));

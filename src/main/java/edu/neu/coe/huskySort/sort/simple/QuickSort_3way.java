@@ -1,8 +1,8 @@
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
-import edu.neu.coe.huskySort.sort.InstrumentedHelper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.InstrumentedComparisonSortHelper;
 import edu.neu.coe.huskySort.util.Config;
 
 import java.util.ArrayList;
@@ -29,15 +29,15 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
     /**
      * Constructor for QuickSort_3way
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public QuickSort_3way(final Helper<X> helper) {
+    public QuickSort_3way(final ComparisonSortHelper<X> helper) {
         super(helper);
         setPartitioner(createPartitioner());
     }
 
     public QuickSort_3way() {
-        this(new BaseHelper<>(DESCRIPTION));
+        this(new BaseComparisonSortHelper<>(DESCRIPTION));
     }
 
     /**
@@ -60,7 +60,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
      * @param seed the seed for the random number generator.
      */
     public QuickSort_3way(final int N, final long seed, final Config config) {
-        this(new InstrumentedHelper<>(DESCRIPTION, N, config));
+        this(new InstrumentedComparisonSortHelper<>(DESCRIPTION, N, config));
     }
 
     final class Partitioner_3Way implements Partitioner<X> {
@@ -102,7 +102,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
             return partitions;
         }
 
-        public Partitioner_3Way(final Helper<X> helper) {
+        public Partitioner_3Way(final ComparisonSortHelper<X> helper) {
             this.helper = helper;
         }
 
@@ -115,7 +115,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
             }
         }
 
-        private final Helper<X> helper;
+        private final ComparisonSortHelper<X> helper;
     }
 }
 

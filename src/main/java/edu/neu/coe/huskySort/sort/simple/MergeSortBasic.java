@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
@@ -58,9 +58,9 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      * <p>
      * NOTE this is used only by unit tests, using its own instrumented helper.
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public MergeSortBasic(final Helper<X> helper) {
+    public MergeSortBasic(final ComparisonSortHelper<X> helper) {
         super(helper);
         insertionSort = new InsertionSort<>(helper);
     }
@@ -77,7 +77,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     private void merge(final X[] aux, final X[] a, final int lo, final int mid, final int hi) {
-        final Helper<X> helper = getHelper();
+        final ComparisonSortHelper<X> helper = getHelper();
         int i = lo;
         int j = mid;
         int k = lo;

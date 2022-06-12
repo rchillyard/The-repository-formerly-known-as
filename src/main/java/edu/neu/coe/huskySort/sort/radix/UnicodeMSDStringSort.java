@@ -27,8 +27,18 @@ public final class UnicodeMSDStringSort {
      *
      * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
      */
-    public UnicodeMSDStringSort(final CharacterMap characterMap) {
+    public UnicodeMSDStringSort(final CharacterMap characterMap, final CountingSortHelper<CharacterMap.UnicodeString> helper) {
         this.characterMap = characterMap;
+        this.helper = helper;
+    }
+
+    /**
+     * Constructor of UnicodeMSDStringSort, which requires a CharacterMap.
+     *
+     * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
+     */
+    public UnicodeMSDStringSort(final CharacterMap characterMap) {
+        this(characterMap, new BasicCountingSortHelper<CharacterMap.UnicodeString>());
     }
 
     /**
@@ -112,4 +122,5 @@ public final class UnicodeMSDStringSort {
     private static CharacterMap.UnicodeString[] aux; // XXX auxiliary array for distribution.
 
     private final CharacterMap characterMap; // NOTE this is used, despite IDEA's analysis.
+    private final CountingSortHelper<CharacterMap.UnicodeString> helper;
 }

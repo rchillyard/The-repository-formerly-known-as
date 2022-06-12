@@ -4,7 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import org.junit.Ignore;
@@ -63,7 +63,7 @@ public class ShellSortTest {
 
     @Ignore // TEST
     public void sort5() throws Exception {
-        BaseHelper<Integer> helper = new BaseHelper<>("ShellSort", 1000);
+        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("ShellSort", 1000);
         Integer[] xs = (Integer[]) helper.random(Integer.class, random -> random.nextInt());
         SelectionSort<Integer> sorter = new SelectionSort<Integer>(helper);
         Integer[] ys = sorter.sort(xs);

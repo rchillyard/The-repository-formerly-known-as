@@ -3,18 +3,18 @@ package edu.neu.coe.huskySort.sort;
 import edu.neu.coe.huskySort.util.Config;
 
 /**
- * Base class for a sorter that uses a Helper.
+ * Base class for a sorter that uses a ComparisonSortHelper.
  *
  * @param <X> the underlying type to be sorted.
  */
 public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X> {
 
     /**
-     * Get the Helper associated with this Sort.
+     * Get the ComparisonSortHelper associated with this Sort.
      *
-     * @return the Helper
+     * @return the ComparisonSortHelper
      */
-    public Helper<X> getHelper() {
+    public ComparisonSortHelper<X> getHelper() {
         return helper;
     }
 
@@ -67,7 +67,7 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
      *
      * @param helper the helper to use.
      */
-    public SortWithHelper(final Helper<X> helper) {
+    public SortWithHelper(final ComparisonSortHelper<X> helper) {
         this.helper = helper;
     }
 
@@ -83,7 +83,7 @@ public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>
         closeHelper = true;
     }
 
-    private final Helper<X> helper;
+    private final ComparisonSortHelper<X> helper;
     protected boolean closeHelper = false;
 
 }

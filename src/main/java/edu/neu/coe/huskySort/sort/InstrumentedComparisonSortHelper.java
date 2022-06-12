@@ -9,17 +9,17 @@ import java.util.Random;
 import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 
 /**
- * Helper class for sorting methods with instrumentation of compares and swaps, and in addition, bounds checks.
- * This Helper class may be used for analyzing sort methods but will run at slightly slower speeds than the super-class.
+ * ComparisonSortHelper class for sorting methods with instrumentation of compares and swaps, and in addition, bounds checks.
+ * This ComparisonSortHelper class may be used for analyzing sort methods but will run at slightly slower speeds than the super-class.
  *
  * @param <X> the underlying type (must be Comparable).
  */
-public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
+public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> extends BaseComparisonSortHelper<X> {
 
-    final static LazyLogger logger = new LazyLogger(InstrumentedHelper.class);
+    final static LazyLogger logger = new LazyLogger(InstrumentedComparisonSortHelper.class);
 
-    public static <Y extends Comparable<Y>> InstrumentedHelper<Y> getInstrumentedHelper(final Helper<Y> helper, final InstrumentedHelper<Y> alternative) {
-        return InstrumentedHelper.class.isAssignableFrom(helper.getClass()) ? (InstrumentedHelper<Y>) helper : alternative;
+    public static <Y extends Comparable<Y>> InstrumentedComparisonSortHelper<Y> getInstrumentedHelper(final ComparisonSortHelper<Y> helper, final InstrumentedComparisonSortHelper<Y> alternative) {
+        return InstrumentedComparisonSortHelper.class.isAssignableFrom(helper.getClass()) ? (InstrumentedComparisonSortHelper<Y>) helper : alternative;
     }
 
     public boolean instrumented() {
@@ -209,7 +209,7 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
     }
 
     /**
-     * Initialize this Helper.
+     * Initialize this ComparisonSortHelper.
      *
      * @param n the size to be managed.
      */
@@ -236,7 +236,7 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
         // NOTE: because counting inversions is so slow, we only do if for a (configured) number of samples.
         if (countInversions-- > 0) {
             if (statPack != null) statPack.add(INVERSIONS, inversions(result));
-            else throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
+            else throw new RuntimeException("InstrumentedComparisonSortHelper.postProcess: no StatPack");
         }
         return result;
     }
@@ -253,8 +253,8 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
     @Override
     public boolean postProcess(final X[] xs) {
         final boolean result = super.postProcess(xs);
-        if (!sorted(xs)) throw new BaseHelper.HelperException("Array is not sorted");
-        if (statPack == null) throw new RuntimeException("InstrumentedHelper.postProcess: no StatPack");
+        if (!sorted(xs)) throw new BaseComparisonSortHelper.HelperException("Array is not sorted");
+        if (statPack == null) throw new RuntimeException("InstrumentedComparisonSortHelper.postProcess: no StatPack");
         if (countCompares)
             statPack.add(COMPARES, compares);
         if (countSwaps)
@@ -278,7 +278,7 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
 
     @Override
     public void close() {
-        logger.debug(() -> "Closing Helper: " + description + " with statPack: " + statPack);
+        logger.debug(() -> "Closing ComparisonSortHelper: " + description + " with statPack: " + statPack);
         super.close();
     }
 
@@ -289,12 +289,12 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
     /**
      * Constructor for explicit random number generator.
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param random      a random number generator.
      * @param config      the configuration (note that the seed value is ignored).
      */
-    public InstrumentedHelper(final String description, final int n, final Random random, final Config config) {
+    public InstrumentedComparisonSortHelper(final String description, final int n, final Random random, final Config config) {
         super(description, n, random);
         this.countCopies = config.getBoolean(INSTRUMENTING, COPIES);
         this.countSwaps = config.getBoolean(INSTRUMENTING, SWAPS);
@@ -305,36 +305,36 @@ public final class InstrumentedHelper<X extends Comparable<X>> extends BaseHelpe
     }
 
     /**
-     * Constructor to create a Helper
+     * Constructor to create a ComparisonSortHelper
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param config      The configuration.
      */
-    public InstrumentedHelper(final String description, final int n, final Config config) {
+    public InstrumentedComparisonSortHelper(final String description, final int n, final Config config) {
         this(description, n, config.getLong("helper", "seed", System.currentTimeMillis()), config);
     }
 
     /**
-     * Constructor to create a Helper
+     * Constructor to create a ComparisonSortHelper
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param seed        the seed for the random number generator.
      * @param config      the configuration.
      */
-    public InstrumentedHelper(final String description, final int n, final long seed, final Config config) {
+    public InstrumentedComparisonSortHelper(final String description, final int n, final long seed, final Config config) {
         this(description, n, new Random(seed), config);
     }
 
     /**
-     * Constructor to create a Helper with a random seed and an n value of 0.
+     * Constructor to create a ComparisonSortHelper with a random seed and an n value of 0.
      * <p>
      * NOTE: this constructor is used only by unit tests
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      */
-    public InstrumentedHelper(final String description, final Config config) {
+    public InstrumentedComparisonSortHelper(final String description, final Config config) {
         this(description, 0, config);
     }
 

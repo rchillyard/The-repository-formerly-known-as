@@ -3,8 +3,8 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
@@ -55,9 +55,9 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *               2: use powers of two less one;
      *               3: use the sequence based on 3 (the one in the book): 1, 4, 13, etc.
      *               4: Sedgewick's sequence (not implemented).
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public ShellSort(final int m, final BaseHelper<X> helper) {
+    public ShellSort(final int m, final BaseComparisonSortHelper<X> helper) {
         super(helper);
         this.m = m;
     }
@@ -72,7 +72,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *          4: Sedgewick's sequence (not implemented).
      */
     public ShellSort(final int m) {
-        this(m, new BaseHelper<>(DESCRIPTION));
+        this(m, new BaseComparisonSortHelper<>(DESCRIPTION));
     }
 
     /**
@@ -84,7 +84,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param to   one plus the last index to be considered in array xs.
      */
     private void hSort(final int h, final X[] xs, final int from, final int to) {
-        final Helper<X> helper = getHelper();
+        final ComparisonSortHelper<X> helper = getHelper();
         for (int i = h + from; i < to; i++) {
             int j = i;
             while (j >= h + from && helper.swapConditional(xs, j - h, j)) j -= h;

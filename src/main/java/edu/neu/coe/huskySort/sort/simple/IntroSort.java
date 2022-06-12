@@ -3,8 +3,8 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.Utilities;
 
@@ -60,9 +60,9 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
     /**
      * Constructor for QuickSort_3way
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public IntroSort(final Helper<X> helper) {
+    public IntroSort(final ComparisonSortHelper<X> helper) {
         super(helper);
     }
 
@@ -90,14 +90,14 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
     }
 
     public IntroSort() {
-        this(new BaseHelper<>(DESCRIPTION));
+        this(new BaseComparisonSortHelper<>(DESCRIPTION));
     }
 
     /*
      * Heapsort algorithm
      */
     private void heapSort(final X[] a, final int from, final int to) {
-        final Helper<X> helper = getHelper();
+        final ComparisonSortHelper<X> helper = getHelper();
         final int n = to - from;
         for (int i = n / 2; i >= 1; i = i - 1) {
             downHeap(a, i, n, from, helper);
@@ -108,7 +108,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
         }
     }
 
-    private void downHeap(final X[] a, int i, final int n, final int lo, final Helper<X> helper) {
+    private void downHeap(final X[] a, int i, final int n, final int lo, final ComparisonSortHelper<X> helper) {
         final X d = a[lo + i - 1];
         int child;
         while (i <= n / 2) {

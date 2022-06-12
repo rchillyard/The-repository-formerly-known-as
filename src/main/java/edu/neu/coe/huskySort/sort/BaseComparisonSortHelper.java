@@ -5,7 +5,7 @@ import edu.neu.coe.huskySort.util.Utilities;
 import java.util.Random;
 import java.util.function.Function;
 
-public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
+public class BaseComparisonSortHelper<X extends Comparable<X>> implements ComparisonSortHelper<X> {
 
     /**
      * @return false
@@ -119,7 +119,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     public X[] random(final Class<X> clazz, final Function<Random, X> f) {
-        if (n <= 0) throw new HelperException("Helper.random: not initialized");
+        if (n <= 0) throw new HelperException("ComparisonSortHelper.random: not initialized");
         return Utilities.fillRandomArray(clazz, random, n, f);
     }
 
@@ -137,7 +137,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
 
     @Override
     public String toString() {
-        return "Helper for " + description + " with " + n + " elements";
+        return "ComparisonSortHelper for " + description + " with " + n + " elements";
     }
 
     public String getDescription() {
@@ -150,7 +150,7 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      */
     public void init(final int n) {
         if (this.n == 0 || this.n == n) this.n = n;
-        else throw new HelperException("Helper: n is already set to a different value");
+        else throw new HelperException("ComparisonSortHelper: n is already set to a different value");
     }
 
     public int getN() {
@@ -163,11 +163,11 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * Constructor for explicit random number generator.
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param random      a random number generator.
      */
-    public BaseHelper(final String description, final int n, final Random random) {
+    public BaseComparisonSortHelper(final String description, final int n, final Random random) {
         this.n = n;
         this.description = description;
         this.random = random;
@@ -176,30 +176,30 @@ public class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * Constructor for explicit seed.
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param seed        the seed for the random number generator.
      */
-    public BaseHelper(final String description, final int n, final long seed) {
+    public BaseComparisonSortHelper(final String description, final int n, final long seed) {
         this(description, n, new Random(seed));
     }
 
     /**
-     * Constructor to create a Helper with a random seed.
+     * Constructor to create a ComparisonSortHelper with a random seed.
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      */
-    public BaseHelper(final String description, final int n) {
+    public BaseComparisonSortHelper(final String description, final int n) {
         this(description, n, System.currentTimeMillis());
     }
 
     /**
-     * Constructor to create a Helper with a random seed and an n value of 0.
+     * Constructor to create a ComparisonSortHelper with a random seed and an n value of 0.
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      */
-    public BaseHelper(final String description) {
+    public BaseComparisonSortHelper(final String description) {
         this(description, 0);
     }
 

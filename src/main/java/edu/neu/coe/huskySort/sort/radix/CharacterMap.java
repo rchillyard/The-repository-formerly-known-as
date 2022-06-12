@@ -14,7 +14,7 @@ public class CharacterMap {
     /**
      * Inner instance class which represents a string of UnicodeCharacter instances.
      */
-    class UnicodeString {
+    class UnicodeString implements DComparable<UnicodeString> {
         /**
          * Constructor which takes a String representing a "word" or name.
          * We expect each of the characters of word to be a unicode representation.
@@ -49,9 +49,21 @@ public class CharacterMap {
             return UnicodeCharacter.NullChar;
         }
 
+        /**
+         * Method to compare this UnicodeString with other -- at the dth character.
+         *
+         * @param other another UnicodeString.
+         * @param d     the offset of the character in each of the strings.
+         * @return negative, zero, or positive according to this less than, = or greater than other.
+         */
+        public int compareTo(final UnicodeString other, final int d) {
+            return charAt(d).compareTo(other.charAt(d));
+        }
 
         /**
          * Method to compare this UnicodeString with other -- at the dth character.
+         * <p>
+         * TODO have the callers call compareTo instead.
          *
          * @param other another UnicodeString.
          * @param d     the offset of the character in each of the strings.

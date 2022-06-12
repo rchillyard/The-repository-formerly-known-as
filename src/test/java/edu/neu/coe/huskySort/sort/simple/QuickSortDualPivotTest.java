@@ -43,7 +43,7 @@ public class QuickSortDualPivotTest {
     public void testSortWithInstrumenting0() throws Exception {
         int n = 16;
         final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -53,7 +53,7 @@ public class QuickSortDualPivotTest {
     public void testSortWithInstrumenting1() throws Exception {
         int n = 541; // a prime number
         final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(97));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -63,7 +63,7 @@ public class QuickSortDualPivotTest {
     public void testSortWithInstrumenting2() throws Exception {
         int n = 1000;
         final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(100));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -73,7 +73,7 @@ public class QuickSortDualPivotTest {
     public void testSortWithInstrumenting3() throws Exception {
         int n = 1000;
         final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -83,7 +83,7 @@ public class QuickSortDualPivotTest {
     public void testSortWithInstrumenting4() throws Exception {
         int n = 1000;
         final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -93,7 +93,7 @@ public class QuickSortDualPivotTest {
     public void testSortWithInstrumenting5() throws Exception {
         int n = 1000;
         final SortWithHelper<Integer> sorter = new QuickSort_DualPivot<>(n, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -158,7 +158,7 @@ public class QuickSortDualPivotTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("quick sort dual pivot", N, config);
+        final BaseComparisonSortHelper<Integer> helper = (BaseComparisonSortHelper<Integer>) HelperFactory.create("quick sort dual pivot", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new QuickSort_DualPivot<>(helper);
         s.init(N);
@@ -171,11 +171,11 @@ public class QuickSortDualPivotTest {
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
-        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
+        final int compares = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COMPARES).mean();
+        final int inversions = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COPIES).mean();
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertTrue(compares <= worstCompares);
@@ -187,7 +187,7 @@ public class QuickSortDualPivotTest {
         String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
         int n = xs.length;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
+        final BaseComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         QuickSort_DualPivot<String> sorter = new QuickSort_DualPivot<>(helper);
         int inversions = n * (n - 1) / 2;
@@ -213,7 +213,7 @@ public class QuickSortDualPivotTest {
     @Test
     public void smallStringSort() throws IOException {
         Config config = Config.load(null);
-        final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
+        final BaseComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         int k = 20;
         int n = k * k;
         helper.init(n);

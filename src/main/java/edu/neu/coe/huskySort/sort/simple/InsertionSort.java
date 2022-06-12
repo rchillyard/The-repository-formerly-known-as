@@ -3,8 +3,8 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
@@ -25,7 +25,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      */
     @Override
     public void sort(final X[] xs, final int from, final int to) {
-        final Helper<X> helper = getHelper();
+        final ComparisonSortHelper<X> helper = getHelper();
         for (int i = from + 1; i < to; i++) {
             // TODO implement using swapIntoSorted
             int j = i;
@@ -50,15 +50,15 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     public InsertionSort() {
-        this(new BaseHelper<>(DESCRIPTION));
+        this(new BaseComparisonSortHelper<>(DESCRIPTION));
     }
 
     /**
      * Constructor for InsertionSort
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public InsertionSort(final Helper<X> helper) {
+    public InsertionSort(final ComparisonSortHelper<X> helper) {
         super(helper);
     }
 

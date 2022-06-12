@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.InstrumentedHelper;
+import edu.neu.coe.huskySort.sort.InstrumentedComparisonSortHelper;
 import org.ini4j.Ini;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -14,8 +14,8 @@ public class ConfigTest {
 
     @Test
     public void testConfigFromString1() throws IOException {
-        String s = "[x]\nx1=\nx2= \nx3=Hello\nx4= Hello\nx5=Hello World!\nx6= Hello World!\nx7= \"Hello\"";
-        Config config = new Config(new ByteArrayInputStream(s.getBytes()));
+        final String s = "[x]\nx1=\nx2= \nx3=Hello\nx4= Hello\nx5=Hello World!\nx6= Hello World!\nx7= \"Hello\"";
+        final Config config = new Config(new ByteArrayInputStream(s.getBytes()));
         assertNull(config.get("x", "x1"));
         assertNull(config.get("x", "x2"));
         assertEquals("Hello", config.get("x", "x3"));
@@ -27,8 +27,8 @@ public class ConfigTest {
 
     @Test
     public void testConfigFromString2() throws IOException {
-        String s = "[x]\nx1=\nx2=\t\nx3=Hello\nx4=\tHello\nx5=Hello World!\nx6=\tHello World!\nx7=\t\"Hello\"";
-        Config config = new Config(new ByteArrayInputStream(s.getBytes()));
+        final String s = "[x]\nx1=\nx2=\t\nx3=Hello\nx4=\tHello\nx5=Hello World!\nx6=\tHello World!\nx7=\t\"Hello\"";
+        final Config config = new Config(new ByteArrayInputStream(s.getBytes()));
         assertNull(config.get("x", "x1"));
         assertNull(config.get("x", "x2"));
         assertEquals("Hello", config.get("x", "x3"));
@@ -41,7 +41,7 @@ public class ConfigTest {
     @Test
     public void testConfig() throws IOException {
         final Config config = Config.load();
-        String name = config.get("huskysort", "version");
+        final String name = config.get("huskysort", "version");
         System.out.println("ConfigTest: " + name);
     }
 
@@ -56,8 +56,8 @@ public class ConfigTest {
     @Test
     public void testCopy() {
         final Config config = setupConfig(FALSE, "", "", "", "");
-        int originalSeed = config.getInt(Config.HELPER, SEED, -1);
-        Config config1 = config.copy(Config.HELPER, SEED, "1");
+        final int originalSeed = config.getInt(Config.HELPER, SEED, -1);
+        final Config config1 = config.copy(Config.HELPER, SEED, "1");
         assertEquals(originalSeed, config.getInt(Config.HELPER, SEED, -1));
         assertEquals(1, config1.getInt(Config.HELPER, SEED, -1));
     }
@@ -71,7 +71,7 @@ public class ConfigTest {
         assertFalse((Boolean) privateMethodInvoker.invokePrivate("unLogged", Config.HELPER + "." + SEED));
     }
 
-    public static Config setupConfig(final String instrumenting, final String seed, final String inversions, String cutoff, String interimInversions) {
+    public static Config setupConfig(final String instrumenting, final String seed, final String inversions, final String cutoff, final String interimInversions) {
         final Ini ini = new Ini();
         final String sInstrumenting = INSTRUMENTING;
         ini.put(Config.HELPER, Config.INSTRUMENT, instrumenting);
@@ -88,13 +88,13 @@ public class ConfigTest {
 
     public static final String TRUE = "true";
     public static final String FALSE = "";
-    public static final String INSTRUMENTING = InstrumentedHelper.INSTRUMENTING;
-    public static final String INVERSIONS = InstrumentedHelper.INVERSIONS;
+    public static final String INSTRUMENTING = InstrumentedComparisonSortHelper.INSTRUMENTING;
+    public static final String INVERSIONS = InstrumentedComparisonSortHelper.INVERSIONS;
     public static final String SEED = "seed";
     public static final String CUTOFF = "cutoff";
-    public static final String SWAPS = InstrumentedHelper.SWAPS;
-    public static final String COMPARES = InstrumentedHelper.COMPARES;
-    public static final String COPIES = InstrumentedHelper.COPIES;
-    public static final String FIXES = InstrumentedHelper.FIXES;
+    public static final String SWAPS = InstrumentedComparisonSortHelper.SWAPS;
+    public static final String COMPARES = InstrumentedComparisonSortHelper.COMPARES;
+    public static final String COPIES = InstrumentedComparisonSortHelper.COPIES;
+    public static final String FIXES = InstrumentedComparisonSortHelper.FIXES;
 
 }

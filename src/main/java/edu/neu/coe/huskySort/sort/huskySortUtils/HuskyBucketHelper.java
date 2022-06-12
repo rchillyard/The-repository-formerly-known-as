@@ -2,7 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 
 import java.lang.reflect.Array;
 import java.math.BigInteger;
@@ -17,10 +17,10 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
      * @param buckets an array of Bag of X elements.
      * @param xs      an array of X elements to be filled.
      * @param helper  a helper whose compare method we will use.
-     * @param <X>     the underlying type of the array and the Helper.
+     * @param <X>     the underlying type of the array and the ComparisonSortHelper.
      */
     @SuppressWarnings("unchecked")
-    public static <X extends Comparable<X>> void unloadBuckets(final Bag<X>[] buckets, final X[] xs, final Helper<X> helper) {
+    public static <X extends Comparable<X>> void unloadBuckets(final Bag<X>[] buckets, final X[] xs, final ComparisonSortHelper<X> helper) {
         final Index index = new Index();
         Arrays.stream(buckets).forEach(xes -> {
             final Object[] objects = xes.asArray();

@@ -3,8 +3,8 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.InstrumentedHelper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.InstrumentedComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.simple.MergeSortBasic;
@@ -34,7 +34,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      */
     public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(final HuskyCoder<Y> huskyCoder, final int N, final Config config) {
         final String value = isCountInterimInversions(config) + "";
-        final Config copy = config.copy(InstrumentedHelper.INSTRUMENTING, InstrumentedHelper.FIXES, value).copy(Config.HELPER, BaseHelper.INSTRUMENT, value);
+        final Config copy = config.copy(InstrumentedComparisonSortHelper.INSTRUMENTING, InstrumentedComparisonSortHelper.FIXES, value).copy(Config.HELPER, BaseComparisonSortHelper.INSTRUMENT, value);
         // CONSIDER using insertion sort instead of mergeSort.
         final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, copy);
         finisher.init(N);
@@ -150,7 +150,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         } else {
             final StatPack statPack = getStatPack();
             if (closed && statPack != null) {
-                final Statistics fixes = statPack.getStatistics(InstrumentedHelper.FIXES);
+                final Statistics fixes = statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES);
                 if (fixes != null) return fixes.mean();
                 else throw new RuntimeException("Cannot get fixes from StatPack");
             } else throw new RuntimeException("Cannot get statPack or not closed");
@@ -160,7 +160,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     /**
      * Primary constructor for IntroHuskySort.
      *
-     * @param name          the name of the sort which will be used by the Helper.
+     * @param name          the name of the sort which will be used by the ComparisonSortHelper.
      * @param huskyCoder    the Husky coder.
      * @param postSorter    the post-sorter which will eliminate any remaining inversions.
      * @param config        the configuration.
@@ -174,7 +174,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     /**
      * Primary constructor for IntroHuskySort.
      *
-     * @param name       the name of the sort which will be used by the Helper.
+     * @param name       the name of the sort which will be used by the ComparisonSortHelper.
      * @param huskyCoder the Husky coder.
      * @param postSorter the post-sorter which will eliminate any remaining inversions.
      * @param config     the configuration.
@@ -184,7 +184,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     private StatPack getStatPack() {
-        final InstrumentedHelper<X> delegateHelper = InstrumentedHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
+        final InstrumentedComparisonSortHelper<X> delegateHelper = InstrumentedComparisonSortHelper.getInstrumentedHelper(adjunctSorter.getHelper(), null);
         if (delegateHelper != null && delegateHelper.instrumented()) return delegateHelper.getStatPack();
         else return null;
     }

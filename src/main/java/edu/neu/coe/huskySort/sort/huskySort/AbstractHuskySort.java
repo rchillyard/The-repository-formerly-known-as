@@ -64,7 +64,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     }
 
     /**
-     * Method to get the Helper, but as a HuskyHelper.
+     * Method to get the ComparisonSortHelper, but as a HuskyHelper.
      *
      * @return a HuskyHelper.
      */
@@ -113,7 +113,7 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
      * NOTE: callers of this method should consider arranging for the helper to be closed on close of the sorter.
      */
     private static <Y extends Comparable<Y>> HuskyHelper<Y> createHelper(final String name, final int n, final HuskyCoder<Y> huskyCoder, final Consumer<Y[]> postSorter, final boolean instrumentation, final Config config) {
-        return instrumentation ? new HuskyHelper<>(HelperFactory.create("Husky Delegate Helper", n, config), huskyCoder, postSorter, false) : new HuskyHelper<>(name, n, huskyCoder, postSorter);
+        return instrumentation ? new HuskyHelper<>(HelperFactory.create("Husky Delegate ComparisonSortHelper", n, config), huskyCoder, postSorter, false) : new HuskyHelper<>(name, n, huskyCoder, postSorter);
     }
 
     protected final HuskyHelper<X> huskyHelper;

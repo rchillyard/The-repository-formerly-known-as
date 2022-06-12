@@ -3,8 +3,8 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
@@ -32,9 +32,9 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for TimSort
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public TimSort(final Helper<X> helper) {
+    public TimSort(final ComparisonSortHelper<X> helper) {
         super(helper);
     }
 
@@ -49,7 +49,7 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     public TimSort() {
-        this(new BaseHelper<>(DESCRIPTION));
+        this(new BaseComparisonSortHelper<>(DESCRIPTION));
     }
 }
 

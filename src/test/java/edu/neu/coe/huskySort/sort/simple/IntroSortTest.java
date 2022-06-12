@@ -42,7 +42,7 @@ public class IntroSortTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("intro sort", N, config);
+        final BaseComparisonSortHelper<Integer> helper = (BaseComparisonSortHelper<Integer>) HelperFactory.create("intro sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new IntroSort<>(helper);
         s.init(N);
@@ -55,11 +55,11 @@ public class IntroSortTest {
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
-        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
+        final int compares = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COMPARES).mean();
+        final int inversions = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COPIES).mean();
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertEquals(13, helper.maxDepth());
@@ -72,7 +72,7 @@ public class IntroSortTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("intro sort", N, config);
+        final BaseComparisonSortHelper<Integer> helper = (BaseComparisonSortHelper<Integer>) HelperFactory.create("intro sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new IntroSort<>(helper);
         s.init(N);
@@ -85,11 +85,11 @@ public class IntroSortTest {
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
-        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
+        final int compares = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COMPARES).mean();
+        final int inversions = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COPIES).mean();
         assertEquals(4, helper.maxDepth());
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);

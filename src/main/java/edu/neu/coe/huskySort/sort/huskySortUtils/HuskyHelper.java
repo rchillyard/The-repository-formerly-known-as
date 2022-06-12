@@ -1,20 +1,20 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 
 import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Helper class for sorting methods with special technique of HuskySort.
- * IF you want to count compares and swaps then you need to extend InstrumentedHelper.
+ * ComparisonSortHelper class for sorting methods with special technique of HuskySort.
+ * IF you want to count compares and swaps then you need to extend InstrumentedComparisonSortHelper.
  * <p>
  *
  * @param <X> the underlying type (must be Comparable).
  */
-public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
+public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelper<X> {
 
     /**
      * @return the post-sorter.
@@ -40,9 +40,9 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     * @return the Helper.
+     * @return the ComparisonSortHelper.
      */
-    public Helper<X> getHelper() {
+    public ComparisonSortHelper<X> getHelper() {
         return helper;
     }
 
@@ -227,7 +227,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     * Close this Helper.
+     * Close this ComparisonSortHelper.
      */
     public void close() {
         helper.close();
@@ -338,12 +338,12 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * Constructor to create a HuskyHelper
      *
-     * @param helper     the Helper.
+     * @param helper     the ComparisonSortHelper.
      * @param coder      the coder to be used.
      * @param postSorter the postSorter Consumer function.
      * @param makeCopy   explicit setting of the makeCopy value used in sort(Y[] xs)
      */
-    public HuskyHelper(final Helper<X> helper, final HuskyCoder<X> coder, final Consumer<X[]> postSorter, final boolean makeCopy) {
+    public HuskyHelper(final ComparisonSortHelper<X> helper, final HuskyCoder<X> coder, final Consumer<X[]> postSorter, final boolean makeCopy) {
         this.helper = helper;
         this.coder = coder;
         this.postSorter = postSorter;
@@ -351,32 +351,32 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     }
 
     /**
-     * Constructor to create an uninstrumented Husky Helper with explicit seed.
+     * Constructor to create an uninstrumented Husky ComparisonSortHelper with explicit seed.
      * <p>
      * NOTE used by unit tests only.
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param seed        the seed for the random number generator
      * @param makeCopy    explicit setting of the makeCopy value used in sort(Y[] xs)
      */
     public HuskyHelper(final String description, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter, final long seed, final boolean makeCopy) {
-        this(new BaseHelper<>(description, n, seed), coder, postSorter, makeCopy);
+        this(new BaseComparisonSortHelper<>(description, n, seed), coder, postSorter, makeCopy);
     }
 
     /**
-     * Constructor to create an uninstrumented Husky Helper with random seed.
+     * Constructor to create an uninstrumented Husky ComparisonSortHelper with random seed.
      * <p>
      * NOTE used by unit tests only.
      *
-     * @param description the description of this Helper (for humans).
+     * @param description the description of this ComparisonSortHelper (for humans).
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      */
     public HuskyHelper(final String description, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter) {
         this(description, n, coder, postSorter, System.currentTimeMillis(), false);
     }
 
-    protected final Helper<X> helper;
+    protected final ComparisonSortHelper<X> helper;
 
     // Delegate methods on helper
     private final HuskyCoder<X> coder;

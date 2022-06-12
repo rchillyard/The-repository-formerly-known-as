@@ -4,7 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class BucketSortTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        BaseHelper<Integer> helper = new BaseHelper<>("BucketSort", xs.length);
+        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("BucketSort", xs.length);
         BucketSort<Integer> sorter = new BucketSort<>(2, helper);
         Integer[] ys = sorter.sort(xs);
         assertTrue(helper.sorted(ys));
@@ -37,7 +37,7 @@ public class BucketSortTest {
         Integer[] xs = new Integer[N];
         Random random = new Random();
         for (int i = 0; i < N; i++) xs[i] = random.nextInt(10000);
-        BaseHelper<Integer> helper = new BaseHelper<>("BucketSort", xs.length);
+        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("BucketSort", xs.length);
         BucketSort<Integer> sorter = new BucketSort<>(100, helper);
         Integer[] ys = sorter.sort(xs);
         assertTrue(helper.sorted(ys));
