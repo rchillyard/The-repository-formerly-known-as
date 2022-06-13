@@ -22,7 +22,7 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
      * @return true if v is less than w.
      */
     default boolean less(final X v, final X w, final int d) {
-        return this.compare(v, w, d) < 0;
+        return v.compareFromD(w, d) < 0;
     }
 
     /**
@@ -37,8 +37,27 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
         return v.charAt(d).compareTo(w.charAt(d));
     }
 
+    /**
+     * Method to swap two elements.
+     * Even though this is a helper for counting sorts, we typically have a cutoff to insertion sort for,
+     * e.g. MSD Radix sort.
+     *
+     * @param xs an array of Xs.
+     * @param j  one element to be swapped.
+     * @param i  the other element to be swapped.
+     */
+    default void swap(final X[] xs, final int j, final int i) {
+        final X temp = xs[j];
+        xs[j] = xs[i];
+        xs[i] = temp;
+    }
 
-    default int cutoff() {
+    /**
+     * Method to determine the cutoff value for switching to insertion sort.
+     *
+     * @return 7 by default.
+     */
+    default int getCutoff() {
         return 7;
     }
 

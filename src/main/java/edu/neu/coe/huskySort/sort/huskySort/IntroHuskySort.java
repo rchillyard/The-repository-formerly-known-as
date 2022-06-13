@@ -3,15 +3,11 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.InstrumentedComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.simple.MergeSortBasic;
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.StatPack;
-import edu.neu.coe.huskySort.util.Statistics;
-import edu.neu.coe.huskySort.util.Utilities;
+import edu.neu.coe.huskySort.util.*;
 
 import java.util.function.Consumer;
 
@@ -34,7 +30,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      */
     public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(final HuskyCoder<Y> huskyCoder, final int N, final Config config) {
         final String value = isCountInterimInversions(config) + "";
-        final Config copy = config.copy(InstrumentedComparisonSortHelper.INSTRUMENTING, InstrumentedComparisonSortHelper.FIXES, value).copy(Config.HELPER, BaseComparisonSortHelper.INSTRUMENT, value);
+        final Config copy = config.copy(InstrumentedComparisonSortHelper.INSTRUMENTING, InstrumentedComparisonSortHelper.FIXES, value).copy(Config.HELPER, BaseHelper.INSTRUMENT, value);
         // CONSIDER using insertion sort instead of mergeSort.
         final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, copy);
         finisher.init(N);

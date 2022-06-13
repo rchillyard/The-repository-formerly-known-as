@@ -8,7 +8,7 @@ import java.util.Random;
 /**
  * Class to implement Most significant digit string sort (a radix sort).
  */
-public final class UnicodeMSDStringSort {
+public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.UnicodeString, UnicodeCharacter> {
     /**
      * Sort an array of Strings using UnicodeMSDStringSort.
      *
@@ -30,6 +30,7 @@ public final class UnicodeMSDStringSort {
      * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
      */
     public UnicodeMSDStringSort(final CharacterMap characterMap, final CountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper) {
+        super(characterMap, helper);
         this.characterMap = characterMap;
         this.helper = helper;
     }
@@ -41,15 +42,6 @@ public final class UnicodeMSDStringSort {
      */
     public UnicodeMSDStringSort(final CharacterMap characterMap) {
         this(characterMap, new BasicCountingSortHelper<>("UnicodeMSDStringSort", 0, new Random()));
-    }
-
-    /**
-     * Used by unit tests to vary the cutoff value.
-     *
-     * @param cutoff an appropriate cutoff value for switching to insertion sort.
-     */
-    public static void setCutoff(final int cutoff) {
-        UnicodeMSDStringSort.cutoff = cutoff;
     }
 
     /**
@@ -68,7 +60,7 @@ public final class UnicodeMSDStringSort {
         // XXX if there are fewer than two elements, we return immediately.
         if (from >= to - 1) return;
         // XXX if there is a small number of elements, we switch to insertion sort.
-        if (to < from + cutoff) insertionSort(xs, from, to, d);
+        if (to < from + helper.getCutoff()) insertionSort(xs, from, to, d);
         else {
             final Counts counts = new Counts();
             counts.countCharacters(xs, from, to, d);
@@ -100,15 +92,11 @@ public final class UnicodeMSDStringSort {
      * @param to   the first element following the sub-array NOT to be considered.
      * @param d    the number of characters to be ignored.
      */
-    private static void insertionSort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
+    private void insertionSort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
 //        logger.debug("UnicodeMSDStringSort.insertionSort: on " +(d > 0 ? xs[from].charAt(d-1) : "root")+ " from="+from+", to="+to+", d="+d);
         for (int i = from; i < to; i++)
-            for (int j = i; j > from && less(xs[j], xs[j - 1], d); j--)
-                swap(xs, j, j - 1);
-    }
-
-    private static boolean less(final CharacterMap.UnicodeString v, final CharacterMap.UnicodeString w, final int d) {
-        return v.compareFromD(w, d) < 0;
+            for (int j = i; j > from && helper.less(xs[j], xs[j - 1], d); j--)
+                helper.swap(xs, j, j - 1);
     }
 
     private static void swap(final Object[] a, final int j, final int i) {
@@ -119,7 +107,7 @@ public final class UnicodeMSDStringSort {
 
     final static LazyLogger logger = new LazyLogger(UnicodeMSDStringSort.class);
 
-    private static int cutoff = 15; // XXX default value for the insertion sort cutoff.
+    private static final int cutoff = 15; // XXX default value for the insertion sort cutoff.
 
     private static CharacterMap.UnicodeString[] aux; // XXX auxiliary array for distribution.
 

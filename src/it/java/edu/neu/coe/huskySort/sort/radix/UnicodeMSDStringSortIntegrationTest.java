@@ -24,8 +24,9 @@ public class UnicodeMSDStringSortIntegrationTest {
 
     @Test
     public void test1() {
-        final Config test1Config = config.copy("benchmarkstringsorters", "unicodemsdstringsort", "true");
-        UnicodeMSDStringSort.setCutoff(8);
+        final Config test1Config = config.
+                copy("benchmarkstringsorters", "unicodemsdstringsort", "true").
+                copy("helper", "cutoff", "8");
         Benchmark.setMinWarmupRuns(0);
         final HuskySortBenchmark huskySortBenchmark = new HuskySortBenchmark(test1Config);
         huskySortBenchmark.benchmarkUnicodeStringSortersSeeded(CHINESE_NAMES_CORPUS, HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList), 1000, 1, new Random(0L));
@@ -33,8 +34,9 @@ public class UnicodeMSDStringSortIntegrationTest {
 
     @Test
     public void test2() {
-        final Config test1Config = config.copy("benchmarkstringsorters", "unicodemsdstringsort", "true");
-        UnicodeMSDStringSort.setCutoff(8);
+        final Config test1Config = config.
+                copy("benchmarkstringsorters", "unicodemsdstringsort", "true").
+                copy("helper", "cutoff", "8");
         Benchmark.setMinWarmupRuns(0);
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
         final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, '阿'));

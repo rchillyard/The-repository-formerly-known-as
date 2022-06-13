@@ -148,8 +148,8 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
      * @return the cutoff value.
      */
     @Override
-    public int cutoff() {
-        return helper.cutoff();
+    public int getCutoff() {
+        return helper.getCutoff();
     }
 
     /**

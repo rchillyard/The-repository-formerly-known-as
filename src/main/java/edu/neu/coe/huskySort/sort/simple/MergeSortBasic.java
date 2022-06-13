@@ -39,7 +39,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
     @Override
     public void sort(final X[] xs, final int from, final int to) {
         @SuppressWarnings("UnnecessaryLocalVariable") final int lo = from;
-        if (to <= lo + getHelper().cutoff()) {
+        if (to <= lo + getHelper().getCutoff()) {
             insertionSort.sort(xs, from, to);
             return;
         }

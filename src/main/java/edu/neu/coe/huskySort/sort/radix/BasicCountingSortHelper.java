@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.radix;
 
 import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.util.BaseHelper;
 import edu.neu.coe.huskySort.util.Utilities;
 
 import java.util.Random;
@@ -10,11 +11,13 @@ import java.util.function.Function;
  * Concrete implementation of CountingSortHelper.
  * See also ComparisonSortHelper, which is very similar.
  * CONSIDER merging the two helpers further.
+ * <p>
+ * NOTE that this Helper is not affected in any way by the configuration.
  *
  * @param <X> the type of the "string."
  * @param <Y> the type of the "characters" that form the string, e.g. decimal digits or DNA bases.
  */
-public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> implements CountingSortHelper<X, Y> {
+public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends BaseHelper<X> implements CountingSortHelper<X, Y> {
     /**
      * @return true if this is an instrumented ComparisonSortHelper.
      */
@@ -65,55 +68,9 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
         return Utilities.fillRandomArray(clazz, random, n, f);
     }
 
-    /**
-     * Method to post-process the array xs after sorting.
-     * By default, this method does nothing.
-     *
-     * @param xs the array to be tested.
-     * @return true.
-     */
-    @Override
-    public boolean postProcess(final X[] xs) {
-        return true;
-    }
-
     @Override
     public String toString() {
-        return "ComparisonSortHelper for " + description + " with " + n + " elements";
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Initialize this ComparisonSortHelper with the size of the array to be managed.
-     *
-     * @param n the size to be managed.
-     * @throws BaseComparisonSortHelper.HelperException if n is inconsistent.
-     */
-    @Override
-    public void init(final int n) {
-        if (this.n == 0 || this.n == n) this.n = n;
-        else
-            throw new BaseComparisonSortHelper.HelperException("ComparisonSortHelper: n is already set to a different value");
-    }
-
-    /**
-     * Get the current value of N.
-     *
-     * @return the value of N.
-     */
-    @Override
-    public int getN() {
-        return n;
-    }
-
-    /**
-     * Close this CountingSortHelper, freeing up any resources used.
-     */
-    @Override
-    public void close() {
+        return "BasicCountingSortHelper for " + description + " with " + n + " elements";
     }
 
     /**
@@ -124,9 +81,7 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
      * @param random      a source of random numbers.
      */
     public BasicCountingSortHelper(final String description, final int n, final Random random) {
-        this.description = description;
-        this.n = n;
-        this.random = random;
+        super(description, random, n);
     }
 
     /**
@@ -158,8 +113,4 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
     public BasicCountingSortHelper(final String description) {
         this(description, 0);
     }
-
-    protected final String description;
-    protected int n;
-    private final Random random;
 }

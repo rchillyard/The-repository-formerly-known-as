@@ -42,6 +42,27 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
         super.copy(source, i, target, j);
     }
 
+
+    /**
+     * If instrumenting, increment the number of copies by n.
+     *
+     * @param n the number of copies made.
+     */
+    public void incrementCopies(final int n) {
+        if (countCopies) copies += n;
+    }
+
+    // NOTE: the following private methods are only for testing.
+
+    /**
+     * If instrumenting, increment the number of fixes by n.
+     *
+     * @param n the number of copies made.
+     */
+    public void incrementFixes(final int n) {
+        if (countFixes) fixes += n;
+    }
+
     /**
      * Compare values v and w and return true if v is less than w.
      *
@@ -59,41 +80,19 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
 
 
     /**
-     * If instrumenting, increment the number of copies by n.
-     *
-     * @param n the number of copies made.
-     */
-    @Override
-    public void incrementCopies(final int n) {
-        if (countCopies) copies += n;
-    }
-
-    // NOTE: the following private methods are only for testing.
-
-    /**
-     * If instrumenting, increment the number of fixes by n.
-     *
-     * @param n the number of copies made.
-     */
-    public void incrementFixes(final int n) {
-        if (countFixes) fixes += n;
-    }
-
-
-    /**
      * Get the configured cutoff value.
      *
      * @return a value for cutoff.
      */
     @Override
-    public int cutoff() {
+    public int getCutoff() {
         // NOTE that a cutoff value of 0 or less will result in an infinite recursion for any recursive method that uses it.
-        return (cutoff >= 1) ? cutoff : super.cutoff();
+        return (cutoff >= 1) ? cutoff : super.getCutoff();
     }
 
     @Override
     public String toString() {
-        return "Instrumenting counting sort helper for " + description + " with " + formatWhole(n) + " elements";
+        return "Instrumenting counting sort helper for " + getDescription() + " with " + formatWhole(getN()) + " elements";
     }
 
     /**
@@ -170,7 +169,7 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
 
     @Override
     public void close() {
-        logger.debug(() -> "Closing ComparisonSortHelper: " + description + " with statPack: " + statPack);
+        logger.debug(() -> "Closing CountingSortHelper: " + description + " with statPack: " + statPack);
         super.close();
     }
 

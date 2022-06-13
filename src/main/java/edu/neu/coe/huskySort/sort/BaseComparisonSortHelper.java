@@ -1,5 +1,6 @@
 package edu.neu.coe.huskySort.sort;
 
+import edu.neu.coe.huskySort.util.BaseHelper;
 import edu.neu.coe.huskySort.util.Utilities;
 
 import java.util.Random;
@@ -7,10 +8,12 @@ import java.util.function.Function;
 
 /**
  * Concrete implementation of ComparisonSortHelper.
+ * <p>
+ * NOTE that this Helper is not affected in any way by the configuration.
  *
- * @param <X> the type of the "string."
+ * @param <X> the type of elements to be compared.
  */
-public class BaseComparisonSortHelper<X extends Comparable<X>> implements ComparisonSortHelper<X> {
+public class BaseComparisonSortHelper<X extends Comparable<X>> extends BaseHelper<X> implements ComparisonSortHelper<X> {
 
     /**
      * @return false
@@ -126,55 +129,13 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> implements Compar
     }
 
     public X[] random(final Class<X> clazz, final Function<Random, X> f) {
-        if (n <= 0) throw new HelperException("ComparisonSortHelper.random: not initialized");
-        return Utilities.fillRandomArray(clazz, random, n, f);
-    }
-
-    /**
-     * Method to post-process the array xs after sorting.
-     * By default, this method does nothing.
-     *
-     * @param xs the array to be tested.
-     * @return true.
-     */
-    @Override
-    public boolean postProcess(final X[] xs) {
-        return true;
+        if (getN() <= 0) throw new HelperException("ComparisonSortHelper.random: not initialized");
+        return Utilities.fillRandomArray(clazz, random, getN(), f);
     }
 
     @Override
     public String toString() {
-        return "ComparisonSortHelper for " + description + " with " + n + " elements";
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * @param n the size to be managed.
-     * @throws HelperException if n is inconsistent.
-     */
-    public void init(final int n) {
-        if (this.n == 0 || this.n == n) this.n = n;
-        else throw new HelperException("ComparisonSortHelper: n is already set to a different value");
-    }
-
-    /**
-     * Get the current value of N.
-     *
-     * @return the value of N.
-     */
-    @Override
-    public int getN() {
-        return n;
-    }
-
-    /**
-     * Close this ComparisonSortHelper, freeing up any resources used.
-     */
-    @Override
-    public void close() {
+        return "ComparisonSortHelper for " + getDescription() + " with " + getN() + " elements";
     }
 
     /**
@@ -185,9 +146,7 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> implements Compar
      * @param random      a random number generator.
      */
     public BaseComparisonSortHelper(final String description, final int n, final Random random) {
-        this.n = n;
-        this.description = description;
-        this.random = random;
+        super(description, random, n);
     }
 
     /**
@@ -220,28 +179,4 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> implements Compar
         this(description, 0);
     }
 
-    public static final String INSTRUMENT = "instrument";
-
-    public static class HelperException extends RuntimeException {
-
-        public HelperException(final String message) {
-            super(message);
-        }
-
-        public HelperException(final String message, final Throwable cause) {
-            super(message, cause);
-        }
-
-        public HelperException(final Throwable cause) {
-            super(cause);
-        }
-
-        public HelperException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
-            super(message, cause, enableSuppression, writableStackTrace);
-        }
-    }
-
-    protected final String description;
-    protected final Random random;
-    protected int n;
 }

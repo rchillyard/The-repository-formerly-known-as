@@ -148,7 +148,6 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      *
      * @param n the number of copies made.
      */
-    @Override
     public void incrementCopies(final int n) {
         if (countCopies) copies += n;
     }
@@ -160,7 +159,6 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      *
      * @param n the number of copies made.
      */
-    @Override
     public void incrementFixes(final int n) {
         if (countFixes) fixes += n;
     }
@@ -198,14 +196,14 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      * @return a value for cutoff.
      */
     @Override
-    public int cutoff() {
+    public int getCutoff() {
         // NOTE that a cutoff value of 0 or less will result in an infinite recursion for any recursive method that uses it.
-        return (cutoff >= 1) ? cutoff : super.cutoff();
+        return (cutoff >= 1) ? cutoff : super.getCutoff();
     }
 
     @Override
     public String toString() {
-        return "Instrumenting helper for " + description + " with " + formatWhole(n) + " elements";
+        return "Instrumenting helper for " + getDescription() + " with " + formatWhole(getN()) + " elements";
     }
 
     /**
@@ -219,7 +217,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
         copies = 0;
         fixes = 0;
         // NOTE: it's an error to reset the StatPack if we've been here before
-        if (n == this.n && statPack != null) return;
+        if (n == this.getN() && statPack != null) return;
         super.init(n);
         statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES, INTERIM_INVERSIONS);
     }
@@ -278,7 +276,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
 
     @Override
     public void close() {
-        logger.debug(() -> "Closing ComparisonSortHelper: " + description + " with statPack: " + statPack);
+        logger.debug(() -> "Closing ComparisonSortHelper: " + getDescription() + " with statPack: " + statPack);
         super.close();
     }
 

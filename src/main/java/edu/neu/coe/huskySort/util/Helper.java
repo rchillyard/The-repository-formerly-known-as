@@ -57,7 +57,10 @@ public interface Helper<X> {
      */
     String getDescription();
 
-    int cutoff();
+    /**
+     * @return the cutoff value.
+     */
+    int getCutoff();
 
     /**
      * Initialize this ComparisonSortHelper with the size of the array to be managed.

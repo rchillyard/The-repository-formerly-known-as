@@ -1,6 +1,5 @@
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 
@@ -193,7 +192,7 @@ public class Config {
 
     // CONSIDER: sort these out.
     public static final String HELPER = "helper";
-    public static final String INSTRUMENT = BaseComparisonSortHelper.INSTRUMENT;
+    public static final String INSTRUMENT = BaseHelper.INSTRUMENT;
 
     /**
      * Method to load the appropriate configuration.

@@ -161,7 +161,7 @@ public interface ComparisonSortHelper<X extends Comparable<X>> extends Helper<X>
         // do nothing.
     }
 
-    default int cutoff() {
+    default int getCutoff() {
         return 7;
     }
 
