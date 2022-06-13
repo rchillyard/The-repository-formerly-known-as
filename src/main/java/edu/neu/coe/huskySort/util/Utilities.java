@@ -1,5 +1,7 @@
 package edu.neu.coe.huskySort.util;
 
+import edu.neu.coe.huskySort.sort.radix.StringComparable;
+
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Random;
@@ -21,7 +23,7 @@ public final class Utilities {
     }
 
     /**
-     * Create a string representing an double, with three decimal places.
+     * Create a string representing a double, with three decimal places.
      *
      * @param x the number to show.
      * @return a String representing the number rounded to three decimal places.
@@ -64,6 +66,18 @@ public final class Utilities {
      * @return false as soon as an inversion is found; otherwise return true.
      */
     public static <T extends Comparable<T>> boolean isSorted(final T[] ts) {
+        for (int i = 1; i < ts.length; i++) if (ts[i - 1].compareTo(ts[i]) > 0) return false;
+        return true;
+    }
+
+    /**
+     * Check that the given array is sorted.
+     *
+     * @param ts  the array to be checked.
+     * @param <T> the underlying type of ts.
+     * @return false as soon as an inversion is found; otherwise return true.
+     */
+    public static <T extends StringComparable<T, U>, U extends Comparable<U>> boolean isStringSorted(final T[] ts) {
         for (int i = 1; i < ts.length; i++) if (ts[i - 1].compareTo(ts[i]) > 0) return false;
         return true;
     }

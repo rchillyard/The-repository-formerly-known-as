@@ -3,6 +3,8 @@ package edu.neu.coe.huskySort.sort.radix;
 import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
+import java.util.Random;
+
 /**
  * Class to implement Most significant digit string sort (a radix sort).
  */
@@ -27,7 +29,7 @@ public final class UnicodeMSDStringSort {
      *
      * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
      */
-    public UnicodeMSDStringSort(final CharacterMap characterMap, final CountingSortHelper<CharacterMap.UnicodeString> helper) {
+    public UnicodeMSDStringSort(final CharacterMap characterMap, final CountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper) {
         this.characterMap = characterMap;
         this.helper = helper;
     }
@@ -38,7 +40,7 @@ public final class UnicodeMSDStringSort {
      * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
      */
     public UnicodeMSDStringSort(final CharacterMap characterMap) {
-        this(characterMap, new BasicCountingSortHelper<CharacterMap.UnicodeString>());
+        this(characterMap, new BasicCountingSortHelper<>("UnicodeMSDStringSort", 0, new Random()));
     }
 
     /**
@@ -122,5 +124,5 @@ public final class UnicodeMSDStringSort {
     private static CharacterMap.UnicodeString[] aux; // XXX auxiliary array for distribution.
 
     private final CharacterMap characterMap; // NOTE this is used, despite IDEA's analysis.
-    private final CountingSortHelper<CharacterMap.UnicodeString> helper;
+    private final CountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper;
 }

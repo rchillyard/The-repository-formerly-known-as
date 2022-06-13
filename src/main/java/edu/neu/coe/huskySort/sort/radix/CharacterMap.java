@@ -14,7 +14,7 @@ public class CharacterMap {
     /**
      * Inner instance class which represents a string of UnicodeCharacter instances.
      */
-    class UnicodeString implements DComparable<UnicodeString> {
+    class UnicodeString implements StringComparable<UnicodeString, UnicodeCharacter> {
         /**
          * Constructor which takes a String representing a "word" or name.
          * We expect each of the characters of word to be a unicode representation.
@@ -46,43 +46,20 @@ public class CharacterMap {
          */
         public UnicodeCharacter charAt(final int i) {
             if (valid(i)) return unicodes[i];
+            // CONSIDER that only the Nth character should be null. Others should throw an exception.
             return UnicodeCharacter.NullChar;
-        }
-
-        /**
-         * Method to compare this UnicodeString with other -- at the dth character.
-         *
-         * @param other another UnicodeString.
-         * @param d     the offset of the character in each of the strings.
-         * @return negative, zero, or positive according to this less than, = or greater than other.
-         */
-        public int compareTo(final UnicodeString other, final int d) {
-            return charAt(d).compareTo(other.charAt(d));
-        }
-
-        /**
-         * Method to compare this UnicodeString with other -- at the dth character.
-         * <p>
-         * TODO have the callers call compareTo instead.
-         *
-         * @param other another UnicodeString.
-         * @param d     the offset of the character in each of the strings.
-         * @return negative, zero, or positive according to this less than, = or greater than other.
-         */
-        public int compare(final UnicodeString other, final int d) {
-            return charAt(d).compareTo(other.charAt(d));
         }
 
         /**
          * Method to compare this UnicodeString with other -- starting at the dth character, but if necessary continuing to later characters.
          * This is particularly used by the insertion sort mechanism.
          *
-         * @param other another UnicodeString.
-         * @param d     the offset of the first character to compare in each of the strings.
+         * @param that another UnicodeString.
+         * @param d    the offset of the first character to compare in each of the strings.
          * @return negative, zero, or positive according to this less than, = or greater than other.
          */
-        public int compareFromD(final UnicodeString other, final int d) {
-            return compareUnicodeStringsFromD(this, other, d);
+        public int compareFromD(final UnicodeString that, final int d) {
+            return compareUnicodeStringsFromD(this, that, d);
         }
 
         @Override
@@ -129,7 +106,7 @@ public class CharacterMap {
 
     private int compareUnicodeStringsFromD(final UnicodeString s1, final UnicodeString s2, int d) {
         while (s1.valid(d) || s2.valid(d)) {
-            final int cf = s1.compare(s2, d++); // NOTE: comparison according to long code.
+            final int cf = s1.compareTo(s2, d++); // NOTE: comparison according to long code.
             if (cf != 0) return cf;
         }
         return 0;

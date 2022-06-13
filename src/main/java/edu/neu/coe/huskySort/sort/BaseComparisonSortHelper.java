@@ -5,6 +5,11 @@ import edu.neu.coe.huskySort.util.Utilities;
 import java.util.Random;
 import java.util.function.Function;
 
+/**
+ * Concrete implementation of ComparisonSortHelper.
+ *
+ * @param <X> the type of the "string."
+ */
 public class BaseComparisonSortHelper<X extends Comparable<X>> implements ComparisonSortHelper<X> {
 
     /**
@@ -106,6 +111,8 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> implements Compar
 
     /**
      * Method to count the total number of inversions in the given array (xs).
+     * <p>
+     * TODO this is identical with BasicCountingSortHelper: merge them.
      *
      * @param xs an array of Xs.
      * @return the number of inversions.
@@ -153,10 +160,20 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> implements Compar
         else throw new HelperException("ComparisonSortHelper: n is already set to a different value");
     }
 
+    /**
+     * Get the current value of N.
+     *
+     * @return the value of N.
+     */
+    @Override
     public int getN() {
         return n;
     }
 
+    /**
+     * Close this ComparisonSortHelper, freeing up any resources used.
+     */
+    @Override
     public void close() {
     }
 

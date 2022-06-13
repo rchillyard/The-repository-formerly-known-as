@@ -11,7 +11,7 @@ import edu.neu.coe.huskySort.util.Helper;
  *
  * @param <X>
  */
-public interface CountingSortHelper<X extends DComparable<X>> extends Helper<X> {
+public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends Helper<X> {
 
     /**
      * Compare values v and w and return true if v is less than w.
@@ -21,7 +21,9 @@ public interface CountingSortHelper<X extends DComparable<X>> extends Helper<X> 
      * @param d the position of interest.
      * @return true if v is less than w.
      */
-    boolean less(X v, X w, int d);
+    default boolean less(final X v, final X w, final int d) {
+        return this.compare(v, w, d) < 0;
+    }
 
     /**
      * Compare value v with value w.
@@ -31,7 +33,9 @@ public interface CountingSortHelper<X extends DComparable<X>> extends Helper<X> 
      * @param d the position of interest.
      * @return -1 if v is less than w; 1 if v is greater than w; otherwise 0.
      */
-    int compare(X v, X w, int d);
+    default int compare(final X v, final X w, final int d) {
+        return v.charAt(d).compareTo(w.charAt(d));
+    }
 
 
     default int cutoff() {

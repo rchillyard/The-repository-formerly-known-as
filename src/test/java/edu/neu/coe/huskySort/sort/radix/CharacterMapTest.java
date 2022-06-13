@@ -62,9 +62,9 @@ public class CharacterMapTest {
         assertEquals("hong 2", 卞艳红.charAt(2).alt());
         assertEquals(codeHong2, 卞艳红.charAt(2).encode());
         assertEquals(1, Long.compare(codeYan4, codeHong2));
-        assertEquals(0, 卞燕燕.compare(卞艳红, 0));
-        assertEquals(0, 卞燕燕.compare(卞艳红, 1));
-        assertEquals(1, 卞燕燕.compare(卞艳红, 2));
+        assertEquals(0, 卞燕燕.compareTo(卞艳红, 0));
+        assertEquals(0, 卞燕燕.compareTo(卞艳红, 1));
+        assertEquals(1, 卞燕燕.compareTo(卞艳红, 2));
         final Comparator<String> stringComparator = characterMap.stringComparator;
         assertEquals(1, stringComparator.compare("卞燕燕", "卞艳红"));
     }
@@ -88,9 +88,9 @@ public class CharacterMapTest {
         assertEquals(" ", 何昕.charAt(2).alt());
         assertEquals(codeNull, 何昕.charAt(2).encode());
         assertEquals(1, Long.compare(codeXin1, codeNull));
-        assertEquals(0, 何欣蔚.compare(何昕, 0));
-        assertEquals(0, 何欣蔚.compare(何昕, 1));
-        assertEquals(1, 何欣蔚.compare(何昕, 2));
+        assertEquals(0, 何欣蔚.compareTo(何昕, 0));
+        assertEquals(0, 何欣蔚.compareTo(何昕, 1));
+        assertEquals(1, 何欣蔚.compareTo(何昕, 2));
         final Comparator<String> stringComparator = characterMap.stringComparator;
         assertEquals(1, stringComparator.compare("何欣蔚", "何昕"));
     }
@@ -117,9 +117,9 @@ public class CharacterMapTest {
         assertEquals(" ", u卞佳.charAt(2).alt());
         assertEquals(codeNull, u卞佳.charAt(2).encode());
         assertEquals(1, Long.compare(codeJia1, codeHong2));
-        assertEquals(0, u卞佳丽.compare(u卞佳, 0));
-        assertEquals(0, u卞佳丽.compare(u卞佳, 1));
-        assertEquals(1, u卞佳丽.compare(u卞佳, 2));
+        assertEquals(0, u卞佳丽.compareTo(u卞佳, 0));
+        assertEquals(0, u卞佳丽.compareTo(u卞佳, 1));
+        assertEquals(1, u卞佳丽.compareTo(u卞佳, 2));
         assertEquals(1, characterMap.stringComparator.compare(卞佳丽, 卞佳));
         assertEquals(1, characterMap.stringComparatorPinyin.compare(卞佳丽, 卞佳));
     }
@@ -138,8 +138,7 @@ public class CharacterMapTest {
         assertEquals(wang2, u王略.charAt(0).alt());
         assertEquals(0xDE1BA7832000000L, u王略.charAt(0).encode());
         assertEquals(lue4, u王略.charAt(1).alt());
-        final long encode = u王略.charAt(1).encode();
-        assertEquals(codeLue4, encode);
+        assertEquals(codeLue4, u王略.charAt(1).encode());
         assertEquals(wang2, u王卢城.charAt(0).alt());
         assertEquals(0xDE1BA7832000000L, u王卢城.charAt(0).encode());
         assertEquals("lu 2", u王卢城.charAt(1).alt());
@@ -147,9 +146,9 @@ public class CharacterMapTest {
         assertEquals("cheng 2", u王卢城.charAt(2).alt());
         assertEquals(0x8E896E9E0C80000L, u王卢城.charAt(2).encode());
         assertEquals(1, Long.compare(codeLue4, codeLu2));
-        assertEquals(0, u王略.compare(u王卢城, 0));
-        assertEquals(1, u王略.compare(u王卢城, 1));
-        assertEquals(-1, u王略.compare(u王卢城, 2));
+        assertEquals(0, u王略.compareTo(u王卢城, 0));
+        assertEquals(1, u王略.compareTo(u王卢城, 1));
+        assertEquals(-1, u王略.compareTo(u王卢城, 2));
         assertEquals(1, characterMap.stringComparator.compare(王略, 王卢城));
         assertEquals(94, characterMap.stringComparatorPinyin.compare(王略, 王卢城));
     }
