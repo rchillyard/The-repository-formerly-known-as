@@ -27,6 +27,15 @@ public class Instrumenter {
     }
 
     /**
+     * If instrumenting, increment the number of hits by n.
+     *
+     * @param n the number of hits.
+     */
+    public void incHits(final int n) {
+        if (countHits) hits += n;
+    }
+
+    /**
      * If instrumenting, increment the number of copies by n.
      *
      * @param n the number of copies made.
@@ -46,6 +55,8 @@ public class Instrumenter {
             statPack.add(COPIES, copies);
         if (countFixes)
             statPack.add(FIXES, fixes);
+        if (countHits)
+            statPack.add(HITS, hits);
     }
 
     // CONSIDER do we really need this now?
@@ -54,14 +65,16 @@ public class Instrumenter {
         swaps = 0;
         copies = 0;
         fixes = 0;
+        hits = 0;
         if (n != this.n) {
             this.n = n;
-            this.statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES, INTERIM_INVERSIONS);
+            this.statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES, HITS, INTERIM_INVERSIONS);
             this.countCopies = config.getBoolean(INSTRUMENTING, COPIES);
             this.countSwaps = config.getBoolean(INSTRUMENTING, SWAPS);
             this.countCompares = config.getBoolean(INSTRUMENTING, COMPARES);
             this.countInversions = config.getInt(INSTRUMENTING, INVERSIONS, 0);
             this.countFixes = config.getBoolean(INSTRUMENTING, FIXES);
+            this.countHits = config.getBoolean(INSTRUMENTING, HITS); // the number of array accesses
         }
     }
 
@@ -81,6 +94,10 @@ public class Instrumenter {
 
     private int getFixes() {
         return fixes;
+    }
+
+    private long getHits() {
+        return hits;
     }
 
     public StatPack getStatPack() {
@@ -105,6 +122,7 @@ public class Instrumenter {
     public static final String INTERIM_INVERSIONS = "interiminversions";
     public static final String FIXES = "fixes";
     public static final String INSTRUMENTING = "instrumenting";
+    public static final String HITS = "hits";
 
 
     private boolean countCopies;
@@ -117,4 +135,6 @@ public class Instrumenter {
 
     private boolean countFixes;
 
+    private boolean countHits;
+    private long hits;
 }

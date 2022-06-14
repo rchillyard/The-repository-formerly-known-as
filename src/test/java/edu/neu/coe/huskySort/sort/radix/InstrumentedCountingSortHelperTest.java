@@ -37,6 +37,7 @@ public class InstrumentedCountingSortHelperTest {
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
+        assertEquals(0L, privateMethodInvoker.invokePrivate("getHits"));
     }
 
     @Test
@@ -44,13 +45,14 @@ public class InstrumentedCountingSortHelperTest {
         final InstrumentedCountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper = new InstrumentedCountingSortHelper<>("test", config);
         final CharacterMap.UnicodeString[] xs = new CharacterMap.UnicodeString[]{卞燕燕, 卞艳红};
         helper.init(xs.length);
-        assertEquals(0, helper.compare(xs[0], xs[1], 0));
-        assertEquals(0, helper.compare(xs[0], xs[1], 1));
-        assertEquals(1, helper.compare(xs[0], xs[1], 2));
+        assertEquals(0, helper.compare(xs, 0, 1, 0));
+        assertEquals(0, helper.compare(xs, 0, 1, 1));
+        assertEquals(1, helper.compare(xs, 0, 1, 2));
         final Instrumenter instrumenter = helper.getInstrumenter();
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(3, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
+        assertEquals(6L, privateMethodInvoker.invokePrivate("getHits"));
     }
 
     @Test

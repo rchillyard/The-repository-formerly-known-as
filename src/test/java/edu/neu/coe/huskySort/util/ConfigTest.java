@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import static edu.neu.coe.huskySort.util.Instrumenter.HITS;
 import static org.junit.Assert.*;
 
 public class ConfigTest {
@@ -81,6 +82,7 @@ public class ConfigTest {
         ini.put(sInstrumenting, COMPARES, instrumenting);
         ini.put(sInstrumenting, COPIES, instrumenting);
         ini.put(sInstrumenting, FIXES, instrumenting);
+        ini.put(sInstrumenting, HITS, instrumenting);
         ini.put("huskyhelper", "countinteriminversions", interimInversions);
         return new Config(ini);
     }

@@ -37,6 +37,7 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
     @Override
     public void copy(final X[] source, final int i, final X[] target, final int j) {
         instrumenter.incCopies();
+        instrumenter.incHits(2);
         target[j] = source[i];
     }
 
@@ -69,6 +70,22 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
     }
 
     /**
+     * Compare the elements i and j of array xs (at position d).
+     *
+     * @param xs an array of X elements.
+     * @param i  the index of the left-hand element.
+     * @param j  the index of the right-hand element.
+     * @param d  the position of interest.
+     * @return -1 if xs[i] is less than xs[j]; 1 if xs[i] is greater than xs[j]; otherwise 0.
+     */
+    @Override
+    public int compare(final X[] xs, final int i, final int j, final int d) {
+        instrumenter.incCompares();
+        instrumenter.incHits(2);
+        return super.compare(xs[i], xs[j], d);
+    }
+
+    /**
      * Method to swap two elements.
      * Even though this is a helper for counting sorts, we typically have a cutoff to insertion sort for,
      * e.g. MSD Radix sort.
@@ -80,6 +97,7 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
     @Override
     public void swap(final X[] xs, final int j, final int i) {
         instrumenter.incSwaps();
+        instrumenter.incHits(4);
         super.swap(xs, j, i);
     }
 

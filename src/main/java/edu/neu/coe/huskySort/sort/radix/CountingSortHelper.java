@@ -38,6 +38,19 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
     }
 
     /**
+     * Compare the elements i and j of array xs (at position d).
+     *
+     * @param xs an array of X elements.
+     * @param i  the index of the left-hand element.
+     * @param j  the index of the right-hand element.
+     * @param d  the position of interest.
+     * @return -1 if xs[i] is less than xs[j]; 1 if xs[i] is greater than xs[j]; otherwise 0.
+     */
+    default int compare(final X[] xs, final int i, final int j, final int d) {
+        return compare(xs[i], xs[j], d);
+    }
+
+    /**
      * Method to swap two elements.
      * Even though this is a helper for counting sorts, we typically have a cutoff to insertion sort for,
      * e.g. MSD Radix sort.
