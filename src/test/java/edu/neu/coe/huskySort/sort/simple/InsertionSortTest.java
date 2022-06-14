@@ -4,11 +4,11 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.*;
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
-import edu.neu.coe.huskySort.util.StatPack;
+import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.HelperFactory;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.*;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -55,6 +55,7 @@ public class InsertionSortTest {
         int n = 100;
         ComparisonSortHelper<Integer> helper = HelperFactory.create("SelectionSort", n, config);
         helper.init(n);
+
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
@@ -63,13 +64,13 @@ public class InsertionSortTest {
         Integer[] ys = sorter.sort(xs);
         sorter.postProcess(ys);
         assertTrue(helper.sorted(ys));
-        final int compares = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COMPARES).mean();
+        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
         // NOTE: these are suppoed to match within about 12%.
         // Since we set a specific seed, this should always succeed.
         // If we use true random see and this test fails, just increase the delta a little.
         assertEquals(1.0, 4.0 * compares / n / (n - 1), 0.12);
-        final int inversions = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES).mean();
+        final int inversions = (int) statPack.getStatistics(Instrumenter.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
         System.out.println(statPack);
         assertEquals(inversions, fixes);
     }

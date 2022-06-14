@@ -5,10 +5,7 @@
 package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.*;
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
-import edu.neu.coe.huskySort.util.StatPack;
+import edu.neu.coe.huskySort.util.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -165,11 +162,11 @@ public class QuickSort3WayTest {
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COMPARES).mean();
-        final int inversions = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.COPIES).mean();
+        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
+        final int inversions = (int) statPack.getStatistics(Instrumenter.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertTrue(compares <= worstCompares);
@@ -182,10 +179,12 @@ public class QuickSort3WayTest {
         int n = xs.length;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final BaseComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         QuickSort_3way<String> sorter = new QuickSort_3way<>(helper);
         int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
+        helper.init(n);
         Partitioner<String> partitioner = sorter.createPartitioner();
         List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
         assertEquals(14, privateMethodInvoker.invokePrivate("getFixes"));

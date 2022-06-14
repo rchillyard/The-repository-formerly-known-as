@@ -18,8 +18,10 @@ public class InstrumentedComparisonSortHelperTest {
     @Test
     public void testLess() {
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        helper.init(2);
         assertTrue(helper.less("a", "b"));
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
     }
@@ -28,10 +30,12 @@ public class InstrumentedComparisonSortHelperTest {
     public void testCompare() {
         final String[] xs = new String[]{"a", "b"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        helper.init(xs.length);
         assertEquals(-1, helper.compare(xs, 0, 1));
         assertEquals(0, helper.compare(xs, 0, 0));
         assertEquals(1, helper.compare(xs, 1, 0));
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(3, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
     }
@@ -40,7 +44,9 @@ public class InstrumentedComparisonSortHelperTest {
     public void testSwap1() {
         final String[] xs = new String[]{"b", "a"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        helper.init(xs.length);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(1, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 1);
@@ -59,7 +65,9 @@ public class InstrumentedComparisonSortHelperTest {
     public void testSwap2() {
         final String[] xs = new String[]{"c", "b", "a"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        helper.init(xs.length);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(3, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 2);
@@ -77,7 +85,9 @@ public class InstrumentedComparisonSortHelperTest {
     public void testSwap3() {
         final String[] xs = new String[]{"c", "b", "d", "a"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        helper.init(xs.length);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(4, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 3);
@@ -96,7 +106,9 @@ public class InstrumentedComparisonSortHelperTest {
     public void testSwap4() {
         final String[] xs = new String[]{"c", "e", "b", "d", "a"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        helper.init(xs.length);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(7, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
         helper.swap(xs, 0, 4);
@@ -120,7 +132,9 @@ public class InstrumentedComparisonSortHelperTest {
         final String[] xs = new String[]{"f", "e", "d", "c", "b", "a"};
         final int n = xs.length;
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        helper.init(n);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         final int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
@@ -137,7 +151,9 @@ public class InstrumentedComparisonSortHelperTest {
         final String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
         final int n = xs.length;
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        helper.init(n);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         final int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
         assertEquals(0, privateMethodInvoker.invokePrivate("getFixes"));
@@ -153,10 +169,12 @@ public class InstrumentedComparisonSortHelperTest {
     public void testSorted() {
         final String[] xs = new String[]{"a", "b"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        helper.init(xs.length);
         assertTrue(helper.sorted(xs));
         helper.swap(xs, 0, 1);
         assertFalse(helper.sorted(xs));
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(0, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
     }
@@ -231,11 +249,13 @@ public class InstrumentedComparisonSortHelperTest {
     public void testSwapStable() {
         final String[] xs = new String[]{"a", "b"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        helper.init(xs.length);
         helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(0, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(2, privateMethodInvoker.invokePrivate("getSwaps"));
     }
@@ -244,7 +264,9 @@ public class InstrumentedComparisonSortHelperTest {
     public void testFixInversion1() {
         final String[] xs = new String[]{"a", "b"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        helper.init(xs.length);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         helper.fixInversion(xs, 1);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
@@ -261,7 +283,9 @@ public class InstrumentedComparisonSortHelperTest {
     public void testFixInversion2() {
         final String[] xs = new String[]{"a", "b"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        helper.init(xs.length);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         helper.fixInversion(xs, 0, 1);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(0, privateMethodInvoker.invokePrivate("getSwaps"));
@@ -278,7 +302,8 @@ public class InstrumentedComparisonSortHelperTest {
     public void testMergeSort() {
         final int N = 8;
         final ComparisonSortHelper<Integer> helper = new InstrumentedComparisonSortHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         final Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
@@ -301,9 +326,9 @@ public class InstrumentedComparisonSortHelperTest {
             helper.postProcess(ys);
         }
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
-        final Statistics statistics = statPack.getStatistics(InstrumentedComparisonSortHelper.COMPARES);
+        final Statistics statistics = statPack.getStatistics(Instrumenter.COMPARES);
         System.out.println(statistics);
-        final int compares = statPack.getCount(InstrumentedComparisonSortHelper.COMPARES);
+        final int compares = statPack.getCount(Instrumenter.COMPARES);
         System.out.println(statPack);
         assertTrue(12 <= compares && compares <= 17);
     }
@@ -324,9 +349,11 @@ public class InstrumentedComparisonSortHelperTest {
         final String[] xs = new String[]{"c", "b", "a"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         assertFalse(helper.sorted(xs));
+        helper.init(xs.length);
         helper.swapConditional(xs, 0, 2);
         assertTrue(helper.sorted(xs));
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
     }

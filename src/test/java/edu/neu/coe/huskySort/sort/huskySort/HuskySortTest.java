@@ -6,10 +6,7 @@ import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
-import edu.neu.coe.huskySort.util.StatPack;
+import edu.neu.coe.huskySort.util.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -115,7 +112,7 @@ public class HuskySortTest {
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
         assertEquals(0, helper.inversions(ys));
-        final int fixes = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
         assertTrue(inversionsOriginal <= fixes);
     }
 
@@ -142,7 +139,7 @@ public class HuskySortTest {
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
         assertEquals(0, helper.inversions(ys));
-        final int fixes = (int) statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
         assertTrue(inversionsOriginal <= fixes);
         final int ii = (int) statPack.getStatistics("interiminversions").mean();
         assertEquals(0, ii);

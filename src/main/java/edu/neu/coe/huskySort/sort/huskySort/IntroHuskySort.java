@@ -30,7 +30,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
      */
     public static <Y extends Comparable<Y>> IntroHuskySort<Y> createIntroHuskySortWithInversionCount(final HuskyCoder<Y> huskyCoder, final int N, final Config config) {
         final String value = isCountInterimInversions(config) + "";
-        final Config copy = config.copy(InstrumentedComparisonSortHelper.INSTRUMENTING, InstrumentedComparisonSortHelper.FIXES, value).copy(Config.HELPER, BaseHelper.INSTRUMENT, value);
+        final Config copy = config.copy(Instrumenter.INSTRUMENTING, Instrumenter.FIXES, value).copy(Config.HELPER, BaseHelper.INSTRUMENT, value);
         // CONSIDER using insertion sort instead of mergeSort.
         final MergeSortBasic<Y> finisher = new MergeSortBasic<>(N, copy);
         finisher.init(N);
@@ -146,7 +146,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         } else {
             final StatPack statPack = getStatPack();
             if (closed && statPack != null) {
-                final Statistics fixes = statPack.getStatistics(InstrumentedComparisonSortHelper.FIXES);
+                final Statistics fixes = statPack.getStatistics(Instrumenter.FIXES);
                 if (fixes != null) return fixes.mean();
                 else throw new RuntimeException("Cannot get fixes from StatPack");
             } else throw new RuntimeException("Cannot get statPack or not closed");

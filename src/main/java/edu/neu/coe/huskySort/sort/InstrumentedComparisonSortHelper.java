@@ -1,11 +1,13 @@
 package edu.neu.coe.huskySort.sort;
 
 import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.Instrumenter;
 import edu.neu.coe.huskySort.util.LazyLogger;
 import edu.neu.coe.huskySort.util.StatPack;
 
 import java.util.Random;
 
+import static edu.neu.coe.huskySort.util.Instrumenter.INVERSIONS;
 import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 
 /**
@@ -34,8 +36,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      * @return true only if v is less than w.
      */
     public boolean less(final X v, final X w) {
-        if (countCompares)
-            compares++;
+        instrumenter.incCompares();
         return v.compareTo(w) < 0;
     }
 
@@ -48,16 +49,15 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     public void swap(final X[] xs, final int i, final int j) {
         if (i == j) return;
-        if (countSwaps)
-            swaps++;
+        instrumenter.incSwaps();
         final X v = xs[i];
         final X w = xs[j];
-        if (countFixes) {
+        if (instrumenter.isCountFixes()) {
             final int sense = Integer.signum(v.compareTo(w));
-            fixes += sense;
+            instrumenter.fixes += sense;
             for (int k = i + 1; k < j; k++) {
                 final X x = xs[k];
-                if (w.compareTo(x) < 0 && x.compareTo(v) < 0) fixes += 2 * sense;
+                if (w.compareTo(x) < 0 && x.compareTo(v) < 0) instrumenter.fixes += 2 * sense;
             }
         }
         xs[i] = w;
@@ -76,10 +76,9 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public void swapInto(final X[] xs, final int i, final int j) {
-        if (countSwaps)
-            swaps += (j - i);
-        if (countFixes)
-            fixes += (j - i);
+        instrumenter.incSwaps(j - 1);
+        if (instrumenter.isCountFixes())
+            instrumenter.fixes += (j - i);
         super.swapInto(xs, i, j);
     }
 
@@ -93,8 +92,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public boolean swapConditional(final X[] xs, final int i, final int j) {
-        if (countCompares)
-            compares++;
+        instrumenter.incCompares();
         final int cf = xs[i].compareTo(xs[j]);
         if (cf > 0)
             swap(xs, i, j);
@@ -114,15 +112,13 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
         final X v = xs[i];
         final X w = xs[i - 1];
         final boolean result = v.compareTo(w) < 0;
-        if (countCompares)
-            compares++;
+        instrumenter.incCompares();
         if (result) {
             xs[i] = w;
             xs[i - 1] = v;
-            if (countSwaps)
-                swaps++;
-            if (countFixes)
-                fixes++;
+            instrumenter.incSwaps();
+            if (instrumenter.isCountFixes())
+                instrumenter.fixes++;
         }
         return result;
 
@@ -138,33 +134,16 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public void copy(final X[] source, final int i, final X[] target, final int j) {
-        if (countCopies)
-            copies++;
+        instrumenter.incCopies();
         target[j] = source[i];
-    }
-
-    /**
-     * If instrumenting, increment the number of copies by n.
-     *
-     * @param n the number of copies made.
-     */
-    public void incrementCopies(final int n) {
-        if (countCopies) copies += n;
     }
 
     // NOTE: the following private methods are only for testing.
 
     /**
-     * If instrumenting, increment the number of fixes by n.
-     *
-     * @param n the number of copies made.
-     */
-    public void incrementFixes(final int n) {
-        if (countFixes) fixes += n;
-    }
-
-    /**
      * Compare elements of an array.
+     * <p>
+     * // NOTE same as supertype
      *
      * @param xs the array.
      * @param i  one of the indices.
@@ -185,9 +164,29 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public int compare(final X v, final X w) {
-        if (countCompares)
-            compares++;
+        instrumenter.incCompares();
         return v.compareTo(w);
+    }
+
+    /**
+     * If instrumenting, increment the number of fixes by n.
+     *
+     * @param n the number of copies made.
+     */
+    @Override
+    public void incrementFixes(final int n) {
+        if (instrumenter.isCountFixes())
+            instrumenter.fixes += n;
+    }
+
+    /**
+     * If instrumenting, increment the number of copies by n.
+     *
+     * @param n the number of copies made.
+     */
+    @Override
+    public void incrementCopies(final int n) {
+        instrumenter.incCopies(n);
     }
 
     /**
@@ -212,15 +211,12 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      * @param n the size to be managed.
      */
     public void init(final int n) {
-        compares = 0;
-        swaps = 0;
-        copies = 0;
-        fixes = 0;
+        instrumenter.init(n);
         // NOTE: it's an error to reset the StatPack if we've been here before
-        if (n == this.getN() && statPack != null) return;
+        if (n == this.getN() && getStatPack() != null) return;
         super.init(n);
-        statPack = new StatPack(n, COMPARES, SWAPS, COPIES, INVERSIONS, FIXES, INTERIM_INVERSIONS);
     }
+
 
     /**
      * Method to do any required preProcessing.
@@ -232,8 +228,8 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
     public X[] preProcess(final X[] xs) {
         final X[] result = super.preProcess(xs);
         // NOTE: because counting inversions is so slow, we only do if for a (configured) number of samples.
-        if (countInversions-- > 0) {
-            if (statPack != null) statPack.add(INVERSIONS, inversions(result));
+        if (instrumenter.countInversions-- > 0) {
+            if (getStatPack() != null) getStatPack().add(INVERSIONS, inversions(result));
             else throw new RuntimeException("InstrumentedComparisonSortHelper.postProcess: no StatPack");
         }
         return result;
@@ -252,15 +248,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
     public boolean postProcess(final X[] xs) {
         final boolean result = super.postProcess(xs);
         if (!sorted(xs)) throw new BaseComparisonSortHelper.HelperException("Array is not sorted");
-        if (statPack == null) throw new RuntimeException("InstrumentedComparisonSortHelper.postProcess: no StatPack");
-        if (countCompares)
-            statPack.add(COMPARES, compares);
-        if (countSwaps)
-            statPack.add(SWAPS, swaps);
-        if (countCopies)
-            statPack.add(COPIES, copies);
-        if (countFixes)
-            statPack.add(FIXES, fixes);
+        instrumenter.updateStats();
         return result;
     }
 
@@ -276,12 +264,12 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
 
     @Override
     public void close() {
-        logger.debug(() -> "Closing ComparisonSortHelper: " + getDescription() + " with statPack: " + statPack);
+        logger.debug(() -> "Closing ComparisonSortHelper: " + getDescription() + " with statPack: " + getStatPack());
         super.close();
     }
 
     public StatPack getStatPack() {
-        return statPack;
+        return instrumenter.getStatPack();
     }
 
     /**
@@ -294,11 +282,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     public InstrumentedComparisonSortHelper(final String description, final int n, final Random random, final Config config) {
         super(description, n, random);
-        this.countCopies = config.getBoolean(INSTRUMENTING, COPIES);
-        this.countSwaps = config.getBoolean(INSTRUMENTING, SWAPS);
-        this.countCompares = config.getBoolean(INSTRUMENTING, COMPARES);
-        this.countInversions = config.getInt(INSTRUMENTING, INVERSIONS, 0);
-        this.countFixes = config.getBoolean(INSTRUMENTING, FIXES);
+        this.instrumenter = new Instrumenter(n, config);
         this.cutoff = config.getInt("helper", "cutoff", 0);
     }
 
@@ -336,38 +320,13 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
         this(description, 0, config);
     }
 
-    public static final String SWAPS = "swaps";
-    public static final String COMPARES = "compares";
-    public static final String COPIES = "copies";
-    public static final String INVERSIONS = "inversions";
-    public static final String INTERIM_INVERSIONS = "interiminversions";
-    public static final String FIXES = "fixes";
-    public static final String INSTRUMENTING = "instrumenting";
-
-    // NOTE: the following private methods are only for testing.
-
-    private int getCompares() {
-        return compares;
-    }
-
-    private int getSwaps() {
-        return swaps;
-    }
-
-    private int getFixes() {
-        return fixes;
-    }
-
     private final int cutoff;
-    private final boolean countCopies;
-    private final boolean countSwaps;
-    private final boolean countCompares;
-    private final boolean countFixes;
-    private StatPack statPack;
-    private int compares = 0;
-    private int swaps = 0;
-    private int copies = 0;
-    private int fixes = 0;
-    private int countInversions;
     private int maxDepth = 0;
+
+    @Override
+    public Instrumenter getInstrumenter() {
+        return instrumenter;
+    }
+
+    private final Instrumenter instrumenter;
 }

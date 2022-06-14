@@ -7,7 +7,9 @@ public interface Helper<X> {
     /**
      * @return true if this is an instrumented ComparisonSortHelper.
      */
-    boolean instrumented();
+    default boolean instrumented() {
+        return getInstrumenter() != null;
+    }
 
     /**
      * Copy the element at source[j] into target[i]
@@ -88,4 +90,6 @@ public interface Helper<X> {
     void registerDepth(int depth);
 
     int maxDepth();
+
+    Instrumenter getInstrumenter();
 }

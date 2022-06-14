@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
+import edu.neu.coe.huskySort.util.Instrumenter;
 
 import java.util.Random;
 import java.util.function.Consumer;
@@ -15,6 +16,11 @@ import java.util.function.Function;
  * @param <X> the underlying type (must be Comparable).
  */
 public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelper<X> {
+    // TODO this should be implemented properly.
+    @Override
+    public Instrumenter getInstrumenter() {
+        return null;
+    }
 
     /**
      * @return the post-sorter.
@@ -241,6 +247,8 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
     }
 
     /**
+     * // NOTE same as supertype
+     *
      * @param xs the array.
      * @param i  one of the indices.
      * @param j  the other index.

@@ -1,6 +1,5 @@
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.InstrumentedComparisonSortHelper;
 import org.ini4j.Ini;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -88,13 +87,13 @@ public class ConfigTest {
 
     public static final String TRUE = "true";
     public static final String FALSE = "";
-    public static final String INSTRUMENTING = InstrumentedComparisonSortHelper.INSTRUMENTING;
-    public static final String INVERSIONS = InstrumentedComparisonSortHelper.INVERSIONS;
+    public static final String INSTRUMENTING = Instrumenter.INSTRUMENTING;
+    public static final String INVERSIONS = Instrumenter.INVERSIONS;
     public static final String SEED = "seed";
     public static final String CUTOFF = "cutoff";
-    public static final String SWAPS = InstrumentedComparisonSortHelper.SWAPS;
-    public static final String COMPARES = InstrumentedComparisonSortHelper.COMPARES;
-    public static final String COPIES = InstrumentedComparisonSortHelper.COPIES;
-    public static final String FIXES = InstrumentedComparisonSortHelper.FIXES;
+    public static final String SWAPS = Instrumenter.SWAPS;
+    public static final String COMPARES = Instrumenter.COMPARES;
+    public static final String COPIES = Instrumenter.COPIES;
+    public static final String FIXES = Instrumenter.FIXES;
 
 }
