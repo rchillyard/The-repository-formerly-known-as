@@ -36,7 +36,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      * @return true only if v is less than w.
      */
     public boolean less(final X v, final X w) {
-        instrumenter.incCompares();
+        instrumenter.incrementCompares();
         return v.compareTo(w) < 0;
     }
 
@@ -49,10 +49,10 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     public void swap(final X[] xs, final int i, final int j) {
         if (i == j) return;
-        instrumenter.incSwaps();
+        instrumenter.incrementSwaps();
         final X v = xs[i];
         final X w = xs[j];
-        instrumenter.incHits(4);
+        instrumenter.incrementHits(4);
         if (instrumenter.isCountFixes()) {
             final int sense = Integer.signum(v.compareTo(w));
             instrumenter.fixes += sense;
@@ -87,10 +87,10 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public void swapInto(final X[] xs, final int i, final int j) {
-        instrumenter.incSwaps(j - 1);
+        instrumenter.incrementSwaps(j - 1);
         if (instrumenter.isCountFixes())
             instrumenter.fixes += (j - i);
-        instrumenter.incHits((j - i + 1) * 2);
+        instrumenter.incrementHits((j - i + 1) * 2);
         super.swapInto(xs, i, j);
     }
 
@@ -104,7 +104,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public boolean swapConditional(final X[] xs, final int i, final int j) {
-        instrumenter.incCompares();
+        instrumenter.incrementCompares();
         final int cf = xs[i].compareTo(xs[j]);
         if (cf > 0)
             swap(xs, i, j);
@@ -123,14 +123,14 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
         // CONSIDER invoke super-method
         final X v = xs[i];
         final X w = xs[i - 1];
-        instrumenter.incHits(2);
+        instrumenter.incrementHits(2);
         final boolean result = v.compareTo(w) < 0;
-        instrumenter.incCompares();
+        instrumenter.incrementCompares();
         if (result) {
             xs[i] = w;
             xs[i - 1] = v;
-            instrumenter.incSwaps();
-            instrumenter.incHits(2);
+            instrumenter.incrementSwaps();
+            instrumenter.incrementHits(2);
             if (instrumenter.isCountFixes())
                 instrumenter.fixes++;
         }
@@ -148,8 +148,8 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public void copy(final X[] source, final int i, final X[] target, final int j) {
-        instrumenter.incCopies();
-        instrumenter.incHits(2);
+        instrumenter.incrementCopies();
+        instrumenter.incrementHits(2);
         target[j] = source[i];
     }
 
@@ -179,7 +179,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public int compare(final X v, final X w) {
-        instrumenter.incCompares();
+        instrumenter.incrementCompares();
         return v.compareTo(w);
     }
 
@@ -201,7 +201,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public void incrementCopies(final int n) {
-        instrumenter.incCopies(n);
+        instrumenter.incrementCopies(n);
     }
 
     /**

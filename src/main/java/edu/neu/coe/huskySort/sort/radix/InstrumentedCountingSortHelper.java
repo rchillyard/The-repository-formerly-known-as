@@ -27,6 +27,22 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
     }
 
     /**
+     * Method to swap two elements.
+     * Even though this is a helper for counting sorts, we typically have a cutoff to insertion sort for,
+     * e.g. MSD Radix sort.
+     *
+     * @param xs an array of Xs.
+     * @param j  one element to be swapped.
+     * @param i  the other element to be swapped.
+     */
+    @Override
+    public void swap(final X[] xs, final int j, final int i) {
+        instrumenter.incrementSwaps();
+        instrumenter.incrementHits(4);
+        super.swap(xs, j, i);
+    }
+
+    /**
      * Copy the element at source[j] into target[i]
      *
      * @param source the source array.
@@ -36,37 +52,9 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
      */
     @Override
     public void copy(final X[] source, final int i, final X[] target, final int j) {
-        instrumenter.incCopies();
-        instrumenter.incHits(2);
+        instrumenter.incrementCopies();
+        instrumenter.incrementHits(2);
         target[j] = source[i];
-    }
-
-    /**
-     * Compare values v and w and return true if v is less than w.
-     *
-     * @param v the first value.
-     * @param w the second value.
-     * @param d the position of interest.
-     * @return true if v is less than w.
-     */
-    @Override
-    public boolean less(final X v, final X w, final int d) {
-        instrumenter.incCompares();
-        return super.less(v, w, d);
-    }
-
-    /**
-     * Compare value v with value w.
-     *
-     * @param v the first value.
-     * @param w the second value.
-     * @param d the position of interest.
-     * @return -1 if v is less than w; 1 if v is greater than w; otherwise 0.
-     */
-    @Override
-    public int compare(final X v, final X w, final int d) {
-        instrumenter.incCompares();
-        return super.compare(v, w, d);
     }
 
     /**
@@ -80,25 +68,37 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
      */
     @Override
     public int compare(final X[] xs, final int i, final int j, final int d) {
-        instrumenter.incCompares();
-        instrumenter.incHits(2);
+        instrumenter.incrementCompares();
+        instrumenter.incrementHits(2);
         return super.compare(xs[i], xs[j], d);
     }
 
     /**
-     * Method to swap two elements.
-     * Even though this is a helper for counting sorts, we typically have a cutoff to insertion sort for,
-     * e.g. MSD Radix sort.
+     * Compare value v with value w.
      *
-     * @param xs an array of Xs.
-     * @param j  one element to be swapped.
-     * @param i  the other element to be swapped.
+     * @param v the first value.
+     * @param w the second value.
+     * @param d the position of interest.
+     * @return -1 if v is less than w; 1 if v is greater than w; otherwise 0.
      */
     @Override
-    public void swap(final X[] xs, final int j, final int i) {
-        instrumenter.incSwaps();
-        instrumenter.incHits(4);
-        super.swap(xs, j, i);
+    public int compare(final X v, final X w, final int d) {
+        instrumenter.incrementCompares();
+        return super.compare(v, w, d);
+    }
+
+    /**
+     * Compare values v and w and return true if v is less than w.
+     *
+     * @param v the first value.
+     * @param w the second value.
+     * @param d the position of interest.
+     * @return true if v is less than w.
+     */
+    @Override
+    public boolean less(final X v, final X w, final int d) {
+        instrumenter.incrementCompares();
+        return super.less(v, w, d);
     }
 
     /**

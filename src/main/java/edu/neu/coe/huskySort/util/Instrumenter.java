@@ -1,29 +1,41 @@
 package edu.neu.coe.huskySort.util;
 
+/**
+ * Instrumentation of Helper classes is delegated to this class.
+ */
 public class Instrumenter {
-    public void incCompares() {
+    /**
+     * If instrumenting, increment the number of compares by 1.
+     */
+    public void incrementCompares() {
         if (countCompares)
             compares++;
     }
 
-    public void incSwaps() {
+    /**
+     * If instrumenting, increment the number of swaps by 1.
+     */
+    public void incrementSwaps() {
         if (countSwaps)
             swaps++;
     }
 
-    public void incSwaps(final int i) {
+    /**
+     * If instrumenting, increment the number of swaps by n.
+     *
+     * @param n the number of copies made.
+     */
+    public void incrementSwaps(final int n) {
         if (countSwaps)
-            swaps += i;
+            swaps += n;
     }
 
-    public void incCopies() {
+    /**
+     * If instrumenting, increment the number of copies by 1.
+     */
+    public void incrementCopies() {
         if (countCopies)
             copies++;
-    }
-
-    public void incCopies(final int i) {
-        if (countCopies)
-            copies += i;
     }
 
     /**
@@ -31,7 +43,7 @@ public class Instrumenter {
      *
      * @param n the number of hits.
      */
-    public void incHits(final int n) {
+    public void incrementHits(final int n) {
         if (countHits) hits += n;
     }
 
@@ -44,6 +56,9 @@ public class Instrumenter {
         if (countCopies) copies += n;
     }
 
+    /**
+     * Update the statPack according to the current counts.
+     */
     public void updateStats() {
         // TODO use Instrumenter for InstrumentedCountingSOrtHelper
         if (statPack == null) throw new RuntimeException("InstrumentedComparisonSortHelper.postProcess: no StatPack");
@@ -59,7 +74,12 @@ public class Instrumenter {
             statPack.add(HITS, hits);
     }
 
-    // CONSIDER do we really need this now?
+    /**
+     * Initialize this Instrumenter.
+     * NOTE that we can't do it in the constructor alone because we don't always know the count (n) on instantiation.
+     *
+     * @param n the number of elements to be instrumented.
+     */
     public void init(final int n) {
         compares = 0;
         swaps = 0;
@@ -78,6 +98,21 @@ public class Instrumenter {
         }
     }
 
+    /**
+     * Get the Statistics Pack.
+     *
+     * @return the statPack.
+     */
+    public StatPack getStatPack() {
+        return statPack;
+    }
+
+    /**
+     * Primary constructor.
+     *
+     * @param n      the number of elements to be instrumented.
+     * @param config the configuration.
+     */
     public Instrumenter(final int n, final Config config) {
         this.config = config;
         init(n);
@@ -100,10 +135,6 @@ public class Instrumenter {
         return hits;
     }
 
-    public StatPack getStatPack() {
-        return statPack;
-    }
-
     private final Config config;
 
     private int n = 0;
@@ -124,14 +155,18 @@ public class Instrumenter {
     public static final String INSTRUMENTING = "instrumenting";
     public static final String HITS = "hits";
 
+    /**
+     * Public method to get the value of countFixes (because counting fixes is complicated).
+     *
+     * @return the value of countFixes.
+     */
+    public boolean isCountFixes() {
+        return countFixes;
+    }
 
     private boolean countCopies;
     private boolean countSwaps;
     private boolean countCompares;
-
-    public boolean isCountFixes() {
-        return countFixes;
-    }
 
     private boolean countFixes;
 
