@@ -1,27 +1,69 @@
 package edu.neu.coe.huskySort.sort.radix;
 
+import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Random;
 
 /**
- * Class to implement Most significant digit string sort (a radix sort).
+ * Class to implement Most significant digit string sort (a radix sort) for UnicodeCharacters with custom collation mechanisms.
+ * The custom collation is defined by the instance of CharacterMap passed in to the constructor.
  */
-public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.UnicodeString, UnicodeCharacter> {
+public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.UnicodeString, UnicodeCharacter> implements Sort<String> {
     /**
-     * Sort an array of Strings using UnicodeMSDStringSort.
+     * Generic, non-mutating sort method.
      *
-     * @param a the array to be sorted.
+     * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
      */
-    public void sort(final String[] a) {
-//        logger.info("UnicodeMSDStringSort.sort: sorting " + a.length + " strings");
-        final int n = a.length;
-        final CharacterMap.UnicodeString[] xs = new CharacterMap.UnicodeString[n];
-        for (int i = 0; i < n; i++) xs[i] = characterMap.new UnicodeString(a[i]);
+    public String[] sort(final String[] xs) {
+        return sort(xs, false);
+    }
+
+    /**
+     * Generic, mutating sort method which operates on a sub-array.
+     *
+     * @param xs   sort the array xs from "from" until "to" (exclusive of to).
+     * @param from the index of the first element to sort.
+     * @param to   the index of the first element not to sort.
+     */
+    public void sort(final String[] xs, final int from, final int to) {
+        final int n = to - from;
         aux = new CharacterMap.UnicodeString[n];
-        doRecursiveSort(xs, 0, n, 0);
-        for (int i = 0; i < n; i++) a[i] = xs[i].word;
+        final CharacterMap.UnicodeString[] us = new CharacterMap.UnicodeString[n];
+        for (int i = 0; i < n; i++) us[i] = characterMap.new UnicodeString(xs[i + from]);
+        doRecursiveSort(us, 0, n, 0);
+        for (int i = 0; i < n; i++) xs[i + from] = us[i].word;
+    }
+
+    /**
+     * Perform initializing step for this Sort.
+     * Invoked by default implementation of preSort(X[], boolean)
+     * <p>
+     * CONSIDER merging this with preProcess logic.
+     *
+     * @param n the number of elements to be sorted.
+     */
+    public void init(final int n) {
+
+    }
+
+    /**
+     * Post-process the given array, i.e. after sorting has been completed.
+     * WHen benchmarking, this step is typically not timed.
+     *
+     * @param xs an array of Xs.
+     * @return an indication of the success of the postProcess operation.
+     */
+    public boolean postProcess(final String[] xs) {
+        return false;
+    }
+
+    /**
+     * Close this sorter, performing any appropriate cleanup.
+     */
+    public void close() {
+
     }
 
     /**
@@ -56,11 +98,12 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.Un
     private void doRecursiveSort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
         assert from >= 0 : "from " + from + " is negative";
         assert to <= xs.length : "to " + to + " is out of bounds: " + xs.length;
-//        logger.debug("UnicodeMSDStringSort.doRecursiveSort: on " +(d > 0 ? xs[from].charAt(d-1) : "root")+ " from="+from+", to="+to+", d="+d);
-        // XXX if there are fewer than two elements, we return immediately.
-        if (from >= to - 1) return;
+        final int n = to - from;
+        //        logger.debug("UnicodeMSDStringSort.doRecursiveSort: on " +(d > 0 ? xs[from].charAt(d-1) : "root")+ " from="+from+", to="+to+", d="+d);
+        // XXX if there are fewer than two elements, we return immediately because xs is already sorted.
+        if (n < 2) return;
         // XXX if there is a small number of elements, we switch to insertion sort.
-        if (to < from + helper.getCutoff()) insertionSort(xs, from, to, d);
+        if (n < helper.getCutoff()) insertionSort(xs, from, to, d);
         else {
             final Counts counts = new Counts();
             counts.countCharacters(xs, from, to, d);
@@ -69,16 +112,18 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.Un
                 final CharacterMap.UnicodeString xsi = xs[i];
                 counts.copyAndIncrementCount(xsi, aux, d);
             }
+            if (helper.instrumented())
+                helper.getInstrumenter().incrementHits(3 * n); // count, copy and copy back
             // XXX Copy back.
-            if (to - from >= 0) System.arraycopy(aux, 0, xs, from, to - from);
-            // XXX Recursively sort for each character value.
+            System.arraycopy(aux, 0, xs, from, n);
             int offset = 0;
-            // XXX For each key, recursively sort the appropriate sub-array on the next character position.
+            // XXX For each key, recursively sort the appropriate sub-array on the next character position (p).
+            final int p = d + 1;
             for (final UnicodeCharacter key : keys) {
                 if (key == UnicodeCharacter.NullChar)
                     continue;
                 final int index = counts.get(key);
-                doRecursiveSort(xs, from + offset, from + index, d + 1);
+                doRecursiveSort(xs, from + offset, from + index, p);
                 offset = index;
             }
         }

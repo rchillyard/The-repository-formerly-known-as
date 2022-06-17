@@ -1,9 +1,6 @@
 package edu.neu.coe.huskySort.sort;
 
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.Instrumenter;
-import edu.neu.coe.huskySort.util.LazyLogger;
-import edu.neu.coe.huskySort.util.StatPack;
+import edu.neu.coe.huskySort.util.*;
 
 import java.util.Random;
 
@@ -16,7 +13,7 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  *
  * @param <X> the underlying type (must be Comparable).
  */
-public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> extends BaseComparisonSortHelper<X> {
+public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> extends BaseComparisonSortHelper<X> implements Instrumented {
 
     final static LazyLogger logger = new LazyLogger(InstrumentedComparisonSortHelper.class);
 
@@ -301,6 +298,11 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
         super.close();
     }
 
+    /**
+     * Get the statistics pack for this Instrumented Helper.
+     *
+     * @return a StatPack.
+     */
     public StatPack getStatPack() {
         return instrumenter.getStatPack();
     }

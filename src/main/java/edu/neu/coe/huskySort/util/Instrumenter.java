@@ -3,7 +3,7 @@ package edu.neu.coe.huskySort.util;
 /**
  * Instrumentation of Helper classes is delegated to this class.
  */
-public class Instrumenter {
+public class Instrumenter implements Instrumented {
     /**
      * If instrumenting, increment the number of compares by 1.
      */

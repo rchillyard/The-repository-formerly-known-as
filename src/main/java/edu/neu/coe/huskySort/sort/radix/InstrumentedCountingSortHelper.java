@@ -18,7 +18,7 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  * @param <X> the underlying type (must be StringComparable).
  * @param <Y> the underlying type (must be Comparable).
  */
-public final class InstrumentedCountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends BasicCountingSortHelper<X, Y> {
+public final class InstrumentedCountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends BasicCountingSortHelper<X, Y> implements edu.neu.coe.huskySort.util.Instrumented {
 
     final static LazyLogger logger = new LazyLogger(InstrumentedCountingSortHelper.class);
 
