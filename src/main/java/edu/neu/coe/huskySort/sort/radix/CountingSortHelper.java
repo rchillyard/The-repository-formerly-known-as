@@ -26,6 +26,32 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
     }
 
     /**
+     * Compare values v and w and return true if v is less than w.
+     *
+     * @param xs an array of X elements.
+     * @param i  the index of the first value.
+     * @param w  the second value.
+     * @param d  the position of interest.
+     * @return true if xs[i] is less than w.
+     */
+    default boolean less(final X[] xs, final int i, final X w, final int d) {
+        return less(xs[i], w, d);
+    }
+
+    /**
+     * Compare values v and w and return true if v is less than w.
+     *
+     * @param xs an array of X elements.
+     * @param i  the index of the first value.
+     * @param j  the index of the right-hand element.
+     * @param d  the position of interest.
+     * @return true if xs[i] is less than xs[j].
+     */
+    default boolean less(final X[] xs, final int i, final int j, final int d) {
+        return less(xs, i, xs[j], d);
+    }
+
+    /**
      * Compare value v with value w.
      *
      * @param v the first value.

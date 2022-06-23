@@ -38,4 +38,6 @@ public interface StringComparable<X extends StringLike<X, Y>, Y extends Comparab
     default int compareTo(final X that) {
         return compareFromD(that, 0);
     }
+
+    String recoverString();
 }

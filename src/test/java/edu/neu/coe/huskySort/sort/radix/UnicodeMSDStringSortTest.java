@@ -79,7 +79,7 @@ public class UnicodeMSDStringSortTest {
     @Test
     public void sortM2() throws IOException {
         final Config config = Config.load(UnicodeMSDStringSort.class).copy("helper", "cutoff", "0");
-        final CountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("UnicodeMSDStringSort", 0, true, config);
+        final CountingSortHelper<UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("UnicodeMSDStringSort", 0, true, config);
         final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap, helper);
         final String[] strings = {"邓世林", "邓世涛"};
         sorter.sort(strings);
@@ -89,7 +89,7 @@ public class UnicodeMSDStringSortTest {
     @Test
     public void sortM3() throws IOException {
         final Config config = Config.load(UnicodeMSDStringSort.class).copy("helper", "cutoff", "0");
-        final CountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("UnicodeMSDStringSort", 0, true, config);
+        final CountingSortHelper<UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("UnicodeMSDStringSort", 0, true, config);
         final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap, helper);
         final String[] strings = {"卞燕燕", "卞艳红"}; // bian4 yan4 yan4 AND bian4 yan4 hong2
         sorter.sort(strings);
@@ -124,7 +124,7 @@ public class UnicodeMSDStringSortTest {
         final int n = 1000;
         final Config config = ConfigTest.setupConfig("true", "0", "10", "1", "");
 
-        final CountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("basic counting sort helper", n, true, config);
+        final CountingSortHelper<UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("basic counting sort helper", n, true, config);
         final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap, helper);
         helper.init(n);
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);

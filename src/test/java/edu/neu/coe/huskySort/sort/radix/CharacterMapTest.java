@@ -45,8 +45,8 @@ public class CharacterMapTest {
 
     @Test
     public void testComparison1() {
-        final CharacterMap.UnicodeString 卞燕燕 = characterMap.getUnicodeString("卞燕燕");// XXX bian4 yan4 yan4
-        final CharacterMap.UnicodeString 卞艳红 = characterMap.getUnicodeString("卞艳红");// XXX bian4 yan4 hong2
+        final UnicodeString 卞燕燕 = characterMap.getUnicodeString("卞燕燕");// XXX bian4 yan4 yan4
+        final UnicodeString 卞艳红 = characterMap.getUnicodeString("卞艳红");// XXX bian4 yan4 hong2
         final long codeYan4 = 0xE61BA0D00000000L;
         final long codeHong2 = 0xA2FBA7832000000L;
         final String bian4 = "bian 4";
@@ -71,8 +71,8 @@ public class CharacterMapTest {
 
     @Test
     public void testComparison2() {
-        final CharacterMap.UnicodeString 何欣蔚 = characterMap.getUnicodeString("何欣蔚"); // XXX he2 xin1 yu4
-        final CharacterMap.UnicodeString 何昕 = characterMap.getUnicodeString("何昕"); // XXX he2 xin1
+        final UnicodeString 何欣蔚 = characterMap.getUnicodeString("何欣蔚"); // XXX he2 xin1 yu4
+        final UnicodeString 何昕 = characterMap.getUnicodeString("何昕"); // XXX he2 xin1
         final long codeXin1 = 0xE29BA0C40000000L;
         final long codeNull = 0L;
         final String he2 = "he 2";
@@ -99,8 +99,8 @@ public class CharacterMapTest {
     public void testComparison3() {
         final String 卞佳丽 = "卞佳丽";
         final String 卞佳 = "卞佳";
-        final CharacterMap.UnicodeString u卞佳丽 = characterMap.getUnicodeString(卞佳丽);// XXX bian4 jia1 li4
-        final CharacterMap.UnicodeString u卞佳 = characterMap.getUnicodeString(卞佳);// XXX bian4 jia1
+        final UnicodeString u卞佳丽 = characterMap.getUnicodeString(卞佳丽);// XXX bian4 jia1 li4
+        final UnicodeString u卞佳 = characterMap.getUnicodeString(卞佳);// XXX bian4 jia1
         final long codeJia1 = 0xAA9860C40000000L;
         final long codeHong2 = 0xA2FBA7832000000L;
         final String bian4 = "bian 4";
@@ -128,8 +128,8 @@ public class CharacterMapTest {
     public void testComparison4() {
         final String 王略 = "王略";
         final String 王卢城 = "王卢城";
-        final CharacterMap.UnicodeString u王略 = characterMap.getUnicodeString(王略);// XXX wang2 lu: e4
-        final CharacterMap.UnicodeString u王卢城 = characterMap.getUnicodeString(王卢城);// XXX wang2 lu2 cheng2
+        final UnicodeString u王略 = characterMap.getUnicodeString(王略);// XXX wang2 lu: e4
+        final UnicodeString u王卢城 = characterMap.getUnicodeString(王卢城);// XXX wang2 lu2 cheng2
         final long codeLue4 = 0xB35FA5834000000L;
         final long codeLu2 = 0xA2FBA7832000000L;
         final String wang2 = "wang 2";

@@ -22,6 +22,29 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
         return null;
     }
 
+    /**
+     * Method to determine if the given array (xs) is sorted.
+     *
+     * @param xs an array of Xs.
+     * @return false as soon as an inversion is found; otherwise return true.
+     */
+    @Override
+    public boolean sorted(final X[] xs) {
+        return isStringSorted(xs);
+    }
+
+
+    /**
+     * Check that the given array is sorted.
+     *
+     * @param xs the array to be checked.
+     * @return false as soon as an inversion is found; otherwise return true.
+     */
+    private boolean isStringSorted(final X[] xs) {
+        for (int i = 1; i < xs.length; i++) if (xs[i - 1].compareTo(xs[i]) > 0) return false;
+        return true;
+    }
+
     @Override
     public String toString() {
         return "BasicCountingSortHelper for " + description + " with " + n + " elements";

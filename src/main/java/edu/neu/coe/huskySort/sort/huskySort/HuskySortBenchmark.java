@@ -310,7 +310,7 @@ public final class HuskySortBenchmark {
             System.out.println(xs[i - 1] + " (" + pinyin[i - 1] + ") should appear after " + xs[i] + " (" + pinyin[i] + ") at index " + i);
             System.out.println("pinyin comparison: " + pinyin[i - 1].compareTo(pinyin[i]));
             System.out.println("unicode strings: " + unicodeString[i - 1] + ", " + unicodeString[i]);
-            System.out.println("UnicodeString comparison (by long code): " + characterMap.compareUnicodeStrings(characterMap.getUnicodeString(xs[i - 1]), characterMap.getUnicodeString(xs[i])));
+            System.out.println("UnicodeString comparison (by long code): " + CharacterMap.compareUnicodeStrings(characterMap.getUnicodeString(xs[i - 1]), characterMap.getUnicodeString(xs[i])));
             return false;
         }
     }

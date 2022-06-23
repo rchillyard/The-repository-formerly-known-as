@@ -5,12 +5,13 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Random;
+import java.util.function.Function;
 
 /**
  * Class to implement Most significant digit string sort (a radix sort) for UnicodeCharacters with custom collation mechanisms.
  * The custom collation is defined by the instance of CharacterMap passed in to the constructor.
  */
-public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.UnicodeString, UnicodeCharacter> implements Sort<String> {
+public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, UnicodeCharacter> implements Sort<String> {
     /**
      * Generic, non-mutating sort method.
      *
@@ -29,11 +30,11 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.Un
      */
     public void sort(final String[] xs, final int from, final int to) {
         final int n = to - from;
-        aux = new CharacterMap.UnicodeString[n];
-        final CharacterMap.UnicodeString[] us = new CharacterMap.UnicodeString[n];
-        for (int i = 0; i < n; i++) us[i] = characterMap.new UnicodeString(xs[i + from]);
+        aux = new UnicodeString[n];
+        final Function<String, UnicodeString> stringUnicodeStringFunction = x -> new UnicodeString(characterMap, x);
+        final UnicodeString[] us = getStringComparableStrings(UnicodeString.class, xs, from, n, stringUnicodeStringFunction);
         doRecursiveSort(us, 0, n, 0);
-        for (int i = 0; i < n; i++) xs[i + from] = us[i].word;
+        recoverStrings(xs, from, n, us);
     }
 
     /**
@@ -71,7 +72,7 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.Un
      *
      * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
      */
-    public UnicodeMSDStringSort(final CharacterMap characterMap, final CountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper) {
+    public UnicodeMSDStringSort(final CharacterMap characterMap, final CountingSortHelper<UnicodeString, UnicodeCharacter> helper) {
         super(characterMap, helper);
         this.characterMap = characterMap;
         this.helper = helper;
@@ -95,7 +96,7 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.Un
      * @param to   the high index (one above the highest actually processed).
      * @param d    the number of characters in each UnicodeString to be skipped.
      */
-    private void doRecursiveSort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
+    private void doRecursiveSort(final UnicodeString[] xs, final int from, final int to, final int d) {
         assert from >= 0 : "from " + from + " is negative";
         assert to <= xs.length : "to " + to + " is out of bounds: " + xs.length;
         final int n = to - from;
@@ -109,7 +110,8 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.Un
             counts.countCharacters(xs, from, to, d);
             final UnicodeCharacter[] keys = counts.accumulateCounts();
             for (int i = from; i < to; i++) {
-                final CharacterMap.UnicodeString xsi = xs[i];
+                final UnicodeString xsi = xs[i];
+                // CONSIDER aux should be newly constructed here, otherwise we are re-using aux.
                 counts.copyAndIncrementCount(xsi, aux, d);
             }
             if (helper.instrumented())
@@ -137,25 +139,19 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<CharacterMap.Un
      * @param to   the first element following the sub-array NOT to be considered.
      * @param d    the number of characters to be ignored.
      */
-    private void insertionSort(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
+    private void insertionSort(final UnicodeString[] xs, final int from, final int to, final int d) {
 //        logger.debug("UnicodeMSDStringSort.insertionSort: on " +(d > 0 ? xs[from].charAt(d-1) : "root")+ " from="+from+", to="+to+", d="+d);
         for (int i = from; i < to; i++)
-            for (int j = i; j > from && helper.less(xs[j], xs[j - 1], d); j--)
+            for (int j = i; j > from && helper.less(xs, j, j - 1, d); j--)
                 helper.swap(xs, j, j - 1);
-    }
-
-    private static void swap(final Object[] a, final int j, final int i) {
-        final Object temp = a[j];
-        a[j] = a[i];
-        a[i] = temp;
     }
 
     final static LazyLogger logger = new LazyLogger(UnicodeMSDStringSort.class);
 
     private static final int cutoff = 15; // XXX default value for the insertion sort cutoff.
 
-    private static CharacterMap.UnicodeString[] aux; // XXX auxiliary array for distribution.
+    private static UnicodeString[] aux; // XXX auxiliary array for distribution.
 
     private final CharacterMap characterMap; // NOTE this is used, despite IDEA's analysis.
-    private final CountingSortHelper<CharacterMap.UnicodeString, UnicodeCharacter> helper;
+    private final CountingSortHelper<UnicodeString, UnicodeCharacter> helper;
 }

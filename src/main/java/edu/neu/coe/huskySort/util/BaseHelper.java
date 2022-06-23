@@ -59,7 +59,8 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @return false as soon as an inversion is found; otherwise return true.
      */
     public boolean sorted(final X[] xs) {
-        return Utilities.isSorted(xs);
+        for (int i = 1; i < xs.length; i++) if (xs[i - 1].compareTo(xs[i]) > 0) return false;
+        return true;
     }
 
     /**

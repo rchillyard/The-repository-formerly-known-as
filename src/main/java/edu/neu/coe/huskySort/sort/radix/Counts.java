@@ -58,7 +58,7 @@ public class Counts {
      * @param to   the ending index of xs (first element NOT to be counted).
      * @param d    the offset into the UnicodeStrings specifying which character position is to be counted.
      */
-    public void countCharacters(final CharacterMap.UnicodeString[] xs, final int from, final int to, final int d) {
+    public void countCharacters(final UnicodeString[] xs, final int from, final int to, final int d) {
         for (int i = from; i < to; i++) increment(xs[i].charAt(d));
     }
 
@@ -87,7 +87,7 @@ public class Counts {
      * @param aux the auxiliary storage of UnicodeString elements.
      * @param d   the offset into xs.
      */
-    void copyAndIncrementCount(final CharacterMap.UnicodeString xs, final CharacterMap.UnicodeString[] aux, final int d) {
+    void copyAndIncrementCount(final UnicodeString xs, final UnicodeString[] aux, final int d) {
         final UnicodeCharacter x = xs.charAt(d);
         aux[get(x)] = xs;
         increment(x);

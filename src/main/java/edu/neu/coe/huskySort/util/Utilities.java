@@ -1,7 +1,5 @@
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.radix.StringComparable;
-
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Random;
@@ -56,42 +54,6 @@ public final class Utilities {
         @SuppressWarnings("unchecked") final T[] result = (T[]) Array.newInstance(clazz, n);
         for (int i = 0; i < n; i++) result[i] = f.apply(random);
         return result;
-    }
-
-    /**
-     * Check that the given array is sorted.
-     *
-     * @param ts  the array to be checked.
-     * @param <T> the underlying type of ts.
-     * @return false as soon as an inversion is found; otherwise return true.
-     */
-    public static <T extends Comparable<T>> boolean isSorted(final T[] ts) {
-        for (int i = 1; i < ts.length; i++) if (ts[i - 1].compareTo(ts[i]) > 0) return false;
-        return true;
-    }
-
-    /**
-     * Check that the given array is sorted.
-     *
-     * @param ts  the array to be checked.
-     * @param <T> the underlying type of ts.
-     * @return false as soon as an inversion is found; otherwise return true.
-     */
-    public static <T extends StringComparable<T, U>, U extends Comparable<U>> boolean isStringSorted(final T[] ts) {
-        for (int i = 1; i < ts.length; i++) if (ts[i - 1].compareTo(ts[i]) > 0) return false;
-        return true;
-    }
-
-    /**
-     * Check that the given array is sorted.
-     *
-     * @param ts  the array to be checked.
-     * @param <T> the underlying type of ts.
-     * @throws RuntimeException if an inversion is found.
-     */
-    public static <T extends Comparable<T>> void checkSorted(final T[] ts) {
-        if (!isSorted(ts))
-            throw new RuntimeException("array is not sorted");
     }
 
     /**
