@@ -1,5 +1,6 @@
 package edu.neu.coe.huskySort.sort.radix;
 
+import edu.neu.coe.huskySort.sort.Sorter;
 import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark;
 import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.ChineseCharacter;
@@ -39,8 +40,8 @@ public class UnicodeMSDStringSortIntegrationTest {
                 copy("helper", "cutoff", "8");
         Benchmark.setMinWarmupRuns(0);
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
-        final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, '阿'));
-        final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sort, HuskySortBenchmark::checkChineseSorted);
+        final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, '阿'));
+        final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
         final Supplier<String[]> wordSupplier = HuskySortBenchmark.getWordSupplier(words, 1000, new Random(0L));
         final double time = benchmark.run(wordSupplier, 100);
         System.out.println("time: " + time);

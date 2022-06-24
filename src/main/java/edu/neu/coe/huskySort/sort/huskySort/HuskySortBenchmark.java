@@ -6,6 +6,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortException;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.sort.Sorter;
 import edu.neu.coe.huskySort.sort.huskySortUtils.*;
 import edu.neu.coe.huskySort.sort.radix.Alphabet;
 import edu.neu.coe.huskySort.sort.radix.CharacterMap;
@@ -253,8 +254,8 @@ public final class HuskySortBenchmark {
     public void benchmarkUnicodeStringSortersSeeded(final String corpus, final String[] words, final int nWords, final int nRuns, final Random random) {
         logger.info("benchmarkUnicodeStringSortersSeeded: testing unicode string sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
         if (isConfigBenchmarkStringSorter("unicodemsdstringsort")) {
-            final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, '阿'));
-            final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sort, HuskySortBenchmark::checkChineseSorted);
+            final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, '阿'));
+            final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
         }
 
@@ -663,6 +664,17 @@ public final class HuskySortBenchmark {
         } else return () -> fillRandomArray(String.class, random, nWords, r -> words[r.nextInt(words.length)]);
     }
 
+    /**
+     * Method to get a supplier of String arrays (where preSorted is always false).
+     * Invokes getWordSupplier(words, nWords, random, false);
+     * <p>
+     * NOTE this is used only by unit tests.
+     *
+     * @param words  an array of many Strings.
+     * @param nWords the number of words to be supplied (should be less than or equal to length of words).
+     * @param random a source of random numbers.
+     * @return a Supplier of String[].
+     */
     public static Supplier<String[]> getWordSupplier(final String[] words, final int nWords, final Random random) {
         return getWordSupplier(words, nWords, random, false);
     }
@@ -777,6 +789,7 @@ public final class HuskySortBenchmark {
         logger.info(TimeLogger.formatTime(time) + " ms");
     }
 
+    // CONSIDER do we need this?
     private static final Consumer<String[]> DO_NOTHING = (xs2) -> {
         // XXX do nothing.
     };

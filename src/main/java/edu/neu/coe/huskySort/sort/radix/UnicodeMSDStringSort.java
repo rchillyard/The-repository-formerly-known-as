@@ -1,6 +1,5 @@
 package edu.neu.coe.huskySort.sort.radix;
 
-import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
@@ -10,59 +9,26 @@ import java.util.Random;
  * Class to implement Most significant digit string sort (a radix sort) for UnicodeCharacters with custom collation mechanisms.
  * The custom collation is defined by the instance of CharacterMap passed in to the constructor.
  */
-public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, UnicodeCharacter> implements Sort<String> {
-    /**
-     * Generic, non-mutating sort method.
-     *
-     * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
-     */
-    public String[] sort(final String[] xs) {
-        return sort(xs, false);
-    }
+public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, UnicodeCharacter> {
 
     /**
      * Generic, mutating sort method which operates on a sub-array.
      *
-     * @param ws   sort the array ws from "from" until "to" (exclusive of to).
+     * @param us   sort the array xs from "from" until "to" (exclusive of to).
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    public void sort(final String[] ws, final int from, final int to) {
-        final int n = to - from;
-        aux = new UnicodeString[n];
-        final UnicodeString[] us = transformXToT(UnicodeString.class, ws, from, n, x -> new UnicodeString(characterMap, x));
-        doRecursiveSort(us, 0, n, 0);
-        recoverXFromT(us, ws, from, n, UnicodeString::recoverString);
+    public void sort(final UnicodeString[] us, final int from, final int to) {
+        doRecursiveSort(us, from, to - from, 0);
     }
 
     /**
-     * Perform initializing step for this Sort.
-     * Invoked by default implementation of preSort(X[], boolean)
-     * <p>
-     * CONSIDER merging this with preProcess logic.
+     * Perform the entire process of sorting the given array, including all pre- and post-processing.
      *
-     * @param n the number of elements to be sorted.
+     * @param ws an array of Xs which will be mutated.
      */
-    public void init(final int n) {
-
-    }
-
-    /**
-     * Post-process the given array, i.e. after sorting has been completed.
-     * WHen benchmarking, this step is typically not timed.
-     *
-     * @param xs an array of Xs.
-     * @return an indication of the success of the postProcess operation.
-     */
-    public boolean postProcess(final String[] xs) {
-        return false;
-    }
-
-    /**
-     * Close this sorter, performing any appropriate cleanup.
-     */
-    public void close() {
-
+    public void sortArray(final String[] ws) {
+        sortAll(UnicodeString.class, ws, x -> new UnicodeString(characterMap, x), UnicodeString::recoverString);
     }
 
     /**
@@ -98,18 +64,20 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
         assert from >= 0 : "from " + from + " is negative";
         assert to <= xs.length : "to " + to + " is out of bounds: " + xs.length;
         final int n = to - from;
-        //        logger.debug("UnicodeMSDStringSort.doRecursiveSort: on " +(d > 0 ? xs[from].charAt(d-1) : "root")+ " from="+from+", to="+to+", d="+d);
+        if (logger.isTraceEnabled())
+            logger.trace("UnicodeMSDStringSort.doRecursiveSort: on " + (d > 0 ? xs[from].charAt(d - 1) : "root") + " from=" + from + ", to=" + to + ", d=" + d);
         // XXX if there are fewer than two elements, we return immediately because xs is already sorted.
         if (n < 2) return;
         // XXX if there is a small number of elements, we switch to insertion sort.
         if (n < helper.getCutoff()) insertionSort(xs, from, to, d);
         else {
+            // CONSIDER is this the correct place to allocate aux?
+            final UnicodeString[] aux = new UnicodeString[n];
             final Counts counts = new Counts();
             counts.countCharacters(xs, from, to, d);
             final UnicodeCharacter[] keys = counts.accumulateCounts();
             for (int i = from; i < to; i++) {
                 final UnicodeString xsi = xs[i];
-                // CONSIDER aux should be newly constructed here, otherwise we are re-using aux.
                 counts.copyAndIncrementCount(xsi, aux, d);
             }
             if (helper.instrumented())
@@ -138,17 +106,14 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
      * @param d    the number of characters to be ignored.
      */
     private void insertionSort(final UnicodeString[] xs, final int from, final int to, final int d) {
-//        logger.debug("UnicodeMSDStringSort.insertionSort: on " +(d > 0 ? xs[from].charAt(d-1) : "root")+ " from="+from+", to="+to+", d="+d);
+        if (logger.isTraceEnabled())
+            logger.trace("UnicodeMSDStringSort.insertionSort: on " + (d > 0 ? xs[from].charAt(d - 1) : "root") + " from=" + from + ", to=" + to + ", d=" + d);
         for (int i = from; i < to; i++)
             for (int j = i; j > from && helper.less(xs, j, j - 1, d); j--)
                 helper.swap(xs, j, j - 1);
     }
 
     final static LazyLogger logger = new LazyLogger(UnicodeMSDStringSort.class);
-
-    private static final int cutoff = 15; // XXX default value for the insertion sort cutoff.
-
-    private static UnicodeString[] aux; // XXX auxiliary array for distribution.
 
     private final CharacterMap characterMap; // NOTE this is used, despite IDEA's analysis.
     private final CountingSortHelper<UnicodeString, UnicodeCharacter> helper;

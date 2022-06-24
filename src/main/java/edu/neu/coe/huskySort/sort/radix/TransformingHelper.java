@@ -24,6 +24,10 @@ public interface TransformingHelper<X extends Comparable<X>, T> extends Helper<T
         return ts;
     }
 
+    default T[] postSort(final T[] ts) {
+        return ts;
+    }
+
     /**
      * Method to transform an array (xs) of Xs into an array of Ts.
      * This is essentially the inverse of recoverXFromT.
@@ -38,7 +42,7 @@ public interface TransformingHelper<X extends Comparable<X>, T> extends Helper<T
      */
     default T[] transformXToT(final Class<T> clazz, final X[] xs, final int from, final int n, final Function<X, T> transform) {
         @SuppressWarnings("unchecked") final T[] ts = (T[]) Array.newInstance(clazz, n);
-        for (int i = 0; i < n; i++) ts[i] = transform.apply(xs[i + from]);
+        map(xs, ts, from, 0, n, transform);
         return ts;
     }
 
@@ -53,7 +57,10 @@ public interface TransformingHelper<X extends Comparable<X>, T> extends Helper<T
      * @param n    the number of elements to recover.
      */
     default void recoverXFromT(final T[] ts, final X[] xs, final int from, final int n, final Function<T, X> recover) {
-        for (int i = 0; i < n; i++) xs[i + from] = recover.apply(ts[i]);
+        map(ts, xs, 0, from, n, recover);
     }
 
+    static <A, B> void map(final A[] as, final B[] bs, final int from, final int to, final int n, final Function<A, B> f) {
+        for (int i = 0; i < n; i++) bs[i + to] = f.apply(as[i + from]);
+    }
 }

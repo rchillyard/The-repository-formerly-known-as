@@ -5,7 +5,9 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.util.Config;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Abstract base class for "string" (counting) sorts.
@@ -25,6 +27,39 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
     }
 
     /**
+     * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
+     * The three steps are:
+     * <ol>
+     *     <li>invoke preSort(X[], boolean)</li>
+     *     <li>invoke sort(X[], int, int)</li>
+     *     <li>return value of postSort(X[])</li>
+     * </ol>
+     *  @param ws       sort the array ws (mutating ws).
+     *
+     * @param clazz     the class of X.
+     * @param transform function to transform a String into an X.
+     * @param recover   function to transform an X into a String.
+     */
+    void sortAll(final Class<X> clazz, final String[] ws, final Function<String, X> transform, final Function<X, String> recover) {
+        final X[] xs0 = helper.transformXToT(clazz, ws, 0, ws.length, transform);
+        final X[] xs1 = helper.preProcess(xs0);
+        sort(xs1, 0, xs1.length);
+        helper.recoverXFromT(helper.postSort(xs1), ws, 0, ws.length, recover);
+    }
+
+    /**
+     * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
+     *
+     * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
+     * @param makeCopy if set to true, we make a copy first and sort that.
+     */
+    public X[] sort(final X[] xs, final boolean makeCopy) {
+        final X[] result = makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
+        sort(result, 0, result.length);
+        return result;
+    }
+
+    /**
      * Abstract class constructor.
      *
      * @param characterMap the character map.
@@ -37,12 +72,14 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
 
     /**
      * NOTE: callers of this method should consider arranging for the helper to be closed on close of the sorter.
+     * <p>
+     * CONSIDER do we need this?
      */
     private static <Q extends Comparable<Q>> HuskyHelper<Q> createHelper(final String name, final int n, final HuskyCoder<Q> huskyCoder, final Consumer<Q[]> postSorter, final boolean instrumentation, final Config config) {
         return instrumentation ? new HuskyHelper<>(HelperFactory.create("Delegate CountingSortHelper", n, config), huskyCoder, postSorter, false) : new HuskyHelper<>(name, n, huskyCoder, postSorter);
     }
 
 
-    private final CharacterMap characterMap; // CONSIDER do we need this?
+    private final CharacterMap characterMap; // CONSIDER do we need this as a field?
     private final CountingSortHelper<X, Y> helper;
 }
