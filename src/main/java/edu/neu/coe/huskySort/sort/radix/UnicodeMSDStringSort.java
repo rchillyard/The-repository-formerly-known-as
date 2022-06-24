@@ -26,9 +26,10 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
      * Perform the entire process of sorting the given array, including all pre- and post-processing.
      *
      * @param ws an array of Xs which will be mutated.
+     * @return true if the sort was successful.
      */
-    public void sortArray(final String[] ws) {
-        sortAll(UnicodeString.class, ws, x -> new UnicodeString(characterMap, x), UnicodeString::recoverString);
+    public boolean sortArray(final String[] ws) {
+        return sortAll(UnicodeString.class, ws, x -> new UnicodeString(characterMap, x), UnicodeString::recoverString);
     }
 
     /**

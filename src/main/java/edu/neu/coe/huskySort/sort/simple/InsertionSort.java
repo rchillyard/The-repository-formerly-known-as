@@ -23,7 +23,6 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param from the index of the first element to sort
      * @param to   the index of the first element not to sort
      */
-    @Override
     public void sort(final X[] xs, final int from, final int to) {
         final ComparisonSortHelper<X> helper = getHelper();
         for (int i = from + 1; i < to; i++) {

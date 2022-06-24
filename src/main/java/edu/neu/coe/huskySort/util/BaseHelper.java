@@ -10,15 +10,25 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     public static final String INSTRUMENT = "instrument";
 
     /**
+     * Method to register caring about whether a sort is successful.
+     *
+     * @param checkSorted true if you want to check the success of a sort.
+     */
+    public void setCheckSorted(final boolean checkSorted) {
+        this.checkSorted = checkSorted;
+    }
+
+    /**
      * Method to post-process the array xs after sorting.
      * By default, this method does nothing.
+     * If checkSorted is set then return the result of calling sorted(xs).
      *
      * @param xs the array to be tested.
-     * @return true.
+     * @return whether sorted (or don't care).
      */
     @Override
     public boolean postProcess(final X[] xs) {
-        return true;
+        return !checkSorted || sorted(xs);
     }
 
     public String getDescription() {
@@ -106,6 +116,8 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     protected final String description;
     protected final Random random;
     protected int n;
+
+    private boolean checkSorted = false;
 
     public static class HelperException extends RuntimeException {
 

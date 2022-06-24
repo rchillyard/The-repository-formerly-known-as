@@ -16,6 +16,10 @@ import java.util.function.Function;
  * @param <X> the underlying type (must be Comparable).
  */
 public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelper<X> {
+    public void setCheckSorted(final boolean checkSorted) {
+        this.checkSorted = checkSorted;
+    }
+
     // TODO this should be implemented properly.
     @Override
     public Instrumenter getInstrumenter() {
@@ -81,7 +85,7 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
      * @param xs the array that has been sorted.
      */
     public boolean postProcess(final X[] xs) {
-        return helper.postProcess(xs);
+        return helper.postProcess(xs) && (!checkSorted || helper.sorted(xs));
     }
 
     /**
@@ -392,4 +396,5 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
     private final boolean makeCopy;
 
     private Coding coding;
+    private boolean checkSorted = false;
 }

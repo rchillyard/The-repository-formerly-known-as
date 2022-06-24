@@ -17,7 +17,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
 
     /**
      * Method to do the preSort.
-     * Before calling the super-method, we calculate the depthThreshold (i.e level of recursion to switch to heapSort).
+     * Before calling the super-method, we calculate the depthThreshold (i.e., level of recursion to switch to heapSort).
      *
      * @param xs       the original array to be sorted.
      * @param makeCopy true if we need to work on a copy of the array.

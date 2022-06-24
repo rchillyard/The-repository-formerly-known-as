@@ -39,7 +39,7 @@ public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements 
      * Encode an array of Xs.
      *
      * @param xs an array of X elements.
-     * @return an array of longs corresponding to the the Husky codes of the X elements.
+     * @return an array of longs corresponding to the Husky codes of the X elements.
      */
     @Override
     public Coding huskyEncode(final X[] xs) {

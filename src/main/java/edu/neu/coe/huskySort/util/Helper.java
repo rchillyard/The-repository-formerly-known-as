@@ -92,4 +92,6 @@ public interface Helper<X> {
     int maxDepth();
 
     Instrumenter getInstrumenter();
+
+    void setCheckSorted(boolean checkSorted);
 }

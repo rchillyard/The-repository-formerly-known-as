@@ -43,6 +43,7 @@ public class StatPack {
             final Statistics statistics = map.get(key);
             stringBuilder.append(statistics.toString()).append("; ");
         }
+        // CONSIDER pre-compiling the pattern
         return stringBuilder.toString().replaceAll("; $", "}");
     }
 

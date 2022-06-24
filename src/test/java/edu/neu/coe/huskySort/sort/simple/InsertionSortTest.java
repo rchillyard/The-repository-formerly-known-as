@@ -4,10 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
-import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
-import edu.neu.coe.huskySort.sort.HelperFactory;
-import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.sort.*;
 import edu.neu.coe.huskySort.util.*;
 import org.junit.Test;
 
@@ -19,6 +16,38 @@ import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("ALL")
 public class InsertionSortTest {
+
+    @Test
+    public void sort_() throws Exception {
+        final List<Integer> list = new ArrayList<>();
+        list.add(3);
+        list.add(4);
+        list.add(2);
+        list.add(1);
+        Integer[] xs = list.toArray(new Integer[0]);
+        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("InsertionSort", xs.length);
+        helper.setCheckSorted(true);
+        Sorter<Integer> sorter = new InsertionSort<Integer>(helper);
+        boolean ys = sorter.sortArray(xs);
+        assertTrue(ys);
+        System.out.println(sorter.toString());
+    }
+
+    @Test
+    public void sort0() throws Exception {
+        final List<Integer> list = new ArrayList<>();
+        list.add(3);
+        list.add(4);
+        list.add(2);
+        list.add(1);
+        Integer[] xs = list.toArray(new Integer[0]);
+        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("InsertionSort", xs.length);
+        helper.setCheckSorted(true);
+        Sorter<Integer> sorter = new InsertionSort<Integer>(helper);
+        boolean ys = sorter.sortArray(xs);
+        assertTrue(ys);
+        System.out.println(sorter.toString());
+    }
 
     @Test
     public void sort1() throws Exception {

@@ -24,6 +24,7 @@ public class GenericCollator<X> {
      * @param collator an instance of Collator.
      */
     public GenericCollator(final Collator collator) {
+        //noinspection unchecked
         this(x -> collator.getCollationKey(x.toString()), x -> (X) x.getSourceString());
     }
 
