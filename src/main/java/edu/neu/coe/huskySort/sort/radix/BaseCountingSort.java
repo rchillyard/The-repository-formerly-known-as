@@ -9,15 +9,22 @@ import java.lang.reflect.Array;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y extends Comparable<Y>> {
+public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y extends Comparable<Y>> implements TransformingSort<X, String> {
 
-    public CountingSortHelper<X, Y> getHelper() {
+    /**
+     * Method to get a suitable Helper for this TransformingSort.
+     *
+     * @return the Helper.
+     */
+    public TransformingHelper<X> getHelper() {
         return helper;
     }
 
     /**
      * Method to recover the original unicode Strings from an array of Xs.
      * This is essentially the inverse of getStringComparableStrings.
+     * <p>
+     * TODO make recoverString a generic function of X -> Y
      *
      * @param ws   an array of Strings which will be over-written starting at index from.
      * @param from the starting index.
@@ -32,15 +39,16 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
      * Method to convert an array (ws) of unicode Strings into an array of Xs (which are StringComparable).
      *
      * @param clazz              the class of X.
-     * @param ws                 the input array of unicode Strings.
+     * @param ys                 the input array of unicode Strings.
      * @param from               the starting index.
      * @param n                  the number of elements to process and return.
      * @param toStringComparable a function which takes a String and returns an X.
      * @return an X[] of length n.
      */
-    public X[] getStringComparableStrings(final Class<X> clazz, final String[] ws, final int from, final int n, final Function<String, X> toStringComparable) {
+    @Override
+    public X[] getStringComparableStrings(final Class<X> clazz, final String[] ys, final int from, final int n, final Function<String, X> toStringComparable) {
         @SuppressWarnings("unchecked") final X[] xs = (X[]) Array.newInstance(clazz, n);
-        for (int i = 0; i < n; i++) xs[i] = toStringComparable.apply(ws[i + from]);
+        for (int i = 0; i < n; i++) xs[i] = toStringComparable.apply(ys[i + from]);
         return xs;
     }
 

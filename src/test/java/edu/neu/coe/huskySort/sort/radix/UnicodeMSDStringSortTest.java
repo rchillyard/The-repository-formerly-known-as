@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.CHINESE_NAMES_CORPUS;
 import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark.getWordSupplier;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class UnicodeMSDStringSortTest {
 
@@ -92,8 +93,19 @@ public class UnicodeMSDStringSortTest {
         final CountingSortHelper<UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("UnicodeMSDStringSort", 0, true, config);
         final UnicodeMSDStringSort sorter = new UnicodeMSDStringSort(characterMap, helper);
         final String[] strings = {"卞燕燕", "卞艳红"}; // bian4 yan4 yan4 AND bian4 yan4 hong2
+        helper.init(strings.length);
         sorter.sort(strings);
         assertArrayEquals(new String[]{"卞艳红", "卞燕燕"}, strings);
+        final StatPack statPack = ((Instrumented) helper).getStatPack();
+        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
+        // FIXME these do not yet work
+        assertEquals(0, compares);
+        assertEquals(0, fixes);
+        assertEquals(0, swaps);
+        assertEquals(0, copies);
     }
 
     @Test
@@ -134,6 +146,15 @@ public class UnicodeMSDStringSortTest {
         System.out.println("Time: " + time);
         final StatPack statPack = ((Instrumented) helper).getStatPack();
         System.out.println(statPack);
+        // FIXME these do not yet work
+        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
+        assertEquals(0, compares);
+        assertEquals(0, fixes);
+        assertEquals(0, swaps);
+        assertEquals(0, copies);
     }
 
     @Test

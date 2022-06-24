@@ -11,7 +11,7 @@ import edu.neu.coe.huskySort.util.Helper;
  *
  * @param <X>
  */
-public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends Helper<X> {
+public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends Helper<X>, TransformingHelper<X> {
 
     /**
      * Compare values v and w and return true if v is less than w.
@@ -107,17 +107,6 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
      */
     default void incrementCopies(final int n) {
         // do nothing.
-    }
-
-    /**
-     * Method to do any required preProcessing.
-     *
-     * @param xs the array to be sorted.
-     * @return the array after any pre-processing.
-     */
-    default X[] preProcess(final X[] xs) {
-        // CONSIDER invoking init from here.
-        return xs;
     }
 
     default void registerDepth(final int depth) {
