@@ -82,7 +82,7 @@ public class InsertionSortTest {
     public void sort2() throws Exception {
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         int n = 100;
-        ComparisonSortHelper<Integer> helper = HelperFactory.create("SelectionSort", n, config);
+        ComparisonSortHelper<Integer> helper = HelperFactory.create("InsertionSort", n, config);
         helper.init(n);
 
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);

@@ -98,15 +98,6 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
         return 7;
     }
 
-    /**
-     * If instrumenting, increment the number of copies by n.
-     *
-     * @param n the number of copies made.
-     */
-    default void incrementCopies(final int n) {
-        // do nothing.
-    }
-
     default void registerDepth(final int depth) {
     }
 

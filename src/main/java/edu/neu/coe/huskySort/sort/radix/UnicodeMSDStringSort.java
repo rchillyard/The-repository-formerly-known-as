@@ -81,8 +81,12 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
                 final UnicodeString xsi = xs[i];
                 counts.copyAndIncrementCount(xsi, aux, d);
             }
-            if (helper.instrumented())
-                helper.getInstrumenter().incrementHits(3 * n); // count, copy and copy back
+            if (helper.instrumented()) {
+                final int copies = 2 * n;  // copy and copy back
+                final int hits = 5 * n;  // count, copy (2) and copy back (2)
+                helper.getInstrumenter().incrementCopies(copies);
+                helper.getInstrumenter().incrementHits(hits);
+            }
             // XXX Copy back.
             System.arraycopy(aux, 0, xs, from, n);
             int offset = 0;

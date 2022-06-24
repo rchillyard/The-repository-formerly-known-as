@@ -90,7 +90,7 @@ public class UnicodeMSDStringSortTest {
 
     @Test
     public void sortM3() throws IOException {
-        final Config config = Config.load(UnicodeMSDStringSort.class).copy("helper", "cutoff", "0");
+        final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final CountingSortHelper<UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("UnicodeMSDStringSort", 0, true, config);
         final Sorter<String> sorter = new UnicodeMSDStringSort(characterMap, helper);
         final String[] strings = {"卞燕燕", "卞艳红"}; // bian4 yan4 yan4 AND bian4 yan4 hong2
@@ -102,11 +102,10 @@ public class UnicodeMSDStringSortTest {
         final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
         final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
         final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
-        // FIXME these do not yet work
-        assertEquals(0, compares);
+        assertEquals(1, compares);
         assertEquals(0, fixes);
-        assertEquals(0, swaps);
-        assertEquals(0, copies);
+        assertEquals(1, swaps);
+        assertEquals(4, copies);
     }
 
     @Test
@@ -136,7 +135,6 @@ public class UnicodeMSDStringSortTest {
     public void sortNInstrumented() throws IOException {
         final int n = 1000;
         final Config config = ConfigTest.setupConfig("true", "0", "10", "1", "");
-
         final CountingSortHelper<UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("basic counting sort helper", n, true, config);
         final Sorter<String> sorter = new UnicodeMSDStringSort(characterMap, helper);
         helper.init(n);
@@ -145,17 +143,16 @@ public class UnicodeMSDStringSortTest {
         final Benchmark<String[]> benchmark = new Benchmark<>("sortNInstrumented", null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
         final double time = benchmark.run(wordSupplier, 1);
         System.out.println("Time: " + time);
+        final double r = 180; // This is an estimate of the number of distinct pinyin forms that we find in our sample of n names.
+        final double depth = Math.ceil(Math.log(n) / Math.log(r)); // This assumes that strings are generally longer than depth (else we should use mean length).
+        final double estimatedCopies = (2 * n + r) * depth + 2 * n;
+        final double estimatedHits = (5 * n + r) * depth + 4 * n;
         final StatPack statPack = ((Instrumented) helper).getStatPack();
-        System.out.println(statPack);
-        // FIXME these do not yet work
-        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
-        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
-        assertEquals(0, compares);
-        assertEquals(0, fixes);
-        assertEquals(0, swaps);
-        assertEquals(0, copies);
+        // NOTE that we do never cut over to insertion sort, so the number of compares, fixes, swaps will all be zero.
+        final double copies = statPack.getStatistics(Instrumenter.COPIES).mean();
+        final double hits = statPack.getStatistics(Instrumenter.HITS).mean();
+        assertEquals(estimatedCopies, copies, 500);
+        assertEquals(estimatedHits, hits, 1000);
     }
 
     @Test

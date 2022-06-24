@@ -21,6 +21,15 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
         return null;
     }
 
+    @Override
+    public void incrementCopies(int n) {
+        Instrumenter instrumenter = getInstrumenter();
+        if (instrumenter != null) {
+            instrumenter.incrementCopies(n);
+            instrumenter.incrementHits(2 * n);
+        }
+    }
+
     /**
      * Method to determine if the given array (xs) is sorted.
      *

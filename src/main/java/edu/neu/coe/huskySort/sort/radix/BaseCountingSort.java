@@ -41,11 +41,12 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
      * @param recover   function to transform an X into a String.
      * @return true if the sort was successful.
      */
-    boolean sortAll(final Class<X> clazz, final String[] ws, final Function<String, X> transform, final Function<X, String> recover) {
+    protected boolean sortAll(final Class<X> clazz, final String[] ws, final Function<String, X> transform, final Function<X, String> recover) {
         final int n = ws.length;
         final X[] xs0 = helper.transformXToT(clazz, ws, 0, n, transform);
         helper.init(n);
         final X[] xs1 = helper.preProcess(xs0);
+        helper.incrementCopies(2 * n); // these are for the transformations.
         sort(xs1, 0, n); // XXX n should be the same as xs1.length
         final boolean ok = helper.postProcess(xs1);
         helper.recoverXFromT(helper.postSort(xs1), ws, 0, n, recover);
