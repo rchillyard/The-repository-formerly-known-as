@@ -50,7 +50,6 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> extends BaseHelpe
      * @param w the second X.
      * @return the result of comparing v and w.
      */
-    @Override
     public int compare(final X v, final X w) {
         return v.compareTo(w);
     }

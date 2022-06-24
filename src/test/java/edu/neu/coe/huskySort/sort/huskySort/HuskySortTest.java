@@ -46,7 +46,6 @@ public class HuskySortTest {
             return huskycode;
         }
 
-        @Override
         public int compareTo(final Person x) {
             final int cf = lastName.compareTo(x.lastName);
             if (cf != 0) return cf;

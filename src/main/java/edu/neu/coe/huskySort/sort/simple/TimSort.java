@@ -22,7 +22,6 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    @Override
     public void sort(final X[] xs, final int from, final int to) {
         Arrays.sort(xs, from, to);
     }

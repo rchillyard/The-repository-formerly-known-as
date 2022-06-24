@@ -63,12 +63,10 @@ public class GenericCollator<X> {
             super(source);
         }
 
-        @Override
         public int compareTo(final CollationKey target) {
             return getSourceString().compareTo(target.getSourceString());
         }
 
-        @Override
         public byte[] toByteArray() {
             return this.getSourceString().getBytes(StandardCharsets.UTF_8);
         }

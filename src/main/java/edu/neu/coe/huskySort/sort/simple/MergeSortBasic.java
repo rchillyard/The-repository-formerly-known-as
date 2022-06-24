@@ -36,7 +36,6 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param from the index of the first element of the sub-array.
      * @param to   the index of the first element of the sub-array NOT to sort.
      */
-    @Override
     public void sort(final X[] xs, final int from, final int to) {
         @SuppressWarnings("UnnecessaryLocalVariable") final int lo = from;
         if (to <= lo + getHelper().getCutoff()) {

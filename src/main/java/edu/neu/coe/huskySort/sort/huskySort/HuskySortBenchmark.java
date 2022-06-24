@@ -517,7 +517,6 @@ public final class HuskySortBenchmark {
          * @param tuple the object to be compared
          * @return an int according to the ordering of this and x
          */
-        @Override
         public int compareTo(final Tuple tuple) {
             final int cf1 = Integer.compare(birthYear, tuple.birthYear);
             if (cf1 != 0) return cf1;
@@ -532,7 +531,6 @@ public final class HuskySortBenchmark {
          *
          * @return a long such that when comparison is done by longs, it is approximately 90% accurate.
          */
-        @Override
         public long huskyCode() {
             long result = birthYear - 1850;  // 8 bits
             result = result << 17 | zip; // 17 bits

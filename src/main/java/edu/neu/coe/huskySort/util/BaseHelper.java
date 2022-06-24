@@ -50,7 +50,6 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      *
      * @return the value of N.
      */
-    @Override
     public int getN() {
         return n;
     }
@@ -58,8 +57,8 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
     /**
      * Close this ComparisonSortHelper, freeing up any resources used.
      */
-    @Override
     public void close() {
+        // XXX do nothing.
     }
 
     /**
@@ -102,7 +101,6 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      * @param target the target array.
      * @param j      the source index.
      */
-    @Override
     public void copy(final X[] source, final int i, final X[] target, final int j) {
         target[j] = source[i];
     }

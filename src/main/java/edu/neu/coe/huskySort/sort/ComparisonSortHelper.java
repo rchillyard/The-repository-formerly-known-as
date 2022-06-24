@@ -182,7 +182,6 @@ public interface ComparisonSortHelper<X extends Comparable<X>> extends Helper<X>
      * @param xs the array to be tested.
      * @return true.
      */
-    @Override
     default boolean postProcess(final X[] xs) {
         return true;
     }

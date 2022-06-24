@@ -17,7 +17,6 @@ import java.util.Random;
  */
 public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends BaseHelper<X> implements CountingSortHelper<X, Y> {
 
-    @Override
     public Instrumenter getInstrumenter() {
         return null;
     }

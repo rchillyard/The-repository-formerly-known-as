@@ -16,7 +16,6 @@ public final class BucketSort<X extends Comparable<X>> implements Sort<X> {
 
     public static final String DESCRIPTION = "Bucket sort";
 
-    @Override
     public void sort(final X[] xs, final int from, final int to) {
         logger.info(helper.inversions(xs));
         // Determine the min, max and gap.
@@ -52,9 +51,8 @@ public final class BucketSort<X extends Comparable<X>> implements Sort<X> {
      *
      * @param n the number of elements to be sorted.
      */
-    @Override
     public void init(final int n) {
-
+        // NOTE: do nothing.
     }
 
     /**
@@ -63,7 +61,6 @@ public final class BucketSort<X extends Comparable<X>> implements Sort<X> {
      * @param xs an array of Xs.
      * @return the result of calling helper.postProcess(xs).
      */
-    @Override
     public boolean postProcess(final X[] xs) {
         return helper.postProcess(xs);
     }
