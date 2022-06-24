@@ -5,7 +5,6 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Random;
-import java.util.function.Function;
 
 /**
  * Class to implement Most significant digit string sort (a radix sort) for UnicodeCharacters with custom collation mechanisms.
@@ -24,17 +23,16 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
     /**
      * Generic, mutating sort method which operates on a sub-array.
      *
-     * @param xs   sort the array xs from "from" until "to" (exclusive of to).
+     * @param ws   sort the array ws from "from" until "to" (exclusive of to).
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    public void sort(final String[] xs, final int from, final int to) {
+    public void sort(final String[] ws, final int from, final int to) {
         final int n = to - from;
         aux = new UnicodeString[n];
-        final Function<String, UnicodeString> stringUnicodeStringFunction = x -> new UnicodeString(characterMap, x);
-        final UnicodeString[] us = getStringComparableStrings(UnicodeString.class, xs, from, n, stringUnicodeStringFunction);
+        final UnicodeString[] us = transformXToT(UnicodeString.class, ws, from, n, x -> new UnicodeString(characterMap, x));
         doRecursiveSort(us, 0, n, 0);
-        recoverStrings(xs, from, n, us);
+        recoverXFromT(us, ws, from, n, UnicodeString::recoverString);
     }
 
     /**
