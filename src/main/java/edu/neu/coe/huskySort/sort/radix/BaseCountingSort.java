@@ -7,14 +7,20 @@ import edu.neu.coe.huskySort.util.Config;
 
 import java.util.function.Consumer;
 
+/**
+ * Abstract base class for "string" (counting) sorts.
+ * It extends TransformingSort of String and X.
+ *
+ * @param <X> the temporary type which will actually be sorted (X must extend StringComparable).
+ * @param <Y> an element (character) of X which must extend Comparable.
+ */
 public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y extends Comparable<Y>> implements TransformingSort<String, X> {
-
     /**
      * Method to get a suitable Helper for this TransformingSort.
      *
-     * @return the Helper.
+     * @return a TransformingHelper of String and X.
      */
-    public TransformingHelper<X> getHelper() {
+    public TransformingHelper<String, X> getHelper() {
         return helper;
     }
 

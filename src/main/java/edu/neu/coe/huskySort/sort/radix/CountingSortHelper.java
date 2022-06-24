@@ -1,17 +1,15 @@
 package edu.neu.coe.huskySort.sort.radix;
 
-import edu.neu.coe.huskySort.util.Helper;
-
 /**
  * CountingSortHelper interface.
  * <p>
- * A ComparisonSortHelper provides all of the utilities that are needed by sort methods, for example, compare and swap.
+ * A ComparisonSortHelper provides all the utilities that are needed by sort methods, for example, compare and swap.
  * <p>
  * CONSIDER having the concept of a current sub-array, then we could dispense with the lo, hi parameters.
  *
  * @param <X>
  */
-public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends Helper<X>, TransformingHelper<X> {
+public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends Comparable<Y>> extends TransformingHelper<String, X> {
 
     /**
      * Compare values v and w and return true if v is less than w.
