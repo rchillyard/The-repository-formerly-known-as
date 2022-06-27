@@ -16,7 +16,7 @@ public class RadixSort<T> {
      * Construct a RadixSort instance.
      *
      * @param r              the number of distinct classes of T (this is also known as the radix).
-     * @param incrementP    ?
+     * @param incrementP     ?
      * @param bucketFunction a function which takes a T, an int and yields a bucket index.
      */
     public RadixSort(final int r, final Function<Integer, Integer> incrementP, final BiFunction<T, Integer, Integer> bucketFunction) {

@@ -7,7 +7,7 @@ import java.util.function.Function;
 
 /**
  * GenericCollator
- *
+ * <p>
  * NOTE not currently used.
  *
  * @param <X> the generic type.

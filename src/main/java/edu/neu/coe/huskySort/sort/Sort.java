@@ -9,8 +9,8 @@ import java.util.Arrays;
  * Sort interface, which extends GenericSort.
  *
  * @param <X> the underlying type to be sorted.
- *            NOTE: currently, this is required to be a Comparable type.
- *            However, that is not strictly necessary because none of the methods defined here actually rely on that.
+ *                       NOTE: currently, this is required to be a Comparable type.
+ *                       However, that is not strictly necessary because none of the methods defined here actually rely on that.
  */
 public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
 

@@ -228,7 +228,7 @@ public final class HuskySortBenchmark {
      * <p>
      * CONSIDER merging this with compareSystemAndPureHuskySorts
      *
-     *  @param corpus     the name of the corpus file to be used as a source of Strings.
+     * @param corpus the name of the corpus file to be used as a source of Strings.
      * @param words  the word source.
      * @param nWords the number of words to be sorted.
      * @param nRuns  the number of runs.

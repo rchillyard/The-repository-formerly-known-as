@@ -57,7 +57,7 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
 
     /**
      * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
-     *
+     * <p>
      * TEST this is not invoked.
      *
      * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
