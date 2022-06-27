@@ -50,26 +50,9 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
         final X v = xs[i];
         final X w = xs[j];
         instrumenter.incrementHits(4);
-        if (instrumenter.isCountFixes()) {
-            final int sense = Integer.signum(v.compareTo(w));
-            instrumenter.fixes += sense;
-            for (int k = i + 1; k < j; k++) {
-                final X x = xs[k];
-                if (w.compareTo(x) < 0 && x.compareTo(v) < 0) instrumenter.fixes += 2 * sense;
-            }
-        }
+        if (instrumenter.isCountFixes()) updateFixes(xs, i, j, v, w);
         xs[i] = w;
         xs[j] = v;
-
-        // TODO rework this into the following shape...
-//        incrementSwaps(1);
-//        X v = xs[i];
-//        X w = xs[j];
-//        incrementHits(4);
-//        if (countFixes) enumerateFixes(xs, i, j, Integer.signum(v.compareTo(w)));
-//        xs[i] = w;
-//        xs[j] = v;
-
     }
 
     /**
@@ -78,6 +61,8 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      * and xs[i] thru xs[j-1] are all moved up one.
      * This type of swap is used by insertion sort.
      *
+     * TEST me
+     * 
      * @param xs the array of Xs.
      * @param i  the index of the destination of xs[j].
      * @param j  the index of the right-most element to be involved in the swap.
@@ -202,25 +187,6 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
     }
 
     /**
-     * Method to enumerate the number of inversions fixed by the swap of i and j elements in the array xs.
-     * NOTE: this may not be accurate when there are duplicates.
-     *
-     * @param xs    the array.
-     * @param i     the lower index.
-     * @param j     the upper index.
-     * @param sense the sense of "fix."
-     */
-    private void enumerateFixes(final X[] xs, final int i, final int j, final int sense) {
-        incrementFixes(sense);
-        final X v = xs[i];
-        final X w = xs[j];
-        for (int k = i + 1; k < j; k++) {
-            final X x = xs[k];
-            if (w.compareTo(x) < 0 && x.compareTo(v) < 0) incrementFixes(2 * sense);
-        }
-    }
-
-    /**
      * Get the configured cutoff value.
      *
      * @return a value for cutoff.
@@ -270,8 +236,6 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      * By default, this method checks that an array is sorted.
      *
      * @param xs the array to be tested.
-     *                               TODO log the message
-     *                               TODO show the number of inversions
      * @return the result of invoking super.postProcess(xs).
      */
     @Override
@@ -353,6 +317,15 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     public InstrumentedComparisonSortHelper(final String description, final Config config) {
         this(description, 0, config);
+    }
+
+    private void updateFixes(final X[] xs, final int i, final int j, final X v, final X w) {
+        final int sense = Integer.signum(v.compareTo(w));
+        instrumenter.fixes += sense;
+        for (int k = i + 1; k < j; k++) {
+            final X x = xs[k];
+            if (w.compareTo(x) < 0 && x.compareTo(v) < 0) instrumenter.fixes += 2 * sense;
+        }
     }
 
     private final int cutoff;
