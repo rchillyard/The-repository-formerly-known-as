@@ -47,11 +47,11 @@ public class HuskySortBenchmarkTest {
 
     @Test
     public void sortProbabilistic() {
-        HuskyCoder<Byte> byteCoder = HuskyCoderFactory.createProbabilisticCoder(0.2);
-        HuskySortBenchmark.compareSystemAndPureHuskySorts(1000 + " Bytes", HuskySortBenchmark.getSupplier(1000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
-        HuskySortBenchmark.compareSystemAndPureHuskySorts(2000 + " Bytes", HuskySortBenchmark.getSupplier(2000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
-        HuskySortBenchmark.compareSystemAndPureHuskySorts(5000 + " Bytes", HuskySortBenchmark.getSupplier(5000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
-        HuskySortBenchmark.compareSystemAndPureHuskySorts(10000 + " Bytes", HuskySortBenchmark.getSupplier(10000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        final HuskyCoder<Byte> byteCoder = HuskyCoderFactory.createProbabilisticCoder(0.2);
+        HuskySortBenchmark.compareSystemAndHuskySorts(1000 + " Bytes", HuskySortBenchmark.getSupplier(1000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(2000 + " Bytes", HuskySortBenchmark.getSupplier(2000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(5000 + " Bytes", HuskySortBenchmark.getSupplier(5000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(10000 + " Bytes", HuskySortBenchmark.getSupplier(10000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
     }
 
     @Test
@@ -86,7 +86,7 @@ public class HuskySortBenchmarkTest {
 
     @Test
     public void minComparisons() {
-        double v = HuskySortBenchmark.minComparisons(1024);
+        final double v = HuskySortBenchmark.minComparisons(1024);
         assertEquals(8769.01, v, 1E-2);
     }
 
@@ -118,7 +118,7 @@ public class HuskySortBenchmarkTest {
 
     @Test
     public void tupleCreate() {
-        HuskySortBenchmark.Tuple tuple = HuskySortBenchmark.Tuple.create();
+        final HuskySortBenchmark.Tuple tuple = HuskySortBenchmark.Tuple.create();
         assertEquals(new HuskySortBenchmark.Tuple(1971, 57058, "okay"), tuple);
     }
 }

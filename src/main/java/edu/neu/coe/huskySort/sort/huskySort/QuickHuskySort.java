@@ -9,6 +9,11 @@ import edu.neu.coe.huskySort.util.Config;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
+/**
+ * Class to define HuskySort which uses basic quick sort, i.e., partitioning is the standard partitioning scheme.
+ *
+ * @param <X> the underlying type of element to be sorted.
+ */
 public final class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
 
     /**

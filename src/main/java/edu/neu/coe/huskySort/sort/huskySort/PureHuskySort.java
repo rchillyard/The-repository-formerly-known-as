@@ -15,6 +15,7 @@ import static java.util.Arrays.binarySearch;
 
 /**
  * This class represents the purest form of Husky Sort based on IntroSort for pass 1 and the System sort for pass 2.
+ * This class does not use Helper functions, nor does it extends Sort[X] in order that it is as fast as possible.
  * <p>
  * CONSIDER redefining all of the "to" parameters to be consistent with our other Sort utilities.
  *

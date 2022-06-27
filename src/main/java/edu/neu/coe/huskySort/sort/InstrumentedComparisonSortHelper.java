@@ -87,6 +87,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
     @Override
     public boolean swapConditional(final X[] xs, final int i, final int j) {
         instrumenter.incrementCompares();
+        instrumenter.incrementHits(2);
         final int cf = xs[i].compareTo(xs[j]);
         if (cf > 0)
             swap(xs, i, j);
@@ -105,9 +106,9 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
         // CONSIDER invoke super-method
         final X v = xs[i];
         final X w = xs[i - 1];
-        instrumenter.incrementHits(2);
         final boolean result = v.compareTo(w) < 0;
         instrumenter.incrementCompares();
+        instrumenter.incrementHits(2);
         if (result) {
             xs[i] = w;
             xs[i - 1] = v;
@@ -131,7 +132,6 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
     @Override
     public void copy(final X[] source, final int i, final X[] target, final int j) {
         instrumenter.incrementCopies();
-        instrumenter.incrementHits(2);
         target[j] = source[i];
     }
 

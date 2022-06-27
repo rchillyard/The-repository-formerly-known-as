@@ -50,7 +50,6 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
     @Override
     public void copy(final X[] source, final int i, final X[] target, final int j) {
         instrumenter.incrementCopies();
-        instrumenter.incrementHits(2);
         target[j] = source[i];
     }
 

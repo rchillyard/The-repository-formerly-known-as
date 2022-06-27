@@ -9,12 +9,18 @@ import edu.neu.coe.huskySort.util.LazyLogger;
 import java.util.Arrays;
 
 /**
- * This version of (Pure) Husky Sort is based on merge sort for the
+ * This version of (Pure) Husky Sort is based on merge sort (rather than quicksort) for the main sorting phase.
+ * Mopping up (the last phase of HuskySort is performed by the System sort).
  *
- * @param <X>
+ * @param <X> the underlying type to be sorted.
  */
 public class MergeHuskySort<X extends Comparable<X>> {
 
+    /**
+     * TEST me.
+     *
+     * @param args a set of Strings corresponding to command-line arguments.
+     */
     public static void main(final String[] args) {
 
         final int N = 50000;

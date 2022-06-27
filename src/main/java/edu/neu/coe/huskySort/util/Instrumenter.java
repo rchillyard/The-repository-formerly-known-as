@@ -34,8 +34,7 @@ public class Instrumenter implements Instrumented {
      * If instrumenting, increment the number of copies by 1.
      */
     public void incrementCopies() {
-        if (countCopies)
-            copies++;
+        incrementCopies(1);
     }
 
     /**
@@ -49,11 +48,14 @@ public class Instrumenter implements Instrumented {
 
     /**
      * If instrumenting, increment the number of copies by n.
+     * <p>
+     * NOTE: This method also increments hits.
      *
      * @param n the number of copies made.
      */
     public void incrementCopies(final int n) {
         if (countCopies) copies += n;
+        if (countHits) hits += 2L * n;
     }
 
     /**

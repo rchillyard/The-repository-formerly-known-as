@@ -1,29 +1,8 @@
-package edu.neu.coe.huskySort.sort.simple;/*
- * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
+package edu.neu.coe.huskySort.sort.simple;
 
 /**
+ * Implementation of Dual Pivot Quicksort without use of Helper functions.
+ *
  * Copied directly from java.util.DualPivotQuicksort (which is invisible to regular Java programmers).
  * This class implements an object-based version of DualPivotQuicksort.
  * <p>
@@ -43,6 +22,9 @@ package edu.neu.coe.huskySort.sort.simple;/*
  * @author Josh Bloch
  * @version 2011.02.11 m765.827.12i:5\7pm
  * @since 1.7
+ *
+ * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 public final class PureDualPivotQuicksort {
 

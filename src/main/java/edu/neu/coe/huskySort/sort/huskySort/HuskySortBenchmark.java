@@ -131,7 +131,7 @@ public final class HuskySortBenchmark {
         final int m = getRepetitions(n, totalOps);
         final Tuple[] tuples = new Tuple[n];
         for (int i = 0; i < n; i++) tuples[i] = Tuple.create();
-        compareSystemAndPureHuskySorts(n + " Tuples", getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]), HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
+        compareSystemAndHuskySorts(n + " Tuples", getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]), HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
     }
 
     private static int getRepetitions(final int n, final int totalOps) {
@@ -607,7 +607,7 @@ public final class HuskySortBenchmark {
      * @param isInt      true if Y is an integer-style type.
      */
     static <Y extends Number & Comparable<Y>> void compareSystemAndPureHuskySortsNumeric(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Predicate<Y[]> checker, final Predicate<String> isConfig, final int m, final Class<? extends Number> clazz, final boolean isInt) {
-        compareSystemAndPureHuskySorts(subject, supplier, huskyCoder, checker, isConfig, m);
+        compareSystemAndHuskySorts(subject, supplier, huskyCoder, checker, isConfig, m);
 
         if (isConfig.test("quicksort")) {
             doNumericQuicksort(subject, supplier, m, clazz, isInt);
@@ -615,7 +615,7 @@ public final class HuskySortBenchmark {
     }
 
     /**
-     * Method to compare system sort with pure Husky sort
+     * Method to compare system sort with pure Husky sort, dual-pivot quick sort, and merge-husky-sort.
      *
      * @param <Y>        the underlying type of the array to be sorted.
      * @param subject    a String representing the number of instances and the class name being sorted.
@@ -625,7 +625,7 @@ public final class HuskySortBenchmark {
      * @param isConfig   a predicate which returns a boolean for both "timsort" or "huskysort".
      * @param m          the number of repetitions to be run.
      */
-    static <Y extends Comparable<Y>> void compareSystemAndPureHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Predicate<Y[]> checker, final Predicate<String> isConfig, final int m) {
+    static <Y extends Comparable<Y>> void compareSystemAndHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Predicate<Y[]> checker, final Predicate<String> isConfig, final int m) {
         if (isConfig.test("timsort"))
             logBenchmarkRun(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + subject + " using System sort", Arrays::sort, null).run(supplier, m));
 
