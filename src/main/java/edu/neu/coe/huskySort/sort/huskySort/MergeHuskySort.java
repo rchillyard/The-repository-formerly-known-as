@@ -62,7 +62,7 @@ public class MergeHuskySort<X extends Comparable<X>> {
     /**
      * Primary constructor.
      *
-     * @param huskyCoder the Husky coder to be used for the encoding to longs.
+     * @param huskyCoder the Husky coder to be used for the encoding into longs.
      */
     public MergeHuskySort(final HuskyCoder<X> huskyCoder) {
         this.huskyCoder = huskyCoder;

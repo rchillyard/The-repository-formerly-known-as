@@ -4,7 +4,7 @@ package edu.neu.coe.huskySort.sort.radix;
  * Interface to allow comparison of generic strings.
  *
  * @param <X> the type of the string to be compared.
- * @param <Y> the type of an element of the string.
+ * @param <Y> the type of elements of the string.
  */
 public interface StringComparable<X extends StringLike<X, Y>, Y extends Comparable<Y>> extends StringLike<X, Y> {
 

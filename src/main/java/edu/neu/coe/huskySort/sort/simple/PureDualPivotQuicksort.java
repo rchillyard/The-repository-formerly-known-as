@@ -114,6 +114,7 @@ public final class PureDualPivotQuicksort {
      * @param workBase origin of usable space in work array
      * @param workLen  usable size of work array
      */
+    @SuppressWarnings("StatementWithEmptyBody")
     static <X extends Comparable<X>> void sort(X[] a, final int left, int right,
                                                X[] work, int workBase, final int workLen) {
         // Use Quicksort on small arrays
@@ -231,6 +232,7 @@ public final class PureDualPivotQuicksort {
      * @param right    the index of the last element, inclusive, to be sorted
      * @param leftmost indicates if this part is the leftmost in the range
      */
+    @SuppressWarnings("StatementWithEmptyBody")
     private static <X extends Comparable<X>> void sort(final X[] a, int left, int right, final boolean leftmost) {
         final int length = right - left + 1;
 
@@ -266,7 +268,7 @@ public final class PureDualPivotQuicksort {
                  * Every element from adjoining part plays the role
                  * of sentinel, therefore this allows us to avoid the
                  * left range check on each iteration. Moreover, we use
-                 * the more optimized algorithm, so called pair insertion
+                 * the more optimized algorithm, so-called pair insertion
                  * sort, which is faster (in the context of Quicksort)
                  * than traditional implementation of insertion sort.
                  */
@@ -452,7 +454,7 @@ public final class PureDualPivotQuicksort {
 
             /*
              * If center part is too large (comprises > 4/7 of the array),
-             * swap internal pivot values to ends.
+             * swap internal pivot values to the ends.
              */
             if (less < e1 && e5 < great) {
                 /*
@@ -504,7 +506,7 @@ public final class PureDualPivotQuicksort {
                              * Even though a[great] equals to pivot1, the
                              * assignment a[less] = pivot1 may be incorrect,
                              * if a[great] and pivot1 are floating-point zeros
-                             * of different signs. Therefore in float and
+                             * of different signs. Therefore, in float and
                              * double sorting methods we have to use more
                              * accurate assignment a[less] = a[great].
                              */
@@ -571,7 +573,7 @@ public final class PureDualPivotQuicksort {
                          * Even though a[great] equals to pivot, the
                          * assignment a[k] = pivot may be incorrect,
                          * if a[great] and pivot are floating-point
-                         * zeros of different signs. Therefore in float
+                         * zeros of different signs. Therefore, in float
                          * and double sorting methods we have to use
                          * more accurate assignment a[k] = a[great].
                          */

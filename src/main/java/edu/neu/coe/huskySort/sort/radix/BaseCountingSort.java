@@ -19,6 +19,8 @@ import java.util.function.Function;
 public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y extends Comparable<Y>> implements TransformingSort<String, X> {
     /**
      * Method to get a suitable Helper for this TransformingSort.
+     * <p>
+     * TEST not currently invoked.
      *
      * @return a TransformingHelper of String and X.
      */
@@ -56,6 +58,8 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
     /**
      * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
      *
+     * TEST this is not invoked.
+     *
      * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
      * @param makeCopy if set to true, we make a copy first and sort that.
      */
@@ -68,11 +72,9 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
     /**
      * Abstract class constructor.
      *
-     * @param characterMap the character map.
-     * @param helper       a counting sort helper of type CountingSortHelper of X, Y.
+     * @param helper a counting sort helper of type CountingSortHelper of X, Y.
      */
-    public BaseCountingSort(final CharacterMap characterMap, final CountingSortHelper<X, Y> helper) {
-        this.characterMap = characterMap;
+    public BaseCountingSort(final CountingSortHelper<X, Y> helper) {
         this.helper = helper;
     }
 
@@ -85,7 +87,5 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
         return instrumentation ? new HuskyHelper<>(HelperFactory.create("Delegate CountingSortHelper", n, config), huskyCoder, postSorter, false) : new HuskyHelper<>(name, n, huskyCoder, postSorter);
     }
 
-
-    private final CharacterMap characterMap; // CONSIDER do we need this as a field?
     private final CountingSortHelper<X, Y> helper;
 }

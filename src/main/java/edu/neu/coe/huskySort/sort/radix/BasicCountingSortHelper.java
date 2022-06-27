@@ -22,8 +22,8 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
     }
 
     @Override
-    public void incrementCopies(int n) {
-        Instrumenter instrumenter = getInstrumenter();
+    public void incrementCopies(final int n) {
+        final Instrumenter instrumenter = getInstrumenter();
         if (instrumenter != null) {
             instrumenter.incrementCopies(n);
             instrumenter.incrementHits(2 * n);

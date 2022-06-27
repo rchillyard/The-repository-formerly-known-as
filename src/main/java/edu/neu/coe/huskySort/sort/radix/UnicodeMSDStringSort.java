@@ -38,7 +38,7 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
      * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
      */
     public UnicodeMSDStringSort(final CharacterMap characterMap, final CountingSortHelper<UnicodeString, UnicodeCharacter> helper) {
-        super(characterMap, helper);
+        super(helper);
         this.characterMap = characterMap;
         this.helper = helper;
     }

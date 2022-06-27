@@ -65,9 +65,9 @@ public class PureHuskySort<X extends Comparable<X>> {
     /**
      * Primary constructor.
      *
-     * @param huskyCoder       the Husky coder to be used for the encoding to longs.
+     * @param huskyCoder       the Husky coder to be used for the encoding into longs.
      * @param mayBeSorted      if this is true, then we should perform a random shuffle to prevent an O(N*N) performance.
-     *                         NOTE: that even though we are using IntroSort, the random shuffle precaution is necessary when
+     *                                                 NOTE: that even though we are using IntroSort, the random shuffle precaution is necessary when
      * @param useInsertionSort if true, then insertion sort will be used to mop up remaining inversions instead of system sort.
      */
     public PureHuskySort(final HuskyCoder<X> huskyCoder, final boolean mayBeSorted, final boolean useInsertionSort) {

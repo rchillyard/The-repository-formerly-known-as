@@ -6,6 +6,8 @@ import java.util.List;
 
 /**
  * Class to implement Radix Sort.
+ * <p>
+ * CONSIDER merging this with RadixSort.
  *
  * @param <T> the underlying type to be sorted.
  */
@@ -25,6 +27,7 @@ public class RadixSortIntegral<T extends Number> {
      * @param ts an array to Ts to be sorted.
      */
     public T[] sort(final T[] ts) {
+        // XXX see comment on class.
         final T[] result = Arrays.copyOf(ts, ts.length);
         @SuppressWarnings("unchecked") final List<T>[] bucket = new ArrayList[r];
         for (int i = 0; i < bucket.length; i++) bucket[i] = new ArrayList<>();

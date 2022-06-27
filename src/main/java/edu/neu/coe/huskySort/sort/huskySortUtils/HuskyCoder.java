@@ -53,7 +53,7 @@ public interface HuskyCoder<X> {
      * Encode an array of Xs.
      *
      * @param xs an array of X elements.
-     * @return an array of longs corresponding to the the Husky codes of the X elements.
+     * @return an array of longs corresponding to the Husky codes of the X elements.
      */
     default Coding huskyEncode(final X[] xs) {
         final long[] result = new long[xs.length];
@@ -69,7 +69,7 @@ public interface HuskyCoder<X> {
      * Encode an array of CollationKeys.
      *
      * @param xs an array of CollationKeys.
-     * @return an array of longs corresponding to the the Husky codes of the X elements.
+     * @return an array of longs corresponding to the Husky codes of the X elements.
      */
     default Coding huskyEncode(final CollationKey[] xs) {
         boolean perfect = true;

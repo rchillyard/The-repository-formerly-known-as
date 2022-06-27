@@ -8,8 +8,6 @@ import java.util.Arrays;
  * Inner instance class which represents a string of UnicodeCharacter instances.
  */
 public class UnicodeString implements StringComparable<UnicodeString, UnicodeCharacter> {
-    private final CharacterMap characterMap; // XXX do we need this as a field?
-
     /**
      * Constructor which takes a String representing a "word" or name.
      * We expect each of the characters of word to be a unicode representation.
@@ -17,7 +15,6 @@ public class UnicodeString implements StringComparable<UnicodeString, UnicodeCha
      * @param word a sequence of unicode characters.
      */
     public UnicodeString(final CharacterMap characterMap, final String word) {
-        this.characterMap = characterMap;
         this.word = word;
         this.unicodes = new UnicodeCharacter[word.length()];
         for (int i = 0; i < word.length(); i++) unicodes[i] = characterMap.get(word.charAt(i));

@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
- * Class to perform HuskySort on objects belong to a sub-class of HuskySortable.
+ * Class to perform HuskySort on objects belong to a subclass of HuskySortable.
  *
  * @param <X> the type of object to be sorted -- must implement HuskySortable.
  */

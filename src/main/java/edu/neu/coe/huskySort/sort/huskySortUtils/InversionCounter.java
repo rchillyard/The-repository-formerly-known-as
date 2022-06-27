@@ -21,7 +21,7 @@ public class InversionCounter {
 
     /* An auxiliary recursive method that sorts the input array and
       returns the number of inversions in the array. */
-    private long _inversionsRecursive(final Comparable[] arr, final Comparable[] temp, final int left, final int right) {
+    private static long _inversionsRecursive(final Comparable[] arr, final Comparable[] temp, final int left, final int right) {
         final int mid;
         long result = 0;
         if (right > left) {
@@ -42,7 +42,7 @@ public class InversionCounter {
 
     /* This method merges two sorted arrays and returns inversion count in
        the arrays.*/
-    private long inversionsMerge(final Comparable[] arr, final Comparable[] temp, final int left, final int mid, final int right) {
+    private static long inversionsMerge(final Comparable[] arr, final Comparable[] temp, final int left, final int mid, final int right) {
         int i, j, k;
         long result = 0;
 

@@ -320,7 +320,7 @@ public final class HuskyCoderFactory {
         return result;
     }
 
-    // NOTE: this method ought to be faster but I don't think it is.
+    // NOTE: this method ought to be faster, but I don't think it is.
     // If you uncomment this, you must also uncomment the static initializer at the end of this file.
 //    private static long stringToLongAvoidLength(final String str, final int maxLength, final int bitWidth, final int mask) {
 //        char[] chars = new char[maxLength];

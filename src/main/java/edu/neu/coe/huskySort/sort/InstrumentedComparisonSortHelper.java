@@ -62,7 +62,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      * This type of swap is used by insertion sort.
      *
      * TEST me
-     * 
+     *
      * @param xs the array of Xs.
      * @param i  the index of the destination of xs[j].
      * @param j  the index of the right-most element to be involved in the swap.
