@@ -29,10 +29,10 @@ public class InstrumentedCountingSortHelperTest {
     }
 
     @Test
-    public void testLess() {
+    public void testInverted() {
         final InstrumentedCountingSortHelper<UnicodeString, UnicodeCharacter> helper = new InstrumentedCountingSortHelper<>("test", config);
         helper.init(2);
-        assertFalse(helper.less(卞燕燕, 卞艳红, 0));
+        assertTrue(helper.inverted(卞燕燕, 卞艳红, 0));
         final Instrumenter instrumenter = helper.getInstrumenter();
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));

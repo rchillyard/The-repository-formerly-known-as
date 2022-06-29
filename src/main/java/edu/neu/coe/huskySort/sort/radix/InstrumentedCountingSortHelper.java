@@ -92,9 +92,9 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
      * @return true if v is less than w.
      */
     @Override
-    public boolean less(final X v, final X w, final int d) {
+    public boolean inverted(final X v, final X w, final int d) {
         instrumenter.incrementCompares();
-        return super.less(v, w, d);
+        return super.inverted(v, w, d);
     }
 
     /**
@@ -107,9 +107,9 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
      * @return true if xs[i] is less than w.
      */
     @Override
-    public boolean less(final X[] xs, final int i, final X w, final int d) {
+    public boolean inverted(final X[] xs, final int i, final X w, final int d) {
         instrumenter.incrementHits(1);
-        return less(xs[i], w, d);
+        return inverted(xs[i], w, d);
     }
 
     /**
@@ -122,9 +122,9 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
      * @return true if xs[i] is less than xs[j].
      */
     @Override
-    public boolean less(final X[] xs, final int i, final int j, final int d) {
+    public boolean inverted(final X[] xs, final int i, final int j, final int d) {
         instrumenter.incrementHits(1);
-        return less(xs, i, xs[j], d);
+        return inverted(xs, i, xs[j], d);
     }
 
     /**

@@ -13,14 +13,16 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
 
     /**
      * Compare values v and w and return true if v is less than w.
+     * <p>
+     * CONSIDER renaming and redefining the less methods to inverted.
      *
      * @param v the first value.
      * @param w the second value.
      * @param d the position of interest.
      * @return true if v is less than w.
      */
-    default boolean less(final X v, final X w, final int d) {
-        return v.compareFromD(w, d) < 0;
+    default boolean inverted(final X v, final X w, final int d) {
+        return v.compareFromD(w, d) > 0;
     }
 
     /**
@@ -32,8 +34,8 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
      * @param d  the position of interest.
      * @return true if xs[i] is less than w.
      */
-    default boolean less(final X[] xs, final int i, final X w, final int d) {
-        return less(xs[i], w, d);
+    default boolean inverted(final X[] xs, final int i, final X w, final int d) {
+        return inverted(xs[i], w, d);
     }
 
     /**
@@ -45,8 +47,8 @@ public interface CountingSortHelper<X extends StringComparable<X, Y>, Y extends 
      * @param d  the position of interest.
      * @return true if xs[i] is less than xs[j].
      */
-    default boolean less(final X[] xs, final int i, final int j, final int d) {
-        return less(xs, i, xs[j], d);
+    default boolean inverted(final X[] xs, final int i, final int j, final int d) {
+        return inverted(xs, i, xs[j], d);
     }
 
     /**

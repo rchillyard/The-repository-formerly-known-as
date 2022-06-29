@@ -57,15 +57,6 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
     }
 
     /**
-     * @param v the first value.
-     * @param w the second value.
-     * @return true if v is less than w.
-     */
-    public boolean less(final X v, final X w) {
-        return !helper.inverted(v, w);
-    }
-
-    /**
      * @param xs an array of Xs.
      * @return true if xs is sorted.
      */

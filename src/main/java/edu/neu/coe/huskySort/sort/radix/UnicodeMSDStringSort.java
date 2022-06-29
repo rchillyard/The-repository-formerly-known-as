@@ -113,7 +113,7 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
         if (logger.isTraceEnabled())
             logger.trace("UnicodeMSDStringSort.insertionSort: on " + (d > 0 ? xs[from].charAt(d - 1) : "root") + " from=" + from + ", to=" + to + ", d=" + d);
         for (int i = from; i < to; i++)
-            for (int j = i; j > from && helper.less(xs, j, j - 1, d); j--)
+            for (int j = i; j > from && helper.inverted(xs, j - 1, j, d); j--)
                 helper.swap(xs, j, j - 1);
     }
 

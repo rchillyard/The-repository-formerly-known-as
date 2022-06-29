@@ -11,17 +11,6 @@ import java.util.Random;
  */
 public class ComparableSortHelper<X extends Comparable<X>> extends AbstractComparableSortHelper<X> {
 
-    /**
-     * Method to determine if one X value is less than another.
-     *
-     * @param v the candidate element.
-     * @param w the comparand element.
-     * @return true only if v is less than w.
-     */
-    public boolean less(final X v, final X w) {
-        return v.compareTo(w) < 0;
-    }
-
     @Override
     public boolean inverted(final X v, final X w) {
         return v.compareTo(w) > 0;

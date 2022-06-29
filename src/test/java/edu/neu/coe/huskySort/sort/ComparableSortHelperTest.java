@@ -35,8 +35,10 @@ public class ComparableSortHelperTest {
     }
 
     @Test
-    public void less() {
-        assertFalse(new BaseHelperWithSortedTest<String>().inverted("a", "b"));
+    public void inverted() {
+        final BaseHelperWithSortedTest<String> stringBaseHelperWithSortedTest = new BaseHelperWithSortedTest<>();
+        assertFalse(stringBaseHelperWithSortedTest.inverted("a", "b"));
+        assertTrue(stringBaseHelperWithSortedTest.inverted("b", "a"));
     }
 
     @Test
