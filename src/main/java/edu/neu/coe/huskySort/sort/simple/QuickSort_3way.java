@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.InstrumentedComparisonSortHelper;
 import edu.neu.coe.huskySort.util.Config;
@@ -37,7 +37,7 @@ public class QuickSort_3way<X extends Comparable<X>> extends QuickSort<X> {
     }
 
     public QuickSort_3way() {
-        this(new BaseComparisonSortHelper<>(DESCRIPTION));
+        this(new ComparableSortHelper<>(DESCRIPTION));
     }
 
     /**

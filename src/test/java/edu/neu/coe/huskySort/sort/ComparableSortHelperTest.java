@@ -4,9 +4,9 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class BaseComparisonSortHelperTest {
+public class ComparableSortHelperTest {
 
-    static final class BaseHelperWithSortedTest<X extends Comparable<X>> extends BaseComparisonSortHelper<X> {
+    static final class BaseHelperWithSortedTest<X extends Comparable<X>> extends ComparableSortHelper<X> {
 
         public BaseHelperWithSortedTest() {
             super("test");
@@ -100,19 +100,19 @@ public class BaseComparisonSortHelperTest {
 
     @Test
     public void testToString() {
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test", 3);
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test", 3);
         assertEquals("ComparisonSortHelper for test with 3 elements", helper.toString());
     }
 
     @Test
     public void getDescription() {
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test", 3);
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test", 3);
         assertEquals("test", helper.getDescription());
     }
 
     @Test(expected = RuntimeException.class)
     public void getSetN() {
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test", 3);
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test", 3);
         assertEquals(3, helper.getN());
         helper.init(4);
         assertEquals(4, helper.getN());
@@ -120,7 +120,7 @@ public class BaseComparisonSortHelperTest {
 
     @Test
     public void getSetNBis() {
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         assertEquals(0, helper.getN());
         helper.init(4);
         assertEquals(4, helper.getN());
@@ -128,14 +128,14 @@ public class BaseComparisonSortHelperTest {
 
     @Test
     public void close() {
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.close();
     }
 
     @Test
     public void swapStable() {
         final String[] xs = new String[]{"a", "b"};
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.swapStable(xs, 1);
         assertArrayEquals(new String[]{"b", "a"}, xs);
         helper.swapStable(xs, 1);
@@ -145,7 +145,7 @@ public class BaseComparisonSortHelperTest {
     @Test
     public void fixInversion1() {
         final String[] xs = new String[]{"a", "b"};
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.fixInversion(xs, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
         helper.swapStable(xs, 1);
@@ -157,7 +157,7 @@ public class BaseComparisonSortHelperTest {
     @Test
     public void testFixInversion2() {
         final String[] xs = new String[]{"a", "b"};
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.fixInversion(xs, 0, 1);
         assertArrayEquals(new String[]{"a", "b"}, xs);
         helper.swap(xs, 0, 1);
@@ -169,7 +169,7 @@ public class BaseComparisonSortHelperTest {
     @Test
     public void testSwapInto() {
         final String[] xs = new String[]{"a", "b", "c"};
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.swapInto(xs, 0, 2);
         assertArrayEquals(new String[]{"c", "a", "b"}, xs);
         helper.swapInto(xs, 0, 1);
@@ -182,7 +182,7 @@ public class BaseComparisonSortHelperTest {
     @Test
     public void testSwapIntoSorted0() {
         final String[] xs = new String[]{"a", "b", "c"};
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.swapIntoSorted(xs, 2);
         assertArrayEquals(new String[]{"a", "b", "c"}, xs);
     }
@@ -190,7 +190,7 @@ public class BaseComparisonSortHelperTest {
     @Test
     public void testSwapIntoSorted1() {
         final String[] xs = new String[]{"a", "c", "b"};
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.swapIntoSorted(xs, 2);
         assertArrayEquals(new String[]{"a", "b", "c"}, xs);
     }
@@ -198,7 +198,7 @@ public class BaseComparisonSortHelperTest {
     @Test
     public void testSwapIntoSorted2() {
         final String[] xs = new String[]{"a", "c", "b"};
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.swapIntoSorted(xs, 1);
         assertArrayEquals(new String[]{"a", "c", "b"}, xs);
     }
@@ -206,7 +206,7 @@ public class BaseComparisonSortHelperTest {
     @Test
     public void testSwapIntoSorted3() {
         final String[] xs = new String[]{"a", "c", "b"};
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test");
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
         helper.swapIntoSorted(xs, 0);
         assertArrayEquals(new String[]{"a", "c", "b"}, xs);
     }

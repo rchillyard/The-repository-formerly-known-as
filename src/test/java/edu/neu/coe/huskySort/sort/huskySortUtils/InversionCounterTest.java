@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class InversionCounterTest {
     @Test
     public void getInversionsRandomN() {
         final int N = 1000;
-        final BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("InversionTest", N);
+        final ComparableSortHelper<Integer> helper = new ComparableSortHelper<>("InversionTest", N);
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(N));
         final InversionCounter counter = new InversionCounter(xs);
         final double meanInversions = 0.25 * N * (N - 1);

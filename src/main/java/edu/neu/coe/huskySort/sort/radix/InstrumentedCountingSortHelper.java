@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.radix;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.util.*;
 
 import java.util.Random;
@@ -146,7 +146,7 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
     /**
      * Initialize this InstrumentedCountingSortHelper.
      * <p>
-     * TODO this is identical with BaseComparisonSortHelper: merge them.
+     * TODO this is identical with ComparableSortHelper: merge them.
      *
      * @param n the size to be managed.
      */
@@ -189,7 +189,7 @@ public final class InstrumentedCountingSortHelper<X extends StringComparable<X, 
     @Override
     public boolean postProcess(final X[] xs) {
         final boolean result = super.postProcess(xs);
-        if (!sorted(xs)) throw new BaseComparisonSortHelper.HelperException("Array is not sorted");
+        if (!sorted(xs)) throw new ComparableSortHelper.HelperException("Array is not sorted");
         instrumenter.updateStats();
         return result;
     }

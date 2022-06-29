@@ -3,7 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
@@ -31,7 +31,7 @@ public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     public SelectionSort() {
-        this(new BaseComparisonSortHelper<>(DESCRIPTION));
+        this(new ComparableSortHelper<>(DESCRIPTION));
     }
 
     /**
@@ -39,7 +39,7 @@ public class SelectionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *
      * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public SelectionSort(final BaseComparisonSortHelper<X> helper) {
+    public SelectionSort(final ComparableSortHelper<X> helper) {
         super(helper);
     }
 

@@ -3,7 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.SortException;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.sort.Sorter;
@@ -94,7 +94,7 @@ public final class HuskySortBenchmark {
 
         // TODO why do we have localDateTimeSupplier IN ADDITION TO localDateTimes?
         final Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(n);
-        final BaseComparisonSortHelper<ChronoLocalDateTime<?>> helper = new BaseComparisonSortHelper<>("DateTimeHelper");
+        final ComparableSortHelper<ChronoLocalDateTime<?>> helper = new ComparableSortHelper<>("DateTimeHelper");
         final LocalDateTime[] localDateTimes = generateRandomLocalDateTimeArray(n);
 
         // CONSIDER finding the common ground amongst these sorts and get them all working together.

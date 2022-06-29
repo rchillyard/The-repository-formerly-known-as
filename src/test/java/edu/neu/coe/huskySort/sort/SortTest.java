@@ -70,11 +70,11 @@ public class SortTest {
              *
              * @param xs the array to be post-processed.
              * @return true.
-             * @throws BaseComparisonSortHelper.HelperException if the array xs is not sorted.
+             * @throws ComparableSortHelper.HelperException if the array xs is not sorted.
              */
             @Override
             public boolean postProcess(final Integer[] xs) {
-                if (!getHelper().sorted(xs)) throw new BaseComparisonSortHelper.HelperException("Array is not sorted");
+                if (!getHelper().sorted(xs)) throw new ComparableSortHelper.HelperException("Array is not sorted");
                 return true;
             }
         };

@@ -149,7 +149,7 @@ public class QuickSort3WayTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseComparisonSortHelper<Integer> helper = (BaseComparisonSortHelper<Integer>) HelperFactory.create("merge sort", N, config);
+        final ComparableSortHelper<Integer> helper = (ComparableSortHelper<Integer>) HelperFactory.create("merge sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new QuickSort_3way<>(helper);
         s.init(N);
@@ -178,7 +178,7 @@ public class QuickSort3WayTest {
         String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
         int n = xs.length;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        final ComparableSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         Instrumenter instrumenter = helper.getInstrumenter();
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         QuickSort_3way<String> sorter = new QuickSort_3way<>(helper);
@@ -205,7 +205,7 @@ public class QuickSort3WayTest {
     @Test
     public void smallStringSort() throws IOException {
         Config config = Config.load(null);
-        final BaseComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        final ComparableSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         int k = 20;
         int n = k * k;
         helper.init(n);

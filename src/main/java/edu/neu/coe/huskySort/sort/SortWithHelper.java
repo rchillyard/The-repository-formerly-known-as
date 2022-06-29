@@ -5,7 +5,8 @@ import edu.neu.coe.huskySort.util.Config;
 /**
  * Base class for a comparison-sorter that uses a ComparisonSortHelper.
  *
- * @param <X> the underlying type to be sorted.
+ * @param <X> the underlying type to be sorted. This is required to be Comparable because the
+ *            Helper[X] must be able to compare Xs.
  */
 public abstract class SortWithHelper<X extends Comparable<X>> implements Sort<X>, Sorter<X> {
     /**

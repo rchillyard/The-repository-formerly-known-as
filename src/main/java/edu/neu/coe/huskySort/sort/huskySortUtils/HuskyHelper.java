@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.util.Instrumenter;
 
@@ -12,6 +12,7 @@ import java.util.function.Function;
  * ComparisonSortHelper class for sorting methods with special technique of HuskySort.
  * IF you want to count compares and swaps then you need to extend InstrumentedComparisonSortHelper.
  * <p>
+ *     CONSIDER extending BaseHelper.
  *
  * @param <X> the underlying type (must be Comparable).
  */
@@ -70,6 +71,22 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
      */
     public boolean sorted(final X[] xs) {
         return helper.sorted(xs);
+    }
+
+    /**
+     * Method to determine if x1 and x2 are inverted.
+     * <p>
+     * NOTE: This MUST be a non-instrumenting comparison.
+     * <p>
+     * CONSIDER defining this in terms of a non-overridable compare function.
+     *
+     * @param x1 the first (left) value of X.
+     * @param x2 the second (right) value of X.
+     * @return x1 > x2.
+     */
+    @Override
+    public boolean inverted(final X x1, final X x2) {
+        return x1.compareTo(x2) > 0;
     }
 
     /**
@@ -372,7 +389,7 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
      * @param makeCopy    explicit setting of the makeCopy value used in sort(Y[] xs)
      */
     public HuskyHelper(final String description, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter, final long seed, final boolean makeCopy) {
-        this(new BaseComparisonSortHelper<>(description, n, seed), coder, postSorter, makeCopy);
+        this(new ComparableSortHelper<>(description, n, seed), coder, postSorter, makeCopy);
     }
 
     /**

@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.Coding;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class PureHuskySortTest {
 
-    private final BaseComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("dummy helper");
+    private final ComparableSortHelper<String> helper = new ComparableSortHelper<>("dummy helper");
 
     @Test
     public void testSortString1() {
@@ -87,6 +87,7 @@ public class PureHuskySortTest {
     public void testWithInsertionSort() {
         final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, true);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(sorter);
+        //noinspection unchecked
         final HuskyCoder<String> huskyCoder = (HuskyCoder<String>) privateMethodInvoker.invokePrivate("getHuskyCoder");
         final int N = 100;
         helper.init(N);
@@ -100,6 +101,7 @@ public class PureHuskySortTest {
     public void testInsertionSort() {
         final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(sorter);
+        //noinspection unchecked
         final HuskyCoder<String> huskyCoder = (HuskyCoder<String>) privateMethodInvoker.invokePrivate("getHuskyCoder");
         final int N = 100;
         helper.init(N);

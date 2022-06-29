@@ -1,11 +1,11 @@
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 
 import java.util.Random;
 import java.util.function.Function;
 
-public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
+public abstract class BaseHelper<X> implements Helper<X> {
 
     public static final String INSTRUMENT = "instrument";
 
@@ -37,12 +37,12 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
 
     /**
      * @param n the size to be managed.
-     * @throws BaseComparisonSortHelper.HelperException if n is inconsistent.
+     * @throws ComparableSortHelper.HelperException if n is inconsistent.
      */
     public void init(final int n) {
         if (this.n == 0 || this.n == n) this.n = n;
         else
-            throw new BaseComparisonSortHelper.HelperException("ComparisonSortHelper: n is already set to a different value");
+            throw new ComparableSortHelper.HelperException("ComparisonSortHelper: n is already set to a different value");
     }
 
     /**
@@ -61,32 +61,6 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
         // XXX do nothing.
     }
 
-    /**
-     * Method to determine if the given array (xs) is sorted.
-     *
-     * @param xs an array of Xs.
-     * @return false as soon as an inversion is found; otherwise return true.
-     */
-    public boolean sorted(final X[] xs) {
-        for (int i = 1; i < xs.length; i++) if (xs[i - 1].compareTo(xs[i]) > 0) return false;
-        return true;
-    }
-
-    /**
-     * Method to count the total number of inversions in the given array (xs).
-     * <p>
-     * TODO this is identical with BasicCountingSortHelper: merge them.
-     *
-     * @param xs an array of Xs.
-     * @return the number of inversions.
-     */
-    public int inversions(final X[] xs) {
-        int result = 0;
-        for (int i = 0; i < xs.length; i++)
-            for (int j = i + 1; j < xs.length; j++)
-                if (xs[i].compareTo(xs[j]) > 0) result++;
-        return result;
-    }
 
     public X[] random(final Class<X> clazz, final Function<Random, X> f) {
         if (getN() <= 0) throw new HelperException("ComparisonSortHelper.random: not initialized");
@@ -103,6 +77,38 @@ public abstract class BaseHelper<X extends Comparable<X>> implements Helper<X> {
      */
     public void copy(final X[] source, final int i, final X[] target, final int j) {
         target[j] = source[i];
+    }
+
+    /**
+     * Method to determine if the given array (xs) is sorted.
+     *
+     * @param xs an array of Xs.
+     * @return false as soon as an inversion is found; otherwise return true.
+     */
+    public boolean sorted(final X[] xs) {
+        X x1 = xs[0];
+        for (int i = 1; i < xs.length; i++) {
+            final X x2 = xs[i];
+            if (inverted(x1, x2)) return false;
+            x1 = x2;
+        }
+        return true;
+    }
+
+    /**
+     * Method to count the total number of inversions in the given array (xs).
+     * <p>
+     * TODO this is identical with BasicCountingSortHelper: merge them.
+     *
+     * @param xs an array of Xs.
+     * @return the number of inversions.
+     */
+    public int inversions(final X[] xs) {
+        int result = 0;
+        for (int i = 0; i < xs.length; i++)
+            for (int j = i + 1; j < xs.length; j++)
+                if (inverted(xs[i], xs[j])) result++;
+        return result;
     }
 
     public BaseHelper(final String description, final Random random, final int n) {

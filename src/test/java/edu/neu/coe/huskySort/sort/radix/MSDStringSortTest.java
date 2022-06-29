@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.radix;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark;
 import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper;
@@ -23,7 +23,7 @@ public class MSDStringSortTest {
 
     //    @Test
     public void sort1() {
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test", 1000, 1L);
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test", 1000, 1L);
         final String[] words = HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         final String[] xs = helper.random(String.class, r -> words[r.nextInt(words.length)]);
         assertEquals(1000, xs.length);
@@ -35,7 +35,7 @@ public class MSDStringSortTest {
 
     //    @Test
     public void sort2() {
-        final ComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("test", 1000, 1L);
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test", 1000, 1L);
         final String[] words = HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         final String[] xs = helper.random(String.class, r -> words[r.nextInt(words.length)]);
         assertEquals(1000, xs.length);
@@ -51,11 +51,12 @@ public class MSDStringSortTest {
         final MSDStringSort msdStringSort = new MSDStringSort(new Alphabet(Alphabet.RADIX_UNICODE));
         msdStringSort.sort(input);
         final Alphabet alphabet = msdStringSort.getAlphabet();
-        assertTrue(new BaseComparisonSortHelper<String>("sortWithUnicode").sorted(input));
+        assertTrue(new ComparableSortHelper<String>("sortWithUnicode").sorted(input));
     }
 
     //    @Test
     public void sortWithUnicode() {
+        // CONSIDER compiling regex
         final String[] input = "python.txt\t狗.txt\t\t羊.txt\t\t鸡.txt\t\t兔子.txt\t河马.txt\t猴子.txt\t豹子.txt\t眼镜蛇.txt\n熊.txt\t\t猪.txt\t\t蛇.txt\t\t鹅.txt\t\t大象.txt\t熊猫.txt\t老虎.txt\t骆驼.txt\n牛.txt\t\t猫.txt\t\t马.txt\t\t龙.txt\t\t斑马.txt\t狮子.txt\t老鼠.txt\t鳄鱼.txt".split("\\s+");
         System.out.println(Arrays.toString(input));
         MSDStringSort.setCutoff(1);
@@ -64,7 +65,7 @@ public class MSDStringSortTest {
         final Alphabet alphabet = msdStringSort.getAlphabet();
         System.out.println(alphabet);
         System.out.println(Arrays.toString(input));
-        final boolean sorted = new BaseComparisonSortHelper<String>("sortWithUnicode").sorted(input);
+        final boolean sorted = new ComparableSortHelper<String>("sortWithUnicode").sorted(input);
         assertTrue(sorted);
     }
 }

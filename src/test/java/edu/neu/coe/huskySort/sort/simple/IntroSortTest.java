@@ -4,7 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.HelperFactory;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
@@ -42,7 +42,7 @@ public class IntroSortTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseComparisonSortHelper<Integer> helper = (BaseComparisonSortHelper<Integer>) HelperFactory.create("intro sort", N, config);
+        final ComparableSortHelper<Integer> helper = (ComparableSortHelper<Integer>) HelperFactory.create("intro sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new IntroSort<>(helper);
         s.init(N);
@@ -72,7 +72,7 @@ public class IntroSortTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseComparisonSortHelper<Integer> helper = (BaseComparisonSortHelper<Integer>) HelperFactory.create("intro sort", N, config);
+        final ComparableSortHelper<Integer> helper = (ComparableSortHelper<Integer>) HelperFactory.create("intro sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new IntroSort<>(helper);
         s.init(N);

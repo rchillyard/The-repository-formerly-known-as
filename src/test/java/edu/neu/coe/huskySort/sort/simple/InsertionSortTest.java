@@ -25,7 +25,7 @@ public class InsertionSortTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("InsertionSort", xs.length);
+        ComparableSortHelper<Integer> helper = new ComparableSortHelper<>("InsertionSort", xs.length);
         helper.setCheckSorted(true);
         Sorter<Integer> sorter = new InsertionSort<Integer>(helper);
         boolean ys = sorter.sortArray(xs);
@@ -41,7 +41,7 @@ public class InsertionSortTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("InsertionSort", xs.length);
+        ComparableSortHelper<Integer> helper = new ComparableSortHelper<>("InsertionSort", xs.length);
         helper.setCheckSorted(true);
         Sorter<Integer> sorter = new InsertionSort<Integer>(helper);
         boolean ys = sorter.sortArray(xs);
@@ -57,7 +57,7 @@ public class InsertionSortTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("InsertionSort", xs.length);
+        ComparableSortHelper<Integer> helper = new ComparableSortHelper<>("InsertionSort", xs.length);
         InsertionSort<Integer> sorter = new InsertionSort<Integer>(helper);
         Integer[] ys = sorter.sort(xs);
         assertTrue(helper.sorted(ys));
@@ -72,7 +72,7 @@ public class InsertionSortTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("InsertionSort", xs.length);
+        ComparableSortHelper<Integer> helper = new ComparableSortHelper<>("InsertionSort", xs.length);
         InsertionSort<Integer> sorter = new InsertionSort<Integer>(helper);
         sorter.mutatingSort(xs);
         assertTrue(helper.sorted(xs));

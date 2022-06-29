@@ -13,11 +13,11 @@ import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
  *
  * @param <X> the underlying type (must be Comparable).
  */
-public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> extends BaseComparisonSortHelper<X> implements Instrumented {
+public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> extends ComparableSortHelper<X> implements Instrumented {
 
     final static LazyLogger logger = new LazyLogger(InstrumentedComparisonSortHelper.class);
 
-    public static <Y extends Comparable<Y>> InstrumentedComparisonSortHelper<Y> getInstrumentedHelper(final ComparisonSortHelper<Y> helper, final InstrumentedComparisonSortHelper<Y> alternative) {
+    public static <Y extends Comparable<Y>> InstrumentedComparisonSortHelper<Y> getInstrumentedHelper(final Helper<Y> helper, final InstrumentedComparisonSortHelper<Y> alternative) {
         return InstrumentedComparisonSortHelper.class.isAssignableFrom(helper.getClass()) ? (InstrumentedComparisonSortHelper<Y>) helper : alternative;
     }
 
@@ -241,7 +241,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
     @Override
     public boolean postProcess(final X[] xs) {
         final boolean result = super.postProcess(xs);
-        if (!sorted(xs)) throw new BaseComparisonSortHelper.HelperException("Array is not sorted");
+        if (!sorted(xs)) throw new ComparableSortHelper.HelperException("Array is not sorted");
         instrumenter.updateStats();
         return result;
     }

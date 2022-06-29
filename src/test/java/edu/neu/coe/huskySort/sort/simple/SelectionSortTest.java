@@ -4,7 +4,7 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.HelperFactory;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
@@ -28,7 +28,7 @@ public class SelectionSortTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("SelectionSort", xs.length);
+        ComparableSortHelper<Integer> helper = new ComparableSortHelper<>("SelectionSort", xs.length);
         SelectionSort<Integer> sorter = new SelectionSort<Integer>(helper);
         Integer[] ys = sorter.sort(xs);
         assertTrue(helper.sorted(ys));

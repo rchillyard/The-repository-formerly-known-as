@@ -11,9 +11,19 @@ import static java.util.Arrays.binarySearch;
  * <p>
  * CONSIDER having the concept of a current sub-array, then we could dispense with the lo, hi parameters.
  *
- * @param <X>
+ * @param <X> The underlying type to be sorted using this Helper.
+ *                      NOTE that X is not required to be Comparable of X because the actual comparison is in the override methods.
  */
-public interface ComparisonSortHelper<X extends Comparable<X>> extends Helper<X> {
+public interface ComparisonSortHelper<X> extends Helper<X> {
+
+    /**
+     * Compare value v with value w.
+     *
+     * @param v the first value.
+     * @param w the second value.
+     * @return -1 if v is less than w; 1 if v is greater than w; otherwise 0.
+     */
+    int compare(X v, X w);
 
     /**
      * Compare elements i and j of xs within the subarray lo...hi
@@ -33,15 +43,6 @@ public interface ComparisonSortHelper<X extends Comparable<X>> extends Helper<X>
      * @return true if v is less than w.
      */
     boolean less(X v, X w);
-
-    /**
-     * Compare value v with value w.
-     *
-     * @param v the first value.
-     * @param w the second value.
-     * @return -1 if v is less than w; 1 if v is greater than w; otherwise 0.
-     */
-    int compare(X v, X w);
 
     /**
      * Method to perform a general swap, i.e. between xs[i] and xs[j]
@@ -73,7 +74,7 @@ public interface ComparisonSortHelper<X extends Comparable<X>> extends Helper<X>
     default boolean swapConditional(final X[] xs, final int i, final int j) {
         final X v = xs[i];
         final X w = xs[j];
-        final boolean result = v.compareTo(w) > 0;
+        final boolean result = compare(v, w) > 0;
         if (result) {
             // CONSIDER invoking swap
             xs[i] = w;
@@ -92,7 +93,7 @@ public interface ComparisonSortHelper<X extends Comparable<X>> extends Helper<X>
     default boolean swapStableConditional(final X[] xs, final int i) {
         final X v = xs[i];
         final X w = xs[i - 1];
-        final boolean result = v.compareTo(w) < 0;
+        final boolean result = compare(v, w) < 0;
         if (result) {
             xs[i] = w;
             xs[i - 1] = v;
@@ -173,7 +174,6 @@ public interface ComparisonSortHelper<X extends Comparable<X>> extends Helper<X>
     default void incrementCopies(final int n) {
         // do nothing.
     }
-
 
     /**
      * Method to post-process the array xs after sorting.

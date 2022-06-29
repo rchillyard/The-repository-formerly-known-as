@@ -196,7 +196,7 @@ public class InstrumentedComparisonSortHelperTest {
         helper.postProcess(xs);
     }
 
-    @Test(expected = BaseComparisonSortHelper.HelperException.class)
+    @Test(expected = ComparableSortHelper.HelperException.class)
     public void testPostProcess2() {
         final String[] xs = new String[]{"b", "a"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
@@ -351,11 +351,11 @@ public class InstrumentedComparisonSortHelperTest {
         assertFalse(helper.sorted(xs));
         helper.init(xs.length);
         helper.swapConditional(xs, 0, 2);
-        assertTrue(helper.sorted(xs));
         final Instrumenter instrumenter = helper.getInstrumenter();
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
+        assertTrue(helper.sorted(xs));
     }
 
     @Test

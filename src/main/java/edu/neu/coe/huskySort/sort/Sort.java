@@ -7,12 +7,14 @@ import java.util.Arrays;
 
 /**
  * Sort interface, which extends GenericSort.
+ * <p>
+ * CONSIDER merging this interface with GenericSort as neither of them requires X to be Comparable.
  *
  * @param <X> the underlying type to be sorted.
- *                       NOTE: currently, this is required to be a Comparable type.
- *                       However, that is not strictly necessary because none of the methods defined here actually rely on that.
+ *                                  NOTE: currently, this is NOT required to be a Comparable type.
+ *                                  However, that is not necessary because none of the methods defined here actually rely on that.
  */
-public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
+public interface Sort<X> extends GenericSort<X> {
 
     /**
      * Method to prepare for sorting, invoked by the default implementation of sort(X[], boolean).

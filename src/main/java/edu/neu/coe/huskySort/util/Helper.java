@@ -30,6 +30,19 @@ public interface Helper<X> {
     boolean sorted(X[] xs);
 
     /**
+     * Method to determine if x1 and x2 are inverted.
+     * <p>
+     * NOTE: This MUST be a non-instrumenting comparison.
+     * <p>
+     * CONSIDER defining this in terms of a non-overridable compare function.
+     *
+     * @param x1 the first (left) value of X.
+     * @param x2 the second (right) value of X.
+     * @return x1 > x2.
+     */
+    boolean inverted(X x1, X x2);
+
+    /**
      * Count the number of inversions of this array.
      *
      * @param xs an array of Xs.

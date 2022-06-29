@@ -36,7 +36,7 @@ public class NoSorter<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     public NoSorter() {
-        this(new BaseComparisonSortHelper<>(DESCRIPTION));
+        this(new ComparableSortHelper<>(DESCRIPTION));
     }
 
     /**

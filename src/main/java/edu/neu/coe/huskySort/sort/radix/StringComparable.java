@@ -30,6 +30,16 @@ public interface StringComparable<X extends StringLike<X, Y>, Y extends Comparab
     int compareFromD(final X that, final int d);
 
     /**
+     * Method to determine if this StringComparable is greater than that StringComparable.
+     * <p>
+     *      NOTE: This MUST be a non-instrumenting comparison.
+     *
+     * @param that an X.
+     * @return this > that.
+     */
+    boolean inverted(final X that);
+
+    /**
      * Method to compare this StringComparable with that StringComparable, taking all characters into consideration.
      *
      * @param that the object to be compared.

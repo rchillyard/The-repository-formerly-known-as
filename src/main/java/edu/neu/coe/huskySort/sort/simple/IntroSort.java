@@ -3,7 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.Utilities;
@@ -90,7 +90,7 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
     }
 
     public IntroSort() {
-        this(new BaseComparisonSortHelper<>(DESCRIPTION));
+        this(new ComparableSortHelper<>(DESCRIPTION));
     }
 
     /*

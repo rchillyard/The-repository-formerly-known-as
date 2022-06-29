@@ -40,6 +40,37 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
         return isStringSorted(xs);
     }
 
+    /**
+     * Method to determine if x1 and x2 are inverted.
+     * <p>
+     * NOTE: This MUST be a non-instrumenting comparison.
+     * <p>
+     * CONSIDER defining this in terms of a non-overridable compare function.
+     *
+     * @param x1 the first (left) value of X.
+     * @param x2 the second (right) value of X.
+     * @return x1 > x2.
+     */
+    @Override
+    public boolean inverted(final X x1, final X x2) {
+        return x1.inverted(x2);
+    }
+
+    /**
+     * Method to count the total number of inversions in the given array (xs).
+     * <p>
+     * TODO this is identical with BasicCountingSortHelper: merge them.
+     *
+     * @param xs an array of Xs.
+     * @return the number of inversions.
+     */
+    public int inversions(final X[] xs) {
+        int result = 0;
+        for (int i = 0; i < xs.length; i++)
+            for (int j = i + 1; j < xs.length; j++)
+                if (xs[i].compareTo(xs[j]) > 0) result++;
+        return result;
+    }
 
     /**
      * Check that the given array is sorted.

@@ -155,7 +155,7 @@ public class QuickSortDualPivotTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseComparisonSortHelper<Integer> helper = (BaseComparisonSortHelper<Integer>) HelperFactory.create("quick sort dual pivot", N, config);
+        final ComparableSortHelper<Integer> helper = (ComparableSortHelper<Integer>) HelperFactory.create("quick sort dual pivot", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new QuickSort_DualPivot<>(helper);
         s.init(N);
@@ -184,7 +184,7 @@ public class QuickSortDualPivotTest {
         String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
         int n = xs.length;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        final ComparableSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         Instrumenter instrumenter = helper.getInstrumenter();
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         QuickSort_DualPivot<String> sorter = new QuickSort_DualPivot<>(helper);
@@ -212,7 +212,7 @@ public class QuickSortDualPivotTest {
     @Test
     public void smallStringSort() throws IOException {
         Config config = Config.load(null);
-        final BaseComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        final ComparableSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         int k = 20;
         int n = k * k;
         helper.init(n);

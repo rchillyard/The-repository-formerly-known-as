@@ -23,7 +23,7 @@ public class NoSorterTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("NoSort", xs.length);
+        ComparableSortHelper<Integer> helper = new ComparableSortHelper<>("NoSort", xs.length);
         helper.setCheckSorted(true);
         Sorter<Integer> sorter = new NoSorter<>(helper);
         boolean ys = sorter.sortArray(xs);
@@ -38,7 +38,7 @@ public class NoSorterTest {
         list.add(2);
         list.add(1);
         Integer[] xs = list.toArray(new Integer[0]);
-        BaseComparisonSortHelper<Integer> helper = new BaseComparisonSortHelper<>("NoSort", xs.length);
+        ComparableSortHelper<Integer> helper = new ComparableSortHelper<>("NoSort", xs.length);
         Sorter<Integer> sorter = new NoSorter<>(helper);
         boolean ys = sorter.sortArray(xs);
         assertTrue(ys);

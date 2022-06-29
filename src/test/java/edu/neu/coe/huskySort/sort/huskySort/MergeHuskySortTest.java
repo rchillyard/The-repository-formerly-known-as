@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import org.junit.Test;
 
@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 public class MergeHuskySortTest {
 
-    private final BaseComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("dummy helper");
+    private final ComparableSortHelper<String> helper = new ComparableSortHelper<>("dummy helper");
 
     @Test
     public void testSortString1() {

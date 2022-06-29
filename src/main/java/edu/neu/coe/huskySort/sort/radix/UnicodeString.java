@@ -51,8 +51,21 @@ public class UnicodeString implements StringComparable<UnicodeString, UnicodeCha
      * @param d    the offset of the first character to compare in each of the strings.
      * @return negative, zero, or positive according to this less than, = or greater than other.
      */
-    public int compareFromD(final UnicodeString that, final int d) {
+    final public int compareFromD(final UnicodeString that, final int d) {
         return CharacterMap.compareUnicodeStringsFromD(this, that, d);
+    }
+
+    /**
+     * Method to determine if this StringComparable is greater than that StringComparable.
+     * <p>
+     *      NOTE: This MUST be a non-instrumenting comparison.
+     *
+     * @param that an X.
+     * @return this > that.
+     */
+    @Override
+    public boolean inverted(final UnicodeString that) {
+        return this.compareFromD(that, 0) > 0;
     }
 
     /**
@@ -73,5 +86,9 @@ public class UnicodeString implements StringComparable<UnicodeString, UnicodeCha
      * The original representation of the String, before being converted to UnicodeCharacter form.
      */
     final String word;
+
+    /**
+     * The equivalent string in the order that we sort on.
+     */
     public final UnicodeCharacter[] unicodes;
 }

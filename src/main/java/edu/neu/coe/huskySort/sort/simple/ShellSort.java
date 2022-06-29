@@ -3,7 +3,7 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
@@ -57,7 +57,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *               4: Sedgewick's sequence (not implemented).
      * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public ShellSort(final int m, final BaseComparisonSortHelper<X> helper) {
+    public ShellSort(final int m, final ComparableSortHelper<X> helper) {
         super(helper);
         this.m = m;
     }
@@ -72,7 +72,7 @@ public class ShellSort<X extends Comparable<X>> extends SortWithHelper<X> {
      *          4: Sedgewick's sequence (not implemented).
      */
     public ShellSort(final int m) {
-        this(m, new BaseComparisonSortHelper<>(DESCRIPTION));
+        this(m, new ComparableSortHelper<>(DESCRIPTION));
     }
 
     /**

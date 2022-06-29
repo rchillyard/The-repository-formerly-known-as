@@ -1,8 +1,6 @@
 package edu.neu.coe.huskySort.sort;
 
-import edu.neu.coe.huskySort.util.BaseHelper;
-import edu.neu.coe.huskySort.util.Instrumenter;
-
+import java.util.Comparator;
 import java.util.Random;
 
 /**
@@ -10,13 +8,9 @@ import java.util.Random;
  * <p>
  * NOTE that this Helper is not affected in any way by the configuration.
  *
- * @param <X> the type of elements to be compared.
+ * @param <X> the type of elements to be compared (must be Comparable).
  */
-public class BaseComparisonSortHelper<X extends Comparable<X>> extends BaseHelper<X> implements ComparisonSortHelper<X> {
-
-    public Instrumenter getInstrumenter() {
-        return null;
-    }
+public class ComparatorSortHelper<X> extends AbstractComparableSortHelper<X> {
 
     /**
      * Method to determine if one X value is less than another.
@@ -26,7 +20,7 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> extends BaseHelpe
      * @return true only if v is less than w.
      */
     public boolean less(final X v, final X w) {
-        return v.compareTo(w) < 0;
+        return compare(v, w) < 0;
     }
 
     /**
@@ -40,7 +34,7 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> extends BaseHelpe
      */
     public int compare(final X[] xs, final int i, final int j) {
         // CONSIDER invoking the other compare signature
-        return xs[i].compareTo(xs[j]);
+        return compare(xs[i], xs[j]);
     }
 
     /**
@@ -51,38 +45,21 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> extends BaseHelpe
      * @return the result of comparing v and w.
      */
     public int compare(final X v, final X w) {
-        return v.compareTo(w);
+        return comparator.compare(v, w);
     }
 
     /**
-     * Swap the elements of array "a" at indices i and j.
+     * Method to determine if v and w are inverted.
+     * <p>
+     * NOTE: This MUST be a non-instrumenting comparison.
      *
-     * @param xs the array.
-     * @param i  one of the indices.
-     * @param j  the other index.
+     * @param v the first (left) value of X.
+     * @param w the second (right) value of X.
+     * @return v > w.
      */
-    public void swap(final X[] xs, final int i, final int j) {
-        final X temp = xs[i];
-        xs[i] = xs[j];
-        xs[j] = temp;
-    }
-
-    /**
-     * Method to perform a stable swap using half-exchanges,
-     * i.e. between xs[i] and xs[j] such that xs[j] is moved to index i,
-     * and xs[i] thru xs[j-1] are all moved up one.
-     * This type of swap is used by insertion sort.
-     *
-     * @param xs the array of Xs.
-     * @param i  the index of the destination of xs[j].
-     * @param j  the index of the right-most element to be involved in the swap.
-     */
-    public void swapInto(final X[] xs, final int i, final int j) {
-        if (j > i) {
-            final X x = xs[j];
-            System.arraycopy(xs, i, xs, i + 1, j - i);
-            xs[i] = x;
-        }
+    @Override
+    public boolean inverted(final X v, final X w) {
+        return comparator.compare(v, w) > 0;
     }
 
     @Override
@@ -94,41 +71,47 @@ public class BaseComparisonSortHelper<X extends Comparable<X>> extends BaseHelpe
      * Constructor for explicit random number generator.
      *
      * @param description the description of this ComparisonSortHelper (for humans).
+     * @param comparator  the Comparator which can compare Xs.
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param random      a random number generator.
      */
-    public BaseComparisonSortHelper(final String description, final int n, final Random random) {
+    public ComparatorSortHelper(final String description, final Comparator<X> comparator, final int n, final Random random) {
         super(description, random, n);
+        this.comparator = comparator;
     }
 
     /**
      * Constructor for explicit seed.
      *
      * @param description the description of this ComparisonSortHelper (for humans).
+     * @param comparator  the Comparator which can compare Xs.
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      * @param seed        the seed for the random number generator.
      */
-    public BaseComparisonSortHelper(final String description, final int n, final long seed) {
-        this(description, n, new Random(seed));
+    public ComparatorSortHelper(final String description, final Comparator<X> comparator, final int n, final long seed) {
+        this(description, comparator, n, new Random(seed));
     }
 
     /**
      * Constructor to create a ComparisonSortHelper with a random seed.
      *
      * @param description the description of this ComparisonSortHelper (for humans).
+     * @param comparator  the Comparator which can compare Xs.
      * @param n           the number of elements expected to be sorted. The field n is mutable so can be set after the constructor.
      */
-    public BaseComparisonSortHelper(final String description, final int n) {
-        this(description, n, System.currentTimeMillis());
+    public ComparatorSortHelper(final String description, final Comparator<X> comparator, final int n) {
+        this(description, comparator, n, System.currentTimeMillis());
     }
 
     /**
      * Constructor to create a ComparisonSortHelper with a random seed and an n value of 0.
      *
      * @param description the description of this ComparisonSortHelper (for humans).
+     * @param comparator  the Comparator which can compare Xs.
      */
-    public BaseComparisonSortHelper(final String description) {
-        this(description, 0);
+    public ComparatorSortHelper(final String description, final Comparator<X> comparator) {
+        this(description, comparator, 0);
     }
 
+    private final Comparator<X> comparator;
 }

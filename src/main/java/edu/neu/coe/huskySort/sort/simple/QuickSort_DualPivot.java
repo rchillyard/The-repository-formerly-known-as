@@ -97,7 +97,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
             return partitions;
         }
 
-        // CONSIDER invoke swap in BaseComparisonSortHelper.
+        // CONSIDER invoke swap in ComparableSortHelper.
         private void swap(final X[] ys, final int i, final int j) {
             final X temp = ys[i];
             ys[i] = ys[j];

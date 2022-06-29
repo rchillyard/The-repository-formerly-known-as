@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.BaseComparisonSortHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.util.Benchmark;
 import edu.neu.coe.huskySort.util.Config;
@@ -52,6 +52,6 @@ public class PureHuskySortIntegrationTest {
 
     private static Config config;
 
-    private final BaseComparisonSortHelper<String> helper = new BaseComparisonSortHelper<>("dummy helper");
+    private final ComparableSortHelper<String> helper = new ComparableSortHelper<>("dummy helper");
 
 }
