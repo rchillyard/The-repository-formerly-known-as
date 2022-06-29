@@ -37,6 +37,12 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
         return v.compareTo(w) < 0;
     }
 
+    @Override
+    public boolean inverted(final X v, final X w) {
+        instrumenter.incrementCompares();
+        return invertedPure(v, w);
+    }
+
     /**
      * Swap the elements of array "a" at indices i and j.
      *

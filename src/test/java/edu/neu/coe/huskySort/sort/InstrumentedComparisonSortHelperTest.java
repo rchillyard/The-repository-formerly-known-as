@@ -19,7 +19,7 @@ public class InstrumentedComparisonSortHelperTest {
     public void testLess() {
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         helper.init(2);
-        assertTrue(helper.less("a", "b"));
+        assertFalse(helper.inverted("a", "b"));
         final Instrumenter instrumenter = helper.getInstrumenter();
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));

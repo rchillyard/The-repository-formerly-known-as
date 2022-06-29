@@ -3,6 +3,12 @@ package edu.neu.coe.huskySort.util;
 import java.util.Random;
 import java.util.function.Function;
 
+/**
+ * This defines the behavior of a basic Helper for processing elements of type X.
+ * NOTE: that X is not required to be Comparable.
+ *
+ * @param <X> the underlying type.
+ */
 public interface Helper<X> {
     /**
      * @return true if this is an instrumented ComparisonSortHelper.

@@ -23,6 +23,11 @@ public class ComparatorSortHelper<X> extends AbstractComparableSortHelper<X> {
         return compare(v, w) < 0;
     }
 
+    @Override
+    public boolean inverted(final X v, final X w) {
+        return compare(v, w) > 0;
+    }
+
     /**
      * Compare elements i and j of xs within the subarray lo...hi
      * // NOTE same as supertype

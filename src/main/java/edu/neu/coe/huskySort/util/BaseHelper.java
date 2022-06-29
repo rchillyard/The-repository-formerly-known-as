@@ -5,6 +5,11 @@ import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import java.util.Random;
 import java.util.function.Function;
 
+/**
+ * Abstract base class to define methods useful to the Helper interface.
+ *
+ * @param <X> the underlying type.
+ */
 public abstract class BaseHelper<X> implements Helper<X> {
 
     public static final String INSTRUMENT = "instrument";

@@ -36,7 +36,7 @@ public class ComparableSortHelperTest {
 
     @Test
     public void less() {
-        assertTrue(new BaseHelperWithSortedTest<String>().less("a", "b"));
+        assertFalse(new BaseHelperWithSortedTest<String>().inverted("a", "b"));
     }
 
     @Test

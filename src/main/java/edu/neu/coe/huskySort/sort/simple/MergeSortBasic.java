@@ -83,7 +83,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
         for (; k < hi; k++)
             if (i >= mid) helper.copy(aux, j++, a, k);
             else if (j >= hi) helper.copy(aux, i++, a, k);
-            else if (helper.less(aux[j], aux[i])) {
+            else if (helper.inverted(aux[i], aux[j])) {
                 helper.incrementFixes(mid - i);
                 helper.copy(aux, j++, a, k);
             } else helper.copy(aux, i++, a, k);

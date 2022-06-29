@@ -42,7 +42,21 @@ public interface ComparisonSortHelper<X> extends Helper<X> {
      * @param w the second value.
      * @return true if v is less than w.
      */
-    boolean less(X v, X w);
+    default boolean less(final X v, final X w) {
+        return !invertedPure(v, w);
+    }
+
+    /**
+     * Method to determine if v and w are inverted.
+     * By default, we invoke invertedPure, which does no instrumentation.
+     *
+     * @param v the first value.
+     * @param w the second value.
+     * @return true if v is greater than w.
+     */
+    default boolean inverted(final X v, final X w) {
+        return invertedPure(v, w);
+    }
 
     /**
      * Method to perform a general swap, i.e. between xs[i] and xs[j]

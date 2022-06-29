@@ -22,6 +22,11 @@ public class ComparableSortHelper<X extends Comparable<X>> extends AbstractCompa
         return v.compareTo(w) < 0;
     }
 
+    @Override
+    public boolean inverted(final X v, final X w) {
+        return v.compareTo(w) > 0;
+    }
+
     /**
      * Compare elements i and j of xs within the subarray lo...hi
      * // NOTE same as supertype
