@@ -63,7 +63,6 @@ public class UnicodeString implements StringComparable<UnicodeString, UnicodeCha
      * @param that an X.
      * @return this > that.
      */
-    @Override
     public boolean inverted(final UnicodeString that) {
         return this.compareFromD(that, 0) > 0;
     }

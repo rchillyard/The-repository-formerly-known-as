@@ -57,8 +57,7 @@ public class ComparatorSortHelper<X> extends AbstractComparableSortHelper<X> {
      * @param w the second (right) value of X.
      * @return v > w.
      */
-    @Override
-    public boolean inverted(final X v, final X w) {
+    public boolean invertedPure(final X v, final X w) {
         return comparator.compare(v, w) > 0;
     }
 

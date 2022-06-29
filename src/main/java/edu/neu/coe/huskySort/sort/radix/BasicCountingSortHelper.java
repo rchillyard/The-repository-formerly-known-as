@@ -51,8 +51,7 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
      * @param x2 the second (right) value of X.
      * @return x1 > x2.
      */
-    @Override
-    public boolean inverted(final X x1, final X x2) {
+    public boolean invertedPure(final X x1, final X x2) {
         return x1.inverted(x2);
     }
 

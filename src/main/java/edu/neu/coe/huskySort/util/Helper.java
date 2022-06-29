@@ -40,7 +40,7 @@ public interface Helper<X> {
      * @param x2 the second (right) value of X.
      * @return x1 > x2.
      */
-    boolean inverted(X x1, X x2);
+    boolean invertedPure(X x1, X x2);
 
     /**
      * Count the number of inversions of this array.

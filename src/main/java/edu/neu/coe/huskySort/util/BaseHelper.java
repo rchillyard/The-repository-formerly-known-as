@@ -89,7 +89,7 @@ public abstract class BaseHelper<X> implements Helper<X> {
         X x1 = xs[0];
         for (int i = 1; i < xs.length; i++) {
             final X x2 = xs[i];
-            if (inverted(x1, x2)) return false;
+            if (invertedPure(x1, x2)) return false;
             x1 = x2;
         }
         return true;
@@ -107,7 +107,7 @@ public abstract class BaseHelper<X> implements Helper<X> {
         int result = 0;
         for (int i = 0; i < xs.length; i++)
             for (int j = i + 1; j < xs.length; j++)
-                if (inverted(xs[i], xs[j])) result++;
+                if (invertedPure(xs[i], xs[j])) result++;
         return result;
     }
 

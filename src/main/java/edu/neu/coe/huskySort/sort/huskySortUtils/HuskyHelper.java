@@ -84,8 +84,7 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
      * @param x2 the second (right) value of X.
      * @return x1 > x2.
      */
-    @Override
-    public boolean inverted(final X x1, final X x2) {
+    public boolean invertedPure(final X x1, final X x2) {
         return x1.compareTo(x2) > 0;
     }
 
