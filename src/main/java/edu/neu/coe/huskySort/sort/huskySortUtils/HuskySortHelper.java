@@ -70,7 +70,7 @@ public final class HuskySortHelper {
     static {
         sequenceCoderMap = new HashMap<>();
         addToSequenceCoderMap(asciiCoder);
-        addToSequenceCoderMap(chineseEncoder);
+        addToSequenceCoderMap(chineseEncoderCollator);
         addToSequenceCoderMap(englishCoder);
         addToSequenceCoderMap(unicodeCoder);
     }

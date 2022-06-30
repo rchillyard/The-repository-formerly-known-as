@@ -126,7 +126,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for Chinese UTF8 Strings.
      */
-    public final static HuskySequenceCoder<String> chineseEncoder = new SequenceEncoder_Collator(Collator.getInstance(Locale.CHINA));
+    public final static HuskySequenceCoder<String> chineseEncoderCollator = new SequenceEncoder_Collator(Collator.getInstance(Locale.CHINA));
 
     /**
      * A Husky Coder for Dates.

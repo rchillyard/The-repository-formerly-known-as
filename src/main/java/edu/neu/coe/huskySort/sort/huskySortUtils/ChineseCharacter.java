@@ -2,12 +2,15 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import net.sourceforge.pinyin4j.PinyinHelper;
 
+import java.util.ArrayList;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Concrete implementation of UnicodeCharacter for Chinese characters.
  */
 public class ChineseCharacter extends UnicodeCharacter {
+
     /**
      * Take the pinyin representation of a character and yield its husky code (614 bits).
      *
@@ -58,7 +61,31 @@ public class ChineseCharacter extends UnicodeCharacter {
         return result.toString();
     }
 
+    /**
+     * Method to parse a String of pinyin characters into a parsed string.
+     *
+     * @param s a String consisting of any number of pinyin character representations of the form initial final tone
+     *          (with an optional space before the tone).
+     * @return an array of String, each element for the form "initial-final-tone"
+     */
+    public static String[] parsePinyin(final String s) {
+        final ArrayList<String> results = new ArrayList<>();
+        final Matcher matcher = PinyinPattern.matcher(s);
+        while (matcher.find()) {
+            final int count = matcher.groupCount();
+            final String initial = matcher.group(2);
+            final String finall = matcher.group(3);
+            final String tone = count > 3 ? matcher.group(4) : "";
+            final String result = initial + "-" + finall + "-" + tone;
+//            System.out.println("s: " + result);
+            results.add(result);
+        }
+        return results.toArray(new String[0]);
+    }
+
     private final static HuskyCoder<String> pinyinCoder = HuskyCoderFactory.englishCoder;
 
     private static final Pattern colonPattern = Pattern.compile(":");
+    public static final String PinyinRegex = "((b|p|m|f|d|t|n|l|g|k|h|j|q|x|zh|ch|sh|r|z|c|s|y|w)(e|o|a|ei|ai|ou|ao|n|en|an|in|ng|ong|eng|ang|er|u|ü)\\s?(\\d?))";
+    public static final Pattern PinyinPattern = Pattern.compile(PinyinRegex);
 }

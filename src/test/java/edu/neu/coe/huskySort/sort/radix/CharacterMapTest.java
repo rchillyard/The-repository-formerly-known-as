@@ -19,7 +19,7 @@ public class CharacterMapTest {
     }
 
     @Test
-    public void get() {
+    public void testGet() {
         final String x = "阿朝";
         final UnicodeCharacter unicodeCharacter0 = characterMap.get(x.charAt(0));
         final UnicodeCharacter unicodeCharacter1 = characterMap.get(x.charAt(1));
@@ -30,7 +30,7 @@ public class CharacterMapTest {
     }
 
     @Test
-    public void keySet() {
+    public void testKeySet() {
         final String x = "阿朝";
         final UnicodeCharacter unicodeCharacter0 = characterMap.get(x.charAt(0));
         final UnicodeCharacter unicodeCharacter1 = characterMap.get(x.charAt(1));

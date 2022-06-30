@@ -31,5 +31,30 @@ public class ChineseCharacterTest {
 
     @Test
     public void testConvertToPinyin() {
+        final String 何欣蔚 = ChineseCharacter.convertToPinyin("何欣蔚");
+        assertEquals("he 2xin 1yu 4", 何欣蔚);
+    }
+
+    @Test
+    public void testParsePinyin0() {
+        final String[] strings = ChineseCharacter.parsePinyin("bo 1");
+        assertEquals(1, strings.length);
+        assertEquals("b-o-1", strings[0]);
+    }
+
+    @Test
+    public void testParsePinyin1() {
+        final String[] strings = ChineseCharacter.parsePinyin("xin 1");
+        assertEquals(1, strings.length);
+        assertEquals("x-in-1", strings[0]);
+    }
+
+    @Test
+    public void testParsePinyin3() {
+        final String[] strings = ChineseCharacter.parsePinyin("he 2xin 1yu 4");
+        assertEquals(3, strings.length);
+        assertEquals("h-e-2", strings[0]);
+        assertEquals("x-in-1", strings[1]);
+        assertEquals("y-u-4", strings[2]);
     }
 }
