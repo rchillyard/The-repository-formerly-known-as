@@ -37,24 +37,73 @@ public class ChineseCharacterTest {
 
     @Test
     public void testParsePinyin0() {
-        final String[] strings = ChineseCharacter.parsePinyin("bo 1");
+        final String[] strings = ChineseCharacter.parsePinyin("bo 1", 1);
         assertEquals(1, strings.length);
-        assertEquals("b-o-1", strings[0]);
+        assertEquals("b--o-1", strings[0]);
     }
 
     @Test
     public void testParsePinyin1() {
-        final String[] strings = ChineseCharacter.parsePinyin("xin 1");
+        final String[] strings = ChineseCharacter.parsePinyin("xin 1", 1);
         assertEquals(1, strings.length);
-        assertEquals("x-in-1", strings[0]);
+        assertEquals("x-i-n-1", strings[0]);
+    }
+
+    @Test
+    public void testParsePinyin2() {
+        final String name = "阿安";
+        final String pinyin = ChineseCharacter.convertToPinyin(name);
+        final String[] strings = ChineseCharacter.parsePinyin(pinyin, name.length());
+        assertEquals(name.length(), strings.length);
+        assertEquals("--a-1", strings[0]);
     }
 
     @Test
     public void testParsePinyin3() {
-        final String[] strings = ChineseCharacter.parsePinyin("he 2xin 1yu 4");
+        final String[] strings = ChineseCharacter.parsePinyin("he 2xin 1yu 4", 3);
         assertEquals(3, strings.length);
-        assertEquals("h-e-2", strings[0]);
-        assertEquals("x-in-1", strings[1]);
-        assertEquals("y-u-4", strings[2]);
+        assertEquals("h--e-2", strings[0]);
+        assertEquals("x-i-n-1", strings[1]);
+        assertEquals("y-u--4", strings[2]);
+    }
+
+    @Test
+    public void testParsePinyin4() {
+        final String name = "阿冰";
+        final String pinyin = ChineseCharacter.convertToPinyin(name);
+        final String[] strings = ChineseCharacter.parsePinyin(pinyin, name.length());
+        assertEquals(2, strings.length);
+        assertEquals("--a-1", strings[0]);
+        assertEquals("b-i-ng-1", strings[1]);
+    }
+
+    @Test
+    public void testParsePinyin5() {
+        final String name = "阿称";
+        final String pinyin = ChineseCharacter.convertToPinyin(name);
+        final String[] strings = ChineseCharacter.parsePinyin(pinyin, name.length());
+        assertEquals(2, strings.length);
+        assertEquals("--a-1", strings[0]);
+        assertEquals("ch--eng-1", strings[1]);
+    }
+
+    @Test
+    public void testParsePinyin6() {
+        final String name = "阿晖";
+        final String pinyin = ChineseCharacter.convertToPinyin(name);
+        final String[] strings = ChineseCharacter.parsePinyin(pinyin, name.length());
+        assertEquals(2, strings.length);
+        assertEquals("--a-1", strings[0]);
+        assertEquals("h-u-i-1", strings[1]);
+    }
+
+    @Test
+    public void testParsePinyin7() {
+        final String name = "艾绿";
+        final String pinyin = ChineseCharacter.convertToPinyin(name);
+        final String[] strings = ChineseCharacter.parsePinyin(pinyin, name.length());
+        assertEquals(2, strings.length);
+        assertEquals("--ai-4", strings[0]);
+        assertEquals("l-ü--4", strings[1]);
     }
 }

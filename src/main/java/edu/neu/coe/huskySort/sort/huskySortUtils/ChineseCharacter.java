@@ -1,5 +1,6 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
+import edu.neu.coe.huskySort.sort.SortException;
 import net.sourceforge.pinyin4j.PinyinHelper;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class ChineseCharacter extends UnicodeCharacter {
         if (pinyinStrings == null)
             return unicode + "";
         else if (pinyinStrings.length > 0) {
-            final String pinyin = colonPattern.matcher(pinyinStrings[0]).replaceAll("~");
+            final String pinyin = ColonPattern.matcher(pinyinStrings[0]).replaceAll("~");
             // NOTE: not everything has a tone and I think we need to do this more carefully.
             // However, this is the code in a (private) method in the library.
             final String tone = pinyin.substring(pinyin.length() - 1);
@@ -66,26 +67,38 @@ public class ChineseCharacter extends UnicodeCharacter {
      *
      * @param s a String consisting of any number of pinyin character representations of the form initial final tone
      *          (with an optional space before the tone).
+     * @param n the number of unicode characters in the original String from which the pinyin was derived.
      * @return an array of String, each element for the form "initial-final-tone"
      */
-    public static String[] parsePinyin(final String s) {
+    public static String[] parsePinyin(final String s, final int n) {
+        final String s1 = UTildePattern.matcher(s).replaceAll("ü");
         final ArrayList<String> results = new ArrayList<>();
-        final Matcher matcher = PinyinPattern.matcher(s);
+        final Matcher matcher = PinyinPattern.matcher(s1);
         while (matcher.find()) {
             final int count = matcher.groupCount();
+            assert count == 5 : "parsePinyin: Logic error: count=" + count;
             final String initial = matcher.group(2);
-            final String finall = matcher.group(3);
-            final String tone = count > 3 ? matcher.group(4) : "";
-            final String result = initial + "-" + finall + "-" + tone;
-//            System.out.println("s: " + result);
-            results.add(result);
+            final String medial = matcher.group(3);
+            final String finall = matcher.group(4);
+            final String tone = matcher.group(5);
+            final String result = (initial != null ? initial : "") + "-" + (medial != null ? medial : "") + "-" + (finall != null ? finall : "") + "-" + (tone != null ? tone : "");
+            // XXX not sure why we need this, but we do.
+            if (!result.equals("---"))
+                results.add(result);
         }
+        if (results.size() != n)
+            throw new SortException("parsePinyin: failed to parse " + n + " strings from '" + s + "'");
         return results.toArray(new String[0]);
     }
 
     private final static HuskyCoder<String> pinyinCoder = HuskyCoderFactory.englishCoder;
 
-    private static final Pattern colonPattern = Pattern.compile(":");
-    public static final String PinyinRegex = "((b|p|m|f|d|t|n|l|g|k|h|j|q|x|zh|ch|sh|r|z|c|s|y|w)(e|o|a|ei|ai|ou|ao|n|en|an|in|ng|ong|eng|ang|er|u|ü)\\s?(\\d?))";
+    private static final Pattern ColonPattern = Pattern.compile(":");
+    public static final String Initials = "(b|p|m|f|d|t|n|l|g|k|h|j|q|x|zh|ch|sh|r|z|c|s|y|w)";
+    public static final String Medials = "(y|i|w|u|ü|yu|yü)";
+
+    public static final String Finals = "(ong|eng|ang|ei|ai|ou|ao|en|an|in|un|ng|n|er|e|o|a|i|u)";
+    public static final String PinyinRegex = "(" + Initials + "?" + Medials + "?" + Finals + "?" + "\\s?(\\d?))";
     public static final Pattern PinyinPattern = Pattern.compile(PinyinRegex);
+    public static final Pattern UTildePattern = Pattern.compile("u~");
 }

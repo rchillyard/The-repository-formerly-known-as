@@ -87,9 +87,14 @@ public final class HuskySortBenchmarkHelper {
     }
 
     private static List<String> getWordList(final FileReader fr, final Function<String, List<String>> stringListFunction, final int minLength) {
+        boolean firstLine = true;
         final List<String> words = new ArrayList<>();
-        for (final Object line : new BufferedReader(fr).lines().toArray())
-            words.addAll(stringListFunction.apply((String) line));
+        for (final Object line : new BufferedReader(fr).lines().toArray()) {
+            String string = (String) line;
+            if (firstLine && string.startsWith(UTF8_BOM)) string = string.substring(1);
+            words.addAll(stringListFunction.apply(string));
+            firstLine = false;
+        }
         return words.stream().distinct().filter(s -> s.length() >= minLength).collect(Collectors.toList());
     }
 
@@ -113,4 +118,5 @@ public final class HuskySortBenchmarkHelper {
     }
 
     public static final Pattern REGEX_STRING_SPLITTER = Pattern.compile("[\\s\\p{Punct}\\uFF0C]");
+    private static final String UTF8_BOM = "\uFEFF";
 }
