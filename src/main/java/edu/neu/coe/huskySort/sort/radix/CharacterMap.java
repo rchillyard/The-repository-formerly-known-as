@@ -78,6 +78,16 @@ public class CharacterMap {
     }
 
     /**
+     * Method to get the dialect for this CharacterMap.
+     * For example, for Chinese, we might specify "Hanyu" or "bopomofo."
+     *
+     * @return a String representing the dialect.
+     */
+    public String getDialect() {
+        return dialect;
+    }
+
+    /**
      * Returns a {@link Set} view of the keys contained in this map.
      */
     public Set<Character> keySet() {
@@ -99,10 +109,12 @@ public class CharacterMap {
      * Constructor with specified initialValue.
      *
      * @param toUnicodeCharacter a function which turns a Character into a UnicodeCharacter.
+     * @param dialect            the dialect of Pinyin to be used, for example Hanyu.
      * @param initialValue       a value which, if present, will be added to the characters immediately.
      */
-    public CharacterMap(final Function<Character, UnicodeCharacter> toUnicodeCharacter, final Character initialValue) {
+    public CharacterMap(final Function<Character, UnicodeCharacter> toUnicodeCharacter, final String dialect, final Character initialValue) {
         this.toUnicodeCharacter = toUnicodeCharacter;
+        this.dialect = dialect;
         if (initialValue != null) get(initialValue);
     }
 
@@ -112,7 +124,7 @@ public class CharacterMap {
      * @param toUnicodeCharacter a function which turns a Character into a UnicodeCharacter.
      */
     public CharacterMap(final Function<Character, UnicodeCharacter> toUnicodeCharacter) {
-        this(toUnicodeCharacter, null);
+        this(toUnicodeCharacter, "Hanyu", null);
     }
 
     /**
@@ -133,4 +145,6 @@ public class CharacterMap {
     }
 
     private final Function<Character, UnicodeCharacter> toUnicodeCharacter;
+
+    private final String dialect;
 }

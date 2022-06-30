@@ -40,7 +40,7 @@ public class UnicodeMSDStringSortIntegrationTest {
                 copy("helper", "cutoff", "8");
         Benchmark.setMinWarmupRuns(0);
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
-        final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, '阿'));
+        final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, "Hanyu", '阿'));
         final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
         final Supplier<String[]> wordSupplier = HuskySortBenchmark.getWordSupplier(words, 1000, new Random(0L));
         final double time = benchmark.run(wordSupplier, 100);

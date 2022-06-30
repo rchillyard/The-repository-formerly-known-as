@@ -26,7 +26,7 @@ public class UnicodeMSDStringSortTest {
 
     @BeforeClass
     public static void beforeClass() {
-        characterMap = new CharacterMap(ChineseCharacter::new, '阿'); // NOTE: this is an attempt to ensure that the pinyin4j library gets initialized
+        characterMap = new CharacterMap(ChineseCharacter::new, "Hanyu", '阿'); // NOTE: this is an attempt to ensure that the pinyin4j library gets initialized
     }
 
     @Test

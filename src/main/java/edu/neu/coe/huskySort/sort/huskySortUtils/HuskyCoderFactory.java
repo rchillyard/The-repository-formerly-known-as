@@ -65,7 +65,7 @@ public final class HuskyCoderFactory {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskySequenceCoder<String> asciiCoder = new BaseHuskySequenceCoder<String>("ASCII", MAX_LENGTH_ASCII) {
+    public final static HuskySequenceCoder<String> asciiCoder = new BaseHuskySequenceCoder<>("ASCII", MAX_LENGTH_ASCII) {
 
         /**
          * Encode x as a long.
@@ -92,7 +92,7 @@ public final class HuskyCoderFactory {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskySequenceCoder<String> englishCoder = new BaseHuskySequenceCoder<String>("English", MAX_LENGTH_ENGLISH) {
+    public final static HuskySequenceCoder<String> englishCoder = new BaseHuskySequenceCoder<>("English", MAX_LENGTH_ENGLISH) {
         /**
          * Encode x as a long.
          * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
@@ -109,7 +109,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for unicode Strings.
      */
-    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<String>("Unicode", MAX_LENGTH_UNICODE - 1) {
+    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<>("Unicode", MAX_LENGTH_UNICODE - 1) {
         /**
          * Encode x as a long.
          * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
@@ -124,14 +124,68 @@ public final class HuskyCoderFactory {
     };
 
     /**
-     * A Husky Coder for Chinese UTF8 Strings.
+     * A Husky Coder for Chinese UTF8 Strings which are ordered according to the CHINA-local collator.
      */
     public final static HuskySequenceCoder<String> chineseEncoderCollator = new SequenceEncoder_Collator(Collator.getInstance(Locale.CHINA));
 
     /**
+     * A Husky Coder for Chinese UTF8 which are ordered according to a pinyin dialect.
+     */
+
+    public final static HuskyCoder<String> chineseEncoderPinyin = new HuskyCoder<>() {
+        /**
+         * Encode x as a long.
+         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
+         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
+         *
+         * @param s the X value to encode.
+         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
+         */
+        @Override
+        public long huskyEncode(final String s) {
+            final Long[] codes = ChineseCharacter.parsePinyin(Long.class, ChineseCharacter.convertToPinyin(s), s.length(), xs -> {
+                long result = 0L;
+                for (int i = 0; i < xs.length; i++) {
+                    final int shift = ChineseCharacter.getShift(i);
+                    final long x = ChineseCharacter.lookupPinyin(i, xs[i]);
+                    assert x >= 0 : "chineseEncoderPinyin: logic error";
+//                    System.out.println("code for i="+i+": "+xs[i]+", shift="+shift+", x="+Long.toHexString(x));
+                    result = (result << shift) | x;
+                }
+                return result;
+            });
+            long result = 0L;
+            int bits = 0;
+            int shift = 16;
+            for (final long x : codes) {
+//            System.out.println("code: "+Long.toHexString(x));
+                result = (result << shift) | x;
+                bits += shift;
+                if (bits == 48) shift = 15;
+                if (bits >= 63) break;
+            }
+            // TODO Pad the remaining 47, 31, 15 bits as necessary.
+            System.out.println("chineseEncoderPinyin: " + s + " : " + Long.toHexString(result) + "=" + ChineseCharacter.convertToPinyin(s));
+            return result;
+        }
+
+        /**
+         * For names of four characters or fewer, this encoding will be perfect.
+         * <p>
+         * NOTE: We lose one bit of precision in the fourth character but the probability that it will be significant is very small.
+         *
+         * @return true.
+         */
+        @Override
+        public boolean perfect() {
+            return true;
+        }
+    };
+
+    /**
      * A Husky Coder for Dates.
      */
-    public final static HuskyCoder<Date> dateCoder = new HuskyCoder<Date>() {
+    public final static HuskyCoder<Date> dateCoder = new HuskyCoder<>() {
         /**
          * Encode x as a long.
          * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
@@ -158,7 +212,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for ChronoLocalDateTimes.
      */
-    public final static HuskyCoder<ChronoLocalDateTime<?>> chronoLocalDateTimeCoder = new HuskyCoder<ChronoLocalDateTime<?>>() {
+    public final static HuskyCoder<ChronoLocalDateTime<?>> chronoLocalDateTimeCoder = new HuskyCoder<>() {
         @Override
         public long huskyEncode(final ChronoLocalDateTime<?> x) {
             return x.toEpochSecond(ZoneOffset.UTC);
@@ -183,7 +237,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for Integers.
      */
-    public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<Integer>() {
+    public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<>() {
         @Override
         public long huskyEncode(final Integer x) {
             return x.longValue();
@@ -203,7 +257,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for Longs.
      */
-    public final static HuskyCoder<Long> longCoder = new HuskyCoder<Long>() {
+    public final static HuskyCoder<Long> longCoder = new HuskyCoder<>() {
         @Override
         public long huskyEncode(final Long x) {
             return x;
@@ -228,7 +282,7 @@ public final class HuskyCoderFactory {
      * @return a long.
      */
     public static <X extends Number & Comparable<X>> ProbabilisticEncoder<X> createProbabilisticCoder(final double p) {
-        return new ProbabilisticEncoder<X>(p) {
+        return new ProbabilisticEncoder<>(p) {
         };
     }
 
