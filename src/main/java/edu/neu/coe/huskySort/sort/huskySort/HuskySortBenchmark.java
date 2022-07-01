@@ -666,6 +666,7 @@ public final class HuskySortBenchmark {
     }
 
     private static Supplier<String[]> getWordSupplier(final String[] words, final int nWords, final Random random, final boolean preSorted) {
+        if (words.length <= 0) throw new SortException("getWordSupplier: size of words is non-positive");
         // NOTE that the preSorted branch does not seem to work correctly with Chinese text.
         if (preSorted) {
             final String[] strings = Arrays.copyOf(words, Math.min(nWords, words.length));

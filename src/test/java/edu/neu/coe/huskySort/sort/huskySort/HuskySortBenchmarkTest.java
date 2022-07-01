@@ -8,7 +8,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -21,7 +20,7 @@ public class HuskySortBenchmarkTest {
     final static String[] args = new String[]{"1000"};
 
     @BeforeClass
-    public static void setUpClass() throws Exception {
+    public static void setUpClass() {
     }
 
     @Before
@@ -55,33 +54,13 @@ public class HuskySortBenchmarkTest {
     }
 
     @Test
-    public void sortStrings() throws IOException {
+    public void sortStrings() {
         benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt), 10000);
     }
 
     @Test
     public void sortLocalDateTimes() {
         benchmark.sortLocalDateTimes(100, 100000);
-    }
-
-    @Test
-    public void sortNumeric() {
-    }
-
-    @Test
-    public void benchmarkStringSorters() {
-    }
-
-    @Test
-    public void benchmarkStringSortersInstrumented() {
-    }
-
-    @Test
-    public void runStringSortBenchmark() {
-    }
-
-    @Test
-    public void testRunStringSortBenchmark() {
     }
 
     @Test
@@ -93,10 +72,6 @@ public class HuskySortBenchmarkTest {
     @Test
     public void meanInversions() {
         assertEquals(10.0 * 9 / 4, HuskySortBenchmark.meanInversions(10), 1E-7);
-    }
-
-    @Test
-    public void lineAsList() {
     }
 
     @Test
