@@ -100,7 +100,7 @@ public class HuskySortIntegrationTest {
         final double estimateMeanRuntime = 2 * n * Math.log(n);
         double normalizedRuntime = run / estimateMeanRuntime;
         System.out.println(String.format("Mean normalized run time: %6.2f", normalizedRuntime));
-        assertTrue(normalizedRuntime >= 0.5 && normalizedRuntime <= 2.5);
+        assertTrue(normalizedRuntime >= 0.45 && normalizedRuntime <= 2.5);
     }
 
     class MyBenchmark {
