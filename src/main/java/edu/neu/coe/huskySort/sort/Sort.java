@@ -7,12 +7,14 @@ import java.util.Arrays;
 
 /**
  * Sort interface, which extends GenericSort.
+ * <p>
+ * CONSIDER merging this interface with GenericSort as neither of them requires X to be Comparable.
  *
  * @param <X> the underlying type to be sorted.
- *            NOTE: currently, this is required to be a Comparable type.
- *            However, that is not strictly necessary because none of the methods defined here actually rely on that.
+ *                                  NOTE: currently, this is NOT required to be a Comparable type.
+ *                                  However, that is not necessary because none of the methods defined here actually rely on that.
  */
-public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
+public interface Sort<X> extends GenericSort<X> {
 
     /**
      * Method to prepare for sorting, invoked by the default implementation of sort(X[], boolean).
@@ -22,7 +24,7 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      * @param makeCopy true if we need to work on a copy of the array.
      * @return either the original or a copy of the array.
      */
-    default X[] preSort(X[] xs, boolean makeCopy) {
+    default X[] preSort(final X[] xs, final boolean makeCopy) {
         init(xs.length);
         return makeCopy ? Arrays.copyOf(xs, xs.length) : xs;
     }
@@ -39,8 +41,8 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
      * @param makeCopy if set to true, we make a copy first and sort that.
      */
-    default X[] sort(X[] xs, boolean makeCopy) {
-        X[] result = preSort(xs, makeCopy);
+    default X[] sort(final X[] xs, final boolean makeCopy) {
+        final X[] result = preSort(xs, makeCopy);
         sort(result, 0, result.length);
         return postSort(result);
     }
@@ -52,7 +54,7 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      * @param xs the sorted array.
      * @return the sorted array.
      */
-    default X[] postSort(X[] xs) {
+    default X[] postSort(final X[] xs) {
         return xs;
     }
 
@@ -72,7 +74,7 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      *
      * @param xs the elements to be pre-processed.
      */
-    default X[] preProcess(X[] xs) {
+    default X[] preProcess(final X[] xs) {
         init(xs.length);
         return xs;
     }
@@ -82,8 +84,9 @@ public interface Sort<X extends Comparable<X>> extends GenericSort<X> {
      * WHen benchmarking, this step is typically not timed.
      *
      * @param xs an array of Xs.
+     * @return an indication of the success of the postProcess operation.
      */
-    void postProcess(X[] xs);
+    boolean postProcess(X[] xs);
 
     /**
      * Close this sorter, performing any appropriate cleanup.

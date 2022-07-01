@@ -1,20 +1,26 @@
 package edu.neu.coe.huskySort.sort;
 
+import java.util.Arrays;
+
 public class SortException extends RuntimeException {
 
-    public SortException(String message) {
+    public SortException(final String message) {
         super(message);
     }
 
-    public SortException(String message, Throwable cause) {
+    public SortException(final String message, final Object x) {
+        super(message + ": " + (x.getClass().isArray() ? Arrays.toString((Object[]) x) : x.toString()));
+    }
+
+    public SortException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public SortException(Throwable cause) {
+    public SortException(final Throwable cause) {
         super(cause);
     }
 
-    public SortException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public SortException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

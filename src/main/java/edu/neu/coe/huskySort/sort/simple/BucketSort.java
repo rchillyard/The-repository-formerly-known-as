@@ -2,7 +2,7 @@ package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.bqs.Bag;
 import edu.neu.coe.huskySort.bqs.Bag_Array;
-import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyBucketHelper;
 import edu.neu.coe.huskySort.util.LazyLogger;
@@ -16,7 +16,6 @@ public final class BucketSort<X extends Comparable<X>> implements Sort<X> {
 
     public static final String DESCRIPTION = "Bucket sort";
 
-    @Override
     public void sort(final X[] xs, final int from, final int to) {
         logger.info(helper.inversions(xs));
         // Determine the min, max and gap.
@@ -52,26 +51,25 @@ public final class BucketSort<X extends Comparable<X>> implements Sort<X> {
      *
      * @param n the number of elements to be sorted.
      */
-    @Override
     public void init(final int n) {
-
+        // NOTE: do nothing.
     }
 
     /**
      * Post-process the given array, i.e. after sorting has been completed.
      *
      * @param xs an array of Xs.
+     * @return the result of calling helper.postProcess(xs).
      */
-    @Override
-    public void postProcess(final X[] xs) {
-        helper.postProcess(xs);
+    public boolean postProcess(final X[] xs) {
+        return helper.postProcess(xs);
     }
 
     public void close() {
         if (closeHelper) helper.close();
     }
 
-    BucketSort(final int buckets, final BaseHelper<X> helper) {
+    BucketSort(final int buckets, final ComparableSortHelper<X> helper) {
         //noinspection unchecked
         bucket = (Bag<X>[]) Array.newInstance(Bag.class, buckets);
         for (int i = 0; i < buckets; i++) bucket[i] = new Bag_Array<>();
@@ -80,13 +78,13 @@ public final class BucketSort<X extends Comparable<X>> implements Sort<X> {
     }
 
     BucketSort(final int buckets) {
-        this(buckets, new BaseHelper<>(DESCRIPTION));
+        this(buckets, new ComparableSortHelper<>(DESCRIPTION));
         closeHelper = true;
     }
 
     private final static LazyLogger logger = new LazyLogger(BucketSort.class);
 
-    private final BaseHelper<X> helper;
+    private final ComparableSortHelper<X> helper;
     private final Bag<X>[] bucket;
     private final InsertionSort<X> insertionSort;
     private boolean closeHelper = false;

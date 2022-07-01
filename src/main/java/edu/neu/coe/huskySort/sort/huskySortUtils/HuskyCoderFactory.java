@@ -3,13 +3,17 @@
  */
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
+//import java.lang.reflect.Field;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.LongBuffer;
 import java.nio.charset.Charset;
+import java.text.Collator;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -61,7 +65,7 @@ public final class HuskyCoderFactory {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskySequenceCoder<String> asciiCoder = new BaseHuskySequenceCoder<String>("ASCII", MAX_LENGTH_ASCII) {
+    public final static HuskySequenceCoder<String> asciiCoder = new BaseHuskySequenceCoder<>("ASCII", MAX_LENGTH_ASCII) {
 
         /**
          * Encode x as a long.
@@ -88,7 +92,7 @@ public final class HuskyCoderFactory {
      * it's no big deal.
      * It just means that the final pass will have to work a bit harder to fix the extra inversion.
      */
-    public final static HuskySequenceCoder<String> englishCoder = new BaseHuskySequenceCoder<String>("English", MAX_LENGTH_ENGLISH) {
+    public final static HuskySequenceCoder<String> englishCoder = new BaseHuskySequenceCoder<>("English", MAX_LENGTH_ENGLISH) {
         /**
          * Encode x as a long.
          * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
@@ -105,7 +109,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for unicode Strings.
      */
-    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<String>("Unicode", MAX_LENGTH_UNICODE - 1) {
+    public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<>("Unicode", MAX_LENGTH_UNICODE - 1) {
         /**
          * Encode x as a long.
          * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
@@ -120,26 +124,20 @@ public final class HuskyCoderFactory {
     };
 
     /**
-     * A Husky Coder for UTF Strings.
+     * A Husky Coder for Chinese UTF8 Strings which are ordered according to the CHINA-local collator.
      */
-    public final static HuskySequenceCoder<String> utf8Coder = new BaseHuskySequenceCoder<String>("UTF8", 0) {
-        /**
-         * Encode x as a long.
-         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
-         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
-         *
-         * @param str the X value to encode.
-         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
-         */
-        public long huskyEncode(final String str) {
-            return utf8ToLong(str);
-        }
-    };
+    public final static HuskySequenceCoder<String> chineseEncoderCollator = new SequenceEncoder_Collator(Collator.getInstance(Locale.CHINA));
+
+    /**
+     * A Husky Coder for Chinese UTF8 which are ordered according to a pinyin dialect.
+     */
+
+    public final static HuskyCoder<String> chineseEncoderPinyin = new HuskyCoderChinesePinyin("Hanyu");
 
     /**
      * A Husky Coder for Dates.
      */
-    public final static HuskyCoder<Date> dateCoder = new HuskyCoder<Date>() {
+    public final static HuskyCoder<Date> dateCoder = new HuskyCoder<>() {
         /**
          * Encode x as a long.
          * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
@@ -166,7 +164,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for ChronoLocalDateTimes.
      */
-    public final static HuskyCoder<ChronoLocalDateTime<?>> chronoLocalDateTimeCoder = new HuskyCoder<ChronoLocalDateTime<?>>() {
+    public final static HuskyCoder<ChronoLocalDateTime<?>> chronoLocalDateTimeCoder = new HuskyCoder<>() {
         @Override
         public long huskyEncode(final ChronoLocalDateTime<?> x) {
             return x.toEpochSecond(ZoneOffset.UTC);
@@ -191,7 +189,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for Integers.
      */
-    public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<Integer>() {
+    public final static HuskyCoder<Integer> integerCoder = new HuskyCoder<>() {
         @Override
         public long huskyEncode(final Integer x) {
             return x.longValue();
@@ -211,7 +209,7 @@ public final class HuskyCoderFactory {
     /**
      * A Husky Coder for Longs.
      */
-    public final static HuskyCoder<Long> longCoder = new HuskyCoder<Long>() {
+    public final static HuskyCoder<Long> longCoder = new HuskyCoder<>() {
         @Override
         public long huskyEncode(final Long x) {
             return x;
@@ -236,7 +234,7 @@ public final class HuskyCoderFactory {
      * @return a long.
      */
     public static <X extends Number & Comparable<X>> ProbabilisticEncoder<X> createProbabilisticCoder(final double p) {
-        return new ProbabilisticEncoder<X>(p) {
+        return new ProbabilisticEncoder<>(p) {
         };
     }
 
@@ -329,9 +327,37 @@ public final class HuskyCoderFactory {
         return result;
     }
 
+    // NOTE: this method ought to be faster, but I don't think it is.
+    // If you uncomment this, you must also uncomment the static initializer at the end of this file.
+//    private static long stringToLongAvoidLength(final String str, final int maxLength, final int bitWidth, final int mask) {
+//        char[] chars = new char[maxLength];
+//        try {
+//            char[] value = (char[]) fieldStringValue.get(str);
+//            final int length = Math.min(value.length, maxLength);
+//            System.arraycopy(value, 0, chars, 0, length);
+//
+//            str.getChars(0, length, chars, 0);
+//            final int padding = maxLength - length;
+//            long result = 0L;
+//            if (((mask ^ MASK_SHORT) & MASK_SHORT) == 0)
+//                for (int i = 0; i < length; i++) result = result << bitWidth | chars[i];
+//            else
+//                for (int i = 0; i < length; i++) result = result << bitWidth | chars[i] & mask;
+//            result = result << bitWidth * padding;
+//            return result;
+//        } catch (IllegalAccessException e) {
+//            System.err.println("Cannot get value of private field value of String class: " + e.getLocalizedMessage());
+//            return 0L;
+//        }
+//    }
+
     // NOTE: this method seems considerably slower than stringToLong, even though it uses a Java library function (getBytes)
     private static long stringToBytesToLong(final String str, final int maxLength, final Charset charSet, final int startingPos) {
         final byte[] bytes = str.substring(0, Math.min(maxLength, str.length())).getBytes(charSet);
+        return bytesToLong(startingPos, bytes);
+    }
+
+    static long bytesToLong(final int startingPos, final byte[] bytes) {
         int bytesIndex = startingPos;
         int resultIndex = 0;
         long result = 0L;
@@ -405,4 +431,15 @@ public final class HuskyCoderFactory {
         return sign == 0 ? result : -result;
     }
 
+    // NOTE: uncomment the following if you want to use the method stringToLongAvoidLength
+//    private static Field fieldStringValue;
+//
+//    static {
+//        try {
+//            fieldStringValue = String.class.getDeclaredField("value");
+//            fieldStringValue.setAccessible(true);
+//        } catch (NoSuchFieldException e) {
+//            System.err.println("Cannot access private field value of String class: " + e.getLocalizedMessage());
+//        }
+//    }
 }

@@ -3,8 +3,8 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
@@ -22,8 +22,7 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param from the index of the first element to sort.
      * @param to   the index of the first element not to sort.
      */
-    @Override
-    public void sort(X[] xs, int from, int to) {
+    public void sort(final X[] xs, final int from, final int to) {
         Arrays.sort(xs, from, to);
     }
 
@@ -32,9 +31,9 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
     /**
      * Constructor for TimSort
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public TimSort(Helper<X> helper) {
+    public TimSort(final ComparisonSortHelper<X> helper) {
         super(helper);
     }
 
@@ -44,12 +43,12 @@ public class TimSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public TimSort(int N, Config config) {
+    public TimSort(final int N, final Config config) {
         super(DESCRIPTION, N, config);
     }
 
     public TimSort() {
-        this(new BaseHelper<>(DESCRIPTION));
+        this(new ComparableSortHelper<>(DESCRIPTION));
     }
 }
 

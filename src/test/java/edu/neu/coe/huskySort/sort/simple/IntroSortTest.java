@@ -4,11 +4,11 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.*;
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
-import edu.neu.coe.huskySort.util.StatPack;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
+import edu.neu.coe.huskySort.sort.HelperFactory;
+import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.SortWithHelper;
+import edu.neu.coe.huskySort.util.*;
 import org.junit.Test;
 
 import java.util.List;
@@ -42,7 +42,7 @@ public class IntroSortTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("intro sort", N, config);
+        final ComparableSortHelper<Integer> helper = (ComparableSortHelper<Integer>) HelperFactory.create("intro sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new IntroSort<>(helper);
         s.init(N);
@@ -55,11 +55,11 @@ public class IntroSortTest {
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
-        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
+        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
+        final int inversions = (int) statPack.getStatistics(Instrumenter.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertEquals(13, helper.maxDepth());
@@ -72,7 +72,7 @@ public class IntroSortTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("intro sort", N, config);
+        final ComparableSortHelper<Integer> helper = (ComparableSortHelper<Integer>) HelperFactory.create("intro sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new IntroSort<>(helper);
         s.init(N);
@@ -85,11 +85,11 @@ public class IntroSortTest {
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
-        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
+        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
+        final int inversions = (int) statPack.getStatistics(Instrumenter.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
         assertEquals(4, helper.maxDepth());
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);

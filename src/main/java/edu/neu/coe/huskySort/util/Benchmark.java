@@ -4,10 +4,7 @@
 
 package edu.neu.coe.huskySort.util;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 import static edu.neu.coe.huskySort.util.Utilities.formatWhole;
 
@@ -23,7 +20,7 @@ public class Benchmark<T> {
      * @return at least 2 and at most m/10.
      */
     static int getWarmupRuns(final int m) {
-        return Integer.max(2, Integer.min(10, m / 10));
+        return Integer.max(MIN_WARMUP_RUNS, Integer.min(10, m / 10));
     }
 
     /**
@@ -72,9 +69,10 @@ public class Benchmark<T> {
      * @param fRun        a Consumer function (i.e. a function of T => Void).
      *                    Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      *                    When you create a lambda defining fRun, you must return "null."
-     * @param fPost       a Consumer function (i.e. a function of T => Void).
+     * @param fPost       a predicate on a U and which succeeds the call of function, but which is not timed (may be null).
+     *                    If defined and false is returned, an exception will be thrown.
      */
-    public Benchmark(final String description, final UnaryOperator<T> fPre, final Consumer<T> fRun, final Consumer<T> fPost) {
+    public Benchmark(final String description, final UnaryOperator<T> fPre, final Consumer<T> fRun, final Predicate<T> fPost) {
         this.description = description;
         this.fPre = fPre;
         this.fRun = fRun;
@@ -102,9 +100,10 @@ public class Benchmark<T> {
      * @param fRun        a Consumer function (i.e. a function of T => Void).
      *                    Function fRun is the function whose timing you want to measure. For example, you might create a function which sorts an array.
      *                    When you create a lambda defining fRun, you must return "null."
-     * @param fPost       a Consumer function (i.e. a function of T => Void).
+     * @param fPost       a predicate on a T and which succeeds the call of function, but which is not timed (may be null).
+     *                    If defined and false is returned, an exception will be thrown.
      */
-    public Benchmark(final String description, final Consumer<T> fRun, final Consumer<T> fPost) {
+    public Benchmark(final String description, final Consumer<T> fRun, final Predicate<T> fPost) {
         this(description, null, fRun, fPost);
     }
 
@@ -119,10 +118,21 @@ public class Benchmark<T> {
         this(description, null, f, null);
     }
 
+    private static int MIN_WARMUP_RUNS = 2;
+
+    /**
+     * Method used by unit tests to allow for a small number of warmup runs.
+     *
+     * @param m the minimum number of warmup runs to use.
+     */
+    public static void setMinWarmupRuns(final int m) {
+        MIN_WARMUP_RUNS = m;
+    }
+
     private final String description;
     private final UnaryOperator<T> fPre;
     private final Consumer<T> fRun;
-    private final Consumer<T> fPost;
+    private final Predicate<T> fPost;
 
     final static LazyLogger logger = new LazyLogger(Benchmark.class);
 }

@@ -1,44 +1,20 @@
 package edu.neu.coe.huskySort.sort;
 
-import java.util.Random;
-import java.util.function.Function;
+import edu.neu.coe.huskySort.util.Helper;
 
 import static java.util.Arrays.binarySearch;
 
 /**
- * Helper interface.
+ * ComparisonSortHelper interface.
  * <p>
- * A Helper provides all of the utilities that are needed by sort methods, for example, compare and swap.
+ * A ComparisonSortHelper provides all of the utilities that are needed by sort methods, for example, compare and swap.
  * <p>
  * CONSIDER having the concept of a current sub-array, then we could dispense with the lo, hi parameters.
  *
- * @param <X>
+ * @param <X> The underlying type to be sorted using this Helper.
+ *                      NOTE that X is not required to be Comparable of X because the actual comparison is in the override methods.
  */
-public interface Helper<X extends Comparable<X>> {
-
-    /**
-     * @return true if this is an instrumented Helper.
-     */
-    boolean instrumented();
-
-    /**
-     * Compare elements i and j of xs within the subarray lo..hi
-     *
-     * @param xs the array.
-     * @param i  one of the indices.
-     * @param j  the other index.
-     * @return the result of comparing xs[i] to xs[j]
-     */
-    int compare(X[] xs, int i, int j);
-
-    /**
-     * Compare values v and w and return true if v is less than w.
-     *
-     * @param v the first value.
-     * @param w the second value.
-     * @return true if v is less than w.
-     */
-    boolean less(X v, X w);
+public interface ComparisonSortHelper<X> extends Helper<X> {
 
     /**
      * Compare value v with value w.
@@ -48,6 +24,28 @@ public interface Helper<X extends Comparable<X>> {
      * @return -1 if v is less than w; 1 if v is greater than w; otherwise 0.
      */
     int compare(X v, X w);
+
+    /**
+     * Compare elements i and j of xs within the subarray lo...hi
+     *
+     * @param xs the array.
+     * @param i  one of the indices.
+     * @param j  the other index.
+     * @return the result of comparing xs[i] to xs[j]
+     */
+    int compare(X[] xs, int i, int j);
+
+    /**
+     * Method to determine if v and w are inverted.
+     * By default, we invoke invertedPure, which does no instrumentation.
+     *
+     * @param v the first value.
+     * @param w the second value.
+     * @return true if v is greater than w.
+     */
+    default boolean inverted(final X v, final X w) {
+        return invertedPure(v, w);
+    }
 
     /**
      * Method to perform a general swap, i.e. between xs[i] and xs[j]
@@ -64,7 +62,7 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
-    default void swapStable(X[] xs, int i) {
+    default void swapStable(final X[] xs, final int i) {
         swap(xs, i - 1, i);
     }
 
@@ -74,12 +72,12 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array of elements under consideration
      * @param i  the index of the lower element.
      * @param j  the index of the upper element.
-     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     * @return true if there was an inversion (i.e. the order was wrong and had to be fixed).
      */
-    default boolean swapConditional(X[] xs, int i, int j) {
+    default boolean swapConditional(final X[] xs, final int i, final int j) {
         final X v = xs[i];
         final X w = xs[j];
-        boolean result = v.compareTo(w) > 0;
+        final boolean result = compare(v, w) > 0;
         if (result) {
             // CONSIDER invoking swap
             xs[i] = w;
@@ -93,12 +91,12 @@ public interface Helper<X extends Comparable<X>> {
      *
      * @param xs the array of elements under consideration
      * @param i  the index of the upper element.
-     * @return true if there was an inversion (i.e. the order was wrong and had to be be fixed).
+     * @return true if there was an inversion (i.e. the order was wrong and had to be fixed).
      */
-    default boolean swapStableConditional(X[] xs, int i) {
+    default boolean swapStableConditional(final X[] xs, final int i) {
         final X v = xs[i];
         final X w = xs[i - 1];
-        boolean result = v.compareTo(w) < 0;
+        final boolean result = compare(v, w) < 0;
         if (result) {
             xs[i] = w;
             xs[i - 1] = v;
@@ -129,21 +127,11 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
      * @param i  the index of the element to be swapped into the ordered array xs[0..i-1].
      */
-    default void swapIntoSorted(X[] xs, int i) {
+    default void swapIntoSorted(final X[] xs, final int i) {
         int j = binarySearch(xs, 0, i, xs[i]);
         if (j < 0) j = -j - 1;
         if (j < i) swapInto(xs, j, i);
     }
-
-    /**
-     * Copy the element at source[j] into target[i]
-     *
-     * @param source the source array.
-     * @param i      the target index.
-     * @param target the target array.
-     * @param j      the source index.
-     */
-    void copy(X[] source, int i, X[] target, int j);
 
     /**
      * TODO eliminate this method as it has been superseded by swapConditional. However, maybe the latter is a better name.
@@ -153,7 +141,7 @@ public interface Helper<X extends Comparable<X>> {
      * @param i  the index of the lower of the elements to be swapped.
      * @param j  the index of the higher of the elements to be swapped.
      */
-    default void fixInversion(X[] xs, int i, int j) {
+    default void fixInversion(final X[] xs, final int i, final int j) {
         swapConditional(xs, i, j);
     }
 
@@ -164,77 +152,8 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array of X elements.
      * @param i  the index of the higher of the adjacent elements to be swapped.
      */
-    default void fixInversion(X[] xs, int i) {
+    default void fixInversion(final X[] xs, final int i) {
         swapStableConditional(xs, i);
-    }
-
-    /**
-     * Return true if xs is sorted, i.e. has no inversions.
-     *
-     * @param xs an array of Xs.
-     * @return true if there are no inversions, else false.
-     */
-    boolean sorted(X[] xs);
-
-    /**
-     * Count the number of inversions of this array.
-     *
-     * @param xs an array of Xs.
-     * @return the number of inversions.
-     */
-    int inversions(X[] xs);
-
-    /**
-     * Method to post-process the array xs after sorting.
-     *
-     * @param xs the array that has been sorted.
-     */
-    void postProcess(X[] xs);
-
-    /**
-     * Method to generate an array of randomly chosen X elements.
-     *
-     * @param clazz the class of X.
-     * @param f     a function which takes a Random and generates a random value of X.
-     * @return an array of X of length determined by the current value according to setN.
-     */
-    X[] random(Class<X> clazz, Function<Random, X> f);
-
-    /**
-     * @return the description of this Helper.
-     */
-    String getDescription();
-
-    default int cutoff() {
-        return 7;
-    }
-
-    /**
-     * Initialize this Helper with the size of the array to be managed.
-     *
-     * @param n the size to be managed.
-     */
-    void init(int n);
-
-    /**
-     * Get the current value of N.
-     *
-     * @return the value of N.
-     */
-    int getN();
-
-    /**
-     * Close this Helper, freeing up any resources used.
-     */
-    void close();
-
-    /**
-     * If instrumenting, increment the number of copies by n.
-     *
-     * @param n the number of copies made.
-     */
-    default void incrementCopies(int n) {
-        // do nothing.
     }
 
     /**
@@ -242,8 +161,32 @@ public interface Helper<X extends Comparable<X>> {
      *
      * @param n the number of copies made.
      */
-    default void incrementFixes(int n) {
+    default void incrementFixes(final int n) {
         // do nothing.
+    }
+
+    default int getCutoff() {
+        return 7;
+    }
+
+    /**
+     * If instrumenting, increment the number of copies by n.
+     *
+     * @param n the number of copies made.
+     */
+    default void incrementCopies(final int n) {
+        // do nothing.
+    }
+
+    /**
+     * Method to post-process the array xs after sorting.
+     * By default, this method does nothing.
+     *
+     * @param xs the array to be tested.
+     * @return true.
+     */
+    default boolean postProcess(final X[] xs) {
+        return true;
     }
 
     /**
@@ -252,15 +195,16 @@ public interface Helper<X extends Comparable<X>> {
      * @param xs the array to be sorted.
      * @return the array after any pre-processing.
      */
-    default X[] preProcess(X[] xs) {
+    default X[] preProcess(final X[] xs) {
         // CONSIDER invoking init from here.
         return xs;
     }
 
-    default void registerDepth(int depth) {
+    default void registerDepth(final int depth) {
     }
 
     default int maxDepth() {
         return 0;
     }
+
 }

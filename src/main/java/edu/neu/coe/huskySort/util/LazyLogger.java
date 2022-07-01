@@ -15,27 +15,27 @@ import java.util.function.Supplier;
 @SuppressWarnings("rawtypes")
 public class LazyLogger extends Logger {
 
-    public LazyLogger(Class<?> clazz) {
+    public LazyLogger(final Class<?> clazz) {
         super("LazyLogger");
         logger = Logger.getLogger(clazz);
     }
 
-    public void trace(Supplier<String> fMessage) {
+    public void trace(final Supplier<String> fMessage) {
         if (logger.isTraceEnabled())
             logger.trace(fMessage.get());
     }
 
-    public void trace(Supplier<String> fMessage, Throwable t) {
+    public void trace(final Supplier<String> fMessage, final Throwable t) {
         if (logger.isTraceEnabled())
             logger.trace(fMessage.get(), t);
     }
 
-    public void debug(Supplier<String> fMessage) {
+    public void debug(final Supplier<String> fMessage) {
         if (logger.isDebugEnabled())
             logger.debug(fMessage.get());
     }
 
-    public void debug(Supplier<String> fMessage, Throwable t) {
+    public void debug(final Supplier<String> fMessage, final Throwable t) {
         if (logger.isDebugEnabled())
             logger.debug(fMessage.get(), t);
     }
@@ -51,30 +51,30 @@ public class LazyLogger extends Logger {
     }
 
     @Override
-    public void trace(Object message) {
+    public void trace(final Object message) {
         logger.trace("NOT lazy: " + message);
     }
 
     @Override
-    public void trace(Object message, Throwable t) {
+    public void trace(final Object message, final Throwable t) {
         logger.trace("NOT lazy: " + message, t);
     }
 
     @Override
-    public void debug(Object message) {
+    public void debug(final Object message) {
         logger.debug("NOT lazy: " + message);
     }
 
     @Override
-    public void debug(Object message, Throwable t) {
+    public void debug(final Object message, final Throwable t) {
         logger.debug("NOT lazy: " + message, t);
     }
 
-    public static Logger getLogger(String name) {
+    public static Logger getLogger(final String name) {
         return Logger.getLogger(name);
     }
 
-    public static Logger getLogger(Class clazz) {
+    public static Logger getLogger(final Class clazz) {
         return Logger.getLogger(clazz);
     }
 
@@ -82,42 +82,42 @@ public class LazyLogger extends Logger {
         return Logger.getRootLogger();
     }
 
-    public static Logger getLogger(String name, LoggerFactory factory) {
+    public static Logger getLogger(final String name, final LoggerFactory factory) {
         return Logger.getLogger(name, factory);
     }
 
     @Override
-    public void addAppender(Appender newAppender) {
+    public void addAppender(final Appender newAppender) {
         logger.addAppender(newAppender);
     }
 
     @Override
-    public void assertLog(boolean assertion, String msg) {
+    public void assertLog(final boolean assertion, final String msg) {
         logger.assertLog(assertion, msg);
     }
 
     @Override
-    public void callAppenders(LoggingEvent event) {
+    public void callAppenders(final LoggingEvent event) {
         logger.callAppenders(event);
     }
 
     @Override
-    public void error(Object message) {
+    public void error(final Object message) {
         logger.error(message);
     }
 
     @Override
-    public void error(Object message, Throwable t) {
+    public void error(final Object message, final Throwable t) {
         logger.error(message, t);
     }
 
     @Override
-    public void fatal(Object message) {
+    public void fatal(final Object message) {
         logger.fatal(message);
     }
 
     @Override
-    public void fatal(Object message, Throwable t) {
+    public void fatal(final Object message, final Throwable t) {
         logger.fatal(message, t);
     }
 
@@ -132,7 +132,7 @@ public class LazyLogger extends Logger {
     }
 
     @Override
-    public Appender getAppender(String name) {
+    public Appender getAppender(final String name) {
         return logger.getAppender(name);
     }
 
@@ -152,22 +152,22 @@ public class LazyLogger extends Logger {
     }
 
     @Override
-    public void info(Object message) {
+    public void info(final Object message) {
         logger.info(message);
     }
 
     @Override
-    public void info(Object message, Throwable t) {
+    public void info(final Object message, final Throwable t) {
         logger.info(message, t);
     }
 
     @Override
-    public boolean isAttached(Appender appender) {
+    public boolean isAttached(final Appender appender) {
         return logger.isAttached(appender);
     }
 
     @Override
-    public boolean isEnabledFor(Priority level) {
+    public boolean isEnabledFor(final Priority level) {
         return logger.isEnabledFor(level);
     }
 
@@ -177,27 +177,27 @@ public class LazyLogger extends Logger {
     }
 
     @Override
-    public void l7dlog(Priority priority, String key, Throwable t) {
+    public void l7dlog(final Priority priority, final String key, final Throwable t) {
         logger.l7dlog(priority, key, t);
     }
 
     @Override
-    public void l7dlog(Priority priority, String key, Object[] params, Throwable t) {
+    public void l7dlog(final Priority priority, final String key, final Object[] params, final Throwable t) {
         logger.l7dlog(priority, key, params, t);
     }
 
     @Override
-    public void log(Priority priority, Object message, Throwable t) {
+    public void log(final Priority priority, final Object message, final Throwable t) {
         logger.log(priority, message, t);
     }
 
     @Override
-    public void log(Priority priority, Object message) {
+    public void log(final Priority priority, final Object message) {
         logger.log(priority, message);
     }
 
     @Override
-    public void log(String callerFQCN, Priority level, Object message, Throwable t) {
+    public void log(final String callerFQCN, final Priority level, final Object message, final Throwable t) {
         logger.log(callerFQCN, level, message, t);
     }
 
@@ -207,37 +207,37 @@ public class LazyLogger extends Logger {
     }
 
     @Override
-    public void removeAppender(Appender appender) {
+    public void removeAppender(final Appender appender) {
         logger.removeAppender(appender);
     }
 
     @Override
-    public void removeAppender(String name) {
+    public void removeAppender(final String name) {
         logger.removeAppender(name);
     }
 
     @Override
-    public void setAdditivity(boolean additive) {
+    public void setAdditivity(final boolean additive) {
         logger.setAdditivity(additive);
     }
 
     @Override
-    public void setLevel(Level level) {
+    public void setLevel(final Level level) {
         logger.setLevel(level);
     }
 
     @Override
-    public void setResourceBundle(ResourceBundle bundle) {
+    public void setResourceBundle(final ResourceBundle bundle) {
         logger.setResourceBundle(bundle);
     }
 
     @Override
-    public void warn(Object message) {
+    public void warn(final Object message) {
         logger.warn(message);
     }
 
     @Override
-    public void warn(Object message, Throwable t) {
+    public void warn(final Object message, final Throwable t) {
         logger.warn(message, t);
     }
 

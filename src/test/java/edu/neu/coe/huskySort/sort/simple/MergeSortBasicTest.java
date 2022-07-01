@@ -4,14 +4,10 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.HelperFactory;
-import edu.neu.coe.huskySort.sort.InstrumentedHelper;
 import edu.neu.coe.huskySort.sort.Sort;
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
-import edu.neu.coe.huskySort.util.StatPack;
+import edu.neu.coe.huskySort.util.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -47,7 +43,7 @@ public class MergeSortBasicTest {
         // NOTE this depends on the cutoff value for merge sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final Helper<Integer> helper = HelperFactory.create("merge sort", N, config);
+        final ComparisonSortHelper<Integer> helper = HelperFactory.create("merge sort", N, config);
         System.out.println(helper);
         Sort<Integer> s = new MergeSortBasic<>(helper);
         s.init(N);
@@ -56,14 +52,15 @@ public class MergeSortBasicTest {
         helper.preProcess(xs);
         Integer[] ys = s.sort(xs);
         helper.postProcess(ys);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
-        final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
+        Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
+        final StatPack statPack = instrumenter.getStatPack();
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
-        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
+        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
+        final int inversions = (int) statPack.getStatistics(Instrumenter.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
         final int worstCompares = N * k - N + 1;
         assertTrue(compares <= worstCompares);
         assertEquals(inversions, fixes);
@@ -74,29 +71,31 @@ public class MergeSortBasicTest {
     public void testSort3() throws Exception {
         int k = 7;
         int N = (int) Math.pow(2, k);
-        final Helper<Integer> helper1 = HelperFactory.create("insertion sort", N, ConfigTest.setupConfig("true", "0", "1", "", ""));
+        final ComparisonSortHelper<Integer> helper1 = HelperFactory.create("insertion sort", N, ConfigTest.setupConfig("true", "0", "1", "", ""));
         System.out.println(helper1);
         final Integer[] xs = helper1.random(Integer.class, r -> r.nextInt(10000));
         assertEquals(Integer.valueOf(1360), xs[0]);
         new InsertionSort<Integer>(helper1).mutatingSort(xs);
         helper1.postProcess(xs);
-        final Helper<Integer> helper2 = HelperFactory.create("merge sort", N, ConfigTest.setupConfig("true", "", "0", "1", ""));
+        final ComparisonSortHelper<Integer> helper2 = HelperFactory.create("merge sort", N, ConfigTest.setupConfig("true", "", "0", "1", ""));
         System.out.println(helper2);
         Sort<Integer> mergeSort = new MergeSortBasic<>(helper2);
         mergeSort.init(N);
         helper2.preProcess(xs);
         Integer[] ys = mergeSort.sort(xs);
         helper2.postProcess(ys);
-        final PrivateMethodInvoker privateMethodInvoker1 = new PrivateMethodInvoker(helper1);
+        Instrumenter instrumenter1 = helper1.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker1 = new PrivateMethodInvoker(instrumenter1);
         final StatPack statPack1 = (StatPack) privateMethodInvoker1.invokePrivate("getStatPack");
-        final int inversions = (int) statPack1.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final PrivateMethodInvoker privateMethodInvoker2 = new PrivateMethodInvoker(helper2);
+        final int inversions = (int) statPack1.getStatistics(Instrumenter.INVERSIONS).mean();
+        Instrumenter instrumenter2 = helper2.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker2 = new PrivateMethodInvoker(instrumenter2);
         final StatPack statPack2 = (StatPack) privateMethodInvoker2.invokePrivate("getStatPack");
         System.out.println(statPack2);
-        final int compares = (int) statPack2.getStatistics(InstrumentedHelper.COMPARES).mean();
-        final int fixes = (int) statPack2.getStatistics(InstrumentedHelper.FIXES).mean();
-        final int swaps = (int) statPack2.getStatistics(InstrumentedHelper.SWAPS).mean();
-        final int copies = (int) statPack2.getStatistics(InstrumentedHelper.COPIES).mean();
+        final int compares = (int) statPack2.getStatistics(Instrumenter.COMPARES).mean();
+        final int fixes = (int) statPack2.getStatistics(Instrumenter.FIXES).mean();
+        final int swaps = (int) statPack2.getStatistics(Instrumenter.SWAPS).mean();
+        final int copies = (int) statPack2.getStatistics(Instrumenter.COPIES).mean();
         final int expectedCompares = N * k / 2;
         assertEquals(expectedCompares, compares);
         assertEquals(inversions, fixes);

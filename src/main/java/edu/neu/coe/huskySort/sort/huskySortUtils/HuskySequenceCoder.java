@@ -4,7 +4,7 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 /**
- * This interface extends HuskySort for object which are sub-classes of CharSequence.
+ * This interface extends HuskySort for object which are subclasses of CharSequence.
  *
  * @param <X> the underlying type for this coder, which extends CharSequence and thus has a length.
  */

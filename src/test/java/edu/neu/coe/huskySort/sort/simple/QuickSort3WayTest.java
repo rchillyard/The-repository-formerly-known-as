@@ -5,10 +5,7 @@
 package edu.neu.coe.huskySort.sort.simple;
 
 import edu.neu.coe.huskySort.sort.*;
-import edu.neu.coe.huskySort.util.Config;
-import edu.neu.coe.huskySort.util.ConfigTest;
-import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
-import edu.neu.coe.huskySort.util.StatPack;
+import edu.neu.coe.huskySort.util.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -43,7 +40,7 @@ public class QuickSort3WayTest {
     public void testSortWithInstrumenting0() throws Exception {
         int n = 16;
         final SortWithHelper<Integer> sorter = new QuickSort_3way<>(n, 1L, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -53,7 +50,7 @@ public class QuickSort3WayTest {
     public void testSortWithInstrumenting1() throws Exception {
         int n = 541; // a prime number
         final SortWithHelper<Integer> sorter = new QuickSort_3way<>(n, 0L, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(97));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -63,7 +60,7 @@ public class QuickSort3WayTest {
     public void testSortWithInstrumenting2() throws Exception {
         int n = 1000;
         final SortWithHelper<Integer> sorter = new QuickSort_3way<>(n, 0L, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(100));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -73,7 +70,7 @@ public class QuickSort3WayTest {
     public void testSortWithInstrumenting3() throws Exception {
         int n = 1000;
         final SortWithHelper<Integer> sorter = new QuickSort_3way<>(n, 0L, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(1000));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -83,7 +80,7 @@ public class QuickSort3WayTest {
     public void testSortWithInstrumenting4() throws Exception {
         int n = 1000;
         final SortWithHelper<Integer> sorter = new QuickSort_3way<>(n, 0L, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -93,7 +90,7 @@ public class QuickSort3WayTest {
     public void testSortWithInstrumenting5() throws Exception {
         int n = 1000;
         final SortWithHelper<Integer> sorter = new QuickSort_3way<>(n, 0L, config);
-        final Helper<Integer> helper = sorter.getHelper();
+        final ComparisonSortHelper<Integer> helper = sorter.getHelper();
         final Integer[] xs = helper.random(Integer.class, r -> r.nextInt(10000));
         final Integer[] sorted = sorter.sort(xs);
         assertTrue(helper.sorted(sorted));
@@ -152,7 +149,7 @@ public class QuickSort3WayTest {
         // NOTE this depends on the cutoff value for quick sort.
         int levels = k - 2;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseHelper<Integer> helper = (BaseHelper<Integer>) HelperFactory.create("merge sort", N, config);
+        final ComparableSortHelper<Integer> helper = (ComparableSortHelper<Integer>) HelperFactory.create("merge sort", N, config);
         System.out.println(helper);
         SortWithHelper<Integer> s = new QuickSort_3way<>(helper);
         s.init(N);
@@ -165,11 +162,11 @@ public class QuickSort3WayTest {
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
         final StatPack statPack = (StatPack) privateMethodInvoker.invokePrivate("getStatPack");
         System.out.println(statPack);
-        final int compares = (int) statPack.getStatistics(InstrumentedHelper.COMPARES).mean();
-        final int inversions = (int) statPack.getStatistics(InstrumentedHelper.INVERSIONS).mean();
-        final int fixes = (int) statPack.getStatistics(InstrumentedHelper.FIXES).mean();
-        final int swaps = (int) statPack.getStatistics(InstrumentedHelper.SWAPS).mean();
-        final int copies = (int) statPack.getStatistics(InstrumentedHelper.COPIES).mean();
+        final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
+        final int inversions = (int) statPack.getStatistics(Instrumenter.INVERSIONS).mean();
+        final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
+        final int swaps = (int) statPack.getStatistics(Instrumenter.SWAPS).mean();
+        final int copies = (int) statPack.getStatistics(Instrumenter.COPIES).mean();
         final int worstCompares = round(2.0 * N * Math.log(N));
         System.out.println("compares: " + compares + ", worstCompares: " + worstCompares);
         assertTrue(compares <= worstCompares);
@@ -181,11 +178,13 @@ public class QuickSort3WayTest {
         String[] xs = new String[]{"g", "f", "e", "d", "c", "b", "a"};
         int n = xs.length;
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(helper);
+        final ComparableSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
+        Instrumenter instrumenter = helper.getInstrumenter();
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(instrumenter);
         QuickSort_3way<String> sorter = new QuickSort_3way<>(helper);
         int inversions = n * (n - 1) / 2;
         assertEquals(inversions, helper.inversions(xs));
+        helper.init(n);
         Partitioner<String> partitioner = sorter.createPartitioner();
         List<Partition<String>> partitions = partitioner.partition(new Partition<>(xs, 0, xs.length));
         assertEquals(14, privateMethodInvoker.invokePrivate("getFixes"));
@@ -206,7 +205,7 @@ public class QuickSort3WayTest {
     @Test
     public void smallStringSort() throws IOException {
         Config config = Config.load(null);
-        final BaseHelper<String> helper = new InstrumentedHelper<>("test", config);
+        final ComparableSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
         int k = 20;
         int n = k * k;
         helper.init(n);

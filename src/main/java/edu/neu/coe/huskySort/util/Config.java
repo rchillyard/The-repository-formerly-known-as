@@ -1,6 +1,5 @@
 package edu.neu.coe.huskySort.util;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 
@@ -183,9 +182,9 @@ public class Config {
 
     /**
      * Method to determine if this configuration has an instrumented helper.
-     * NOTE: we would prefer to place this logic in the Helper class but we put it here for now.
+     * NOTE: we would prefer to place this logic in the ComparisonSortHelper class but we put it here for now.
      *
-     * @return true if helper is instrument
+     * @return true if helper is instrumented.
      */
     public boolean isInstrumented() {
         return getBoolean(HELPER, INSTRUMENT);

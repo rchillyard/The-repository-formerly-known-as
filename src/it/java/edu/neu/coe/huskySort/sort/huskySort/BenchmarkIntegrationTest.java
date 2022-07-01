@@ -52,7 +52,7 @@ public class BenchmarkIntegrationTest {
     }
 
     private final static String[] getWordsLeipzig(String s) throws FileNotFoundException {
-        return HuskySortBenchmarkHelper.getWords(s, line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER));
+        return HuskySortBenchmarkHelper.getWords(s, line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
     }
 
     @Test

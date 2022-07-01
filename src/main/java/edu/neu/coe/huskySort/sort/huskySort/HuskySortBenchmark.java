@@ -3,12 +3,15 @@
  */
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
+import edu.neu.coe.huskySort.sort.SortException;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortable;
+import edu.neu.coe.huskySort.sort.Sorter;
+import edu.neu.coe.huskySort.sort.huskySortUtils.*;
+import edu.neu.coe.huskySort.sort.radix.Alphabet;
+import edu.neu.coe.huskySort.sort.radix.CharacterMap;
+import edu.neu.coe.huskySort.sort.radix.MSDStringSort;
+import edu.neu.coe.huskySort.sort.radix.UnicodeMSDStringSort;
 import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.sort.simple.*;
 import edu.neu.coe.huskySort.util.*;
@@ -18,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.Collator;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.*;
@@ -38,7 +42,6 @@ public final class HuskySortBenchmark {
 
     /**
      * Run the main four benchmarks: string sorts, tuple sorts, date sorts and number sorts.
-     *
      */
     public void runBenchmarks() {
         // CONSIDER refactoring the following to conform to the others
@@ -57,7 +60,7 @@ public final class HuskySortBenchmark {
     @SuppressWarnings("SameParameterValue")
     void sortStrings(final Stream<Integer> wordCounts, final int totalOps) {
         logger.info("sortStrings: beginning String sorts");
-        wordCounts.forEach(x -> doSortStrings(x, round(totalOps / minComparisons(x))));
+        wordCounts.forEach(x -> doSortStrings(x, getRepetitions(x, totalOps)));
     }
 
     private void doSortStrings(final int n, final int m) {
@@ -72,6 +75,10 @@ public final class HuskySortBenchmark {
         // NOTE: common words benchmark
         if (isConfigBenchmarkStringSorter("english"))
             benchmarkStringSorters(COMMON_WORDS_CORPUS, HuskySortBenchmarkHelper.getWords(COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList), n, m, englishCoder);
+
+        // NOTE: Chinese Name corpus benchmarks (according to command-line arguments)
+        if (isConfigBenchmarkStringSorter("chinesenames"))
+            benchmarkUnicodeStringSorters(CHINESE_NAMES_CORPUS, HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList), n, m);
     }
 
     /**
@@ -83,11 +90,11 @@ public final class HuskySortBenchmark {
      */
     void sortLocalDateTimes(final int n, final int totalOps) {
         logger.info("sortLocalDateTimes: beginning LocalDateTime sorts");
-        final int m = round(totalOps / minComparisons(n));
+        final int m = getRepetitions(n, totalOps);
 
         // TODO why do we have localDateTimeSupplier IN ADDITION TO localDateTimes?
         final Supplier<LocalDateTime[]> localDateTimeSupplier = () -> generateRandomLocalDateTimeArray(n);
-        final BaseHelper<ChronoLocalDateTime<?>> helper = new BaseHelper<>("DateTimeHelper");
+        final ComparableSortHelper<ChronoLocalDateTime<?>> helper = new ComparableSortHelper<>("DateTimeHelper");
         final LocalDateTime[] localDateTimes = generateRandomLocalDateTimeArray(n);
 
         // CONSIDER finding the common ground amongst these sorts and get them all working together.
@@ -121,10 +128,14 @@ public final class HuskySortBenchmark {
      */
     void sortTuples(final int n, final int totalOps) {
         logger.info("sortTuples: beginning Tuple sorts");
-        final int m = round(totalOps / minComparisons(n));
+        final int m = getRepetitions(n, totalOps);
         final Tuple[] tuples = new Tuple[n];
         for (int i = 0; i < n; i++) tuples[i] = Tuple.create();
-        compareSystemAndPureHuskySorts(n + " Tuples", getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]), HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
+        compareSystemAndHuskySorts(n + " Tuples", getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]), HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
+    }
+
+    private static int getRepetitions(final int n, final int totalOps) {
+        return MIN_REPS + round(totalOps / minComparisons(n));
     }
 
     /**
@@ -140,7 +151,7 @@ public final class HuskySortBenchmark {
      */
     void sortNumerics(final int n, final int totalOps) {
         logger.info("sortNumerics: beginning numeric sorts");
-        final int m = round(totalOps / minComparisons(n));
+        final int m = getRepetitions(n, totalOps);
 
         compareSystemAndPureHuskySortsNumeric(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m, Integer.class, true);
 
@@ -176,7 +187,9 @@ public final class HuskySortBenchmark {
         final String s2 = ") words from " + corpus;
 
         if (isConfigBenchmarkStringSorter("puresystemsort")) {
-            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "SystemSort", s2), null, Arrays::sort, null);
+            final Collator collator = huskyCoder.getCollator();
+            final Comparator<String> comparator = collator != null ? collator::compare : null;
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "SystemSort", s2), null, xs -> Arrays.sort(xs, comparator), null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
         }
 
@@ -200,6 +213,117 @@ public final class HuskySortBenchmark {
             final Consumer<String[]> sort = strings -> invoker.invokePrivateExplicit("legacyMergeSort", classes, new Object[]{strings});
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "Legacy MergeSort", s2), null, sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+        }
+
+        if (isConfigBenchmarkStringSorter("purequicksort")) {
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "DualPivotQuicksort", s2), null, PureDualPivotQuicksort::sort, null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+        }
+    }
+
+    /**
+     * Method to run pure (non-instrumented) string sorter benchmarks.
+     * <p>
+     * NOTE: this is package-private because it is used by unit tests.
+     * <p>
+     * CONSIDER merging this with compareSystemAndPureHuskySorts
+     *
+     * @param corpus the name of the corpus file to be used as a source of Strings.
+     * @param words  the word source.
+     * @param nWords the number of words to be sorted.
+     * @param nRuns  the number of runs.
+     */
+    public void benchmarkUnicodeStringSorters(final String corpus, final String[] words, final int nWords, final int nRuns) {
+        logger.info("benchmarkUnicodeStringSorters: testing unicode string sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
+        benchmarkUnicodeStringSortersSeeded(corpus, words, nWords, nRuns, new Random());
+    }
+
+    /**
+     * Method to run pure (non-instrumented) string sorter benchmarks.
+     * <p>
+     * NOTE: this is package-private because it is used by unit tests.
+     * <p>
+     * CONSIDER merging this with compareSystemAndPureHuskySorts
+     *
+     * @param corpus the name of the corpus file to be used as a source of Strings.
+     * @param words  the word source.
+     * @param nWords the number of words to be sorted.
+     * @param nRuns  the number of runs.
+     * @param random a random source.
+     */
+    public void benchmarkUnicodeStringSortersSeeded(final String corpus, final String[] words, final int nWords, final int nRuns, final Random random) {
+        logger.info("benchmarkUnicodeStringSortersSeeded: testing unicode string sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
+        if (isConfigBenchmarkStringSorter("unicodemsdstringsort")) {
+            final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, "Hanyu", '阿'));
+            final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
+        }
+
+        if (isConfigBenchmarkStringSorter("purehuskysort")) {
+            final boolean purehuskysortwithinsertionsort = isConfigBenchmarkStringSorter("purehuskysortwithinsertionsort");
+            final boolean preSorted = false;
+            final String s2 = ") words from " + corpus;
+            final HuskyCoder<String> huskyCoder = HuskyCoderFactory.chineseEncoderPinyin;
+            final PureHuskySort<String> pureHuskySort = new PureHuskySort<>(huskyCoder, preSorted, purehuskysortwithinsertionsort);
+            final String s1 = "PureHuskySort" + (purehuskysortwithinsertionsort ? " with insertion sort" : "");
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, s1, s2), null, pureHuskySort::sort, null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+        }
+
+        if (isConfigBenchmarkStringSorter("msdstringsort")) {
+            final String s2 = ") words from " + corpus;
+            final MSDStringSort sorter = new MSDStringSort(new Alphabet(Alphabet.RADIX_UNICODE));
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MSDStringSort", s2), (x) -> {
+                sorter.reset();
+                return x;
+            }, sorter::sort, HuskySortBenchmark::checkSorted);
+            try {
+                doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
+            } catch (final SortException e) {
+                final Alphabet alphabet = sorter.getAlphabet();
+                System.out.println(alphabet);
+                throw new RuntimeException("sort exception", e);
+            }
+        }
+    }
+
+    /**
+     * NOTE: this may be duplicated elsewhere.
+     *
+     * @param xs an array of Comparables.
+     */
+    public static boolean checkSorted(final String[] xs) {
+        if (xs.length < 2) return true;
+        return checkSortedWithClues(xs) < 0;
+    }
+
+    private static int checkSortedWithClues(final String[] xs) {
+        for (int i = 1; i < xs.length; i++)
+            if (xs[i].compareTo(xs[i - 1]) < 0) return i;
+        return -1;
+    }
+
+    /**
+     * NOTE: this may be duplicated elsewhere.
+     *
+     * @param xs an array of Comparables.
+     */
+    public static boolean checkChineseSorted(final String[] xs) {
+        final CharacterMap characterMap = new CharacterMap(ChineseCharacter::new);
+        final String[] pinyin = new String[xs.length];
+        final Object[] unicodeString = new Object[xs.length];
+        for (int i = 0; i < xs.length; i++) {
+            pinyin[i] = ChineseCharacter.convertToPinyin(xs[i]);
+            unicodeString[i] = characterMap.getUnicodeString(xs[i]);
+        }
+        final int i = checkSortedWithClues(pinyin);
+        if (i < 0) return true;
+        else {
+            System.out.println(xs[i - 1] + " (" + pinyin[i - 1] + ") should appear after " + xs[i] + " (" + pinyin[i] + ") at index " + i);
+            System.out.println("pinyin comparison: " + pinyin[i - 1].compareTo(pinyin[i]));
+            System.out.println("unicode strings: " + unicodeString[i - 1] + ", " + unicodeString[i]);
+            System.out.println("UnicodeString comparison (by long code): " + CharacterMap.compareUnicodeStrings(characterMap.getUnicodeString(xs[i - 1]), characterMap.getUnicodeString(xs[i])));
+            return false;
         }
     }
 
@@ -260,6 +384,8 @@ public final class HuskySortBenchmark {
         // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (isConfigBenchmarkStringSorter("insertionsort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new InsertionSort<>(nWords, config), timeLoggersQuadratic);
+
+        // NOTE: we do not invoke MSDStringSort here at all.
     }
 
     /**
@@ -351,7 +477,13 @@ public final class HuskySortBenchmark {
         return 0.25 * n * (n - 1);
     }
 
-    static List<String> lineAsList(final String line) {
+    /**
+     * Method to return a String as a (singleton) List of Strings.
+     *
+     * @param line a String
+     * @return a list with just the one String element in it.
+     */
+    public static List<String> lineAsList(final String line) {
         final List<String> words = new ArrayList<>();
         words.add(line);
         return words;
@@ -362,10 +494,10 @@ public final class HuskySortBenchmark {
     }
 
     private static List<String> getLeipzigWords(final String line) {
-        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRINGSPLITTER);
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
     }
 
-    private static <Y> Benchmark<Y[]> benchmarkFactory(final String description, final Consumer<Y[]> sorter, final Consumer<Y[]> checker) {
+    private static <Y> Benchmark<Y[]> benchmarkFactory(final String description, final Consumer<Y[]> sorter, final Predicate<Y[]> checker) {
         return new Benchmark<>(
                 description,
                 (xs) -> Arrays.copyOf(xs, xs.length),
@@ -396,7 +528,6 @@ public final class HuskySortBenchmark {
          * @param tuple the object to be compared
          * @return an int according to the ordering of this and x
          */
-        @Override
         public int compareTo(final Tuple tuple) {
             final int cf1 = Integer.compare(birthYear, tuple.birthYear);
             if (cf1 != 0) return cf1;
@@ -411,7 +542,6 @@ public final class HuskySortBenchmark {
          *
          * @return a long such that when comparison is done by longs, it is approximately 90% accurate.
          */
-        @Override
         public long huskyCode() {
             long result = birthYear - 1850;  // 8 bits
             result = result << 17 | zip; // 17 bits
@@ -487,8 +617,8 @@ public final class HuskySortBenchmark {
      * @param clazz      the class of Y.
      * @param isInt      true if Y is an integer-style type.
      */
-    static <Y extends Number & Comparable<Y>> void compareSystemAndPureHuskySortsNumeric(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m, final Class<? extends Number> clazz, final boolean isInt) {
-        compareSystemAndPureHuskySorts(subject, supplier, huskyCoder, checker, isConfig, m);
+    static <Y extends Number & Comparable<Y>> void compareSystemAndPureHuskySortsNumeric(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Predicate<Y[]> checker, final Predicate<String> isConfig, final int m, final Class<? extends Number> clazz, final boolean isInt) {
+        compareSystemAndHuskySorts(subject, supplier, huskyCoder, checker, isConfig, m);
 
         if (isConfig.test("quicksort")) {
             doNumericQuicksort(subject, supplier, m, clazz, isInt);
@@ -496,7 +626,7 @@ public final class HuskySortBenchmark {
     }
 
     /**
-     * Method to compare system sort with pure Husky sort
+     * Method to compare system sort with pure Husky sort, dual-pivot quick sort, and merge-husky-sort.
      *
      * @param <Y>        the underlying type of the array to be sorted.
      * @param subject    a String representing the number of instances and the class name being sorted.
@@ -506,12 +636,15 @@ public final class HuskySortBenchmark {
      * @param isConfig   a predicate which returns a boolean for both "timsort" or "huskysort".
      * @param m          the number of repetitions to be run.
      */
-    static <Y extends Comparable<Y>> void compareSystemAndPureHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Consumer<Y[]> checker, final Predicate<String> isConfig, final int m) {
+    static <Y extends Comparable<Y>> void compareSystemAndHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, @SuppressWarnings("SameParameterValue") final Predicate<Y[]> checker, final Predicate<String> isConfig, final int m) {
         if (isConfig.test("timsort"))
             logBenchmarkRun(HuskySortBenchmark.<Y>benchmarkFactory("Sort " + subject + " using System sort", Arrays::sort, null).run(supplier, m));
 
         if (isConfig.test("huskysort"))
             logBenchmarkRun(benchmarkFactory("Sort " + subject + " using PureHuskySort", new PureHuskySort<>(huskyCoder, false, false)::sort, checker).run(supplier, m));
+
+        if (isConfig.test("quicksort"))
+            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using DualPivotQuicksort", PureDualPivotQuicksort::sort, checker).run(supplier, m));
 
         if (isConfig.test("mergehuskysort"))
             logBenchmarkRun(benchmarkFactory("Sort " + subject + " using MergeHuskySort", new MergeHuskySort<>(huskyCoder)::sort, checker).run(supplier, m));
@@ -526,8 +659,9 @@ public final class HuskySortBenchmark {
 
     // CONSIDER making this an instance method of Benchmark
     private static void doPureBenchmark(final String[] words, final int nWords, final int nRuns, final Random random, final Benchmark<String[]> benchmark, final boolean preSorted) {
-        final double time = benchmark.run(getWordSupplier(words, nWords, random, preSorted), nRuns);
-        logger.info("CSV, " + benchmark + ", " + nWords + ", " + time);
+        final Supplier<String[]> wordSupplier = getWordSupplier(words, nWords, random, preSorted);
+        final double time = benchmark.run(wordSupplier, nRuns);
+        logger.info("CSV, " + benchmark + ", " + nWords + ", " + time); // XXX What does CSV mean in this context?
         for (final TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(time, nWords);
     }
 
@@ -537,6 +671,21 @@ public final class HuskySortBenchmark {
             final String[] strings = Arrays.copyOf(words, Math.min(nWords, words.length));
             return () -> strings;
         } else return () -> fillRandomArray(String.class, random, nWords, r -> words[r.nextInt(words.length)]);
+    }
+
+    /**
+     * Method to get a supplier of String arrays (where preSorted is always false).
+     * Invokes getWordSupplier(words, nWords, random, false);
+     * <p>
+     * NOTE this is used only by unit tests.
+     *
+     * @param words  an array of many Strings.
+     * @param nWords the number of words to be supplied (should be less than or equal to length of words).
+     * @param random a source of random numbers.
+     * @return a Supplier of String[].
+     */
+    public static Supplier<String[]> getWordSupplier(final String[] words, final int nWords, final Random random) {
+        return getWordSupplier(words, nWords, random, false);
     }
 
     private void dateSortBenchmark(final Supplier<LocalDateTime[]> localDateTimeSupplier, final LocalDateTime[] localDateTimes, final QuickHuskySort<ChronoLocalDateTime<?>> dateHuskySortSystemSort, final String s, final int i, final int n, final int m) {
@@ -560,7 +709,7 @@ public final class HuskySortBenchmark {
     }
 
     private static <Y extends Number & Comparable<Y>> void doNumericQuicksort(final String subject, final Supplier<Y[]> supplier, final int m, final Class<? extends Number> clazz, final boolean isInt) {
-        if (clazz==Byte.class) {
+        if (clazz == Byte.class) {
             logger.info("not attempting quicksort for: " + clazz);
             return;
         }
@@ -631,7 +780,7 @@ public final class HuskySortBenchmark {
 
     /**
      * For (basic) insertionsort, the number of array accesses is actually 6 times the number of comparisons.
-     * That's because, for each inversions, there will typically be one swap (four array accesses) and (at least) one comparison (two array accesses).
+     * That's because, for each inversion, there will typically be one swap (four array accesses) and (at least) one comparison (two array accesses).
      * Thus, in the case where comparisons are based on primitives,
      * the normalized time per run should approximate the time for one array access.
      */
@@ -641,11 +790,15 @@ public final class HuskySortBenchmark {
     };
 
     static final String COMMON_WORDS_CORPUS = "3000-common-words.txt";
+    public static final String CHINESE_NAMES_CORPUS = "Chinese_Names_Corpus.txt";
+
+    static final int MIN_REPS = 20;
 
     static private void logBenchmarkRun(final double time) {
         logger.info(TimeLogger.formatTime(time) + " ms");
     }
 
+    // CONSIDER do we need this?
     private static final Consumer<String[]> DO_NOTHING = (xs2) -> {
         // XXX do nothing.
     };

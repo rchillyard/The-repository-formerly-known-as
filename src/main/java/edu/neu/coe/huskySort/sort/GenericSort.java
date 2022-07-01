@@ -26,7 +26,7 @@ public interface GenericSort<X> {
      *
      * @param xs sort the array xs, returning the sorted result, leaving xs unchanged.
      */
-    default X[] sort(X[] xs) {
+    default X[] sort(final X[] xs) {
         return sort(xs, true);
     }
 
@@ -36,7 +36,7 @@ public interface GenericSort<X> {
      *
      * @param xs the array to be sorted.
      */
-    default void mutatingSort(X[] xs) {
+    default void mutatingSort(final X[] xs) {
         sort(xs, false);
     }
 
@@ -55,7 +55,7 @@ public interface GenericSort<X> {
      * @param xs the collection of X elements.
      * @return a sorted iterable of X.
      */
-    default Iterable<X> sort(Collection<X> xs) {
+    default Iterable<X> sort(final Collection<X> xs) {
         if (xs.isEmpty()) return xs;
         final X[] array = Utilities.asArray(xs);
         mutatingSort(array);

@@ -3,8 +3,8 @@
  */
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.BaseHelper;
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.ComparableSortHelper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
@@ -23,9 +23,8 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param from the index of the first element to sort
      * @param to   the index of the first element not to sort
      */
-    @Override
-    public void sort(X[] xs, int from, int to) {
-        final Helper<X> helper = getHelper();
+    public void sort(final X[] xs, final int from, final int to) {
+        final ComparisonSortHelper<X> helper = getHelper();
         for (int i = from + 1; i < to; i++) {
             // TODO implement using swapIntoSorted
             int j = i;
@@ -33,7 +32,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
         }
     }
 
-    public static <Y extends Comparable<Y>> void mutatingInsertionSort(Y[] ys) {
+    public static <Y extends Comparable<Y>> void mutatingInsertionSort(final Y[] ys) {
         new InsertionSort<Y>().mutatingSort(ys);
     }
 
@@ -45,20 +44,20 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param N      the number elements we expect to sort.
      * @param config the configuration.
      */
-    public InsertionSort(int N, Config config) {
+    public InsertionSort(final int N, final Config config) {
         super(DESCRIPTION, N, config);
     }
 
     public InsertionSort() {
-        this(new BaseHelper<>(DESCRIPTION));
+        this(new ComparableSortHelper<>(DESCRIPTION));
     }
 
     /**
      * Constructor for InsertionSort
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public InsertionSort(Helper<X> helper) {
+    public InsertionSort(final ComparisonSortHelper<X> helper) {
         super(helper);
     }
 

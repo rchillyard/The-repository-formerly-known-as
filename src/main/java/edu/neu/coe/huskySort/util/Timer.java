@@ -1,7 +1,9 @@
 package edu.neu.coe.huskySort.util;
 
-import java.util.function.Consumer;
+import edu.neu.coe.huskySort.sort.SortException;
+
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -21,7 +23,7 @@ public class Timer {
      * @param function a function which yields a T (T may be Void).
      * @return the average milliseconds per repetition.
      */
-    public <T> double repeat(int n, Supplier<T> function) {
+    public <T> double repeat(final int n, final Supplier<T> function) {
         for (int i = 0; i < n; i++) {
             function.get();
             lap();
@@ -38,33 +40,43 @@ public class Timer {
      * @param function a function T=>U and which is to be timed (U may be Void).
      * @return the average milliseconds per repetition.
      */
-    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function) {
+    public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function) {
         return repeat(n, supplier, function, null, null);
     }
 
     /**
      * Pause (without counting a lap); run the given functions n times while being timed, i.e. once per "lap", and finally return the result of calling meanLapTime().
      *
-     * @param n            the number of repetitions.
-     * @param supplier     a function which supplies a T value.
-     * @param function     a function T=>U and which is to be timed.
-     * @param preFunction  a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null).
-     * @param postFunction a function which consumes a U and which succeeds the call of function, but which is not timed (may be null).
+     * @param n             the number of repetitions.
+     * @param supplier      a function which supplies a T value.
+     * @param function      a function T=>U and which is to be timed.
+     * @param preFunction   a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null).
+     * @param postPredicate a predicate on a U and which succeeds the call of function, but which is not timed (may be null).
+     *                      If defined and false is returned, an exception will be thrown.
      * @return the average milliseconds per repetition.
      */
-    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function, UnaryOperator<T> preFunction, Consumer<U> postFunction) {
+    public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function, final UnaryOperator<T> preFunction, final Predicate<U> postPredicate) {
+        pause();
         if (n > 0) logger.trace("repeat: with " + n + " runs");
         else logger.warn("repeat: zero runs");
-        pause();
+        final int k = n / 60 + 1;
         for (int i = 0; i < n; i++) {
-            T t = supplier.get();
-            T t1 = preFunction != null ? preFunction.apply(t) : t;
+            final T t = supplier.get();
+            final T t1 = preFunction != null ? preFunction.apply(t) : t;
+            if (i % k == 0) System.out.print(".");
             resume();
-            U u = function.apply(t1);
+            final U u = function.apply(t1);
             pauseAndLap();
-            if (postFunction != null) postFunction.accept(u);
+            if (postPredicate != null && !postPredicate.test(u)) {
+                postPredicate.test(u);
+                throw new SortException("postPredicate returned false", u);
+            }
+
         }
-        return meanLapTime();
+        System.out.print("\r");
+        final double meanLapTime = meanLapTime();
+        resume();
+        return meanLapTime;
     }
 
     /**
@@ -179,7 +191,7 @@ public class Timer {
      * NOTE: (Maintain consistency) There are two system methods for getting the clock time.
      * Ensure that this method is consistent with toMillisecs.
      *
-     * @return the number of ticks for the system clock. Currently defined as nano time.
+     * @return the number of ticks for the system clock. Currently, defined as nano time.
      */
     private static long getClock() {
         return System.nanoTime();
@@ -192,7 +204,7 @@ public class Timer {
      * @param ticks the number of clock ticks -- currently in nanoseconds.
      * @return the corresponding number of milliseconds.
      */
-    private static double toMillisecs(long ticks) {
+    private static double toMillisecs(final long ticks) {
         return ticks / 1e6;
     }
 
@@ -202,15 +214,15 @@ public class Timer {
         public TimerException() {
         }
 
-        public TimerException(String message) {
+        public TimerException(final String message) {
             super(message);
         }
 
-        public TimerException(String message, Throwable cause) {
+        public TimerException(final String message, final Throwable cause) {
             super(message, cause);
         }
 
-        public TimerException(Throwable cause) {
+        public TimerException(final Throwable cause) {
             super(cause);
         }
     }

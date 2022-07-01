@@ -1,6 +1,6 @@
 package edu.neu.coe.huskySort.sort.simple;
 
-import edu.neu.coe.huskySort.sort.Helper;
+import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.util.Config;
 
 import java.util.ArrayList;
@@ -32,9 +32,9 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
     /**
      * Constructor for QuickSort_3way
      *
-     * @param helper an explicit instance of Helper to be used.
+     * @param helper an explicit instance of ComparisonSortHelper to be used.
      */
-    public QuickSort_DualPivot(final Helper<X> helper) {
+    public QuickSort_DualPivot(final ComparisonSortHelper<X> helper) {
         super(helper);
         setPartitioner(createPartitioner());
     }
@@ -51,7 +51,7 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
 
     public final class Partitioner_DualPivot implements Partitioner<X> {
 
-        public Partitioner_DualPivot(final Helper<X> helper) {
+        public Partitioner_DualPivot(final ComparisonSortHelper<X> helper) {
             this.helper = helper;
         }
 
@@ -97,14 +97,14 @@ public class QuickSort_DualPivot<X extends Comparable<X>> extends QuickSort<X> {
             return partitions;
         }
 
-        // CONSIDER invoke swap in BaseHelper.
+        // CONSIDER invoke swap in ComparableSortHelper.
         private void swap(final X[] ys, final int i, final int j) {
             final X temp = ys[i];
             ys[i] = ys[j];
             ys[j] = temp;
         }
 
-        private final Helper<X> helper;
+        private final ComparisonSortHelper<X> helper;
     }
 }
 
