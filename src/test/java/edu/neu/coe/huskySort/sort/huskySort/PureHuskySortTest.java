@@ -78,7 +78,7 @@ public class PureHuskySortTest {
     }
 
     // FIXME this test should work correctly.
-//    @Test
+    @Test
     public void testSortString7() {
         final String[] xs = {"刘持平", "洪文胜", "樊辉辉", "苏会敏", "高民政", "曹玉德", "袁继鹏", "舒冬梅", "杨腊香", "许凤山", "王广风", "黄锡鸿", "罗庆富", "顾芳芳", "宋雪光", "王诗卉"};
         final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);

@@ -17,6 +17,8 @@ public class CharacterMap {
     /**
      * A Comparator of String that can be used.
      * <p>
+     * NOTE: this method works for Hanyu but not necessarily for other dialects such as bopomofo.
+     * <p>
      * NOTE: currently only used by test code and for checking sorts.
      */
     public final Comparator<String> stringComparatorPinyin = (o1, o2) -> {

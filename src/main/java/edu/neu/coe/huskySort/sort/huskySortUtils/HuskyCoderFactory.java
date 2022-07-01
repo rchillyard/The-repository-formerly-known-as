@@ -132,55 +132,7 @@ public final class HuskyCoderFactory {
      * A Husky Coder for Chinese UTF8 which are ordered according to a pinyin dialect.
      */
 
-    public final static HuskyCoder<String> chineseEncoderPinyin = new HuskyCoder<>() {
-        /**
-         * Encode x as a long.
-         * As much as possible, if x > y, huskyEncode(x) > huskyEncode(y).
-         * If this cannot be guaranteed, then the result of imperfect(z) will be true.
-         *
-         * @param s the X value to encode.
-         * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
-         */
-        @Override
-        public long huskyEncode(final String s) {
-            final Long[] codes = ChineseCharacter.parsePinyin(Long.class, ChineseCharacter.convertToPinyin(s), s.length(), xs -> {
-                long result = 0L;
-                for (int i = 0; i < xs.length; i++) {
-                    final int shift = ChineseCharacter.getShift(i);
-                    final long x = ChineseCharacter.lookupPinyin(i, xs[i]);
-                    assert x >= 0 : "chineseEncoderPinyin: logic error";
-//                    System.out.println("code for i="+i+": "+xs[i]+", shift="+shift+", x="+Long.toHexString(x));
-                    result = (result << shift) | x;
-                }
-                return result;
-            });
-            long result = 0L;
-            int bits = 0;
-            int shift = 16;
-            for (final long x : codes) {
-//            System.out.println("code: "+Long.toHexString(x));
-                result = (result << shift) | x;
-                bits += shift;
-                if (bits == 48) shift = 15;
-                if (bits >= 63) break;
-            }
-            // TODO Pad the remaining 47, 31, 15 bits as necessary.
-            System.out.println("chineseEncoderPinyin: " + s + " : " + Long.toHexString(result) + "=" + ChineseCharacter.convertToPinyin(s));
-            return result;
-        }
-
-        /**
-         * For names of four characters or fewer, this encoding will be perfect.
-         * <p>
-         * NOTE: We lose one bit of precision in the fourth character but the probability that it will be significant is very small.
-         *
-         * @return true.
-         */
-        @Override
-        public boolean perfect() {
-            return true;
-        }
-    };
+    public final static HuskyCoder<String> chineseEncoderPinyin = new HuskyCoderChinesePinyin("Hanyu");
 
     /**
      * A Husky Coder for Dates.
