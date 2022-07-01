@@ -259,6 +259,17 @@ public final class HuskySortBenchmark {
             doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
         }
 
+        if (isConfigBenchmarkStringSorter("purehuskysort")) {
+            final boolean purehuskysortwithinsertionsort = isConfigBenchmarkStringSorter("purehuskysortwithinsertionsort");
+            final boolean preSorted = false;
+            final String s2 = ") words from " + corpus;
+            final HuskyCoder<String> huskyCoder = HuskyCoderFactory.chineseEncoderPinyin;
+            final PureHuskySort<String> pureHuskySort = new PureHuskySort<>(huskyCoder, preSorted, purehuskysortwithinsertionsort);
+            final String s1 = "PureHuskySort" + (purehuskysortwithinsertionsort ? " with insertion sort" : "");
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, s1, s2), null, pureHuskySort::sort, null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+        }
+
         if (isConfigBenchmarkStringSorter("msdstringsort")) {
             final String s2 = ") words from " + corpus;
             final MSDStringSort sorter = new MSDStringSort(new Alphabet(Alphabet.RADIX_UNICODE));
