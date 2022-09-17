@@ -112,12 +112,12 @@ public class UnicodeMSDStringSortTest {
     public void sortN1() {
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
         final Random random = new Random(0L);
-        final Supplier<String[]> wordSupplier = getWordSupplier(words, 1000, random);
+        final Supplier<String[]> wordSupplier = getWordSupplier(words, 500, random);
         final Sorter<String> sorter = new UnicodeMSDStringSort(characterMap);
         final Benchmark<String[]> benchmark = new Benchmark<>("TestN1", null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
         final double time = benchmark.run(wordSupplier, 1);
         System.out.println("Time: " + time);
-
+        // TODO need to do some assertions here, otherwise this is a waste of time!
     }
 
     @Test

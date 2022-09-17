@@ -5,6 +5,8 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
 import edu.neu.coe.huskySort.util.Benchmark;
 import edu.neu.coe.huskySort.util.Config;
@@ -86,6 +88,15 @@ public class HuskySortIntegrationTest {
         final int m = 200;
         final int n = 31623;
         checkTime(n, benchmarkQuick3sort.run(words, n, m));
+    }
+
+    @Test
+    public void sortProbabilistic() {
+        final HuskyCoder<Byte> byteCoder = HuskyCoderFactory.createProbabilisticCoder(0.2);
+        HuskySortBenchmark.compareSystemAndHuskySorts(1000 + " Bytes", HuskySortBenchmark.getSupplier(1000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(2000 + " Bytes", HuskySortBenchmark.getSupplier(2000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(5000 + " Bytes", HuskySortBenchmark.getSupplier(5000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(10000 + " Bytes", HuskySortBenchmark.getSupplier(10000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
     }
 
     @Ignore //(timeout = 30000)

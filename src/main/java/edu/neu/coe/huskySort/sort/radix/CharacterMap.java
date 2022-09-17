@@ -61,7 +61,7 @@ public class CharacterMap {
      * @return an instance of UnicodeString.
      */
     public UnicodeString getUnicodeString(final String s) {
-        return new UnicodeString(this, s);
+        return new UnicodeString(s, this);
     }
 
     /**
