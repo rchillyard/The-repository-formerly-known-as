@@ -12,11 +12,8 @@ import java.text.Collator;
 import java.time.ZoneOffset;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Date;
-<<<<<<< Updated upstream
 import java.util.Locale;
-=======
 import java.util.HashMap;
->>>>>>> Stashed changes
 import java.util.Random;
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;

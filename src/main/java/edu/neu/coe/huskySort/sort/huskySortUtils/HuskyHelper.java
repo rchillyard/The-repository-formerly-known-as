@@ -331,7 +331,7 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
         coding = coder.huskyEncode(array);
     }
 
-    public HuskySequenceCoder.Coding getCoding() {
+    public Coding getCoding() {
         return coding;
     }
 
@@ -383,5 +383,5 @@ public class HuskyHelper<X extends Comparable<X>> implements Helper<X> {
     private final Consumer<X[]> postSorter;
     private final boolean makeCopy;
 
-    private HuskySequenceCoder.Coding coding;
+    private Coding coding;
 }

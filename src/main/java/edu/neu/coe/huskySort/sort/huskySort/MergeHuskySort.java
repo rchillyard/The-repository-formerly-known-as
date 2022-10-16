@@ -1,6 +1,9 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
-import edu.neu.coe.huskySort.sort.huskySortUtils.*;
+import edu.neu.coe.huskySort.sort.huskySortUtils.Coding;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Arrays;
@@ -43,7 +46,7 @@ public class MergeHuskySort<X extends Comparable<X>> {
      */
     public void sort(final X[] xs) {
         // NOTE: First pass where we code to longs and sort according to those.
-        final HuskySequenceCoder.Coding coding = huskyCoder.huskyEncode(xs);
+        final Coding coding = huskyCoder.huskyEncode(xs);
         final long[] longs = coding.longs;
         final int n = xs.length;
         final X[] xsCopy = Arrays.copyOf(xs, n);

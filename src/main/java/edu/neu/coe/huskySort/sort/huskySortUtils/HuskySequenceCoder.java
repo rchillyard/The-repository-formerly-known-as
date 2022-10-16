@@ -20,16 +20,16 @@ public interface HuskySequenceCoder<X extends CharSequence> extends HuskyCoder<X
      */
     boolean perfectForLength(int length);
 
-    /**
-     * Class to combine the long codes for an array of objects with a determination of coding perfection.
-     */
-    class Coding {
-        public Coding(long[] longs, boolean perfect) {
-            this.longs = longs;
-            this.perfect = perfect;
-        }
-
-        public final long[] longs;
-        public final boolean perfect;
-    }
+//    /**
+//     * Class to combine the long codes for an array of objects with a determination of coding perfection.
+//     */
+//    static class XCoding {
+//        public XCoding(long[] longs, boolean perfect) {
+//            this.longs = longs;
+//            this.perfect = perfect;
+//        }
+//
+//        public final long[] longs;
+//        public final boolean perfect;
+//    }
 }

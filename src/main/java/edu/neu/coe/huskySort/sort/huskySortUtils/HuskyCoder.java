@@ -55,15 +55,10 @@ public interface HuskyCoder<X> {
      * @param xs an array of X elements.
      * @return an array of longs corresponding to the the Husky codes of the X elements.
      */
-<<<<<<< Updated upstream
     default Coding huskyEncode(final X[] xs) {
         final long[] result = new long[xs.length];
-=======
-    default HuskySequenceCoder.Coding huskyEncode(X[] xs) {
-        long[] result = new long[xs.length];
->>>>>>> Stashed changes
         for (int i = 0; i < xs.length; i++) result[i] = huskyEncode(xs[i]);
-        return new HuskySequenceCoder.Coding(result, perfect());
+        return new Coding(result, perfect());
     }
 
     default Collator getCollator() {

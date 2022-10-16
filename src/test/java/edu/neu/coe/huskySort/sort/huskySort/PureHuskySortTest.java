@@ -1,9 +1,9 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.BaseHelper;
+import edu.neu.coe.huskySort.sort.huskySortUtils.Coding;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
-import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySequenceCoder;
 import edu.neu.coe.huskySort.util.PrivateMethodInvoker;
 import org.junit.Test;
 
@@ -91,7 +91,7 @@ public class PureHuskySortTest {
         final int N = 100;
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
-        HuskySequenceCoder.Coding coding = huskyCoder.huskyEncode(xs);
+        Coding coding = huskyCoder.huskyEncode(xs);
         sorter.insertionSort(xs, coding.longs, 0, N);
         assertEquals(0, helper.inversions(xs));
     }
@@ -104,7 +104,7 @@ public class PureHuskySortTest {
         final int N = 100;
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
-        HuskySequenceCoder.Coding coding = huskyCoder.huskyEncode(xs);
+        Coding coding = huskyCoder.huskyEncode(xs);
         sorter.insertionSort(xs, coding.longs, 0, N);
         assertEquals(0, helper.inversions(xs));
     }
