@@ -154,10 +154,9 @@ public class HuskyCoderFactoryTest {
         HuskySequenceCoder<String> coder = HuskyCoderFactory.unicodeCoder;
         final String s你好世界 = "你好世界";
         final int l你好世界 = s你好世界.length();
-        long expected你好世界 = 0x27B02CBEA70B3AA6L;
+        long expected你好世界 = 0xB1E36514D01800L;
         assertEquals(expected你好世界, coder.huskyEncode(s你好世界));
         assertFalse(coder.perfectForLength(l你好世界));
-        assertEquals(expected你好世界, coder.huskyEncode(s你好世界 + "人"));
     }
 
     @Test
@@ -175,13 +174,13 @@ public class HuskyCoderFactoryTest {
         long[] longs = coding.longs;
         assertFalse(coding.perfect);
         assertEquals(7, longs.length);
-        assertEquals(0x4800A91580000000L, longs[0]);
-        assertEquals(0x2705CCD64C792A0DL, longs[1]);
-        assertEquals(0x2AA7AA0DA7AAB120L, longs[2]);
-        assertEquals(0x2A0DC5002706AFCBL, longs[3]);
-        assertEquals(0x35BC40F2A9ABAE38L, longs[4]);
-        assertEquals(0x27A329DDC1D5AFD4L, longs[5]);
-        assertEquals(0x3B3ECB793890BB70L, longs[6]);
+        assertEquals(0xC7B06A00000000L, longs[0]);
+        assertEquals(0xD175755C910212L, longs[1]);
+        assertEquals(0xCF34406D6495DCL, longs[2]);
+        assertEquals(0xA20AA211C72D6FL, longs[3]);
+        assertEquals(0x9949FEC161A0ADL, longs[4]);
+        assertEquals(0x8DB776BCCABCF3L, longs[5]);
+        assertEquals(0x815B2340503C51L, longs[6]);
     }
 
     @Test

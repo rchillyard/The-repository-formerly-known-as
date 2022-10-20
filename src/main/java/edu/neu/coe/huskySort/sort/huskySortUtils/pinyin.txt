@@ -272,6 +272,7 @@ sou
 san
 sen
 sun
+suo
 sang
 seng
 song

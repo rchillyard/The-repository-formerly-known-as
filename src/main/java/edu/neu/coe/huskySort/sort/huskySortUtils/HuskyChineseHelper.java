@@ -29,12 +29,7 @@ public class HuskyChineseHelper {
         int pos = 0;
         for(int i = 0; i<pinyinList.length; i++){
             for(int j = 1; j<5; j++){
-                int x = result.size();
                 result.put(pinyinList[i]+String.valueOf(j),pos);
-                int y =result.size();
-                if(x==y){
-                    System.out.println(i);
-                }
                 pos++;
             }
         }
@@ -42,7 +37,7 @@ public class HuskyChineseHelper {
     }
 
     private void read() {
-        String file = "pinyin.txt";
+        String file = "/Users/lijiaqi/Desktop/java/research/huskysort/src/main/java/edu/neu/coe/huskySort/sort/huskySortUtils/pinyin.txt";
         try {
             readFile(file);
         } catch (IOException e) {
@@ -75,7 +70,6 @@ public class HuskyChineseHelper {
 
         String[][] temp = new String[src.length()][];
         for (int i = 0; i < srcChar.length; i++) {
-            char c = srcChar[i];
             try {
                 temp[i] = PinyinHelper.toHanyuPinyinStringArray(
                         srcChar[i], hanYuPinOutputFormat);

@@ -15,12 +15,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.HashMap;
 import java.util.Random;
-import net.sourceforge.pinyin4j.PinyinHelper;
-import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
-import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
-import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 /**
  * Factory class for HuskyCoders.
@@ -38,7 +32,7 @@ public final class HuskyCoderFactory {
     private static final int MASK_ASCII = 0x7F;
 
     private static final int BIT_WIDTH_PINYIN = 11;
-    private static final int MAX_LENGTH_PINYIN= BITS_LONG / BIT_WIDTH_ASCII;
+    private static final int MAX_LENGTH_PINYIN= BITS_LONG / BIT_WIDTH_PINYIN;
     private static final int MASK_PINYIN = 0x7FF;
 
     private static final int BIT_WIDTH_ENGLISH = 6;
@@ -312,14 +306,15 @@ public final class HuskyCoderFactory {
     }
 
     private static long unicodeToLong(final String str) {
-        int n=0;
+        int n;
         boolean isChinese = false;
         int pos = 0;
-        while(!isChinese){
+        while(!isChinese && pos < str.length()){
             n = (int)str.charAt(pos);
             if(n>=19968&&n<40869){
                 isChinese=true;
             }
+            pos++;
         }
         if(isChinese){
             return chineseToLong(str);
