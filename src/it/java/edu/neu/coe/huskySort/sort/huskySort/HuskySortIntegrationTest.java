@@ -5,6 +5,8 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.Sort;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.simple.QuickSort_3way;
 import edu.neu.coe.huskySort.util.Benchmark;
 import edu.neu.coe.huskySort.util.Config;
@@ -88,6 +90,15 @@ public class HuskySortIntegrationTest {
         checkTime(n, benchmarkQuick3sort.run(words, n, m));
     }
 
+    @Test
+    public void sortProbabilistic() {
+        final HuskyCoder<Byte> byteCoder = HuskyCoderFactory.createProbabilisticCoder(0.2);
+        HuskySortBenchmark.compareSystemAndHuskySorts(1000 + " Bytes", HuskySortBenchmark.getSupplier(1000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(2000 + " Bytes", HuskySortBenchmark.getSupplier(2000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(5000 + " Bytes", HuskySortBenchmark.getSupplier(5000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+        HuskySortBenchmark.compareSystemAndHuskySorts(10000 + " Bytes", HuskySortBenchmark.getSupplier(10000, Byte.class, HuskySortBenchmark.byteFunction), byteCoder, null, s -> true, 100);
+    }
+
     @Ignore //(timeout = 30000)
     public void testControl100K() throws Exception {
         final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
@@ -100,7 +111,7 @@ public class HuskySortIntegrationTest {
         final double estimateMeanRuntime = 2 * n * Math.log(n);
         double normalizedRuntime = run / estimateMeanRuntime;
         System.out.println(String.format("Mean normalized run time: %6.2f", normalizedRuntime));
-        assertTrue(normalizedRuntime >= 0.5 && normalizedRuntime <= 2.5);
+        assertTrue(normalizedRuntime >= 0.45 && normalizedRuntime <= 2.5);
     }
 
     class MyBenchmark {

@@ -9,11 +9,11 @@ import static org.junit.Assert.assertEquals;
 public class UnicodeCharacterTest {
 
     @BeforeClass
-    public static void setUp() throws Exception {
+    public static void setUp() {
     }
 
     @AfterClass
-    public static void tearDown() throws Exception {
+    public static void tearDown() {
     }
 
     @Test

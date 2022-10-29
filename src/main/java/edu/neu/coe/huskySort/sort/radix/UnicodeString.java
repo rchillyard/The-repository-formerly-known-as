@@ -14,7 +14,7 @@ public class UnicodeString implements StringComparable<UnicodeString, UnicodeCha
      *
      * @param word a sequence of unicode characters.
      */
-    public UnicodeString(final CharacterMap characterMap, final String word) {
+    public UnicodeString(final String word, final CharacterMap characterMap) {
         this.word = word;
         this.unicodes = new UnicodeCharacter[word.length()];
         for (int i = 0; i < word.length(); i++) unicodes[i] = characterMap.get(word.charAt(i));

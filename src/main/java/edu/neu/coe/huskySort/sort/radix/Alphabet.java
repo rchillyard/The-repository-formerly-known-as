@@ -65,7 +65,7 @@ public class Alphabet {
 
     public static final int RADIX_ASCII = 256;
     public static final int RADIX_UNICODE = 256 * 256;
-    public static Alphabet ASCII = new Alphabet(RADIX_ASCII);
+    public static final Alphabet ASCII = new Alphabet(RADIX_ASCII);
     private final HashMap<Character, Integer> map;
     private final int length;
 }

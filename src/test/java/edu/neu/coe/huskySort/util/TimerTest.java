@@ -126,7 +126,7 @@ public class TimerTest {
     public void testRepeat3() {
         final Timer timer = new Timer();
         final int zzz = 20;
-        final double mean = timer.repeat(10, () -> zzz, t -> {
+        final double mean = timer.repeat(false, 10, () -> zzz, t -> {
             GoToSleep(t, 0);
             return null;
         }, t -> {

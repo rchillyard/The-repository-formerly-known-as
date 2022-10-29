@@ -57,7 +57,7 @@ public class SortTest {
     @Test
     public void testSort3() throws IOException {
         final Config config = Config.load(getClass());
-        final SortWithHelper<Integer> sorter = new SortWithHelper<Integer>("test", 100, config) {
+        final SortWithHelper<Integer> sorter = new SortWithHelper<>("test", 100, config) {
             @Override
             public void sort(final Integer[] xs, final int from, final int to) {
                 // Do nothing.
@@ -116,22 +116,6 @@ public class SortTest {
         final int first = iterator.next();
         final int second = iterator.next();
         assertTrue(first < second);
-    }
-
-    @Test
-    public void getHelper() {
-    }
-
-    @Test
-    public void init() {
-    }
-
-    @Test
-    public void preProcess() {
-    }
-
-    @Test
-    public void close() {
     }
 
     private static Config config;

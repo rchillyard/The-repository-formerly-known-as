@@ -48,7 +48,7 @@ public class BenchmarkIntegrationTest {
     @Test
     public void testStrings10K() throws Exception {
         String corpus = "eng-uk_web_2002_10K-sentences.txt";
-        benchmark.benchmarkStringSorters(corpus, getWordsLeipzig(corpus), 10000, 4100, huskyCoder);
+        benchmark.benchmarkStringSorters(corpus, getWordsLeipzig(corpus), 10000, 3800, huskyCoder);
     }
 
     private final static String[] getWordsLeipzig(String s) throws FileNotFoundException {
@@ -59,7 +59,7 @@ public class BenchmarkIntegrationTest {
     public void testStrings100K() throws Exception {
         // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
         String corpus = "eng-uk_web_2002_100K-sentences.txt";
-        benchmark.benchmarkStringSorters(corpus, getWordsLeipzig(corpus), 100000, 175, huskyCoder);
+        benchmark.benchmarkStringSorters(corpus, getWordsLeipzig(corpus), 100000, 255, huskyCoder);
     }
 
     @Test

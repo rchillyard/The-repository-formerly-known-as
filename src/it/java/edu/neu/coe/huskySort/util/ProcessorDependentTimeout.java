@@ -26,7 +26,8 @@ public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
 
     public static long getFactoredTimeout(final long timeoutGiven, final TimeUnit timeUnit, final Config config, final TimeUnit timeoutRequired) {
         final Map<String, Double> processorSpeeds = getProcessorSpeeds();
-        final Double processorSpeed = processorSpeeds.getOrDefault(config.get("tests", "processor"), 1.0);
+        String processor = config.get("tests", "processor");
+        final Double processorSpeed = processorSpeeds.getOrDefault(processor, 1.0);
         final long result = Math.round(timeoutRequired.convert(timeoutGiven, timeUnit) * GRANULARITY / processorSpeed / GRANULARITY);
         logger.info("setting timeout to " + result + " " + timeoutRequired);
         return result;
@@ -36,7 +37,7 @@ public class ProcessorDependentTimeout extends org.junit.rules.Timeout {
         final Map<String, Double> map = new HashMap<>();
         map.put("MacBookPro 2.8 GHz Quad Core Intel Core i7", 0.92);
         map.put("MacBookAir 1.6 GH Dual Core Intel Core i5", 0.68);
-        map.put("MacBookPro Apple M1", 1.0);
+        map.put("MacBookPro Apple M1", 1.36); // It might be as high as 1.45, but sometimes it slows down.
         map.put("Intel Core i7-8700K", 1.55);
         map.put("Intel Core i7-8550U", 0.71);
         return map;

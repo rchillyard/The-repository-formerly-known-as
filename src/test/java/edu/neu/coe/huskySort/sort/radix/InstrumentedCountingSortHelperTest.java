@@ -122,37 +122,5 @@ public class InstrumentedCountingSortHelperTest {
 
     private static Config config;
 
-    @Test
-    public void swapInto() {
-    }
-
-    @Test
-    public void copy() {
-    }
-
-    @Test
-    public void testCompare1() {
-    }
-
-    @Test
-    public void cutoff() {
-    }
-
-    @Test
-    public void testToString1() {
-    }
-
-    @Test
-    public void init() {
-    }
-
-    @Test
-    public void preProcess() {
-    }
-
-    @Test
-    public void postProcess() {
-    }
-
     private static CharacterMap characterMap;
 }
