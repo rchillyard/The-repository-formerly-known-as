@@ -131,7 +131,36 @@ public final class HuskySortBenchmark {
         final int m = getRepetitions(n, totalOps);
         final Tuple[] tuples = new Tuple[n];
         for (int i = 0; i < n; i++) tuples[i] = Tuple.create();
-        compareSystemAndHuskySorts(n + " Tuples", getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]), HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
+        final Supplier<Tuple[]> supplier = getSupplier(n, Tuple.class, r -> tuples[r.nextInt(n)]);
+        compareSystemAndHuskySorts(n + " Tuples", supplier, HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
+        benchmarkRadixHuskySorts(n + " Tuples", supplier, HuskyCoderFactory.createGenericCoder(), null, this::isConfigBenchmarkTupleSorter, m);
+    }
+
+    /**
+     * Method to benchmark RadixHuskySort (LSD radix sort on the husky-coded longs, with deferred
+     * permutation of the payload) at a sweep of digit widths, alongside the other Husky sorts.
+     * <p>
+     * NOTE: this is a separate method (rather than folded into compareSystemAndHuskySorts) because
+     * RadixHuskySort, unlike PureHuskySort/MergeHuskySort/DualPivotQuicksort, requires a Config
+     * (to build its ComparisonSortHelper), which is only available via the instance field here.
+     *
+     * @param <Y>        the underlying type of the array to be sorted.
+     * @param subject    a String representing the number of instances and the class name being sorted.
+     * @param supplier   a supplier of Y[] values.
+     * @param huskyCoder the coder for the given Y class.
+     * @param checker    a checker (may be null) which is applied only to the HuskySort results (not counted in the timings).
+     * @param isConfig   a predicate which returns a boolean for "radixhuskysort8", "radixhuskysort11", "radixhuskysort16".
+     * @param m          the number of repetitions to be run.
+     */
+    private <Y extends Comparable<Y>> void benchmarkRadixHuskySorts(final String subject, final Supplier<Y[]> supplier, final HuskyCoder<Y> huskyCoder, final Predicate<Y[]> checker, final Predicate<String> isConfig, final int m) {
+        if (isConfig.test("radixhuskysort8"))
+            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using RadixHuskySort/8", new RadixHuskySort<>(8, huskyCoder, config)::sort, checker).run(supplier, m));
+
+        if (isConfig.test("radixhuskysort11"))
+            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using RadixHuskySort/11", new RadixHuskySort<>(11, huskyCoder, config)::sort, checker).run(supplier, m));
+
+        if (isConfig.test("radixhuskysort16"))
+            logBenchmarkRun(benchmarkFactory("Sort " + subject + " using RadixHuskySort/16", new RadixHuskySort<>(16, huskyCoder, config)::sort, checker).run(supplier, m));
     }
 
     private static int getRepetitions(final int n, final int totalOps) {
@@ -153,15 +182,25 @@ public final class HuskySortBenchmark {
         logger.info("sortNumerics: beginning numeric sorts");
         final int m = getRepetitions(n, totalOps);
 
-        compareSystemAndPureHuskySortsNumeric(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m, Integer.class, true);
+        final Supplier<Integer[]> integerSupplier = getSupplier(n, Integer.class, Random::nextInt);
+        compareSystemAndPureHuskySortsNumeric(n + " Integers", integerSupplier, HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m, Integer.class, true);
+        benchmarkRadixHuskySorts(n + " Integers", integerSupplier, HuskyCoderFactory.integerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "integer"), m);
 
-        compareSystemAndPureHuskySortsNumeric(n + " Doubles", getSupplier(n, Double.class, Random::nextDouble), HuskyCoderFactory.doubleCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "double"), m, Double.class, false);
+        final Supplier<Double[]> doubleSupplier = getSupplier(n, Double.class, Random::nextDouble);
+        compareSystemAndPureHuskySortsNumeric(n + " Doubles", doubleSupplier, HuskyCoderFactory.doubleCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "double"), m, Double.class, false);
+        benchmarkRadixHuskySorts(n + " Doubles", doubleSupplier, HuskyCoderFactory.doubleCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "double"), m);
 
-        compareSystemAndPureHuskySortsNumeric(n + " Longs", getSupplier(n, Long.class, Random::nextLong), HuskyCoderFactory.longCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "long"), m, Long.class, true);
+        final Supplier<Long[]> longSupplier = getSupplier(n, Long.class, Random::nextLong);
+        compareSystemAndPureHuskySortsNumeric(n + " Longs", longSupplier, HuskyCoderFactory.longCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "long"), m, Long.class, true);
+        benchmarkRadixHuskySorts(n + " Longs", longSupplier, HuskyCoderFactory.longCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "long"), m);
 
-        compareSystemAndPureHuskySortsNumeric(n + " BigIntegers", getSupplier(n, BigInteger.class, r1 -> BigInteger.valueOf(r1.nextLong())), HuskyCoderFactory.bigIntegerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "biginteger"), m, BigInteger.class, true);
+        final Supplier<BigInteger[]> bigIntegerSupplier = getSupplier(n, BigInteger.class, r1 -> BigInteger.valueOf(r1.nextLong()));
+        compareSystemAndPureHuskySortsNumeric(n + " BigIntegers", bigIntegerSupplier, HuskyCoderFactory.bigIntegerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "biginteger"), m, BigInteger.class, true);
+        benchmarkRadixHuskySorts(n + " BigIntegers", bigIntegerSupplier, HuskyCoderFactory.bigIntegerCoder, null, s1 -> isConfigBenchmarkNumberSorter(s1, "biginteger"), m);
 
-        compareSystemAndPureHuskySortsNumeric(n + " BigDecimals", getSupplier(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE)), HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m, BigDecimal.class, false);
+        final Supplier<BigDecimal[]> bigDecimalSupplier = getSupplier(n, BigDecimal.class, r -> BigDecimal.valueOf(r.nextDouble() * Long.MAX_VALUE));
+        compareSystemAndPureHuskySortsNumeric(n + " BigDecimals", bigDecimalSupplier, HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m, BigDecimal.class, false);
+        benchmarkRadixHuskySorts(n + " BigDecimals", bigDecimalSupplier, HuskyCoderFactory.bigDecimalCoder, null, s -> isConfigBenchmarkNumberSorter(s, "bigdecimal"), m);
 
         compareSystemAndPureHuskySortsNumeric(n + " Bytes", getSupplier(n, Byte.class, byteFunction), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m, Byte.class, true);
         compareSystemAndPureHuskySortsNumeric(n + " Integers", getSupplier(n, Integer.class, Random::nextInt), HuskyCoderFactory.createProbabilisticCoder(config.getDouble("benchmarknumbersorters", "pcrit", 0.15)), null, s -> isConfigBenchmarkNumberSorter(s, "probabilistic"), m, Integer.class, true);
@@ -205,6 +244,14 @@ public final class HuskySortBenchmark {
             final MergeHuskySort<String> mergeHuskySort = new MergeHuskySort<>(huskyCoder);
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "MergeHuskySort", s2), null, mergeHuskySort::sort, null);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+        }
+
+        for (final int digitBits : new int[]{8, 11, 16}) {
+            if (isConfigBenchmarkStringSorter("radixhuskysort" + digitBits)) {
+                final RadixHuskySort<String> radixHuskySort = new RadixHuskySort<>(digitBits, huskyCoder, config);
+                final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, "RadixHuskySort/" + digitBits, s2), null, radixHuskySort::sort, null);
+                doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+            }
         }
 
         if (isConfigBenchmarkStringSorter("puremergesort")) {
@@ -406,6 +453,10 @@ public final class HuskySortBenchmark {
 
         if (isConfigBenchmarkStringSorter("huskybucketintrosort"))
             runStringSortBenchmark(words, nWords, nRuns, new HuskyBucketSort<>(1000, huskyCoder, config), timeLoggersLinearithmic);
+
+        for (final int digitBits : new int[]{8, 11, 16})
+            if (isConfigBenchmarkStringSorter("radixhuskysort" + digitBits))
+                runStringSortBenchmark(words, nWords, nRuns, new RadixHuskySort<>(digitBits, huskyCoder, config), timeLoggersLinearithmic);
 
         // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (isConfigBenchmarkStringSorter("insertionsort"))
