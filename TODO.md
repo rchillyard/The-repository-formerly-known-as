@@ -13,12 +13,20 @@ for the benchmark numbers this backlog refers to).
    now covered via `DateSortBenchmarks`), and fixed a latent bug in
    `HuskySortBenchmarkHelper.getWords` that only showed up once benchmarks ran from inside a
    shaded jar (it resolved resources to a filesystem path and used `FileReader`, which breaks
-   inside a jar; now reads via `getResourceAsStream`). Still to do: actually run a full pass
-   and use it to resolve item 2 below.
+   inside a jar; now reads via `getResourceAsStream`). Ran the String suite under JMH and it
+   resolved the original motivating question: the N=1,000,000 English "Radix/8 wins" reversal
+   does not survive proper measurement (Radix/11's own CI there is wider than its mean) — see
+   the "JMH update" section in
+   [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md). Radix's
+   win over System sort/PureHuskySort holds up everywhere; the 8-vs-11-vs-16 ordering at
+   N=1,000,000 specifically is genuinely not resolved by this data, not "settled in favor of
+   8-bit" as the ad hoc numbers implied. Numerics/Tuples/Dates haven't been run under JMH yet
+   (only smoke-tested) — running them is what would let item 2 below use JMH-quality data too.
 
 2. **Finer digit-width sweep (10/12/13/14-bit).**
    Locate the actual crossover point between "fewer passes" and "count-array fits in
-   cache" rather than inferring it from only 8/11/16-bit data points.
+   cache" rather than inferring it from only 8/11/16-bit data points. Now that item 1 is done,
+   do this sweep under JMH from the start rather than the old harness.
 
 3. **Decide the fate of the "common words" benchmark** (`3000-common-words.txt`).
    Recommendation: deprioritize as a headline case. Short strings are already cheap to

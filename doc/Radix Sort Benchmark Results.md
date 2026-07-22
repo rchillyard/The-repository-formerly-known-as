@@ -61,6 +61,42 @@ Notes:
   duplicate density). **This needs repeated/JMH-quality runs before treating as conclusive** —
   see TODO.md items 1-2.
 
+### JMH update (2026-07-22): the N=1,000,000 English reversal was noise
+
+Re-ran the String comparisons under JMH (`mvn -Pjmh clean package && java -jar
+target/benchmarks.jar StringSortBenchmarks` — see [JMH Benchmarks.md](JMH%20Benchmarks.md)),
+default settings (2 forks x (3 warmup + 5 measurement) 1-second iterations = 10 samples per
+row). Same corpora/coders/sampling as above. Score ± is the 99.9% CI half-width.
+
+| N | Corpus | System sort | PureHuskySort | Radix/8 | Radix/11 | Radix/16 |
+|---|---|---|---|---|---|---|
+| 32,000 | English | 12.25 ± 5.04 | 12.86 ± 5.05 | 4.00 ± 0.85 | 4.32 ± 0.71 | 3.79 ± 0.75 |
+| 32,000 | Chinese | 11.25 ± 4.24 | 4.11 ± 0.52 | 1.82 ± 0.35 | 1.40 ± 0.04 | 1.79 ± 0.81 |
+| 32,000 | Common words | 6.56 ± 0.70 | 3.88 ± 1.12 | 1.86 ± 0.15 | 1.51 ± 0.02 | 1.52 ± 0.13 |
+| 200,000 | English | 146.09 ± 111.5 | 87.18 ± 36.9 | 50.39 ± 19.6 | 45.58 ± 4.7 | 41.12 ± 4.3 |
+| 200,000 | Chinese | 61.65 ± 11.7 | 25.99 ± 4.0 | 10.50 ± 1.9 | 14.71 ± 18.6 | 9.76 ± 4.3 |
+| 200,000 | Common words | 52.19 ± 14.3 | 21.07 ± 4.7 | 11.49 ± 1.3 | 9.93 ± 1.1 | 8.39 ± 1.1 |
+| 1,000,000 | English | 571.87 ± 53.4 | 391.09 ± 154.9 | 260.81 ± 65.8 | 337.22 ± **368.1** | 239.17 ± 49.4 |
+| 1,000,000 | Chinese | 287.60 ± 17.4 | 112.13 ± 7.2 | 98.26 ± 20.3 | 103.13 ± 47.2 | 85.43 ± 37.2 |
+| 1,000,000 | Common words | 247.48 ± 33.9 | 139.48 ± 112.2 | 87.07 ± **75.4** | 64.43 ± 9.3 | 56.38 ± 6.2 |
+
+**The original N=1,000,000 English "Radix/8 wins, reversing the trend" result does not survive
+proper measurement.** Radix/11's own confidence interval there (337 ± 368) is wider than its
+mean — i.e. statistically indistinguishable from noise — and Radix/8's (261 ± 66) and Radix/16's
+(239 ± 49) intervals overlap substantially. The honest reading at that specific
+corpus/size is: **radix clearly and robustly beats both System sort and PureHuskySort (no
+overlap there), but which of 8/11/16-bit wins against each other is not resolved by this data**
+— not "8-bit wins," which is what the ad hoc numbers implied. Robin's read on skipping
+Reviewer 3's actual question for years turns out to extend one level deeper: even the "fewer
+passes wins at scale" digit-width story needs real statistics before trusting a specific
+ranking, not just real data.
+
+At every other row, radix's advantage over System sort and PureHuskySort holds up with tight,
+non-overlapping intervals — the headline finding (radix wins, often 2-4x) is unaffected. The
+16-bit-common-words 1,000,000 row also has one large outlier interval (87 ± 75 for Radix/8) —
+consistent with the corpus's severe duplicate skew (2,998 unique words) making that specific
+combination measurement-unstable, reinforcing the recommendation below to deprioritize it.
+
 ## Numeric types
 
 Generators: `Integer`/`Long` via `Random::nextInt`/`nextLong` (full range, includes
