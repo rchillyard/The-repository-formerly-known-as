@@ -1,0 +1,102 @@
+package edu.neu.coe.huskySort.sort.huskySort;
+
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
+import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.util.Utilities;
+import org.openjdk.jmh.annotations.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * JMH benchmarks comparing RadixHuskySort against the existing sort strategies on real
+ * corpora (English/Chinese Leipzig corpora, common English words), mirroring
+ * HuskySortBenchmark's String sorting comparisons -- see "doc/Radix Sort Benchmark Results.md"
+ * for the equivalent ad hoc (non-JMH) numbers this replaces.
+ */
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Fork(2)
+@Warmup(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+public class StringSortBenchmarks {
+
+    @State(Scope.Thread)
+    public static class StringState {
+        @Param({"32000", "200000", "1000000"})
+        public int n;
+
+        @Param({"english", "chinese", "commonwords"})
+        public String corpus;
+
+        String[] master;
+        HuskyCoder<String> coder;
+        Config config;
+
+        @Setup(Level.Trial)
+        public void setup() throws Exception {
+            config = Config.load();
+            final String[] corpusWords;
+            switch (corpus) {
+                case "english":
+                    corpusWords = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", StringSortBenchmarks::getLeipzigWords);
+                    coder = AbstractHuskySort.UNICODE_CODER;
+                    break;
+                case "chinese":
+                    corpusWords = HuskySortBenchmarkHelper.getWords("zho-simp-tw_web_2014_10K-sentences.txt", StringSortBenchmarks::getLeipzigWords);
+                    coder = AbstractHuskySort.UNICODE_CODER;
+                    break;
+                case "commonwords":
+                    corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList);
+                    coder = HuskyCoderFactory.englishCoder;
+                    break;
+                default:
+                    throw new IllegalStateException("unknown corpus: " + corpus);
+            }
+            final Random random = new Random(42);
+            master = Utilities.fillRandomArray(String.class, random, n, r -> corpusWords[r.nextInt(corpusWords.length)]);
+        }
+    }
+
+    // NOTE: reconstructs HuskySortBenchmark's private getLeipzigWords, whose building blocks
+    // (splitLineIntoStrings, REGEX_STRING_SPLITTER, REGEX_LEIPZIG) are package-private/public
+    // and reused as-is; only this one-line wrapper needs duplicating.
+    private static List<String> getLeipzigWords(final String line) {
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
+    }
+
+    @Benchmark
+    public String[] systemSort(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        Arrays.sort(copy);
+        return copy;
+    }
+
+    @Benchmark
+    public String[] pureHuskySort(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        new PureHuskySort<>(state.coder, false, false).sort(copy);
+        return copy;
+    }
+
+    @Benchmark
+    public String[] radixHuskySort8(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(8, state.coder, state.config).sort(copy);
+    }
+
+    @Benchmark
+    public String[] radixHuskySort11(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(11, state.coder, state.config).sort(copy);
+    }
+
+    @Benchmark
+    public String[] radixHuskySort16(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(16, state.coder, state.config).sort(copy);
+    }
+}

@@ -27,6 +27,7 @@ hs_err_pid*
 target/
 /HuskySort.iml
 temp/
+/dependency-reduced-pom.xml
 
 logs/
 

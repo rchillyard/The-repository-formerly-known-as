@@ -5,11 +5,16 @@ Backlog from the 2026-07-22 session that added `RadixHuskySort` (see
 original motivation, and [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md)
 for the benchmark numbers this backlog refers to).
 
-1. **Replace the custom `Benchmark`/`SorterBenchmark` harness with JMH.**
-   Biggest lift — needs `pom.xml` changes (JMH dependencies, annotation processing, a
-   shaded/uber jar for running benchmarks). Would give proper warmup/fork isolation and
-   resolve whether the 8-vs-16-bit crossover reversal seen at N=1,000,000 is a real effect
-   or just measurement noise from the current ad hoc timer loop.
+1. ~~**Replace the custom `Benchmark`/`SorterBenchmark` harness with JMH.**~~ **DONE
+   2026-07-22.** New `jmh` Maven profile (`mvn -Pjmh clean package`, off by default) plus four
+   benchmark classes under `src/jmh/java` covering Strings/Numerics/Tuples/Dates — see
+   [doc/JMH Benchmarks.md](doc/JMH%20Benchmarks.md) for how to run them. Old harness left
+   in place, unchanged. Along the way this also incidentally completed item 5 below (Dates are
+   now covered via `DateSortBenchmarks`), and fixed a latent bug in
+   `HuskySortBenchmarkHelper.getWords` that only showed up once benchmarks ran from inside a
+   shaded jar (it resolved resources to a filesystem path and used `FileReader`, which breaks
+   inside a jar; now reads via `getResourceAsStream`). Still to do: actually run a full pass
+   and use it to resolve item 2 below.
 
 2. **Finer digit-width sweep (10/12/13/14-bit).**
    Locate the actual crossover point between "fewer passes" and "count-array fits in
@@ -27,9 +32,9 @@ for the benchmark numbers this backlog refers to).
    `benchmarkUnicodeStringSorters*` in `HuskySortBenchmark.java` currently only compares
    PureHuskySort / MSDStringSort / UnicodeMSDStringSort.
 
-5. **Wire RadixHuskySort into the date/`LocalDateTime` sorter benchmarks.**
-   `runDateTimeSortBenchmark` currently picks a sorter via a hardcoded 0/1/2 ternary;
-   needs a small refactor to support more variants.
+5. ~~**Wire RadixHuskySort into the date/`LocalDateTime` sorter benchmarks.**~~ **DONE
+   2026-07-22** via `DateSortBenchmarks` (JMH) — see item 1. The *old* harness's
+   `runDateTimeSortBenchmark` ternary is untouched (not worth it now that JMH covers this).
 
 6. **Add an explicit stability test for RadixHuskySort.**
    LSD counting sort is inherently stable, and the original task brief flagged this as a

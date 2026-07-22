@@ -4,7 +4,7 @@ import edu.neu.coe.huskySort.sort.SortException;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.io.*;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,30 +31,31 @@ public final class HuskySortBenchmarkHelper {
      * @return an array of Strings.
      */
     public static String[] getWords(final String resource, final Function<String, List<String>> stringListFunction) {
-        try {
-            final File file = new File(getPathname(resource, QuickHuskySort.class));
-            final String[] result = getWordArray(file, stringListFunction, 2);
-            logger.info("getWords: testing with " + formatWhole(result.length) + " unique words: from " + file);
-            return result;
-        } catch (final FileNotFoundException e) {
-            logger.warn("Cannot find resource: " + resource, e);
-            return new String[0];
-        }
+        final String[] result = getWordArray(resource, stringListFunction, 2);
+        logger.info("getWords: testing with " + formatWhole(result.length) + " unique words: from " + resource);
+        return result;
     }
 
     /**
-     * Method to read given file and return a String[] of its content.
+     * Method to read a classpath resource and return a String[] of its content.
+     * <p>
+     * NOTE: reads via the classloader as a stream (not by resolving a filesystem File path),
+     * so this works whether the resource is on an exploded classpath directory or packaged
+     * inside a jar (e.g. a JMH shaded benchmarks.jar).
      *
-     * @param file               the file to read.
+     * @param resource           the name of the resource to read.
      * @param stringListFunction a function which takes a String and splits into a List of Strings.
      * @param minLength          the minimum acceptable length for a word.
      * @return an array of Strings.
      */
-    static String[] getWordArray(final File file, final Function<String, List<String>> stringListFunction, final int minLength) {
-        try (final FileReader fr = new FileReader(file)) {
-            return getWordList(fr, stringListFunction, minLength).toArray(new String[0]);
+    static String[] getWordArray(final String resource, final Function<String, List<String>> stringListFunction, final int minLength) {
+        try (final InputStream is = QuickHuskySort.class.getClassLoader().getResourceAsStream(resource)) {
+            if (is == null) throw new FileNotFoundException(resource);
+            try (final Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+                return getWordList(reader, stringListFunction, minLength).toArray(new String[0]);
+            }
         } catch (final IOException e) {
-            logger.warn("Cannot open file: " + file, e);
+            logger.warn("Cannot open resource: " + resource, e);
             return new String[0];
         }
     }
@@ -86,23 +87,16 @@ public final class HuskySortBenchmarkHelper {
         return result;
     }
 
-    private static List<String> getWordList(final FileReader fr, final Function<String, List<String>> stringListFunction, final int minLength) {
+    private static List<String> getWordList(final Reader reader, final Function<String, List<String>> stringListFunction, final int minLength) {
         boolean firstLine = true;
         final List<String> words = new ArrayList<>();
-        for (final Object line : new BufferedReader(fr).lines().toArray()) {
+        for (final Object line : new BufferedReader(reader).lines().toArray()) {
             String string = (String) line;
             if (firstLine && string.startsWith(UTF8_BOM)) string = string.substring(1);
             words.addAll(stringListFunction.apply(string));
             firstLine = false;
         }
         return words.stream().distinct().filter(s -> s.length() >= minLength).collect(Collectors.toList());
-    }
-
-    // TEST
-    private static String getPathname(final String resource, @SuppressWarnings("SameParameterValue") final Class<?> clazz) throws FileNotFoundException {
-        final URL url = clazz.getClassLoader().getResource(resource);
-        if (url != null) return url.getPath();
-        throw new FileNotFoundException(resource + " in " + clazz);
     }
 
     private static String getRandomElement(final String[] strings, final int length, final Random r) {
