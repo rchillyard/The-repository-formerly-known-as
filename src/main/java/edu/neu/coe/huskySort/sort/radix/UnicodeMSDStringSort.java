@@ -29,7 +29,7 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
      * @return true if the sort was successful.
      */
     public boolean sortArray(final String[] ws) {
-        return sortAll(UnicodeString.class, ws, x -> new UnicodeString(characterMap, x), UnicodeString::recoverString);
+        return sortAll(UnicodeString.class, ws, x -> new UnicodeString(x, characterMap), UnicodeString::recoverString);
     }
 
     /**
@@ -62,6 +62,7 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
      * @param d    the number of characters in each UnicodeString to be skipped.
      */
     private void doRecursiveSort(final UnicodeString[] xs, final int from, final int to, final int d) {
+        assert from <= to : "from " + from + " is greater than to " + to;
         assert from >= 0 : "from " + from + " is negative";
         assert to <= xs.length : "to " + to + " is out of bounds: " + xs.length;
         final int n = to - from;
@@ -76,7 +77,10 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
             final UnicodeString[] aux = new UnicodeString[n];
             final Counts counts = new Counts();
             counts.countCharacters(xs, from, to, d);
-            final UnicodeCharacter[] keys = counts.accumulateCounts();
+            final UnicodeCharacter[] keys = counts.accumulateCounts(n);
+            if (logger.isTraceEnabled())
+                logger.trace("UnicodeMSDStringSort.doRecursiveSort counts: " + counts);
+
             for (int i = from; i < to; i++) {
                 final UnicodeString xsi = xs[i];
                 counts.copyAndIncrementCount(xsi, aux, d);
@@ -84,20 +88,24 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
             if (helper.instrumented()) {
                 final int copies = 2 * n;  // copy and copy back
                 helper.getInstrumenter().incrementCopies(copies);
+                // CONSIDER hits should increment by 4n
                 helper.getInstrumenter().incrementHits(n); // this accounts for the counting of the elements.
             }
             // XXX Copy back.
             System.arraycopy(aux, 0, xs, from, n);
-            int offset = 0;
+            int lo = 0;
             // XXX For each key, recursively sort the appropriate sub-array on the next character position (p).
             final int p = d + 1;
             for (final UnicodeCharacter key : keys) {
-                if (key == UnicodeCharacter.NullChar)
-                    continue;
-                final int index = counts.get(key);
-                doRecursiveSort(xs, from + offset, from + index, p);
-                offset = index;
+                final int count = counts.get(key);
+                if (logger.isTraceEnabled())
+                    logger.trace("UnicodeMSDStringSort.doRecursiveSort loop: " + key + ", lo=" + lo + ", count=" + count + ", d=" + d);
+                if (key != UnicodeCharacter.NullChar)
+                    doRecursiveSort(xs, from + lo, from + count, p);
+                lo = count;
             }
+            assert (lo + from) == to : "Logic error: lo+from " + (lo + from) +
+                    " != to " + to;
         }
     }
 

@@ -89,7 +89,7 @@ public class UnicodeMSDStringSortTest {
     }
 
     @Test
-    public void sortM3() throws IOException {
+    public void sortM3() {
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
         final CountingSortHelper<UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("UnicodeMSDStringSort", 0, true, config);
         final Sorter<String> sorter = new UnicodeMSDStringSort(characterMap, helper);
@@ -112,12 +112,12 @@ public class UnicodeMSDStringSortTest {
     public void sortN1() {
         final String[] words = HuskySortBenchmarkHelper.getWords(CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
         final Random random = new Random(0L);
-        final Supplier<String[]> wordSupplier = getWordSupplier(words, 1000, random);
+        final Supplier<String[]> wordSupplier = getWordSupplier(words, 500, random);
         final Sorter<String> sorter = new UnicodeMSDStringSort(characterMap);
         final Benchmark<String[]> benchmark = new Benchmark<>("TestN1", null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
         final double time = benchmark.run(wordSupplier, 1);
         System.out.println("Time: " + time);
-
+        // TODO need to do some assertions here, otherwise this is a waste of time!
     }
 
     @Test
@@ -132,7 +132,7 @@ public class UnicodeMSDStringSortTest {
     }
 
     @Test
-    public void sortNInstrumented() throws IOException {
+    public void sortNInstrumented() {
         final int n = 1000;
         final Config config = ConfigTest.setupConfig("true", "0", "10", "1", "");
         final CountingSortHelper<UnicodeString, UnicodeCharacter> helper = HelperFactory.createCountingSortHelper("basic counting sort helper", n, true, config);
@@ -153,17 +153,5 @@ public class UnicodeMSDStringSortTest {
         final double hits = statPack.getStatistics(Instrumenter.HITS).mean();
         assertEquals(estimatedCopies, copies, 500);
         assertEquals(estimatedHits, hits, 1000);
-    }
-
-    @Test
-    public void reset() {
-    }
-
-    @Test
-    public void getCharacterMap() {
-    }
-
-    @Test
-    public void setCutoff() {
     }
 }

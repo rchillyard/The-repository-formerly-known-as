@@ -26,10 +26,6 @@ public class ChineseCharacterTest {
     }
 
     @Test
-    public void testToString() {
-    }
-
-    @Test
     public void testConvertToPinyin() {
         final String 何欣蔚 = ChineseCharacter.convertToPinyin("何欣蔚");
         assertEquals("he 2xin 1yu 4", 何欣蔚);

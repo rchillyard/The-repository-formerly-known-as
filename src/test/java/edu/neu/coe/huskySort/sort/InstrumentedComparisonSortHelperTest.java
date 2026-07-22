@@ -341,10 +341,6 @@ public class InstrumentedComparisonSortHelperTest {
     private static Config config;
 
     @Test
-    public void swapInto() {
-    }
-
-    @Test
     public void testSwapConditional1() {
         final String[] xs = new String[]{"c", "b", "a"};
         final ComparisonSortHelper<String> helper = new InstrumentedComparisonSortHelper<>("test", config);
@@ -356,45 +352,5 @@ public class InstrumentedComparisonSortHelperTest {
         assertEquals(1, privateMethodInvoker.invokePrivate("getCompares"));
         assertEquals(1, privateMethodInvoker.invokePrivate("getSwaps"));
         assertTrue(helper.sorted(xs));
-    }
-
-    @Test
-    public void swapStableConditional() {
-    }
-
-    @Test
-    public void copy() {
-    }
-
-    @Test
-    public void incrementCopies() {
-    }
-
-    @Test
-    public void incrementFixes() {
-    }
-
-    @Test
-    public void testCompare1() {
-    }
-
-    @Test
-    public void cutoff() {
-    }
-
-    @Test
-    public void testToString1() {
-    }
-
-    @Test
-    public void init() {
-    }
-
-    @Test
-    public void preProcess() {
-    }
-
-    @Test
-    public void postProcess() {
     }
 }

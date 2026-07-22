@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018. Phasmid Software
+ * Copyright (c) 2018-22. Phasmid Software
  */
 
 package edu.neu.coe.huskySort.util;
@@ -42,16 +42,17 @@ public class Benchmark<T> {
      * @return the average number of milliseconds taken for each run of function f.
      */
     public double run(final Supplier<T> supplier, final int m) {
+        System.out.println("============================================================");
         logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
         // Warmup phase
         final Function<T, T> function = t -> {
             fRun.accept(t);
             return t;
         };
-        new Timer().repeat(getWarmupRuns(m), supplier, function, fPre, null);
+        new Timer().repeat(true, getWarmupRuns(m), supplier, function, fPre, null);
 
         // Timed phase
-        return new Timer().repeat(m, supplier, function, fPre, fPost);
+        return new Timer().repeat(false, m, supplier, function, fPre, fPost);
     }
 
     @Override

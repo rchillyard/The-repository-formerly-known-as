@@ -17,13 +17,55 @@ public class Timer {
     }
 
     /**
+     * Pause (without counting a lap); run the given functions n times while being timed, i.e. once per "lap", and finally return the result of calling meanLapTime().
+     *
+     * @param warmup        true if in warmup phase.
+     * @param n             the number of repetitions.
+     * @param supplier      a function which supplies a T value.
+     * @param function      a function T=>U and which is to be timed.
+     * @param preFunction   a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null).
+     * @param postPredicate a predicate on a U and which succeeds the call of function, but which is not timed (may be null).
+     *                      If defined and false is returned, an exception will be thrown.
+     * @return the average milliseconds per repetition.
+     */
+    public <T, U> double repeat(boolean warmup, final int n, final Supplier<T> supplier, final Function<T, U> function, final UnaryOperator<T> preFunction, final Predicate<U> postPredicate) {
+        pause();
+        if (!warmup) {
+            if (n > 0) logger.trace("repeat: with " + n + " runs");
+            else logger.warn("repeat: zero runs");
+        }
+        final int k = n / 60 + 1;
+        for (int i = 0; i < n; i++) {
+            final T t = supplier.get();
+            final T t1 = preFunction != null ? preFunction.apply(t) : t;
+            if (!warmup)
+                if (i % k == 0) System.out.print(".");
+            resume();
+            final U u = function.apply(t1);
+            pauseAndLap();
+            if (postPredicate != null && !postPredicate.test(u)) {
+                postPredicate.test(u);
+                throw new SortException("postPredicate returned false", u);
+            }
+
+        }
+        if (!warmup)
+            System.out.print("\r");
+        final double meanLapTime = meanLapTime();
+        resume();
+        return meanLapTime;
+    }
+
+    /**
      * Run the given function n times, once per "lap" and then return the result of calling stop().
+     * <p>
+     * NOTE: this is used only by unit tests
      *
      * @param n        the number of repetitions.
      * @param function a function which yields a T (T may be Void).
      * @return the average milliseconds per repetition.
      */
-    public <T> double repeat(final int n, final Supplier<T> function) {
+    <T> double repeat(final int n, final Supplier<T> function) {
         for (int i = 0; i < n; i++) {
             function.get();
             lap();
@@ -34,49 +76,16 @@ public class Timer {
 
     /**
      * Run the given functions n times, once per "lap" and then return the result of calling stop().
+     * <p>
+     * NOTE: this is used only by unit tests
      *
      * @param n        the number of repetitions.
      * @param supplier a function which supplies a different T value for each repetition.
      * @param function a function T=>U and which is to be timed (U may be Void).
      * @return the average milliseconds per repetition.
      */
-    public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function) {
-        return repeat(n, supplier, function, null, null);
-    }
-
-    /**
-     * Pause (without counting a lap); run the given functions n times while being timed, i.e. once per "lap", and finally return the result of calling meanLapTime().
-     *
-     * @param n             the number of repetitions.
-     * @param supplier      a function which supplies a T value.
-     * @param function      a function T=>U and which is to be timed.
-     * @param preFunction   a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null).
-     * @param postPredicate a predicate on a U and which succeeds the call of function, but which is not timed (may be null).
-     *                      If defined and false is returned, an exception will be thrown.
-     * @return the average milliseconds per repetition.
-     */
-    public <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function, final UnaryOperator<T> preFunction, final Predicate<U> postPredicate) {
-        pause();
-        if (n > 0) logger.trace("repeat: with " + n + " runs");
-        else logger.warn("repeat: zero runs");
-        final int k = n / 60 + 1;
-        for (int i = 0; i < n; i++) {
-            final T t = supplier.get();
-            final T t1 = preFunction != null ? preFunction.apply(t) : t;
-            if (i % k == 0) System.out.print(".");
-            resume();
-            final U u = function.apply(t1);
-            pauseAndLap();
-            if (postPredicate != null && !postPredicate.test(u)) {
-                postPredicate.test(u);
-                throw new SortException("postPredicate returned false", u);
-            }
-
-        }
-        System.out.print("\r");
-        final double meanLapTime = meanLapTime();
-        resume();
-        return meanLapTime;
+    <T, U> double repeat(final int n, final Supplier<T> supplier, final Function<T, U> function) {
+        return repeat(false, n, supplier, function, null, null);
     }
 
     /**

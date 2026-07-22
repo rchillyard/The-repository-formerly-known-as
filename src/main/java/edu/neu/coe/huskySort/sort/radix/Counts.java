@@ -29,6 +29,23 @@ public class Counts {
     }
 
     /**
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
+     *
+     * @param key the UnicodeCharacter whose value we want.
+     * @throws ClassCastException   if the specified key cannot be compared
+     *                              with the keys currently in the map
+     * @throws NullPointerException if the specified key is null
+     *                              and this map uses natural ordering, or its comparator
+     *                              does not permit null keys
+     */
+    public int getWithIncrement(final UnicodeCharacter key) {
+        int result = get(key);
+        increment(key);
+        return result;
+    }
+
+    /**
      * Increments the value with the specified key in this map.
      *
      * @param key key whose value is to be incremented.
@@ -59,6 +76,9 @@ public class Counts {
      * @param d    the offset into the UnicodeStrings specifying which character position is to be counted.
      */
     public void countCharacters(final UnicodeString[] xs, final int from, final int to, final int d) {
+        assert from <= to : "from " + from + "is larger than to " + to;
+        assert from >= 0 : "from is negative " + from;
+        assert to <= xs.length : "to is too large: " + to;
         for (int i = from; i < to; i++) increment(xs[i].charAt(d));
     }
 
@@ -66,9 +86,10 @@ public class Counts {
      * Method to accumulate the character counts.
      * Called after countCharacters has been completed.
      *
+     * @param n the number of counts -- used only for checking.
      * @return an array of UnicodeCharacters in order.
      */
-    public UnicodeCharacter[] accumulateCounts() {
+    public UnicodeCharacter[] accumulateCounts(int n) {
         final Set<UnicodeCharacter> keySet = keySet();
         int total = 0;
         for (final UnicodeCharacter key : keySet) {
@@ -76,6 +97,7 @@ public class Counts {
             counts.put(key, total);
             total = count + total;
         }
+        assert n == total : "total accumulated doesn't match n";
         return keySet.toArray(new UnicodeCharacter[0]);
     }
 
@@ -89,8 +111,7 @@ public class Counts {
      */
     void copyAndIncrementCount(final UnicodeString xs, final UnicodeString[] aux, final int d) {
         final UnicodeCharacter x = xs.charAt(d);
-        aux[get(x)] = xs;
-        increment(x);
+        aux[getWithIncrement(x)] = xs;
     }
 
     @Override

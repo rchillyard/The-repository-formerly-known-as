@@ -235,7 +235,33 @@ public final class HuskySortBenchmark {
      */
     public void benchmarkUnicodeStringSorters(final String corpus, final String[] words, final int nWords, final int nRuns) {
         logger.info("benchmarkUnicodeStringSorters: testing unicode string sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
-        benchmarkUnicodeStringSortersSeeded(corpus, words, nWords, nRuns, new Random());
+        Random random = new Random();
+
+        // NOTE: we do not invoke MSDStringSort here at all: only UnicodeMSDStringSort and HuskySort
+        if (config.isInstrumented())
+            benchmarkUnicodeStringSortersInstrumented(corpus, words, nWords, nRuns, random);
+        else
+            benchmarkUnicodeStringSortersSeeded(corpus, words, nWords, nRuns, random);
+    }
+
+    private void benchmarkUnicodeStringSortersInstrumented(String corpus, String[] words, int nWords, int nRuns, Random random) {
+        // TODO we don't actually do anything to instrument the runs.
+        if (isConfigBenchmarkStringSorter("unicodemsdstringsort")) {
+            final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, "Hanyu", '阿'));
+            final Benchmark<String[]> benchmark = new Benchmark<>(corpus, null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
+        }
+
+        if (isConfigBenchmarkStringSorter("purehuskysort")) {
+            final boolean purehuskysortwithinsertionsort = isConfigBenchmarkStringSorter("purehuskysortwithinsertionsort");
+            final boolean preSorted = false;
+            final String s2 = ") words from " + corpus;
+            final HuskyCoder<String> coder = HuskyCoderFactory.chineseEncoderPinyin;
+            final PureHuskySort<String> pureHuskySort = new PureHuskySort<>(coder, preSorted, purehuskysortwithinsertionsort);
+            final String s1 = "PureHuskySort" + (purehuskysortwithinsertionsort ? " with insertion sort" : "");
+            final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, s1, s2), null, pureHuskySort::sort, null);
+            doPureBenchmark(words, nWords, nRuns, random, benchmark, preSorted);
+        }
     }
 
     /**
@@ -384,8 +410,6 @@ public final class HuskySortBenchmark {
         // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (isConfigBenchmarkStringSorter("insertionsort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new InsertionSort<>(nWords, config), timeLoggersQuadratic);
-
-        // NOTE: we do not invoke MSDStringSort here at all.
     }
 
     /**
@@ -666,6 +690,7 @@ public final class HuskySortBenchmark {
     }
 
     private static Supplier<String[]> getWordSupplier(final String[] words, final int nWords, final Random random, final boolean preSorted) {
+        if (words.length == 0) throw new SortException("getWordSupplier: size of words is non-positive");
         // NOTE that the preSorted branch does not seem to work correctly with Chinese text.
         if (preSorted) {
             final String[] strings = Arrays.copyOf(words, Math.min(nWords, words.length));
