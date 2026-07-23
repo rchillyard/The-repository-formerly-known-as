@@ -127,3 +127,12 @@ for the benchmark numbers this backlog refers to).
    groundwork for the resubmission response to Reviewer 3: whether radix beats the current
    approach on real data, which digit width wins at what N, and whether it changes the
    adversarial-input story.
+
+9. **Track down and document the source of `Chinese_Names_Corpus.txt`.** No provenance
+   exists anywhere in the repo: the commit that added it (`3d8576c`, July 2022) just says
+   "Added Chinese_Names_Corpus", with no source URL, license, or attribution, and there's
+   nothing in README.md, doc/, or the file itself either. Robin's best guess (2026-07-23) is
+   that it may have come from his Chinese coauthor — worth confirming and then adding a
+   one-line note (a comment near `HuskySortBenchmark.CHINESE_NAMES_CORPUS`, or a small
+   `NOTICE`/attribution entry) so this doesn't come up again. Matters for the paper
+   resubmission too, since a corpus without a documented source is a citation gap.
