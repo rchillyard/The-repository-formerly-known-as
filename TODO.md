@@ -136,3 +136,40 @@ for the benchmark numbers this backlog refers to).
    one-line note (a comment near `HuskySortBenchmark.CHINESE_NAMES_CORPUS`, or a small
    `NOTICE`/attribution entry) so this doesn't come up again. Matters for the paper
    resubmission too, since a corpus without a documented source is a citation gap.
+
+   **2026-07-23 finding**: `Chinese_Names_Corpus.txt` turns out to be genuinely pre-sorted by
+   pinyin (93.4% of all 1,145,008 adjacent pairs agree with our `NAME_ORDER` comparator) — a
+   real, independent oracle, not just raw data. The 6.6% disagreement splits cleanly into two
+   causes, both already-known limitations now precisely quantified: 6.24% (of all pairs) are
+   true-homonym tiebreak differences (the file appears to use stroke count; we fall back to
+   Unicode code point), and 0.32% are genuine polyphone misreadings (`ChineseCharacter.alt()`
+   always takes `pinyinStrings[0]`, pinyin4j's first/default reading, which sometimes differs
+   from the reading the corpus's original curator intended). See items 10-11 below for
+   proposed fixes to each. Note: using the file's own order as a *stronger correctness oracle*
+   for sort-algorithm tests (shuffle a copy, check the exact original order is recovered) would
+   actually be a worse test than the current self-consistency check — any reasonably-sized
+   sample will likely hit a homonym/polyphone pair and fail spuriously, for reasons unrelated
+   to whether the sort itself is correct.
+
+10. **Replace the Unicode-code-point homonym tiebreak with genuine stroke-count order**, using
+    the Unicode Unihan database's `kTotalStrokes` (or `kRSUnicode` for full radical+stroke)
+    property as a lookup table. Confirmed via Unicode's own documentation
+    (https://unicode-org.github.io/unicode-reports/tr38/tr38.html) that stroke count is *not*
+    encoded in the code point's bits — a bitmask on the code point cannot recover it. The
+    "radical-stroke sort key" Unicode documents is a constructed 64-bit key built by looking up
+    Unihan properties per character (bits 23-30 = KangXi radical, bits 17-22 = residual stroke
+    count, bits 0-19 = code point as a final tiebreak only) — not something extractable
+    arithmetically. Fixing this needs embedding Unihan data (freely available as part of the
+    standard Unicode Character Database), not a clever trick. Only affects the 6.24%
+    homonym-tiebreak disagreement quantified in item 9's finding above; unrelated to item 11.
+
+11. **Resolve polyphone pinyin readings using the corpus itself as training data**, rather than
+    `ChineseCharacter.alt()`'s current arbitrary choice of `pinyinStrings[0]` (pinyin4j's
+    first/default reading). `PinyinHelper.toHanyuPinyinStringArray()` returns *all* valid
+    readings for a character; for each polyphone character, check every occurrence in the
+    corpus against its immediate neighbors, testing which candidate reading keeps that
+    occurrence's local ordering consistent, and take a majority vote across all occurrences.
+    Where one reading wins decisively and differs from pinyin4j's default, build a small
+    `Map<Character, String>` override table consulted before falling back to the default. Only
+    fixes the 0.32% polyphone-driven disagreement quantified in item 9's finding above;
+    unrelated to item 10.
