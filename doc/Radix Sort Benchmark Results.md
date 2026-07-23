@@ -97,6 +97,44 @@ non-overlapping intervals — the headline finding (radix wins, often 2-4x) is u
 consistent with the corpus's severe duplicate skew (2,998 unique words) making that specific
 combination measurement-unstable, reinforcing the recommendation below to deprioritize it.
 
+### Finer digit-width sweep (2026-07-23): the crossover is a plateau, not a point
+
+TODO.md item 2 asked for a finer sweep (10/12/13/14-bit, alongside 8/11/16) to locate the
+actual crossover point between "fewer passes" and "count-array fits in cache". Ran under JMH,
+same corpora/sizes (`java -jar target/benchmarks.jar
+'StringSortBenchmarks\.radixHuskySort1[0234]'`).
+
+Full seven-way digit-width comparison at the two larger sizes (ms, mean ± 99.9% CI; the 32,000
+row is omitted — every width is statistically indistinguishable there, overhead-dominated):
+
+| N | Corpus | 8-bit | 10-bit | 11-bit | 12-bit | 13-bit | 14-bit | 16-bit |
+|---|---|---|---|---|---|---|---|---|
+| 200,000 | English | 50.4±**19.6** | 57.8±**17.2** | 45.6±4.7 | 43.1±2.6 | 47.2±4.4 | 44.2±6.1 | 41.1±4.3 |
+| 200,000 | Chinese | 10.5±1.9 | 9.8±0.7 | 14.7±**18.6** | 9.5±3.7 | 8.5±0.8 | 7.7±0.2 | 9.8±4.3 |
+| 200,000 | Common words | 11.5±1.3 | 10.7±0.7 | 9.9±1.1 | 16.6±**12.5** | 8.7±0.4 | 8.9±0.4 | 8.4±1.1 |
+| 1,000,000 | English | 260.8±65.8 | 256.2±60.6 | 337.2±**368.1** | 309.3±**185.7** | 243.4±101.5 | 213.2±23.8 | 239.2±49.4 |
+| 1,000,000 | Chinese | 98.3±20.3 | 75.1±23.1 | 103.1±**47.2** | 77.4±22.0 | 79.1±17.4 | 62.7±21.1 | 85.4±37.2 |
+| 1,000,000 | Common words | 87.1±**75.4** | 84.3±15.8 | 64.4±9.3 | 72.0±17.1 | 59.0±5.5 | 57.7±6.1 | 56.4±6.2 |
+
+Two findings, one solid and one worth watching rather than trusting yet:
+
+1. **There is no single crossover point — it's a broad plateau from roughly 12 through 16
+   bits.** Those five widths cluster together with mostly-overlapping intervals at every row,
+   consistently beating 8-bit and 10-bit. At N=1,000,000, 14-bit has the single lowest mean for
+   both English and Chinese (though not always the tightest interval), with 13-bit and 16-bit
+   close behind; for common words, 16-bit and 14-bit are essentially tied for lowest. **8-bit
+   and, surprisingly, 10-bit are consistently the worst of the seven** — 10-bit needs fewer
+   passes than 8-bit (7 vs. 8) yet doesn't reliably beat it, so pass count alone doesn't explain
+   the ranking; a plausible mechanism is per-element mask/shift overhead not amortizing as well,
+   but this hasn't been confirmed with a profiler.
+2. **11-bit shows the widest confidence interval in 3 of these 6 rows** (200K Chinese, 1M
+   English, 1M Chinese) — more often than any other single width, though with only 6 rows this
+   is a small sample and not strong evidence on its own. It's tempting to blame 11-bit's uneven
+   pass structure (6 passes, the last using only 9 of its 11 allocated bits) — but 10/12/13/14-bit
+   share that same "doesn't divide 64 evenly" property without showing the same pattern, so
+   that specific explanation doesn't hold up. Treat this as an observation to watch in a
+   follow-up (independent, different-day) run, not a conclusion.
+
 ## Numeric types
 
 Generators: `Integer`/`Long` via `Random::nextInt`/`nextLong` (full range, includes
@@ -158,6 +196,30 @@ every size for every numeric type tested. Digit width winner is mixed at small N
 differences) but trends toward Radix/8 or Radix/11 at N=500,000 for most types; BigDecimal
 favors Radix/8 specifically.
 
+### JMH update (2026-07-23)
+
+Re-ran under JMH (`java -jar target/benchmarks.jar NumericSortBenchmarks`); same generators
+except Double/BigDecimal now exercise the full signed range rather than `[0, Long.MAX_VALUE)`
+only (see `NumericSortBenchmarks.java`). N=500,000 shown (ms, mean ± 99.9% CI):
+
+| Type | System | PureHuskySort | DualPivotQuicksort | quicksort (raw) | Radix/8 | Radix/11 | Radix/16 |
+|---|---|---|---|---|---|---|---|
+| Integer | 94.4±4.8 | 68.9±8.3 | 67.0±5.8 | 36.3±3.4 | 27.3±3.8 | 24.1±5.3 | 26.0±2.8 |
+| Double | 109.6±15.6 | 73.5±5.1 | 94.9±**59.4** | 41.4±1.3 | 29.1±6.0 | 28.0±10.0 | 22.3±2.1 |
+| Long | 101.5±8.6 | 74.9±3.7 | 77.0±11.3 | 35.2±0.5 | 25.4±5.3 | 27.2±9.0 | 38.2±**42.1** |
+| BigInteger | 157.1±10.5 | 108.6±5.7 | 157.9±10.3 | 38.4±2.8 | 42.4±10.8 | 39.5±4.4 | 35.4±2.1 |
+| BigDecimal | 201.4±21.2 | 145.0±**136.9** | 189.6±39.1 | 46.2±1.9 | 45.0±8.0 | 50.0±**40.0** | 39.4±5.3 |
+
+The relative story is unchanged and now on firmer statistical footing: radix beats every other
+option — including the dedicated raw-primitive-quicksort baseline — for every numeric type,
+typically by 25-40% over that baseline and 2.5-5x over System sort. Absolute magnitudes came
+down noticeably from the ad hoc numbers above (e.g. Integer System sort: 136ms ad hoc vs. 94ms
+here), a reminder that the un-forked ad hoc harness likely under-warmed the JIT — exactly the
+kind of thing JMH's explicit warmup iterations exist to correct for. Digit width has no
+consistent single winner across types at N=500,000 (each of 8/11/16 wins for at least one
+type); Long's Radix/16 and BigDecimal's Radix/11 rows are this run's outlier-interval cases
+(same single-session-noise caveat as the String sweep above).
+
 ## Tuples
 
 Composite key type (`birthYear`/`zip`/`name` packed into one husky code, imperfect encoding —
@@ -171,11 +233,53 @@ needs the cleanup pass) matching the paper's synthetic Tuple benchmark.
 
 Radix/11 wins at 500,000 (~2x faster than the current PureHuskySort approach).
 
+### JMH update (2026-07-23)
+
+| N | System | PureHuskySort | DualPivotQuicksort | Radix/8 | Radix/11 | Radix/16 |
+|---|---|---|---|---|---|---|
+| 20,000 | 3.11±0.40 | 2.19±0.10 | 2.71±0.13 | 1.17±0.17 | 0.99±0.03 | 1.03±0.05 |
+| 100,000 | 19.93±1.52 | 13.63±1.05 | 19.58±3.50 | 6.19±0.33 | 5.38±0.28 | 4.89±0.23 |
+| 500,000 | 174.30±13.6 | 117.14±20.8 | 155.56±16.1 | 52.56±3.7 | 52.04±9.0 | 45.00±4.6 |
+
+A clean run — no outlier-interval rows this time. Radix/16 is modestly best at N=500,000
+(~2.6x faster than PureHuskySort, ~3.9x faster than System sort), consistent with the ad hoc
+numbers but now with tight, trustworthy intervals throughout.
+
+## Dates
+
+`ChronoLocalDateTime` via `chronoLocalDateTimeCoder` — a single epoch-second `long`, a
+"perfect" encoding that never needs the cleanup pass. Not covered by the original ad hoc
+harness run; this is JMH-only, N=20,000 (`java -jar target/benchmarks.jar DateSortBenchmarks`).
+
+| Sorter | Time (ms, mean ± 99.9% CI) |
+|---|---|
+| System sort | 2.96 ± 0.13 |
+| QuickHuskySort | 2.81 ± 0.13 |
+| QuickHuskySort + insertion cleanup | 3.06 ± 0.70 |
+| Radix/8 | 0.72 ± 0.03 |
+| Radix/11 | 0.63 ± 0.04 |
+| Radix/16 | 0.67 ± 0.03 |
+
+The largest relative win anywhere in this benchmark: radix is **~4-4.5x faster** than every
+quicksort-based option, including the existing QuickHuskySort. The "perfect" single-long
+encoding removes any need for a cleanup pass, so radix's O(N) advantage shows through with
+nothing else in the way.
+
 ## Headline conclusion
 
 Radix sort with a deferred permutation beats the repo's current quicksort-based husky
-long-sort approach at every size and every real data type tested here, typically by
-**2-4x at N >= 200,000**, directly confirming Reviewer 3's suspicion. Wider digits (16-bit)
-tend to win at moderate-to-large N for strings; for numerics/tuples the 8/11/16-bit
-differences are smaller and less consistent, needing the finer sweep + repeated runs in
-TODO.md to pin down precisely.
+long-sort approach at every size and every real data type tested here — Strings, Integer,
+Double, Long, BigInteger, BigDecimal, Tuples, and Dates — typically by **2-4x at N >=
+200,000** (up to ~4.5x for Dates, where the "perfect" encoding removes any cleanup-pass
+overhead), directly confirming Reviewer 3's suspicion. This is now backed by JMH measurements
+(proper fork isolation, warmup, and confidence intervals) for every category, not just the
+original ad hoc timer-loop numbers — and JMH caught a real problem the ad hoc numbers didn't:
+the apparent N=1,000,000 String digit-width reversal turned out to be noise, not a real effect.
+
+The digit-width question turned out more nuanced than the ad hoc data suggested, and there's no
+single sharp crossover. For Strings, the best widths form a **plateau from roughly 12 through
+16 bits**, with 8-bit and (surprisingly) 10-bit consistently worse despite 10-bit needing fewer
+passes. For Numerics and Tuples, 8/11/16-bit differences remain close to noise level at these
+sizes, with no single width winning across every type. See TODO.md item 2 for what's still
+open: independent replication, a possible (but not yet confirmed) 11-bit-specific noise
+pattern, and whether the String plateau shape holds for Numerics/Tuples too.

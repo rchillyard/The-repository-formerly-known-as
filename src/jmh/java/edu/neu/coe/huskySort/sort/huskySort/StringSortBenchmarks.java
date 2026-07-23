@@ -99,4 +99,31 @@ public class StringSortBenchmarks {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         return new RadixHuskySort<>(16, state.coder, state.config).sort(copy);
     }
+
+    // ---------- Finer digit-width sweep (TODO.md item 2), to locate the actual crossover
+    // point between "fewer passes" and "count-array fits in cache" between 8 and 16 bits. ----------
+
+    @Benchmark
+    public String[] radixHuskySort10(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(10, state.coder, state.config).sort(copy);
+    }
+
+    @Benchmark
+    public String[] radixHuskySort12(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(12, state.coder, state.config).sort(copy);
+    }
+
+    @Benchmark
+    public String[] radixHuskySort13(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(13, state.coder, state.config).sort(copy);
+    }
+
+    @Benchmark
+    public String[] radixHuskySort14(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(14, state.coder, state.config).sort(copy);
+    }
 }

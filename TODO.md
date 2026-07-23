@@ -20,13 +20,24 @@ for the benchmark numbers this backlog refers to).
    [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md). Radix's
    win over System sort/PureHuskySort holds up everywhere; the 8-vs-11-vs-16 ordering at
    N=1,000,000 specifically is genuinely not resolved by this data, not "settled in favor of
-   8-bit" as the ad hoc numbers implied. Numerics/Tuples/Dates haven't been run under JMH yet
-   (only smoke-tested) — running them is what would let item 2 below use JMH-quality data too.
+   8-bit" as the ad hoc numbers implied. **2026-07-23:** also ran Numerics/Tuples/Dates under
+   JMH (previously only smoke-tested) — same "radix wins everywhere" conclusion holds, with
+   tighter/more trustworthy numbers than the ad hoc run (which likely under-warmed the JIT:
+   e.g. Integer System sort dropped from 136ms ad hoc to 94ms under JMH). See "JMH update"
+   sections throughout
+   [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
 
-2. **Finer digit-width sweep (10/12/13/14-bit).**
-   Locate the actual crossover point between "fewer passes" and "count-array fits in
-   cache" rather than inferring it from only 8/11/16-bit data points. Now that item 1 is done,
-   do this sweep under JMH from the start rather than the old harness.
+2. ~~**Finer digit-width sweep (10/12/13/14-bit).**~~ **DONE 2026-07-23** for Strings (added
+   `radixHuskySort10/12/13/14` to `StringSortBenchmarks`, ran under JMH). Finding: **no single
+   crossover point — a plateau from roughly 12 through 16 bits**, with 8-bit and (surprisingly)
+   10-bit consistently worse despite 10-bit needing fewer passes. See the "Finer digit-width
+   sweep" section in
+   [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md) for the
+   full table and caveats (including a tentative, not-yet-confirmed observation that 11-bit
+   showed the widest confidence interval in 3 of 6 rows — more than any other width, but a
+   small enough sample that it could still be coincidence). **Still open:** the same sweep for
+   Numerics/Tuples, and independent replication (different day/session) of the String sweep
+   before trusting the 11-bit observation either way.
 
 3. **Decide the fate of the "common words" benchmark** (`3000-common-words.txt`).
    Recommendation: deprioritize as a headline case. Short strings are already cheap to
