@@ -32,14 +32,19 @@ java -jar target/benchmarks.jar <regex>
 # List every discovered benchmark without running anything
 java -jar target/benchmarks.jar -l
 
-# Just the String sorters (all corpora/sizes)
+# Just the String sorters (default corpora: english, chinese; all sizes)
 java -jar target/benchmarks.jar StringSortBenchmarks
 
 # Just the 16-bit radix variant across every category
 java -jar target/benchmarks.jar '.*radixHuskySort16.*'
 
-# Override the default digit-width/size parameters
+# Override the default digit-width/size/corpus parameters
 java -jar target/benchmarks.jar StringSortBenchmarks -p corpus=chinese -p n=200000
+
+# The "common words" corpus is a known-weak-case (TODO.md item 3: short strings are
+# already cheap to compare, and its ~3,000-word corpus causes duplicate-heavy skew at
+# larger N) -- deliberately not a default param, but still runnable as a sanity check:
+java -jar target/benchmarks.jar StringSortBenchmarks -p corpus=commonwords
 
 # Machine-readable output for later analysis
 java -jar target/benchmarks.jar -rf csv -rff target/jmh-results.csv

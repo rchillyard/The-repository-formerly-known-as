@@ -29,7 +29,12 @@ public class StringSortBenchmarks {
         @Param({"32000", "200000", "1000000"})
         public int n;
 
-        @Param({"english", "chinese", "commonwords"})
+        // NOTE: "commonwords" is deliberately not a default param (TODO.md item 3) -- its
+        // ~3,000-word corpus sampled with replacement into 200K-1M element arrays causes
+        // artificial duplicate-heavy skew, and short common words are already cheap to
+        // compare, undercutting the whole point of Husky Sort. Still runnable explicitly as a
+        // known-weak-case sanity check: -p corpus=commonwords.
+        @Param({"english", "chinese"})
         public String corpus;
 
         String[] master;

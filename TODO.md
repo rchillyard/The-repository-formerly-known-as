@@ -39,13 +39,17 @@ for the benchmark numbers this backlog refers to).
    Numerics/Tuples, and independent replication (different day/session) of the String sweep
    before trusting the 11-bit observation either way.
 
-3. **Decide the fate of the "common words" benchmark** (`3000-common-words.txt`).
-   Recommendation: deprioritize as a headline case. Short strings are already cheap to
-   compare (undercutting Husky Sort's whole value proposition), and the corpus's ~3,000
-   unique words sampled with replacement into 200K-1M element arrays causes artificial
-   duplicate-heavy skew — likely the main cause of the noisiest results we saw. Keep the
-   config flag available, but treat it as a "known-weak-case" sanity check, not a
-   Table/Figure-worthy number.
+3. ~~**Decide the fate of the "common words" benchmark**~~ **DONE 2026-07-23.** Removed
+   `commonwords` from `StringSortBenchmarks`' default `@Param` corpus list — a plain
+   `java -jar target/benchmarks.jar StringSortBenchmarks` run now only covers english/chinese.
+   Still runnable explicitly as a known-weak-case sanity check
+   (`-p corpus=commonwords`, documented in
+   [doc/JMH Benchmarks.md](doc/JMH%20Benchmarks.md)). The old harness's `config.ini` already
+   defaulted this off (`english = false`) so no change needed there. Rationale unchanged: short
+   strings are already cheap to compare (undercutting Husky Sort's whole value proposition),
+   and the corpus's ~3,000 unique words sampled with replacement into 200K-1M element arrays
+   causes artificial duplicate-heavy skew — likely the main cause of the noisiest results seen
+   in [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
 
 4. **Wire RadixHuskySort into the Chinese-names/pinyin comparison path.**
    `benchmarkUnicodeStringSorters*` in `HuskySortBenchmark.java` currently only compares
