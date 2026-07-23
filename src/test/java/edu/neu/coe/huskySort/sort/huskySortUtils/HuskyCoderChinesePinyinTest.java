@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -33,9 +34,9 @@ public class HuskyCoderChinesePinyinTest {
     }
 
     @Test
-    public void testSortRealCorpusNamesIsCorrectlyOrdered() {
+    public void testSortRealCorpusNamesMatchesComparatorOracle() {
         final String[] sample = sampleNames(new Random(1), 3000);
-        assertSorted(sample);
+        assertMatchesOracle(sample);
     }
 
     /**
@@ -47,7 +48,7 @@ public class HuskyCoderChinesePinyinTest {
         final Random random = new Random(7);
         for (int trial = 0; trial < 200; trial++) {
             final int n = 1 + random.nextInt(50);
-            assertSorted(sampleNames(random, n));
+            assertMatchesOracle(sampleNames(random, n));
         }
     }
 
@@ -65,7 +66,7 @@ public class HuskyCoderChinesePinyinTest {
                 "刘持平",
                 "刘持平洪",
         };
-        assertSorted(names);
+        assertMatchesOracle(names);
     }
 
     /**
@@ -80,6 +81,19 @@ public class HuskyCoderChinesePinyinTest {
         final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
         sorter.sort(names);
         assertArrayEquals(new String[]{"妈", "麻", "马", "骂"}, names);
+    }
+
+    /**
+     * True homonyms -- identical syllable AND tone, e.g. 郗/奚 (both "xi1", found by the corpus
+     * stress test above) -- have no stroke-count data available to break the tie properly, so
+     * NAME_ORDER falls back to Unicode code point. This confirms that fallback makes the
+     * comparison deterministic (nonzero) rather than leaving true homonyms as a 0 (tied) result.
+     */
+    @Test
+    public void testHomonymFallsBackToCodePointOrder() {
+        assertTrue(HuskyCoderChinesePinyin.NAME_ORDER.compare("郗", "奚") != 0);
+        assertEquals(Character.compare('郗', '奚'), HuskyCoderChinesePinyin.NAME_ORDER.compare("郗", "奚"));
+        assertMatchesOracle(new String[]{"奚飞", "郗飞"});
     }
 
     @Test
@@ -100,23 +114,21 @@ public class HuskyCoderChinesePinyinTest {
     }
 
     /**
-     * NOTE: this checks that the result is non-decreasing under NAME_ORDER, not that it
-     * exactly matches Arrays.sort(names, NAME_ORDER) permutation-for-permutation. Real corpus
-     * data contains genuine homonyms -- identical syllable AND tone, e.g. 郗/契 (both
-     * "xi1") -- which Wikipedia's pinyin-alphabetical-order page says need stroke-count as a
-     * final tiebreak; neither the old nor the new encoding implements that, so NAME_ORDER
-     * legitimately cannot distinguish such pairs, and the (unstable) first sorting pass is
-     * free to leave them in either relative order. A weaker "correctly sorted" check is the
-     * right level of assertion here; the exact-match tests above use hand-picked strings with
-     * no such ties.
+     * NAME_ORDER now includes a Unicode-code-point fallback for true homonyms (identical
+     * syllable and tone), making it a genuine strict total order over distinct strings -- so,
+     * unlike an earlier version of this test, an exact permutation match against the oracle
+     * (rather than merely "correctly sorted") is the right, stronger assertion, even though
+     * the first sorting pass is unstable: with no remaining ties, that first pass cannot
+     * produce a different final order once the deterministic cleanup pass runs.
      */
-    private static void assertSorted(final String[] names) {
+    private static void assertMatchesOracle(final String[] names) {
+        final String[] expected = Arrays.copyOf(names, names.length);
+        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
+
         final String[] actual = Arrays.copyOf(names, names.length);
         final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
         sorter.sort(actual);
 
-        for (int i = 1; i < actual.length; i++)
-            assertTrue(actual[i - 1] + " should not come after " + actual[i],
-                    HuskyCoderChinesePinyin.NAME_ORDER.compare(actual[i - 1], actual[i]) <= 0);
+        assertArrayEquals(expected, actual);
     }
 }

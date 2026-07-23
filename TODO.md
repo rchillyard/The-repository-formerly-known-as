@@ -51,8 +51,8 @@ for the benchmark numbers this backlog refers to).
    causes artificial duplicate-heavy skew — likely the main cause of the noisiest results seen
    in [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
 
-4. **Wire RadixHuskySort into the Chinese-names/pinyin comparison path.** In progress,
-   2026-07-23.
+4. ~~**Wire RadixHuskySort into the Chinese-names/pinyin comparison path.**~~ **DONE
+   2026-07-23** (Bopomofo dialect deliberately excepted, see below).
    - **Stage 1 (done):** built the syllable *order* first (Robin's insight — pinyin syllables
      form a compact alphabet of about 400 symbols ordered by English spelling, not the
      wasteful "spell it out as ASCII text" approach the encoder used). New
@@ -79,13 +79,35 @@ for the benchmark numbers this backlog refers to).
      7-character capacity limit, and a tone-only-collision test (妈/麻/马/骂, all "ma").
      Found along the way: true homonyms (identical syllable AND tone, e.g. 郗/奚, both "xi1")
      need stroke-count as a final tiebreak per the Wikipedia page; neither the old nor new
-     code implements that, so such pairs are only guaranteed "correctly sorted", not a specific
-     stable permutation — reflected in the test design, not a bug.
-   - **Still to do:** the actual JMH wiring (RadixHuskySort alongside PureHuskySort /
-     MSDStringSort / UnicodeMSDStringSort on `Chinese_Names_Corpus.txt`), and a second dialect
-     (Bopomofo/Zhuyin, already stubbed as dead code in `HuskyCoderChinesePinyin.encodeBoPoMoFo`
-     — wanted eventually per Robin, not immediately; the design is parameterized by syllable
-     table so this should be additive when it happens).
+     code implements that. Robin suggested falling back to Unicode code point order in that
+     case instead of leaving the comparator's result as a tie — implemented as stage 2b (see
+     below) rather than left as a "correctly sorted, not necessarily one specific permutation"
+     caveat.
+   - **Stage 2b (done):** `NAME_ORDER` now falls back to Unicode code point order for true
+     homonyms (Robin's suggestion — not stroke-count-accurate, but the CJK Unified Ideographs
+     block's code point order is itself derived from historical radical/stroke-ordered
+     national encoding standards, so it is a deterministic, non-arbitrary approximation, not a
+     meaningless one). This makes `NAME_ORDER` a genuine strict total order over distinct
+     strings, so `HuskyCoderChinesePinyinTest`'s corpus-stress tests were strengthened back to
+     exact-permutation matches against the oracle (previously weakened to "correctly sorted"
+     to tolerate the homonym ties) — including one new dedicated test for the fallback itself.
+   - **Stage 3 (done):** JMH wiring. Added `"chinesenames"` as a `StringSortBenchmarks` corpus
+     option (`Chinese_Names_Corpus.txt`, 1,145,009 unique names, using `chineseEncoderPinyin`),
+     reusing the existing System/PureHuskySort/Radix comparison methods rather than adding
+     MSDStringSort/UnicodeMSDStringSort (a different, non-`HuskyCoder`-based sorter family —
+     could be added later but was not what this item's JMH-wiring ask was about). Found and
+     fixed a real performance bug while first running this: the cleanup-pass pinyin lookup was
+     uncached, making the first cut of numbers badly misleading (PureHuskySort ~150ms,
+     RadixHuskySort ~37-38ms at N=20,000) until a simple per-character memoization cache
+     dropped that to ~15ms and ~7.5ms respectively (10x and 5x). Full results (all digit
+     widths, N up to 1,000,000) in the new "Chinese names (pinyin)" section of
+     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md): radix
+     beats the existing PureHuskySort-based approach by roughly 2.4-3.8x, consistent with every
+     other category benchmarked so far.
+   - **Still to do:** a second dialect (Bopomofo/Zhuyin, already stubbed as dead code in
+     `HuskyCoderChinesePinyin.encodeBoPoMoFo`) — wanted eventually per Robin, not immediately;
+     the design is parameterized by syllable table so this should be additive when it happens.
+     Otherwise, item 4 is essentially complete.
 
 5. ~~**Wire RadixHuskySort into the date/`LocalDateTime` sorter benchmarks.**~~ **DONE
    2026-07-22** via `DateSortBenchmarks` (JMH) — see item 1. The *old* harness's

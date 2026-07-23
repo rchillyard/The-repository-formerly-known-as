@@ -34,7 +34,7 @@ public class StringSortBenchmarks {
         // artificial duplicate-heavy skew, and short common words are already cheap to
         // compare, undercutting the whole point of Husky Sort. Still runnable explicitly as a
         // known-weak-case sanity check: -p corpus=commonwords.
-        @Param({"english", "chinese"})
+        @Param({"english", "chinese", "chinesenames"})
         public String corpus;
 
         String[] master;
@@ -53,6 +53,12 @@ public class StringSortBenchmarks {
                 case "chinese":
                     corpusWords = HuskySortBenchmarkHelper.getWords("zho-simp-tw_web_2014_10K-sentences.txt", StringSortBenchmarks::getLeipzigWords);
                     coder = AbstractHuskySort.UNICODE_CODER;
+                    break;
+                case "chinesenames":
+                    // Chinese personal names, ordered by pinyin (TODO.md item 4) rather than
+                    // the Unicode coder used for the Leipzig "chinese" corpus above.
+                    corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
+                    coder = HuskyCoderFactory.chineseEncoderPinyin;
                     break;
                 case "commonwords":
                     corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList);

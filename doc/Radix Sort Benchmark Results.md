@@ -265,16 +265,53 @@ quicksort-based option, including the existing QuickHuskySort. The "perfect" sin
 encoding removes any need for a cleanup pass, so radix's O(N) advantage shows through with
 nothing else in the way.
 
+## Chinese names (pinyin)
+
+`Chinese_Names_Corpus.txt` (1,145,009 unique names, 2-3 characters each), ordered by Hanyu
+Pinyin via the rewritten `HuskyCoderChinesePinyin` (TODO.md item 4). JMH, full digit-width
+sweep: `java -jar target/benchmarks.jar 'StringSortBenchmarks\..*' -p corpus=chinesenames`.
+
+**Important caveat on "System sort" here**: unlike the Leipzig English/Chinese corpora (where
+natural String order via System sort *is* the semantically correct comparison target), System
+sort here does raw Unicode-code-point order, which is *not* correct pinyin order for this
+corpus. The meaningful comparison is PureHuskySort vs RadixHuskySort — both correctly produce
+pinyin order; System sort's number is included only as a "how fast is a differently-defined
+sort" reference point, not a real competitor.
+
+| N | System (wrong order) | PureHuskySort (correct) | Radix/8 | Radix/10 | Radix/11 | Radix/12 | Radix/13 | Radix/14 | Radix/16 |
+|---|---|---|---|---|---|---|---|---|---|
+| 32,000 | 8.6±1.2 | 33.6±6.3 | 13.9±1.5 | 13.5±1.7 | 13.7±1.8 | 13.6±1.5 | 14.9±3.6 | 14.1±3.0 | 13.9±2.8 |
+| 200,000 | 80.3±13.6 | 326.2±**299.8** | 88.1±8.3 | 87.0±7.3 | 86.3±5.4 | 145.7±**53.6** | 95.7±15.7 | 96.8±19.0 | 87.9±11.2 |
+| 1,000,000 | 544.2±160.7 | 1090.8±**399.4** | 438.9±28.5 | 428.4±23.4 | 422.4±55.5 | 492.8±81.4 | 475.8±105.4 | 502.2±134.9 | 457.0±79.9 |
+
+Radix beats the existing pinyin-sorting approach (PureHuskySort) by roughly **2.4-3.8x**
+depending on N, directionally consistent and robust even given PureHuskySort's wide confidence
+intervals at the larger sizes (even PureHuskySort's own lower bound stays well above most
+radix variants' upper bound). Digit width shows no clear single winner here (unlike the
+cleaner plateau seen for the Leipzig corpora): all widths land in a similar 420-500ms range at
+N=1,000,000, and Radix/12 is a noisy-CI outlier at 200,000 — matching the same
+single-session-noise pattern already documented for the String fine sweep.
+
+This benchmark also motivated two real fixes made along the way (TODO.md item 4, stage 2):
+`HuskyCoderChinesePinyin` previously always claimed `perfect()` (skipping the cleanup pass
+unconditionally, regardless of correctness), and — separately, a performance issue rather than
+a correctness one — even after fixing that, the cleanup pass's pinyin lookup was uncached,
+making a first cut of this benchmark badly misleading (PureHuskySort at ~150ms and
+RadixHuskySort at ~37-38ms for N=20,000, vs ~15ms and ~7.5ms respectively once a simple
+per-character cache was added — a 10x and 5x improvement). All numbers above reflect the
+cached version.
+
 ## Headline conclusion
 
 Radix sort with a deferred permutation beats the repo's current quicksort-based husky
 long-sort approach at every size and every real data type tested here — Strings, Integer,
-Double, Long, BigInteger, BigDecimal, Tuples, and Dates — typically by **2-4x at N >=
-200,000** (up to ~4.5x for Dates, where the "perfect" encoding removes any cleanup-pass
-overhead), directly confirming Reviewer 3's suspicion. This is now backed by JMH measurements
-(proper fork isolation, warmup, and confidence intervals) for every category, not just the
-original ad hoc timer-loop numbers — and JMH caught a real problem the ad hoc numbers didn't:
-the apparent N=1,000,000 String digit-width reversal turned out to be noise, not a real effect.
+Double, Long, BigInteger, BigDecimal, Tuples, Dates, and Chinese names sorted by pinyin —
+typically by **2-4x at N >= 200,000** (up to ~4.5x for Dates, where the "perfect" encoding
+removes any cleanup-pass overhead), directly confirming Reviewer 3's suspicion. This is now
+backed by JMH measurements (proper fork isolation, warmup, and confidence intervals) for every
+category, not just the original ad hoc timer-loop numbers — and JMH caught a real problem the
+ad hoc numbers didn't: the apparent N=1,000,000 String digit-width reversal turned out to be
+noise, not a real effect.
 
 The digit-width question turned out more nuanced than the ad hoc data suggested, and there's no
 single sharp crossover. For Strings, the best widths form a **plateau from roughly 12 through

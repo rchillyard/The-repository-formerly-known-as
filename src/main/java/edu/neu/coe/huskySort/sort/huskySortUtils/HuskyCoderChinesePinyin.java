@@ -5,6 +5,8 @@ import edu.neu.coe.huskySort.sort.SortException;
 import java.text.CollationKey;
 import java.text.Collator;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Husky coder for Chinese Strings, ordered by their pinyin romanization.
@@ -66,13 +68,23 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     /**
      * Comparator for full pinyin-romanized Chinese Strings (names or words), comparing
      * character by character: for each character, compare its pinyin syllable spelling (via
-     * {@link HanyuPinyinSyllables#ORDER}), then tone as a per-character tie-break, before
-     * moving on to the next character. This is the "character-by-character" convention
-     * (matching <i>Xiandai Hanyu Cidian</i>), as opposed to "word-by-word" (matching the ABC
-     * Chinese-English Dictionary, which compares the whole word's spelling before ever
-     * considering tone) -- see
+     * {@link HanyuPinyinSyllables#ORDER}), then tone, then (if the two characters are true
+     * homonyms -- identical syllable and tone, e.g. 郗/奚, both "xi1") Unicode code point, as
+     * successive per-character tie-breaks, before moving on to the next character. This is the
+     * "character-by-character" convention (matching <i>Xiandai Hanyu Cidian</i>), as opposed
+     * to "word-by-word" (matching the ABC Chinese-English Dictionary, which compares the whole
+     * word's spelling before ever considering tone) -- see
      * <a href="https://en.wikipedia.org/wiki/Pinyin_alphabetical_order">Pinyin alphabetical
      * order</a> for the distinction between the two.
+     * <p>
+     * True homonyms should properly be broken by stroke count, per that same page, but no
+     * stroke-count data is available here (nor in the code this replaces). Falling back to
+     * Unicode code point rather than leaving the comparator's result as 0 makes the sort
+     * result deterministic (not dependent on whatever arbitrary order the unstable first
+     * sorting pass happens to leave true homonyms in) -- and it is not a meaningless
+     * substitute: the CJK Unified Ideographs block's code point order is itself derived from
+     * historical radical/stroke-ordered national encoding standards (GB, Big5, JIS, KSC), so
+     * it approximates (without exactly reproducing) genuine stroke-count order.
      */
     public static final Comparator<String> NAME_ORDER = (a, b) -> {
         final int n = Math.min(a.length(), b.length());
@@ -85,8 +97,8 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
 
     private static int compareCharacter(final char x, final char y) {
         if (x == y) return 0;
-        final String altX = new ChineseCharacter(x).alt();
-        final String altY = new ChineseCharacter(y).alt();
+        final String altX = altOf(x);
+        final String altY = altOf(y);
         final int spaceX = altX.indexOf(' ');
         final int spaceY = altY.indexOf(' ');
         final String syllableX = spaceX >= 0 ? altX.substring(0, spaceX) : altX;
@@ -95,7 +107,9 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
         if (cf != 0) return cf;
         final String toneX = spaceX >= 0 ? altX.substring(spaceX + 1) : "";
         final String toneY = spaceY >= 0 ? altY.substring(spaceY + 1) : "";
-        return toneX.compareTo(toneY);
+        final int tf = toneX.compareTo(toneY);
+        if (tf != 0) return tf;
+        return Character.compare(x, y);
     }
 
     /**
@@ -122,10 +136,24 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     }
 
     private static String syllableOf(final char c) {
-        final String alt = new ChineseCharacter(c).alt();
+        final String alt = altOf(c);
         final int space = alt.indexOf(' ');
         return space >= 0 ? alt.substring(0, space) : alt;
     }
+
+    /**
+     * Memoized ChineseCharacter.alt() lookup: computing this involves a pinyin4j lookup plus
+     * regex-based parsing, and both the encoder and the (always-invoked, since perfect() is
+     * always false -- see class javadoc) cleanup-pass comparator call it once per character
+     * per comparison. Real Chinese text draws from a bounded vocabulary of a few thousand
+     * characters at most, so a simple unbounded cache is appropriate here (unlike, say,
+     * caching arbitrary Strings).
+     */
+    private static String altOf(final char c) {
+        return ALT_CACHE.computeIfAbsent(c, ch -> new ChineseCharacter(ch).alt());
+    }
+
+    private static final Map<Character, String> ALT_CACHE = new ConcurrentHashMap<>();
 
     private static long encodeBoPoMoFo(final String s) {
         final Long[] codes = ChineseCharacter.parsePinyin(Long.class, ChineseCharacter.convertToPinyin(s), s.length(), xs -> {
