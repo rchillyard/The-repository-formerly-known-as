@@ -51,9 +51,24 @@ for the benchmark numbers this backlog refers to).
    causes artificial duplicate-heavy skew — likely the main cause of the noisiest results seen
    in [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
 
-4. **Wire RadixHuskySort into the Chinese-names/pinyin comparison path.**
-   `benchmarkUnicodeStringSorters*` in `HuskySortBenchmark.java` currently only compares
-   PureHuskySort / MSDStringSort / UnicodeMSDStringSort.
+4. **Wire RadixHuskySort into the Chinese-names/pinyin comparison path.** In progress,
+   2026-07-23: built the syllable *order* first (Robin's insight — pinyin syllables form a
+   compact ~400-symbol alphabet ordered by English spelling, not the wasteful "spell it out
+   as ASCII text" approach the current `HuskyCoderChinesePinyin` uses). New
+   `HanyuPinyinSyllables` class (`sort/huskySortUtils`) holds all 395 standard Hanyu Pinyin
+   syllables (sourced from Wikipedia's Pinyin table, parsed 2026-07-23; Robin recalled "~449"
+   from memory, approximately right per his own account, discrepancy not yet resolved but
+   doesn't affect the bit-width math either way) in correct pinyin alphabetical order, plus an
+   O(1) ordinal lookup. 10 new tests in `HanyuPinyinSyllablesTest` confirm the order and lookup
+   (including the tricky ê/ü unmodified-before-modified rule). **Still to do:** the actual
+   syllable-ordinal-based `HuskyCoder<String>` (9 bits/syllable, up to 7 syllables per 64-bit
+   long, dropping tone from the long code entirely and relying on a cleanup-pass comparator
+   fix instead — see the design discussion from 2026-07-23), fixing the cleanup-pass
+   comparator gap (root cause of the existing `// FIXME` in `PureHuskySortTest.testSortString7`),
+   then the actual JMH wiring alongside PureHuskySort/MSDStringSort/UnicodeMSDStringSort. A
+   second dialect (Bopomofo/Zhuyin, already stubbed as dead code in
+   `HuskyCoderChinesePinyin.encodeBoPoMoFo`) is wanted eventually but not immediately — the
+   design is parameterized by syllable table so this should be additive when it happens.
 
 5. ~~**Wire RadixHuskySort into the date/`LocalDateTime` sorter benchmarks.**~~ **DONE
    2026-07-22** via `DateSortBenchmarks` (JMH) — see item 1. The *old* harness's
