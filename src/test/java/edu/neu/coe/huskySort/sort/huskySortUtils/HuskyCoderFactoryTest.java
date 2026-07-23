@@ -362,10 +362,14 @@ public class HuskyCoderFactoryTest {
 
     @Test
     public void testChineseEncoderPinyin1() {
+        // NOTE: this magic number reflects HuskyCoderChinesePinyin's per-syllable-ordinal
+        // encoding (liu=171, chi=33, ping=240 in HanyuPinyinSyllables, each biased by 1 and
+        // packed 9 bits/character, MSD first) -- updated 2026-07-23 when the encoding changed
+        // from spelling pinyin out as ASCII text to this compact ordinal scheme.
         final String 刘持平 = "刘持平";
         final HuskyCoder<String> chineseEncoderPinyin = HuskyCoderFactory.chineseEncoderPinyin;
         final long l刘持平 = chineseEncoderPinyin.huskyEncode(刘持平);
-        assertEquals(0xB2DA6DD6DCA3A2DL, l刘持平);
+        assertEquals(0x2B044F1000000000L, l刘持平);
     }
 
     public static <X> void compareEncodings(final X x1, final X x2, final Function<X, Long> encoder, final Comparator<X> comparator) {

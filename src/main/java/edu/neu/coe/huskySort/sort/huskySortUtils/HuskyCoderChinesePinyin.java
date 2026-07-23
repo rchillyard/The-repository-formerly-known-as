@@ -2,6 +2,27 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.SortException;
 
+import java.text.CollationKey;
+import java.text.Collator;
+import java.util.Comparator;
+
+/**
+ * Husky coder for Chinese Strings, ordered by their pinyin romanization.
+ * <p>
+ * The Hanyu encoding packs each character's pinyin syllable as a compact ordinal (see
+ * {@link HanyuPinyinSyllables}, an alphabet of 395 standard syllables) rather than spelling
+ * the syllable out as ASCII text -- 9 bits per syllable (2^9 = 512 covers the alphabet, with
+ * room to spare) instead of roughly 6 bits per *letter* of the spelled-out romanization. That
+ * fits up to 7 characters per 64-bit long, versus 4 for the old spell-it-out approach.
+ * <p>
+ * Tone is deliberately not encoded: interleaving it would need 12 bits/character (9 for the
+ * syllable, 3 for tone 1-5), dropping capacity to 5 characters with no margin. Since two
+ * different names can share the same syllable spellings but differ only in tone, this
+ * encoding can never be claimed perfect regardless of length -- see {@link #perfect()} -- and
+ * the cleanup pass (via {@link #getCollator()}) is relied on to fix any such collisions
+ * correctly, consistent with Husky Sort's general "mostly right first pass, corrective second
+ * pass" design.
+ */
 public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     /**
      * Encode x as a long.
@@ -12,44 +33,98 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
      * @return a long which is, as closely as possible, monotonically increasing with the domain of X values.
      */
     public long huskyEncode(final String s) {
-        if (dialect.equalsIgnoreCase("Hanyu")) return encodeHanyu(s);
-        else if (dialect.equalsIgnoreCase("BoPoMoFo")) return encodeHanyu(s);
+        if (dialect.equalsIgnoreCase("Hanyu")) return encodeHanyuOrdinal(s);
+        else if (dialect.equalsIgnoreCase("BoPoMoFo")) return encodeBoPoMoFo(s);
         else throw new SortException("huskyEncode: unsupported dialect: " + dialect);
     }
 
     /**
-     * For names of four characters or fewer, this encoding will be perfect.
-     * <p>
-     * NOTE: We lose one bit of precision in the fourth character but the probability that it will be significant is very small.
+     * This encoding never claims to be perfect (see class javadoc: tone is deliberately
+     * excluded, so same-spelling-different-tone collisions are always possible regardless of
+     * length). The cleanup pass, using {@link #getCollator()}, is relied on for correctness.
      *
-     * @return true.
+     * @return false.
      */
     @Override
     public boolean perfect() {
-        // NOTE: in Hanyu, we can accommodate 10 pinyin characters with perfect encoding.
-        if (dialect.equalsIgnoreCase("Hanyu")) return true;
-        else if (dialect.equalsIgnoreCase("BoPoMoFo")) return true; // XXX see encodeHanyu for more detail.
-        else throw new SortException("huskyEncode: unsupported dialect: " + dialect);
+        return false;
+    }
+
+    /**
+     * @return a Collator which orders Strings correctly by pinyin (character by character,
+     * syllable spelling then tone as a per-character tie-break), for use by the cleanup pass.
+     */
+    @Override
+    public Collator getCollator() {
+        return PINYIN_COLLATOR;
     }
 
     public HuskyCoderChinesePinyin(final String dialect) {
         this.dialect = dialect;
     }
 
-    private static long encodeHanyu(final String s) {
-        final String[] tokens = ChineseCharacter.parsePinyin(ChineseCharacter.convertToPinyin(s), s.length());
-        final StringBuilder result = new StringBuilder();
-        for (final String token : tokens)
-            if (token != null) {
-                if (token.endsWith("ü"))
-                    // TODO sort this out.
-                    result.append(token.substring(0, token.length() - 1)).append('~');
-                else result.append(token);
+    /**
+     * Comparator for full pinyin-romanized Chinese Strings (names or words), comparing
+     * character by character: for each character, compare its pinyin syllable spelling (via
+     * {@link HanyuPinyinSyllables#ORDER}), then tone as a per-character tie-break, before
+     * moving on to the next character. This is the "character-by-character" convention
+     * (matching <i>Xiandai Hanyu Cidian</i>), as opposed to "word-by-word" (matching the ABC
+     * Chinese-English Dictionary, which compares the whole word's spelling before ever
+     * considering tone) -- see
+     * <a href="https://en.wikipedia.org/wiki/Pinyin_alphabetical_order">Pinyin alphabetical
+     * order</a> for the distinction between the two.
+     */
+    public static final Comparator<String> NAME_ORDER = (a, b) -> {
+        final int n = Math.min(a.length(), b.length());
+        for (int i = 0; i < n; i++) {
+            final int cf = compareCharacter(a.charAt(i), b.charAt(i));
+            if (cf != 0) return cf;
+        }
+        return Integer.compare(a.length(), b.length());
+    };
 
-            }
-        final String pinyin = result.toString();
-        final HuskySequenceCoder<String> coder = HuskyCoderFactory.englishCoder;
-        return coder.huskyEncode(pinyin);
+    private static int compareCharacter(final char x, final char y) {
+        if (x == y) return 0;
+        final String altX = new ChineseCharacter(x).alt();
+        final String altY = new ChineseCharacter(y).alt();
+        final int spaceX = altX.indexOf(' ');
+        final int spaceY = altY.indexOf(' ');
+        final String syllableX = spaceX >= 0 ? altX.substring(0, spaceX) : altX;
+        final String syllableY = spaceY >= 0 ? altY.substring(0, spaceY) : altY;
+        final int cf = HanyuPinyinSyllables.ORDER.compare(syllableX, syllableY);
+        if (cf != 0) return cf;
+        final String toneX = spaceX >= 0 ? altX.substring(spaceX + 1) : "";
+        final String toneY = spaceY >= 0 ? altY.substring(spaceY + 1) : "";
+        return toneX.compareTo(toneY);
+    }
+
+    /**
+     * Pack up to the first 7 characters of s into a long, 9 bits per character (most
+     * significant character first): each character's pinyin syllable is looked up via
+     * {@link HanyuPinyinSyllables#ordinalOf(String)} and biased by 1 (0 is reserved for "no
+     * recognized pinyin syllable", e.g. a non-Chinese character). Characters beyond the 7th
+     * are simply not encoded (not dropped from the payload -- only from the long code); any
+     * resulting collision is corrected by the cleanup pass.
+     *
+     * @param s the String to encode.
+     * @return a long encoding of (up to) the first 7 characters of s.
+     */
+    private static long encodeHanyuOrdinal(final String s) {
+        long result = 0L;
+        final int n = Math.min(s.length(), MAX_SYLLABLES);
+        for (int i = 0; i < n; i++) {
+            final int ordinal = HanyuPinyinSyllables.ordinalOf(syllableOf(s.charAt(i)));
+            final long value = ordinal >= 0 ? ordinal + 1L : 0L;
+            result = (result << BITS_PER_SYLLABLE) | value;
+        }
+        result <<= (long) BITS_PER_SYLLABLE * (MAX_SYLLABLES - n);
+        return result;
+    }
+
+    private static String syllableOf(final char c) {
+        final String alt = new ChineseCharacter(c).alt();
+        final int space = alt.indexOf(' ');
+        return space >= 0 ? alt.substring(0, space) : alt;
     }
 
     private static long encodeBoPoMoFo(final String s) {
@@ -75,6 +150,32 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
         // TODO Pad the remaining 47, 31, 15 bits as necessary.
         return result;
     }
+
+    /**
+     * Minimal Collator wrapping {@link #NAME_ORDER}, sufficient for use as the second-pass
+     * comparator ({@code Arrays.sort(xs, collator)} in PureHuskySort et al., which only calls
+     * {@code compare}).
+     */
+    private static final class PinyinOrdinalCollator extends Collator {
+        @Override
+        public int compare(final String source, final String target) {
+            return NAME_ORDER.compare(source, target);
+        }
+
+        @Override
+        public CollationKey getCollationKey(final String source) {
+            throw new UnsupportedOperationException("PinyinOrdinalCollator does not support getCollationKey");
+        }
+
+        @Override
+        public int hashCode() {
+            return PinyinOrdinalCollator.class.hashCode();
+        }
+    }
+
+    private static final Collator PINYIN_COLLATOR = new PinyinOrdinalCollator();
+    private static final int BITS_PER_SYLLABLE = 9;
+    private static final int MAX_SYLLABLES = 64 / BITS_PER_SYLLABLE;
 
     private final String dialect;
 }

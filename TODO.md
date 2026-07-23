@@ -52,23 +52,40 @@ for the benchmark numbers this backlog refers to).
    in [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
 
 4. **Wire RadixHuskySort into the Chinese-names/pinyin comparison path.** In progress,
-   2026-07-23: built the syllable *order* first (Robin's insight — pinyin syllables form a
-   compact ~400-symbol alphabet ordered by English spelling, not the wasteful "spell it out
-   as ASCII text" approach the current `HuskyCoderChinesePinyin` uses). New
-   `HanyuPinyinSyllables` class (`sort/huskySortUtils`) holds all 395 standard Hanyu Pinyin
-   syllables (sourced from Wikipedia's Pinyin table, parsed 2026-07-23; Robin recalled "~449"
-   from memory, approximately right per his own account, discrepancy not yet resolved but
-   doesn't affect the bit-width math either way) in correct pinyin alphabetical order, plus an
-   O(1) ordinal lookup. 10 new tests in `HanyuPinyinSyllablesTest` confirm the order and lookup
-   (including the tricky ê/ü unmodified-before-modified rule). **Still to do:** the actual
-   syllable-ordinal-based `HuskyCoder<String>` (9 bits/syllable, up to 7 syllables per 64-bit
-   long, dropping tone from the long code entirely and relying on a cleanup-pass comparator
-   fix instead — see the design discussion from 2026-07-23), fixing the cleanup-pass
-   comparator gap (root cause of the existing `// FIXME` in `PureHuskySortTest.testSortString7`),
-   then the actual JMH wiring alongside PureHuskySort/MSDStringSort/UnicodeMSDStringSort. A
-   second dialect (Bopomofo/Zhuyin, already stubbed as dead code in
-   `HuskyCoderChinesePinyin.encodeBoPoMoFo`) is wanted eventually but not immediately — the
-   design is parameterized by syllable table so this should be additive when it happens.
+   2026-07-23.
+   - **Stage 1 (done):** built the syllable *order* first (Robin's insight — pinyin syllables
+     form a compact alphabet of about 400 symbols ordered by English spelling, not the
+     wasteful "spell it out as ASCII text" approach the encoder used). New
+     `HanyuPinyinSyllables` class (`sort/huskySortUtils`) holds all 395 standard Hanyu Pinyin
+     syllables (sourced from Wikipedia's Pinyin table, parsed 2026-07-23; Robin recalled "~449"
+     from memory, approximately right per his own account, discrepancy not resolved but does
+     not affect the bit-width math either way) in correct pinyin alphabetical order, plus an
+     O(1) ordinal lookup. 10 tests in `HanyuPinyinSyllablesTest`.
+   - **Stage 2 (done):** rewrote `HuskyCoderChinesePinyin`'s Hanyu encoding to pack each
+     character's syllable ordinal into 9 bits (up to 7 characters/64-bit long), dropping tone
+     entirely (never claims `perfect()`, always relies on the cleanup pass). Also fixed a
+     second, more serious latent bug found along the way: `perfect()` previously returned
+     `true` unconditionally, meaning the cleanup pass never ran at all for pinyin sorting,
+     regardless of name length or real collisions. Added `getCollator()` returning a proper
+     pinyin-aware `Collator` (character-by-character: syllable spelling, then tone as a
+     per-character tie-break — the "Xiandai Hanyu Cidian" convention, not the "compare whole
+     word's spelling first" ABC-dictionary convention; see
+     https://en.wikipedia.org/wiki/Pinyin_alphabetical_order for the distinction). This fixed
+     the existing `// FIXME` in `PureHuskySortTest.testSortString7` (removed the FIXME; the
+     test now passes) and required updating one magic-number test
+     (`HuskyCoderFactoryTest.testChineseEncoderPinyin1`) to the new encoding's value. New
+     `HuskyCoderChinesePinyinTest`: real-corpus stress test (3000 names) plus 200 small random
+     trials cross-validated against the trusted comparator, a long-name test exercising the
+     7-character capacity limit, and a tone-only-collision test (妈/麻/马/骂, all "ma").
+     Found along the way: true homonyms (identical syllable AND tone, e.g. 郗/奚, both "xi1")
+     need stroke-count as a final tiebreak per the Wikipedia page; neither the old nor new
+     code implements that, so such pairs are only guaranteed "correctly sorted", not a specific
+     stable permutation — reflected in the test design, not a bug.
+   - **Still to do:** the actual JMH wiring (RadixHuskySort alongside PureHuskySort /
+     MSDStringSort / UnicodeMSDStringSort on `Chinese_Names_Corpus.txt`), and a second dialect
+     (Bopomofo/Zhuyin, already stubbed as dead code in `HuskyCoderChinesePinyin.encodeBoPoMoFo`
+     — wanted eventually per Robin, not immediately; the design is parameterized by syllable
+     table so this should be additive when it happens).
 
 5. ~~**Wire RadixHuskySort into the date/`LocalDateTime` sorter benchmarks.**~~ **DONE
    2026-07-22** via `DateSortBenchmarks` (JMH) — see item 1. The *old* harness's
