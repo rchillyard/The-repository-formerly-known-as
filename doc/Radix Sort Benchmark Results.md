@@ -326,6 +326,55 @@ benchmark badly misleading (PureHuskySort ~150ms, RadixHuskySort ~37-38ms at N=2
 caching; both numbers were also using the wrong-order RadixHuskySort at that point, on top of
 being uncached).
 
+### 2026-07-24 update: encoding tone as well as syllable
+
+Robin's proposal: since `perfect()` must stay `false` regardless (true homonyms — identical
+syllable *and* tone, different character — remain possible no matter how many characters are
+encoded), why not encode tone too? It can't buy back the cleanup pass being skipped, but it
+should reduce how much real work that pass has to do: dropping tone left every group of names
+sharing a syllable (which, for common surnames, can be huge) in essentially arbitrary relative
+order after the first pass, forcing real O(k log k) work within each such group during cleanup;
+encoding tone means the first pass already gets almost everything right except the rare
+true-homonym pairs, which should let TimSort's adaptive/galloping behavior make the
+(still-mandatory) cleanup pass much cheaper. Implemented as 12 bits/character (9 syllable + 3
+tone), capacity dropping from 7 to 5 characters — still comfortable margin over the "4 common,
+5 is about the practical maximum" range for real Chinese personal names, and `perfect()`
+correctly stays `false`.
+
+Confirmed empirically — this is a clear, consistent win, not just a hoped-for one:
+
+| N | System (wrong order) | PureHuskySort | Radix/8 | Radix/10 | Radix/11 | Radix/12 | Radix/13 | Radix/14 | Radix/16 |
+|---|---|---|---|---|---|---|---|---|---|
+| 32,000 | 10.9±6.7 | 33.3±9.2 | 29.4±9.4 | 33.8±11.1 | 24.6±2.1 | 34.8±**20.2** | 23.5±3.4 | 24.4±4.6 | 36.5±**30.8** |
+| 200,000 | 99.2±54.1 | 244.2±110.8 | 206.8±**157.9** | 165.7±41.7 | 165.0±54.7 | 133.8±5.7 | 141.6±14.6 | 142.3±27.0 | 159.6±34.5 |
+| 1,000,000 | 840.6±549.5 | 1145.2±515.9 | 936.4±429.5 | 799.2±252.2 | 723.7±70.5 | 772.5±251.2 | 731.2±108.7 | 755.6±196.0 | 766.4±171.9 |
+
+Compared to the syllable-only table above (same corpus, same sizes, same digit widths, only
+the encoding changed):
+- **Both sorters got faster**, confirming the mechanism is real: PureHuskySort improved
+  ~1.13-1.58x depending on N (e.g. at N=1,000,000: 1439ms → 1145ms), and most radix widths
+  improved by a similar or larger factor (e.g. Radix/12 at N=200,000: 221ms → 134ms, ~1.65x;
+  Radix/11 at N=1,000,000: 1096ms → 724ms, ~1.51x).
+- **Radix's relative advantage over PureHuskySort widened**, as expected if radix's already-cheap
+  first pass now leaves even less work for the shared cleanup cost to dominate: the
+  PureHuskySort/Radix-11 ratio grew from ~1.31x (syllable-only) to ~1.58x (syllable+tone) at
+  N=1,000,000.
+- **Confidence intervals got tighter for the best-behaved widths**, not just the means
+  improving — Radix/11 at N=1,000,000 went from 1096±199 to 724±71, nearly a 3x tighter
+  interval alongside the faster mean. This is consistent with TimSort actually doing
+  meaningfully less real comparison/data-movement work now that the first pass is more
+  accurate, not merely running faster by chance.
+- **Some rows are still noisy** (Radix/8 and Radix/16 at 32,000, Radix/8 at 200,000) — the
+  earlier caveat about single-session noise in this comparator still applies to the
+  fine-grained digit-width ranking, just less severely than before. There's a tentative
+  suggestion of a "middle widths (11-14) do best" pattern at both 200,000 and 1,000,000, but
+  given the overlapping CIs this isn't asserted as settled.
+
+Headline: radix now beats PureHuskySort on Chinese names by roughly **1.5-1.6x** at scale
+(using the tightest, most reliable width, Radix/11) — smaller than the 2-4x seen on the other
+categories, but a real, solid win, recovered by fixing the `getCollator()` bug and then further
+improved by encoding tone.
+
 ## Headline conclusion
 
 Radix sort with a deferred permutation beats the repo's current quicksort-based husky
@@ -334,8 +383,10 @@ Double, Long, BigInteger, BigDecimal, Tuples, Dates, and Chinese names sorted by
 typically by **2-4x at N >= 200,000** (up to ~4.5x for Dates, where the "perfect" encoding
 removes any cleanup-pass overhead), directly confirming Reviewer 3's suspicion. Chinese names
 are the one exception to that "2-4x" range: after fixing a real `RadixHuskySort` bug (it wasn't
-using the pinyin-aware cleanup comparator at all — see the Chinese names section), the honest
-margin there is a smaller ~1.3-1.5x, because both sorters now pay the same expensive
+using the pinyin-aware cleanup comparator at all — see the Chinese names section) and then
+encoding tone as well as syllable in the husky code (Robin's proposal, confirmed to meaningfully
+reduce the cleanup pass's real work even though `perfect()` correctly stays `false`), the honest
+margin there is a smaller but solid ~1.5-1.6x, because both sorters now pay the same
 collator-based cleanup cost, leaving less of a gap for radix's cheaper first pass to show
 through. This is now backed by JMH measurements (proper fork isolation, warmup, and confidence
 intervals) for every category, not just the original ad hoc timer-loop numbers — and JMH

@@ -11,19 +11,28 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Husky coder for Chinese Strings, ordered by their pinyin romanization.
  * <p>
- * The Hanyu encoding packs each character's pinyin syllable as a compact ordinal (see
- * {@link HanyuPinyinSyllables}, an alphabet of 395 standard syllables) rather than spelling
- * the syllable out as ASCII text -- 9 bits per syllable (2^9 = 512 covers the alphabet, with
- * room to spare) instead of roughly 6 bits per *letter* of the spelled-out romanization. That
- * fits up to 7 characters per 64-bit long, versus 4 for the old spell-it-out approach.
+ * The Hanyu encoding packs each character's pinyin syllable <i>and</i> tone into 12 bits (9
+ * for the syllable ordinal -- see {@link HanyuPinyinSyllables}, an alphabet of 395 standard
+ * syllables -- plus 3 for tone) rather than spelling the syllable out as ASCII text (roughly 6
+ * bits per <i>letter</i> of the romanization, the old approach) or dropping tone entirely (an
+ * earlier version of this class, 2026-07-23 through 2026-07-24). That fits 5 characters per
+ * 64-bit long (60 of 64 bits used) -- comfortably above the 2-3 characters actually seen in
+ * `Chinese_Names_Corpus.txt`, and above the "4 is common, 5 is about the practical maximum"
+ * real-world range for Chinese personal names.
  * <p>
- * Tone is deliberately not encoded: interleaving it would need 12 bits/character (9 for the
- * syllable, 3 for tone 1-5), dropping capacity to 5 characters with no margin. Since two
- * different names can share the same syllable spellings but differ only in tone, this
- * encoding can never be claimed perfect regardless of length -- see {@link #perfect()} -- and
- * the cleanup pass (via {@link #getCollator()}) is relied on to fix any such collisions
- * correctly, consistent with Husky Sort's general "mostly right first pass, corrective second
- * pass" design.
+ * This is still never claimed perfect (see {@link #perfect()}): two <i>different</i>
+ * characters can be true homonyms -- identical syllable <i>and</i> tone, e.g. 郗/奚, both
+ * "xi1" -- and no stroke-count data is available to distinguish them (see
+ * {@link #NAME_ORDER}), so a residual, much narrower class of collisions remains possible
+ * regardless of length. But encoding tone is still a real, deliberate improvement over
+ * dropping it: it doesn't reduce how often the cleanup pass runs (it always runs, since
+ * {@link #perfect()} is unconditionally false), it reduces how much work that pass actually
+ * has to do. Dropping tone left every group of names sharing a syllable (which, for common
+ * surnames, can be huge) in essentially arbitrary relative order after the first pass, forcing
+ * a real O(k log k) sort within each such group during cleanup; encoding tone means the first
+ * pass already gets almost everything right except the rare true-homonym pairs, leaving the
+ * cleanup pass (`Arrays.sort`/TimSort, which is adaptive to already-sorted input) very little
+ * real work to do.
  */
 public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     /**
@@ -113,25 +122,34 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     }
 
     /**
-     * Pack up to the first 7 characters of s into a long, 9 bits per character (most
-     * significant character first): each character's pinyin syllable is looked up via
-     * {@link HanyuPinyinSyllables#ordinalOf(String)} and biased by 1 (0 is reserved for "no
-     * recognized pinyin syllable", e.g. a non-Chinese character). Characters beyond the 7th
-     * are simply not encoded (not dropped from the payload -- only from the long code); any
-     * resulting collision is corrected by the cleanup pass.
+     * Pack up to the first 5 characters of s into a long, 12 bits per character (most
+     * significant character first): 9 bits for the pinyin syllable ordinal (looked up via
+     * {@link HanyuPinyinSyllables#ordinalOf(String)}, biased by 1 -- 0 is reserved for "no
+     * recognized pinyin syllable", e.g. a non-Chinese character) followed by 3 bits for tone
+     * (0 for "no/unrecognized tone", otherwise the tone digit 1-7 as reported by pinyin4j -- in
+     * practice 1-5, the four tones plus neutral). Characters beyond the 5th are simply not
+     * encoded (not dropped from the payload -- only from the long code); any resulting
+     * collision (including the true-homonym case that persists regardless of length -- see
+     * class javadoc) is corrected by the cleanup pass.
      *
      * @param s the String to encode.
-     * @return a long encoding of (up to) the first 7 characters of s.
+     * @return a long encoding of (up to) the first 5 characters of s.
      */
     private static long encodeHanyuOrdinal(final String s) {
         long result = 0L;
-        final int n = Math.min(s.length(), MAX_SYLLABLES);
+        final int n = Math.min(s.length(), MAX_CHARACTERS);
         for (int i = 0; i < n; i++) {
-            final int ordinal = HanyuPinyinSyllables.ordinalOf(syllableOf(s.charAt(i)));
-            final long value = ordinal >= 0 ? ordinal + 1L : 0L;
-            result = (result << BITS_PER_SYLLABLE) | value;
+            final String alt = altOf(s.charAt(i));
+            final int space = alt.indexOf(' ');
+            final String syllable = space >= 0 ? alt.substring(0, space) : alt;
+            final String toneText = space >= 0 ? alt.substring(space + 1) : "";
+            final int ordinal = HanyuPinyinSyllables.ordinalOf(syllable);
+            final long syllableValue = ordinal >= 0 ? ordinal + 1L : 0L;
+            final long toneValue = toneOf(toneText);
+            final long charValue = (syllableValue << BITS_PER_TONE) | toneValue;
+            result = (result << BITS_PER_CHARACTER) | charValue;
         }
-        result <<= (long) BITS_PER_SYLLABLE * (MAX_SYLLABLES - n);
+        result <<= (long) BITS_PER_CHARACTER * (MAX_CHARACTERS - n);
         return result;
     }
 
@@ -139,6 +157,18 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
         final String alt = altOf(c);
         final int space = alt.indexOf(' ');
         return space >= 0 ? alt.substring(0, space) : alt;
+    }
+
+    /**
+     * @param toneText the tone portion of a ChineseCharacter.alt() result (everything after
+     *                  the space), expected to be a single digit.
+     * @return the tone as a value 0-7 (0 if toneText isn't recognized as a single digit 0-7),
+     * fitting in BITS_PER_TONE bits.
+     */
+    private static long toneOf(final String toneText) {
+        if (toneText.length() != 1) return 0L;
+        final char c = toneText.charAt(0);
+        return (c >= '0' && c <= '7') ? (c - '0') : 0L;
     }
 
     /**
@@ -203,7 +233,9 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
 
     private static final Collator PINYIN_COLLATOR = new PinyinOrdinalCollator();
     private static final int BITS_PER_SYLLABLE = 9;
-    private static final int MAX_SYLLABLES = 64 / BITS_PER_SYLLABLE;
+    private static final int BITS_PER_TONE = 3;
+    private static final int BITS_PER_CHARACTER = BITS_PER_SYLLABLE + BITS_PER_TONE;
+    private static final int MAX_CHARACTERS = 64 / BITS_PER_CHARACTER;
 
     private final String dialect;
 }

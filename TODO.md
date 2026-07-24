@@ -115,14 +115,31 @@ for the benchmark numbers this backlog refers to).
      8/11/16). Robin predicted correctly that the fix would be slower, not free: the
      collator-based comparator does real work (syllable+tone lookup, even cached) vs. a raw
      `char` comparison, and a quick check confirmed a real slowdown (Radix/11 at N=200,000:
-     ~86ms buggy/wrong-order vs ~275ms correct — about 3.2x). **All "Chinese names (pinyin)"
-     numbers in [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md)
-     predate this fix and are invalid** (measured against incorrectly-sorted output); a
-     corrected full re-run is in progress as of this writing.
+     ~86ms buggy/wrong-order vs ~275ms correct — about 3.2x). All corrected numbers are in
+     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
+   - **2026-07-24 encoding improvement — Robin's proposal**: since `perfect()` has to stay
+     `false` regardless (true homonyms remain possible no matter how many characters are
+     encoded), why not encode tone as well as syllable? It can't buy back skipping the cleanup
+     pass, but it should reduce how much real work that pass does — dropping tone left every
+     group of names sharing a syllable (huge for common surnames) in arbitrary relative order
+     after the first pass, forcing real sorting work during cleanup; encoding tone means the
+     first pass already gets almost everything right except rare true-homonym pairs, letting
+     TimSort's adaptive behavior make the cleanup pass much cheaper. Implemented as 12
+     bits/character (9 syllable + 3 tone), capacity dropping from 7 to 5 characters (still
+     comfortable margin over "4 common, 5 is about the practical maximum" for real names, per
+     Robin). Confirmed empirically, not just theoretically: both sorters got faster (e.g.
+     PureHuskySort at N=1,000,000: 1439ms → 1145ms), radix's relative advantage over
+     PureHuskySort widened (as expected, since its already-cheap first pass now leaves even
+     less for the shared cleanup cost to dominate), and confidence intervals got meaningfully
+     tighter for the best-behaved widths (Radix/11 at N=1,000,000: 1096±199ms → 724±71ms) —
+     consistent with TimSort doing genuinely less work, not just running faster by chance.
+     Headline margin at scale is now ~1.5-1.6x (Radix/11 vs PureHuskySort), up from the
+     collator-fix-only ~1.3-1.5x. Full corrected tables in
+     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
    - **Still to do:** a second dialect (Bopomofo/Zhuyin, already stubbed as dead code in
      `HuskyCoderChinesePinyin.encodeBoPoMoFo`) — wanted eventually per Robin, not immediately;
      the design is parameterized by syllable table so this should be additive when it happens.
-     Otherwise, item 4 is complete (pending the corrected re-run above).
+     Otherwise, item 4 is complete.
 
 5. ~~**Wire RadixHuskySort into the date/`LocalDateTime` sorter benchmarks.**~~ **DONE
    2026-07-22** via `DateSortBenchmarks` (JMH) — see item 1. The *old* harness's
