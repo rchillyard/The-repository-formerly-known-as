@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.ComparableSortHelper;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.util.Config;
 import org.junit.BeforeClass;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -176,5 +178,125 @@ public class RadixHuskySortTest {
         final RadixHuskySort<String> sorter = new RadixHuskySort<>(HuskyCoderFactory.asciiCoder, config);
         assertArrayEquals(new String[0], sorter.sort(new String[0]));
         assertArrayEquals(new String[]{"one"}, sorter.sort(new String[]{"one"}));
+    }
+
+    // ---------- Stability tests (TODO.md item 6) ----------
+    //
+    // LSD radix sort via counting sort is inherently stable: each digit pass is itself a
+    // stable counting sort, and composing stable sorts pass by pass preserves overall
+    // stability. These tests verify that property actually holds for RadixHuskySort, using a
+    // payload type (Tagged) whose comparison/encoding key is deliberately coarse (few distinct
+    // values, heavy duplication) so that stability -- not just "is it sorted" -- is what's
+    // actually being exercised, tracked via a `tag` field (the element's original index) that
+    // has no effect on ordering.
+
+    /**
+     * A key coder that is genuinely "perfect" for Tagged (the encoding matches compareTo
+     * exactly), so no cleanup pass runs -- stability is then purely a property of
+     * RadixHuskySort's own first (and only) pass, not diluted by java.util.Arrays.sort's
+     * already-known stability in a fallback cleanup pass.
+     */
+    private static final class TaggedKeyCoder implements HuskyCoder<Tagged> {
+        @Override
+        public long huskyEncode(final Tagged x) {
+            return x.key;
+        }
+
+        @Override
+        public boolean perfect() {
+            return true;
+        }
+    }
+
+    private static final class Tagged implements Comparable<Tagged> {
+        final long key;
+        final int tag;
+
+        Tagged(final long key, final int tag) {
+            this.key = key;
+            this.tag = tag;
+        }
+
+        @Override
+        public int compareTo(final Tagged other) {
+            return Long.compare(key, other.key);
+        }
+
+        @Override
+        public String toString() {
+            return "Tagged(key=" + key + ", tag=" + tag + ")";
+        }
+    }
+
+    /**
+     * Asserts both that keys are non-decreasing (it actually sorted) and that, within any run
+     * of equal keys, tags appear in ascending order -- since tags are exactly the elements'
+     * original indices, ascending tags within a tied run is precisely "original relative order
+     * preserved", i.e. stability.
+     */
+    private static void assertStableAndSorted(final Tagged[] sorted) {
+        for (int i = 1; i < sorted.length; i++) {
+            assertTrue("not sorted: " + sorted[i - 1] + " should not come after " + sorted[i],
+                    sorted[i - 1].key <= sorted[i].key);
+            if (sorted[i - 1].key == sorted[i].key)
+                assertTrue("stability violated: " + sorted[i - 1] + " should precede " + sorted[i],
+                        sorted[i - 1].tag < sorted[i].tag);
+        }
+    }
+
+    @Test
+    public void testStabilityManyDuplicateKeys() {
+        final int n = 5000;
+        final int numDistinctKeys = 20;
+        final Random random = new Random(123);
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(numDistinctKeys), i);
+
+        final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>(new TaggedKeyCoder(), config);
+        final Tagged[] sorted = sorter.sort(xs);
+
+        assertStableAndSorted(sorted);
+    }
+
+    @Test
+    public void testStabilityAcrossDigitWidths() {
+        final Random random = new Random(321);
+        for (final int digitBits : new int[]{8, 11, 16}) {
+            final int n = 3000;
+            final Tagged[] xs = new Tagged[n];
+            for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(15), i);
+
+            final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>(digitBits, new TaggedKeyCoder(), config);
+            final Tagged[] sorted = sorter.sort(xs);
+            assertStableAndSorted(sorted);
+        }
+    }
+
+    @Test
+    public void testStabilityWithNegativeKeys() {
+        final int n = 4000;
+        final Random random = new Random(55);
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(21) - 10, i); // keys -10..10
+        final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>(new TaggedKeyCoder(), config);
+        final Tagged[] sorted = sorter.sort(xs);
+        assertStableAndSorted(sorted);
+    }
+
+    /**
+     * The strongest possible stability check: every element ties on key, so a stable sort must
+     * leave the array in exactly its original order.
+     */
+    @Test
+    public void testStabilityAllSameKey() {
+        final int n = 500;
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(42L, i);
+
+        final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>(new TaggedKeyCoder(), config);
+        final Tagged[] sorted = sorter.sort(xs);
+
+        for (int i = 0; i < n; i++)
+            assertEquals("all-same-key input should come out in original order", i, sorted[i].tag);
     }
 }

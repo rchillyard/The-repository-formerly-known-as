@@ -113,10 +113,15 @@ for the benchmark numbers this backlog refers to).
    2026-07-22** via `DateSortBenchmarks` (JMH) — see item 1. The *old* harness's
    `runDateTimeSortBenchmark` ternary is untouched (not worth it now that JMH covers this).
 
-6. **Add an explicit stability test for RadixHuskySort.**
-   LSD counting sort is inherently stable, and the original task brief flagged this as a
-   possible simplification to the paper's Section 6.1 (quicksort instability) discussion —
-   not yet verified in a test.
+6. ~~**Add an explicit stability test for RadixHuskySort.**~~ **DONE 2026-07-24.** Added 4
+   tests to `RadixHuskySortTest` using a `Tagged` payload (a coarse, heavily-duplicated `key`
+   for ordering plus a `tag` field recording original index, unaffected by ordering): many
+   duplicate keys, a sweep across digit widths (8/11/16), negative keys, and the strongest
+   case (every element ties) which must reproduce the exact original order. Used a
+   deliberately "perfect" test coder (`TaggedKeyCoder`) so the cleanup pass never runs,
+   isolating the property to RadixHuskySort's own first pass rather than `Arrays.sort`'s
+   already-known stability. All pass, confirming LSD counting sort's inherent stability holds
+   in this implementation — the paper's Section 6.1 simplification is on solid footing.
 
 7. **Broader systematic adversarial/skewed-encoding testing (Reviewer 4's critique).**
    We have one narrow "collapsed high bits" unit test in `RadixHuskySortTest`. The brief
