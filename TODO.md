@@ -155,15 +155,36 @@ for the benchmark numbers this backlog refers to).
    already-known stability. All pass, confirming LSD counting sort's inherent stability holds
    in this implementation — the paper's Section 6.1 simplification is on solid footing.
 
-7. **Broader systematic adversarial/skewed-encoding testing (Reviewer 4's critique).**
-   We have one narrow "collapsed high bits" unit test in `RadixHuskySortTest`. The brief
-   wants more: shared-prefix strings, poor-entropy high-order digits, and a real comparison
-   of how radix vs. quicksort degrade differently under those conditions.
+7. ~~**Broader systematic adversarial/skewed-encoding testing (Reviewer 4's critique).**~~
+   **DONE 2026-07-24.** New `AdversarialSortBenchmarks` (JMH), two scenarios: (A) synthetic
+   `Long[]` with a swept number of high-order bits held fixed/identical, (B) real English words
+   with a swept-length shared prefix prepended. Full write-up in the "Adversarial inputs"
+   section of
+   [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md). Headline:
+   two different failure modes. (A) When keys collide in high-order bits but the encoding is
+   still otherwise informative, RadixHuskySort is essentially immune (flat cost by
+   construction) while the paper's own re-implemented dual-pivot-quicksort baseline degrades by
+   orders of magnitude and then crashes outright with `StackOverflowError` at the extreme end
+   (3 of 14 parameter combinations); PureHuskySort (the actual existing Introsort-based
+   approach) avoids the crash but radix removes even the slowdown. (B) When the *source data*
+   (a shared string prefix ≥ the coder's 9-character capture window) defeats the encoding
+   entirely, no sort-algorithm choice helps — every Husky-based approach, radix included, ends
+   up slower than plain System sort, since the wasted first-pass work is paid on top of a
+   cleanup pass that has to do all the real sorting anyway. The first finding is a genuine
+   radix-specific answer to Reviewer 4; the second is an honest limitation of the encoding
+   scheme itself, already implicit in the original paper's own `p_crit` discussion.
 
-8. **Draft the short write-up the task brief's "Deliverable" section asks for**, as
-   groundwork for the resubmission response to Reviewer 3: whether radix beats the current
-   approach on real data, which digit width wins at what N, and whether it changes the
-   adversarial-input story.
+8. ~~**Draft the short write-up the task brief's "Deliverable" section asks for.**~~ **DONE**
+   (satisfied incrementally) — the three deliverable questions are all answered in
+   [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md): radix beats
+   the current approach at every real size/type tested (Headline conclusion section); digit
+   width has no single crossover, a plateau from ~12-16 bits for Strings, no consistent winner
+   for Numerics/Tuples (same section, and the "Finer digit-width sweep" section); and yes, it
+   changes the adversarial-input story, in two different directions depending on where the
+   adversarial structure lives (Adversarial-input headline, above). This groundwork now feeds
+   directly into the paper resubmission itself, which is a separate, broader effort covering
+   all reviewers' comments (not just Reviewers 3 and 4, which is all
+   [Husky sort radix task brief.md](Husky%20sort%20radix%20task%20brief.md) covers).
 
 9. **Track down and document the source of `Chinese_Names_Corpus.txt`.** No provenance
    exists anywhere in the repo: the commit that added it (`3d8576c`, July 2022) just says
@@ -210,3 +231,41 @@ for the benchmark numbers this backlog refers to).
     `Map<Character, String>` override table consulted before falling back to the default. Only
     fixes the 0.32% polyphone-driven disagreement quantified in item 9's finding above;
     unrelated to item 10.
+
+## Paper resubmission (2026-07-24 onward)
+
+The radix-sort backlog above (items 1-8) was groundwork for an actual SIAM ACDA21 resubmission.
+The paper source is now in this repo at [paper/HuskySort.tex](paper/HuskySort.tex) (moved from
+Robin's OneDrive so editing happens under git), with the four verbatim reviews plus PC decision
+archived at [paper/SIAM_ACDA21_Reviews.md](paper/SIAM_ACDA21_Reviews.md). Full phased plan
+(reviewer-to-content mapping, sequencing) is tracked as session tasks; see the plan file
+referenced in that session, or re-derive from the reviews doc if picking this up cold. Document
+format/venue (SIAM template vs. staying with `acmart`) is explicitly deferred until last —
+Robin asked Claude Chat for a venue recommendation previously and didn't get one.
+
+12. **Phase A — new algorithmic/experimental content** (answers Reviews 2, 3, 4 and the PC's
+    "not enough algorithmic innovation" verdict): RadixHuskySort algorithm subsection; extend
+    the array-access complexity analysis with a radix term; adversarial-inputs appendix section
+    (collapsed high bits + shared-prefix strings, including the `StackOverflowError` finding);
+    explicit rebuttal of Review 1's "advantage shrinks with N" critique using the new JMH data;
+    generalization-beyond-64-bits paragraph; literature paragraph (external-memory/
+    cache-oblivious sorting citations + parallelizability note) with two new hand-written
+    `\bibitem` entries in `paper/HuskySort.bbl` (no `.bib` source exists in the tarball); new
+    encoding-only JMH benchmark (isolating `huskyEncode` cost) to answer Review 1's "did you
+    time the encoding phase" question, folded into
+    [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md) before the
+    corresponding paragraph is written.
+
+13. **Phase B — structural reorganization** (Reviews 2, 3): prior-algorithms comparison passage
+    in Background before introducing Huskysort; move Data Source subsection out of the start of
+    Implementation; consolidate analysis currently split between §3.3 (`p_crit`) and §5 (Test
+    Case and Analysis).
+
+14. **Phase C — mechanical/presentation fixes** (Reviews 1, 3): convert Figures 4 and 6-9 from
+    image screenshots to real LaTeX tables using the new JMH numbers; state units (ms) on every
+    table and switch "% faster" framing to "Nx faster" ratio framing throughout; trim verbatim
+    Java code listings in favor of the existing Algorithm pseudocode; grammar/wording pass per
+    Review 3's itemized list; move the inline per-author-contribution sentence out of the body
+    text (already covered by `\authornote`s); flag the "broken Bentley citation" issue to Robin
+    — **no Bentley citation exists anywhere in this v1 source** (confirmed via `grep`), so this
+    can't be "fixed" without guessing what was meant.

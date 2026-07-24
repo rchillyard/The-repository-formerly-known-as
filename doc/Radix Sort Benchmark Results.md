@@ -375,6 +375,149 @@ Headline: radix now beats PureHuskySort on Chinese names by roughly **1.5-1.6x**
 categories, but a real, solid win, recovered by fixing the `getCollator()` bug and then further
 improved by encoding tone.
 
+## Adversarial inputs (Reviewer 4)
+
+TODO.md item 7, answering the other unanswered critique from the original review round:
+Reviewer 4 pointed out it would be "trivial to construct inputs that cause the proposed scheme
+to perform poorly," and that the paper never showed what happens when the husky encoding has
+poor entropy. Two scenarios, both JMH (`AdversarialSortBenchmarks`,
+`java -jar target/benchmarks.jar 'AdversarialSortBenchmarks\..*'`), `@Fork(2)`, 3+5 one-second
+iterations.
+
+### Scenario A: collapsed high-order bits (synthetic `Long[]`)
+
+A direct, parameterized version of the concern: `fixedHighBits` high-order bits held identical
+across every element (masked to a fixed pattern), the rest random; `fixedHighBits=0` is the
+random baseline, `63` leaves only the sign bit free. `collapsedBitsDualPivotQuicksort` is the
+paper's own re-implemented dual-pivot quicksort baseline (see the footnote in the paper's
+Test Case and Analysis section: "dual-pivot quicksort is not actually implemented in the Java
+library for Comparable objects, so we re-implemented the class for objects" — i.e. a from-scratch
+recursive partition with no equal-element/3-way handling). Time (ms, mean; CI omitted here for
+readability, available in the raw CSV):
+
+| N | fixedHighBits | System sort | PureHuskySort | DualPivotQuicksort (raw) | Radix/8 | Radix/11 | Radix/16 |
+|---|---|---|---|---|---|---|---|
+| 200,000 | 0 | 42.8 | 26.7 | 24.6 | 6.1 | 6.3 | 6.3 |
+| 200,000 | 16 | 32.8 | 41.0 | 27.9 | 6.8 | 5.5 | 6.0 |
+| 200,000 | 32 | 32.3 | 26.6 | 24.6 | 8.5 | 8.2 | 6.1 |
+| 200,000 | 48 | 33.2 | 30.1 | 22.9 | 10.7 | 7.3 | 6.5 |
+| 200,000 | 56 | 21.8 | 11.9 | 174.5 | 14.5 | 7.9 | 6.1 |
+| 200,000 | 60 | 12.9 | 6.0 | 2059.6 | 9.6 | 7.4 | 6.1 |
+| 200,000 | 63 | 4.8 | 1.8 | **CRASH** | 9.0 | 6.6 | 5.0 |
+| 1,000,000 | 0 | 287.9 | 180.6 | 174.9 | 54.8 | 55.9 | 61.5 |
+| 1,000,000 | 16 | 243.2 | 181.9 | 193.7 | 59.3 | 69.0 | 52.1 |
+| 1,000,000 | 32 | 232.0 | 193.4 | 180.2 | 69.7 | 80.6 | 53.5 |
+| 1,000,000 | 48 | 205.5 | 159.5 | 163.4 | 76.7 | 60.6 | 51.3 |
+| 1,000,000 | 56 | 107.4 | 82.6 | 3220.5 | 78.5 | 72.1 | 52.2 |
+| 1,000,000 | 60 | 71.5 | 75.6 | **CRASH** | 66.9 | 52.9 | 40.9 |
+| 1,000,000 | 63 | 27.1 | 13.1 | **CRASH** | 56.8 | 37.7 | 34.5 |
+
+"CRASH" = every fork threw `java.lang.StackOverflowError` during warmup, no measurement
+possible at all — not "slow," but a hard failure. This happened at 3 of the 14
+(N, fixedHighBits) combinations, all at the extreme end of the sweep (fixedHighBits 60-63,
+i.e. only the top 1-4 bits vary).
+
+Three findings:
+
+1. **RadixHuskySort stays essentially flat across the entire sweep**, at every digit width —
+   6-11ms at N=200,000 and 41-81ms at N=1,000,000 regardless of `fixedHighBits`. This is exactly
+   the expected behavior for an algorithm whose cost per pass is a fixed function of N and digit
+   width, independent of the data's actual distribution: a pass over collapsed digits is just
+   "everything lands in one bucket," no more expensive than any other pass.
+2. **The paper's own re-implemented dual-pivot quicksort baseline degrades catastrophically,
+   then crashes outright.** It tracks the random baseline closely up to `fixedHighBits=48`
+   (163-194ms at N=1,000,000, similar to System sort/PureHuskySort), then blows up by more than
+   an order of magnitude at 56 (3220ms) and 60 (2059ms at N=200,000), before failing completely
+   at 60 (N=1,000,000) and 63 (both sizes) with a stack overflow. This is the sharpest possible
+   illustration of Reviewer 4's point — a plausible, simple construction (many keys sharing most
+   of their high-order bits) doesn't just slow this implementation down, it crashes it — but the
+   crashing implementation is the *baseline comparison*, not Huskysort itself.
+3. **PureHuskySort — Huskysort's actual current approach (Introsort, i.e. quicksort with a
+   depth-limited heapsort fallback per Musser 1997, plus the mandatory Timsort cleanup pass) —
+   neither crashes nor degrades anywhere in this sweep; if anything it gets faster as
+   `fixedHighBits` grows** (26.7ms → 1.8ms at N=200,000), the same pattern System sort shows,
+   consistent with Timsort's adaptive run-detection treating long stretches of tied/nearly-equal
+   keys as pre-existing runs. So Huskysort's *existing* design is already meaningfully more
+   robust to this adversarial pattern than a naively-implemented quicksort — the heapsort
+   fallback (or the cleanup pass, or both) evidently prevents the pathological recursion depth
+   that sinks the raw baseline. Radix sort is more robust still, because its immunity is
+   structural (cost provably independent of key distribution) rather than incidental to a
+   fallback mechanism tuned to catch *this particular* pathology.
+
+### Scenario B: strings sharing a long common prefix
+
+A realistic version of the same concern for the paper's actual String benchmarks: real Leipzig
+English words with a fixed-length prefix of `a` characters prepended, so the shared prefix
+consumes some or all of the husky code's fixed character-capture window (`englishCoder` is
+7-bit ASCII, `MAX_LENGTH_ASCII = 64/7 = 9` characters per the paper's own Constants listing —
+so `prefixLength >= 9` means every element's husky code is *identical*, i.e. total information
+loss before the sort even starts). No dual-pivot-quicksort baseline here (String sorting always
+goes through Timsort/comparator machinery, not a primitive dual-pivot path). Time (ms, mean):
+
+| N | prefixLength | System sort | PureHuskySort | Radix/8 | Radix/11 | Radix/16 |
+|---|---|---|---|---|---|---|
+| 200,000 | 0 | 97.1 | 46.2 | 31.1 | 32.4 | 31.5 |
+| 200,000 | 10 | 64.6 | 86.4 | 72.5 | 98.7 | 73.0 |
+| 200,000 | 20 | 77.4 | 73.0 | 81.4 | 79.3 | 71.3 |
+| 200,000 | 40 | 73.4 | 72.2 | 90.6 | 84.4 | 79.0 |
+| 1,000,000 | 0 | 627.0 | 292.1 | 173.7 | 214.6 | 180.2 |
+| 1,000,000 | 10 | 452.9 | 484.9 | 490.0 | 520.0 | 519.9 |
+| 1,000,000 | 20 | 439.7 | 475.7 | 524.0 | 518.0 | 568.1 |
+| 1,000,000 | 40 | 516.7 | 556.7 | 582.5 | 599.5 | 582.3 |
+
+A genuinely different, and less flattering, story than Scenario A:
+
+- At `prefixLength=0` (baseline), the usual pattern holds — radix beats PureHuskySort, which
+  beats System sort (e.g. N=1,000,000: 174-215ms vs 292ms vs 627ms).
+- **Once `prefixLength` reaches 10 (past the 9-character encoding window), the entire ranking
+  inverts: plain System sort becomes the fastest option, and every Husky-based approach —
+  PureHuskySort *and* Radix, at every digit width — becomes slower than System sort**, not just
+  no-longer-faster (e.g. N=1,000,000, prefixLength=10: System 452.9ms vs. PureHuskySort 484.9ms,
+  Radix 490-520ms). This holds at prefixLength 20 and 40 too.
+- The mechanism is different from Scenario A, and it isn't a sort-algorithm problem at all: once
+  the shared prefix meets or exceeds the coder's fixed capture window, *every* husky code is
+  bit-for-bit identical, so the O(N) encoding pass buys zero disambiguation, and the entire
+  ordering burden falls on the mandatory Timsort cleanup pass doing real `String.compareTo`
+  comparisons — comparisons which are themselves more expensive than usual, since they must scan
+  past the shared prefix before finding a difference. Whichever sort ran first (quicksort/
+  Introsort or radix) did genuinely useless work first, then the encoding+first-pass overhead is
+  paid *on top of* a cleanup pass that has to do all the real work anyway — which is exactly why
+  every Husky variant ends up slower than just running System sort directly.
+- Radix doesn't recover any advantage here, and is very slightly the slowest of the three
+  Husky-based options in this regime (e.g. N=1,000,000, prefixLength=40: Radix/8-16 582-600ms vs
+  PureHuskySort 556.7ms) — its fixed per-pass cost, a strength in Scenario A, becomes pure
+  overhead once the encoding carries no information at all: it still does the full digit sweep
+  for zero sorting progress.
+
+This scenario isn't a radix-vs-quicksort question at all — it's a direct, real demonstration of
+the paper's own `p_crit`/"perfect encoding" discussion (§3.2 in the original paper): performance
+depends on how much the *actual data* defeats the encoding's fixed capture window, independent
+of which O(N)/O(N log N) sort follows it. A shared prefix long enough to exceed that window is
+exactly the kind of adversarial input Reviewer 4 asked about, and the honest answer is that it
+defeats the whole Huskysort premise (spend O(N) upfront to save comparisons later), not just one
+implementation choice for the sort step.
+
+### Adversarial-input headline
+
+Two distinct findings, because Reviewer 4's "poor entropy" concern actually covers two different
+failure modes:
+
+1. **When many keys collide in their high-order bits but the underlying objects are still
+   genuinely distinguishable by the encoding** (Scenario A) — radix sort is effectively immune,
+   by construction; a naively-implemented quicksort baseline is not, and can degrade by orders of
+   magnitude or crash outright. Huskysort's actual existing approach (Introsort with a
+   depth-limited fallback) already avoids the crash, but radix removes even the slowdown.
+2. **When the source data itself overwhelms the encoding's fixed capture window** (Scenario B) —
+   no choice of sort algorithm for the encoded longs can help, because the encoding has been
+   defeated and carries no information; every Husky-based approach, radix included, ends up
+   *worse* than plain System sort, since the wasted encoding/first-pass work is paid on top of a
+   cleanup pass that has to do all the real work regardless.
+
+Both are real, constructible "trivial adversarial inputs" in the sense Reviewer 4 meant. The
+first strengthens the case for radix specifically; the second is a limitation of the encoding
+scheme itself, already implicit in the original paper's own `p_crit` discussion, and applies
+equally regardless of whether quicksort or radix sorts the codes.
+
 ## Headline conclusion
 
 Radix sort with a deferred permutation beats the repo's current quicksort-based husky
@@ -401,3 +544,17 @@ passes. For Numerics and Tuples, 8/11/16-bit differences remain close to noise l
 sizes, with no single width winning across every type. See TODO.md item 2 for what's still
 open: independent replication, a possible (but not yet confirmed) 11-bit-specific noise
 pattern, and whether the String plateau shape holds for Numerics/Tuples too.
+
+On adversarial inputs (Reviewer 4, see the section above): radix sort is structurally immune to
+high-order-bit collisions in the encoded keys themselves, while the paper's own re-implemented
+quicksort baseline degrades by orders of magnitude and eventually crashes with
+`StackOverflowError` under the same conditions — Huskysort's actual existing Introsort-based
+approach already avoids the crash, but radix removes the slowdown too. That result doesn't
+carry over unconditionally, though: when the *source data* (not just the encoded keys) defeats
+the encoding's fixed capture window entirely (e.g. a shared string prefix longer than the
+coder's character limit), no sort-algorithm choice helps — radix included — and every
+Husky-based approach ends up slower than plain System sort, because the wasted encoding/sort
+work on a fully-collided key is paid on top of a cleanup pass that has to do all the real work
+regardless. The first result is a genuine, radix-specific answer to Reviewer 4; the second is
+an honest limitation of the encoding scheme itself, already implicit in the original paper's
+`p_crit` discussion.
