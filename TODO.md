@@ -99,15 +99,30 @@ for the benchmark numbers this backlog refers to).
      fixed a real performance bug while first running this: the cleanup-pass pinyin lookup was
      uncached, making the first cut of numbers badly misleading (PureHuskySort ~150ms,
      RadixHuskySort ~37-38ms at N=20,000) until a simple per-character memoization cache
-     dropped that to ~15ms and ~7.5ms respectively (10x and 5x). Full results (all digit
-     widths, N up to 1,000,000) in the new "Chinese names (pinyin)" section of
-     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md): radix
-     beats the existing PureHuskySort-based approach by roughly 2.4-3.8x, consistent with every
-     other category benchmarked so far.
+     dropped that to ~15ms and ~7.5ms respectively (10x and 5x).
+   - **2026-07-24 correction — a real correctness bug, found while answering Robin's question
+     about where the cleanup pass lives**: `RadixHuskySort`'s convenience constructor hardcoded
+     `Arrays::sort` as the cleanup-pass post-sorter, never consulting `HuskyCoder.getCollator()`
+     — so for a Collator-supplying coder (`HuskyCoderChinesePinyin`, which always needs the
+     cleanup pass since it never claims `perfect()`), every `RadixHuskySort` result for Chinese
+     names was silently sorted by natural Unicode-code-point order, not the intended pinyin
+     order. Verified empirically (the 16-name canonical test case came out completely wrong).
+     `PureHuskySort` already handled this correctly; `RadixHuskySort` did not, and no existing
+     test caught it (`RadixHuskySortTest` never used a Collator-supplying coder;
+     `HuskyCoderChinesePinyinTest` never exercised `RadixHuskySort`). Fixed by making the
+     convenience constructor check `getCollator()`, matching `PureHuskySort`'s pattern; added a
+     dedicated regression test (`testChineseNamesUseCollatorNotNaturalOrder`, digit widths
+     8/11/16). Robin predicted correctly that the fix would be slower, not free: the
+     collator-based comparator does real work (syllable+tone lookup, even cached) vs. a raw
+     `char` comparison, and a quick check confirmed a real slowdown (Radix/11 at N=200,000:
+     ~86ms buggy/wrong-order vs ~275ms correct — about 3.2x). **All "Chinese names (pinyin)"
+     numbers in [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md)
+     predate this fix and are invalid** (measured against incorrectly-sorted output); a
+     corrected full re-run is in progress as of this writing.
    - **Still to do:** a second dialect (Bopomofo/Zhuyin, already stubbed as dead code in
      `HuskyCoderChinesePinyin.encodeBoPoMoFo`) — wanted eventually per Robin, not immediately;
      the design is parameterized by syllable table so this should be additive when it happens.
-     Otherwise, item 4 is essentially complete.
+     Otherwise, item 4 is complete (pending the corrected re-run above).
 
 5. ~~**Wire RadixHuskySort into the date/`LocalDateTime` sorter benchmarks.**~~ **DONE
    2026-07-22** via `DateSortBenchmarks` (JMH) — see item 1. The *old* harness's

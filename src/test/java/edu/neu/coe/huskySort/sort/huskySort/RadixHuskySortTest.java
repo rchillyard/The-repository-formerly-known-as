@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderChinesePinyin;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.util.Config;
 import org.junit.BeforeClass;
@@ -178,6 +179,29 @@ public class RadixHuskySortTest {
         final RadixHuskySort<String> sorter = new RadixHuskySort<>(HuskyCoderFactory.asciiCoder, config);
         assertArrayEquals(new String[0], sorter.sort(new String[0]));
         assertArrayEquals(new String[]{"one"}, sorter.sort(new String[]{"one"}));
+    }
+
+    /**
+     * Regression test for a real bug found 2026-07-24: RadixHuskySort's convenience
+     * constructor hardcoded Arrays::sort as the cleanup-pass post-sorter, never consulting
+     * HuskyCoder.getCollator() -- so for a Collator-supplying coder (HuskyCoderChinesePinyin,
+     * which always needs the cleanup pass, since it never claims perfect()), the result was
+     * silently sorted by natural (Unicode code point) order instead of the coder's actual
+     * intended order. PureHuskySort already handled this correctly; RadixHuskySort did not.
+     * No existing test caught this: RadixHuskySortTest never used a Collator-supplying coder,
+     * and HuskyCoderChinesePinyinTest never exercised RadixHuskySort.
+     */
+    @Test
+    public void testChineseNamesUseCollatorNotNaturalOrder() {
+        final String[] xs = {"刘持平", "洪文胜", "樊辉辉", "苏会敏", "高民政", "曹玉德", "袁继鹏", "舒冬梅", "杨腊香", "许凤山", "王广风", "黄锡鸿", "罗庆富", "顾芳芳", "宋雪光", "王诗卉"};
+        final String[] expected = Arrays.copyOf(xs, xs.length);
+        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
+
+        for (final int digitBits : new int[]{8, 11, 16}) {
+            final RadixHuskySort<String> sorter = new RadixHuskySort<>(digitBits, HuskyCoderFactory.chineseEncoderPinyin, config);
+            final String[] actual = sorter.sort(Arrays.copyOf(xs, xs.length));
+            assertArrayEquals("digitBits=" + digitBits, expected, actual);
+        }
     }
 
     // ---------- Stability tests (TODO.md item 6) ----------

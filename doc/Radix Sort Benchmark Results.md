@@ -278,28 +278,53 @@ corpus. The meaningful comparison is PureHuskySort vs RadixHuskySort — both co
 pinyin order; System sort's number is included only as a "how fast is a differently-defined
 sort" reference point, not a real competitor.
 
+**2026-07-24 correction — the numbers below replace an earlier, invalid set.** `RadixHuskySort`
+had a real bug: its convenience constructor hardcoded `Arrays::sort` as the cleanup-pass
+post-sorter and never consulted `HuskyCoder.getCollator()`. `HuskyCoderChinesePinyin` always
+needs the cleanup pass (it never claims `perfect()`), so every prior `RadixHuskySort` result
+for Chinese names was silently sorted by natural Unicode-code-point order, not real pinyin
+order — invalidating the RadixHuskySort numbers from the first pass of this benchmark (though
+not PureHuskySort's, which already checked `getCollator()` correctly). Fixed by making the
+convenience constructor check `getCollator()`, with a dedicated regression test added. Robin
+predicted correctly that the fix would come at a real performance cost, not be free — the
+collator-based comparator does genuinely more work (a cached syllable+tone lookup and
+comparison) than a raw `char` comparison. Confirmed below: RadixHuskySort's advantage over
+PureHuskySort shrinks substantially now that both pay the same expensive cleanup-pass cost.
+
 | N | System (wrong order) | PureHuskySort (correct) | Radix/8 | Radix/10 | Radix/11 | Radix/12 | Radix/13 | Radix/14 | Radix/16 |
 |---|---|---|---|---|---|---|---|---|---|
-| 32,000 | 8.6±1.2 | 33.6±6.3 | 13.9±1.5 | 13.5±1.7 | 13.7±1.8 | 13.6±1.5 | 14.9±3.6 | 14.1±3.0 | 13.9±2.8 |
-| 200,000 | 80.3±13.6 | 326.2±**299.8** | 88.1±8.3 | 87.0±7.3 | 86.3±5.4 | 145.7±**53.6** | 95.7±15.7 | 96.8±19.0 | 87.9±11.2 |
-| 1,000,000 | 544.2±160.7 | 1090.8±**399.4** | 438.9±28.5 | 428.4±23.4 | 422.4±55.5 | 492.8±81.4 | 475.8±105.4 | 502.2±134.9 | 457.0±79.9 |
+| 32,000 | 14.8±5.3 | 52.6±**33.5** | 42.0±16.3 | 42.8±25.9 | 47.0±18.6 | 34.3±6.1 | 37.1±7.4 | 40.1±16.2 | 33.8±2.1 |
+| 200,000 | 105.1±10.6 | 276.6±85.9 | 434.7±**248.9** | 310.9±**152.6** | 207.2±27.3 | 221.1±58.3 | 235.0±65.2 | 199.6±47.9 | 211.2±44.6 |
+| 1,000,000 | 695.5±200.2 | 1439.3±481.5 | 1575.0±**1595.6** | 970.1±90.9 | 1095.7±198.7 | 970.5±73.5 | 1056.3±186.0 | 1073.6±126.3 | 1205.3±**646.0** |
 
-Radix beats the existing pinyin-sorting approach (PureHuskySort) by roughly **2.4-3.8x**
-depending on N, directionally consistent and robust even given PureHuskySort's wide confidence
-intervals at the larger sizes (even PureHuskySort's own lower bound stays well above most
-radix variants' upper bound). Digit width shows no clear single winner here (unlike the
-cleaner plateau seen for the Leipzig corpora): all widths land in a similar 420-500ms range at
-N=1,000,000, and Radix/12 is a noisy-CI outlier at 200,000 — matching the same
-single-session-noise pattern already documented for the String fine sweep.
+Radix still wins at every size, but by a much smaller margin than the invalid numbers implied
+— roughly **1.3-1.5x** at N=1,000,000 (Radix/10 and Radix/12, the tightest/lowest of the
+bunch, at ~970ms vs PureHuskySort's ~1439ms), not the previously-reported 2.4-3.8x. That makes
+sense: with both sorters now paying the same expensive collator-based cleanup cost, radix's
+advantage is confined to the (proportionally much smaller) first-pass cost difference.
 
-This benchmark also motivated two real fixes made along the way (TODO.md item 4, stage 2):
-`HuskyCoderChinesePinyin` previously always claimed `perfect()` (skipping the cleanup pass
-unconditionally, regardless of correctness), and — separately, a performance issue rather than
-a correctness one — even after fixing that, the cleanup pass's pinyin lookup was uncached,
-making a first cut of this benchmark badly misleading (PureHuskySort at ~150ms and
-RadixHuskySort at ~37-38ms for N=20,000, vs ~15ms and ~7.5ms respectively once a simple
-per-character cache was added — a 10x and 5x improvement). All numbers above reflect the
-cached version.
+Two things stand out that didn't show up as clearly on the other corpora:
+- **The corrected comparator makes timings noisier across the board**, not just slower — every
+  CI here is wide relative to its mean, and Radix/8 at N=1,000,000 has a CI *larger than its
+  own mean* (essentially uninformative that row). This looks like a property of the
+  collator-based comparison itself (more branching/lookups per comparison than a raw `char`
+  compare) rather than anything specific to a particular digit width.
+- **No clear digit-width winner** — unlike the clean plateau seen for the Leipzig corpora,
+  every width from 8 through 16 lands somewhere in a wide, overlapping range at each size, with
+  the "which width looks best" ranking not obviously consistent between 200,000 and 1,000,000.
+
+Given the width of these confidence intervals, this data would benefit from an independent
+repeated run before treating any specific ranking as settled — the headline "radix still wins,
+margin much smaller than first thought" is solid; the fine-grained ordering among 8-16 bits
+here is not.
+
+This benchmark also motivated two earlier fixes (TODO.md item 4, stage 2, both still valid and
+unaffected by the correction above): `HuskyCoderChinesePinyin` previously always claimed
+`perfect()` (skipping the cleanup pass unconditionally, regardless of correctness), and,
+separately, the cleanup pass's pinyin lookup was uncached, making an even earlier cut of this
+benchmark badly misleading (PureHuskySort ~150ms, RadixHuskySort ~37-38ms at N=20,000, before
+caching; both numbers were also using the wrong-order RadixHuskySort at that point, on top of
+being uncached).
 
 ## Headline conclusion
 
@@ -307,11 +332,16 @@ Radix sort with a deferred permutation beats the repo's current quicksort-based 
 long-sort approach at every size and every real data type tested here — Strings, Integer,
 Double, Long, BigInteger, BigDecimal, Tuples, Dates, and Chinese names sorted by pinyin —
 typically by **2-4x at N >= 200,000** (up to ~4.5x for Dates, where the "perfect" encoding
-removes any cleanup-pass overhead), directly confirming Reviewer 3's suspicion. This is now
-backed by JMH measurements (proper fork isolation, warmup, and confidence intervals) for every
-category, not just the original ad hoc timer-loop numbers — and JMH caught a real problem the
-ad hoc numbers didn't: the apparent N=1,000,000 String digit-width reversal turned out to be
-noise, not a real effect.
+removes any cleanup-pass overhead), directly confirming Reviewer 3's suspicion. Chinese names
+are the one exception to that "2-4x" range: after fixing a real `RadixHuskySort` bug (it wasn't
+using the pinyin-aware cleanup comparator at all — see the Chinese names section), the honest
+margin there is a smaller ~1.3-1.5x, because both sorters now pay the same expensive
+collator-based cleanup cost, leaving less of a gap for radix's cheaper first pass to show
+through. This is now backed by JMH measurements (proper fork isolation, warmup, and confidence
+intervals) for every category, not just the original ad hoc timer-loop numbers — and JMH
+caught two real problems the ad hoc numbers didn't: the apparent N=1,000,000 String
+digit-width reversal turned out to be noise, not a real effect, and the first cut of the
+Chinese-names numbers was measured against an incorrectly-ordered `RadixHuskySort` result.
 
 The digit-width question turned out more nuanced than the ad hoc data suggested, and there's no
 single sharp crossover. For Strings, the best widths form a **plateau from roughly 12 through

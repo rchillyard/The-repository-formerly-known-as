@@ -6,6 +6,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.util.Config;
 
+import java.text.Collator;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -50,14 +51,25 @@ public final class RadixHuskySort<X extends Comparable<X>> extends AbstractHusky
     }
 
     /**
-     * Secondary constructor: the number of elements is unknown and the post-sorter is the System sort.
+     * Secondary constructor: the number of elements is unknown, and the post-sorter is the
+     * System sort -- using huskyCoder's Collator if it supplies one (e.g.
+     * HuskyCoderChinesePinyin), falling back to natural ordering otherwise. NOTE: this fixes a
+     * real bug found 2026-07-24 -- this constructor previously hardcoded {@code Arrays::sort}
+     * regardless of huskyCoder.getCollator(), silently producing natural-order (not
+     * Collator-order) results whenever the cleanup pass actually ran for a Collator-supplying
+     * coder. PureHuskySort already got this right; RadixHuskySort did not.
      *
      * @param digitBits  the width, in bits, of each radix-sort digit/pass.
      * @param huskyCoder the Husky coder.
      * @param config     the configuration.
      */
     public RadixHuskySort(final int digitBits, final HuskyCoder<X> huskyCoder, final Config config) {
-        this("RadixHuskySort/" + digitBits, 0, digitBits, huskyCoder, Arrays::sort, config);
+        this("RadixHuskySort/" + digitBits, 0, digitBits, huskyCoder, defaultPostSorter(huskyCoder), config);
+    }
+
+    private static <Y extends Comparable<Y>> Consumer<Y[]> defaultPostSorter(final HuskyCoder<Y> huskyCoder) {
+        final Collator collator = huskyCoder.getCollator();
+        return collator == null ? Arrays::sort : xs -> Arrays.sort(xs, collator);
     }
 
     /**
