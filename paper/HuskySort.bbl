@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{12}
+\begin{thebibliography}{14}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -37,6 +37,23 @@
 \providecommand\natexlab[1]{#1}
 \providecommand\showeprint[2][]{arXiv:#2}
 
+\bibitem[\protect\citeauthoryear{Aggarwal and Vitter}{Aggarwal and
+  Vitter}{1988}]%
+        {10.1145/48529.48535}
+\bibfield{author}{\bibinfo{person}{Alok Aggarwal} {and}
+  \bibinfo{person}{Jeffrey~Scott Vitter}.} \bibinfo{year}{1988}\natexlab{}.
+\newblock \showarticletitle{The Input/Output Complexity of Sorting and
+  Related Problems}.
+\newblock \bibinfo{journal}{\emph{Commun. ACM}} \bibinfo{volume}{31},
+  \bibinfo{number}{9} (\bibinfo{date}{Sept.} \bibinfo{year}{1988}),
+  \bibinfo{pages}{1116--1127}.
+\newblock
+\showISSN{0001-0782}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/48529.48535}
+\showDOI{\tempurl}
+
+
 \bibitem[\protect\citeauthoryear{Auger, Jug{\'{e}}, Nicaud, and Pivoteau}{Auger
   et~al\mbox{.}}{2018}]%
         {DBLP:journals/corr/abs-1805-08612}
@@ -52,6 +69,21 @@
 \url{http://arxiv.org/abs/1805.08612}
 \showURL{%
 \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Frigo, Leiserson, Prokop, and
+  Ramachandran}{Frigo et~al\mbox{.}}{1999}]%
+        {814600}
+\bibfield{author}{\bibinfo{person}{M. Frigo}, \bibinfo{person}{C.~E.
+  Leiserson}, \bibinfo{person}{H. Prokop}, {and}
+  \bibinfo{person}{S. Ramachandran}.} \bibinfo{year}{1999}\natexlab{}.
+\newblock \showarticletitle{Cache-oblivious algorithms}. In
+  \bibinfo{booktitle}{\emph{40th Annual Symposium on Foundations of Computer
+  Science (Cat. No.99CB37039)}}. \bibinfo{pages}{285--297}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/SFFCS.1999.814600}
+\showDOI{\tempurl}
 
 
 \bibitem[\protect\citeauthoryear{Gilreath}{Gilreath}{2004}]%

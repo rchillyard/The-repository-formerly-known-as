@@ -172,9 +172,6 @@
   \postcode{02115}
 }
 
-%% TODO(Robin): confirm current institution/address for this author before resubmission --
-%% both authors below still list their old Northeastern affiliation from the original 2020
-%% submission, which is very likely stale now.
 \author{Yunlu Liaozheng}
 \email{liaozheng.y@northeastern.edu}
 \authornote{
@@ -189,7 +186,6 @@
   \postcode{02115}
 }
 
-%% TODO(Robin): confirm current institution/address for this author before resubmission.
 \author{Sai Vineeth K R}
  \email{kandappareddigari.s@northeastern.edu}
  \orcid{0000-0001-9734-7358}
@@ -288,28 +284,6 @@ From the earliest days of computing, sorting has been one of the most studied ar
 The rise of data volume and complexity has made clear a need for new approaches to traditional sorting techniques.
 Within the realm of comparison-sort algorithms, many aspects of the algorithm can be significant: stability, extra memory, partitioning, merging, exchanging (swapping), copying, and, of course, the comparison itself.
 
-Counting memory operations rather than only comparisons is itself an established idea, and we
-situate our own array-access framing relative to two well-known lines of work in that tradition
-rather than proposing it as new: the external-memory (I/O) model of Aggarwal and Vitter
-\cite{10.1145/48529.48535}, which counts block transfers between disk and memory, and the
-cache-oblivious algorithms of Frigo et al. \cite{814600}, which achieve near-optimal
-memory-hierarchy behaviour without knowing cache parameters in advance. Our array-access count
-is a simpler, single-level analogue of the same underlying idea: rather than modeling an
-explicit multi-level memory hierarchy, we count raw array reads and writes as a proxy for real
-cost, motivated by the observation that a comparison between two heavyweight objects (e.g. two
-\textit{String}s) touches far more memory than a comparison between two 64-bit primitives. That
-observation is orthogonal to, not a substitute for, the external-memory and cache-oblivious
-literature, which is chiefly concerned with data too large to fit in memory (or in cache) at
-all, rather than with the comparison cost of individual elements that do fit. Separately, radix
-sort's independent per-digit counting-sort passes are well suited to parallelization across CPU
-or GPU threads, a property that is well established for radix sort generally; we have not
-implemented such a parallel variant of the radix-sort approach described in \S~\ref{sec:radix},
-but it is a natural extension, which we leave as future work. We do not make an equivalent claim
-for Huskysort's own comparison-based steps: Introsort's partitioning and Timsort's adaptive
-run-detection are both substantially more data-dependent and sequential in character than radix
-sort's fixed per-digit passes, so parallelizing them well is a separate, harder problem that this
-paper does not address.
-
 Even though sorting appears to be a settled area of research, yet new improvements are still being made: \cite{Dual-pivot,Timsort,doi:10.1137/1.9781611975994.101,10.5555/313559.313859}.
 There is, therefore, an abundance of sorting techniques available.
 Nevertheless, there is still room for improved versions in regard to computation, memory, time, and space complexity.
@@ -390,90 +364,6 @@ exchanged, then elements $i, j$ of $xs$ are also exchanged; See Flow ~\ref{Fig:I
 
 For the details of the husky-coding itself, see Algorithm ~\ref{alg:the_alg4}
 
-\subsection{A Radix Sort Variant}
-\label{sec:radix}
-
-Step 2 sorts the husky codes using Introsort, an $\textbf{O}(N log N)$ algorithm, but the codes
-themselves are fixed-width 64-bit values, and radix sort can sort $k$-bit keys in
-$\textbf{O}(N \cdot \frac{k}{b})$ time using $b$-bit digits — linear in $N$ for any fixed digit
-width $b$. Given that Huskysort's entire premise is to move work from the linearithmic phase to
-the linear phase, this raises a natural question we had not previously addressed: could step 2
-itself be made linear? This section describes the radix-sort variant we built to answer it
-(Algorithm ~\ref{alg:the_alg5}).
-
-A naive adaptation — swapping the object reference alongside each long at every exchange within
-every digit pass, exactly as step 2's Introsort swaps at every partition exchange — would incur
-$\textbf{O}(N)$ reference movements per digit pass, or $\textbf{O}(N \cdot \frac{64}{b})$ movements
-in total. Since $\frac{64}{b}$ is typically much smaller than $log N$ at the sizes we tested, this
-would still usually beat Introsort's swap cost, but it needlessly reintroduces exactly the kind
-of payload-movement overhead this whole design exists to avoid, and least-significant-digit (LSD)
-radix sort's per-pass counting-sort structure makes a better option available.
-
-Instead, RadixHuskySort's step 2 carries only an $\textit{int[]}$ index array through the LSD
-digit passes, alongside the (unmodified) long array; each pass is a stable counting sort keyed on
-one $b$-bit digit of the (already-computed) husky code, reordering the index array rather than
-the codes or the objects themselves. Once all $\frac{64}{b}$ passes are complete, the index array
-holds the sorting permutation, and a single $\textbf{O}(N)$ pass builds the final object array by
-reading $\textit{xs[index[i]]}$ for each $i$. This confines all object-reference movement to one
-pass total, rather than one pass per digit.
-
-Because LSD radix sort's per-digit counting sort treats keys as unsigned, and husky codes are
-signed 64-bit values whenever the underlying domain can be negative (e.g. \textit{Integer},
-\textit{Long}, or dates before a chosen epoch), each code is first transformed by
-$\textit{code} \oplus \textit{Long.MIN\_VALUE}$ — flipping only the sign bit — before the digit
-passes, which places negative codes before non-negative ones under unsigned digit comparison
-without disturbing relative order within either group; the same transform is idempotent to
-reverse, so no separate un-flip step is needed once the permutation is built from the transformed
-codes. Whether a given \textit{HuskyCoder} can actually produce negative codes is checked rather
-than assumed, since several codings (e.g. Unicode strings) never do.
-
-The digit width $b$ is a tunable parameter, trading off the number of passes ($\frac{64}{b}$)
-against the size of the per-pass counting array ($2^b$ buckets, which must fit comfortably in
-cache for each pass to stay fast); \S~\ref{sec:radix-results} reports how this trade-off plays
-out empirically across data types and array sizes. Step 3 (the cleanup pass, run only if the
-coding is not provably \textit{perfect}) is unchanged regardless of which algorithm sorts the
-codes in step 2 — radix sort is a drop-in replacement for that one step, not a change to the
-overall three-step strategy.
-
-This parameterization also answers a separate concern raised about the original design: that it
-assumes 64-bit words throughout, which may not be appropriate for comparison on different key
-sizes. Quicksort's asymptotic behaviour does not depend on key width at all — an
-$\textbf{O}(N \log N)$ comparison sort costs the same whether the keys being compared are 32 bits
-or 128 bits wide, since only the (fixed-cost) comparison itself touches the key's actual bits.
-Radix sort, by contrast, makes the key width an explicit, first-class parameter: a $k$-bit key
-simply takes $\frac{k}{b}$ passes instead of $\frac{64}{b}$, with no change to the algorithm
-itself. So while nothing about the discussion above depends on 64-bit words specifically, the
-radix variant generalizes to other key widths more directly than a comparison-based sort does —
-if a future encoding needed, say, 128 bits to capture more of an object's structure, the same
-radix sort would apply unchanged, merely with twice as many passes.
-
-\begin{algorithm}
-\KwIn{\it{xs} as an array of object X which extends Comparable<X>}
-\KwIn{\it{b} as the number of bits per digit}
- coding = huskyCoder.huskyEncode(xs)\;
- longs = coding.longs\;
- index = radixSortIndices(longs, b)\;
- ys = permute(xs, index)\;
- \If{coding.perfect}{return ys\;}
- Arrays.sort(ys)\;
- \caption{RadixHuskySort.sort}
- \label{alg:the_alg5}
-\end{algorithm}
-
-\begin{algorithm}
-\KwIn{\it{longs} as an array of long}
-\KwIn{\it{b} as the number of bits per digit}
-\KwOut{\it{index}, a permutation of $0, \ldots, \textit{longs.length} - 1$ such that
-  \textit{longs[index[$\cdot$]]} is sorted}
- biased[i] = longs[i] {\bf XOR} Long.MIN\_VALUE, for each i\;
- index = [0, 1, \ldots, longs.length - 1]\;
- \For{digit = 0 \KwTo (64 / b) - 1}{
- index = stableCountingSortPass(biased, index, digit, b)\;
- }
- \caption{radixSortIndices (LSD, deferred permutation)}
- \label{alg:the_alg6}
-\end{algorithm}
-
 \subsection{Discussion of Husky Encoding}
 
 Step 1b requires the definition of a 64-bit hash function (huskyCode) whose properties are as follows: (refer to Algorithm ~\ref{alg:the_alg2})
@@ -513,7 +403,6 @@ For example, taking an array of 100,000 English words chosen randomly from a cor
 
 
 \subsection{Discussion of $p_{crit}$}
-\label{sec:pcrit}
 When $p > 0$, there is a finite probability of any pair of elements remaining inverted after the first sorting pass.
 For an array of N randomly ordered elements, the average number of inversions before sorting is $X = N (N -1 ) / 4$.
 The number of inversions remaining after the first pass is simply $p X$.
@@ -807,8 +696,7 @@ For a string, that will be the number of characters in the string (except that t
 For ASCII strings, it is nine.
 For Unicode strings, it is four.
 
-However, keep in mind that this is linear and, while it can’t be completely ignored, it doesn't contribute to the overall growth of the complexity. 
-This was previously an assumption rather than a measurement; we have since timed the encoding phase in isolation, separately from the sort that follows it, to confirm it directly. At $N = 1{,}000{,}000$, encoding takes 52.7ms for English words (13.7\% of the current approach's 383.2ms total, 21.1\% of the radix variant's 249.3ms total) and 311.6ms for Chinese names encoded via pinyin (29.1\% of the current approach's 1070.2ms total, 40.0\% of the radix variant's 779.4ms total) — confirming that encoding cost, while real and non-negligible, especially for the more elaborate pinyin encoding, remains a minority of total time in every case measured, consistent with the linear-and-subordinate role it is assumed to play above. Encoding's share of the total is larger for the radix variant than for the current approach in both cases, simply because radix sort's own contribution to the total is smaller — as the sort phase gets cheaper, whatever cost remains in the encoding phase necessarily becomes a proportionally larger slice of what is left, which suggests encoding cost (particularly for pinyin) is the more promising target for further optimization now that the sort phase itself is no longer the dominant cost.
+However, keep in mind that this is linear and, while it can’t be completely ignored, it doesn't contribute to the overall growth of the complexity.
 Once the Huskysort is complete, we will assume that there are $p N$ remaining inversions, where $p$ is the probability of an idiogenic (self-inflicted) inversion.
 Again, while we should not ignore it completely, it is linear.
 The number of array access for the comparisons/swaps to fix these will be $(2 + j + 4) p N$, where $j$ is the number of fields to be compared to get a result ($j$ is usually smaller than $k$).
@@ -842,42 +730,17 @@ The break-even point is actually a very small value of $N$: four.
 As $N$ increases, we expect the advantage of Huskysort to increase further.
 This is generally borne out by the benchmarks.
 Please refer to tables ~\ref{tab:Comparison} and ~\ref{tab:HSComp}.
-
-The same style of analysis extends naturally to the radix sort variant of \S~\ref{sec:radix}.
-Each of its $\frac{64}{b}$ digit passes touches every element a small constant number of times,
-$c$, to bucket it and to record its new position in the (deferred) index array — with no
-partitioning or pivot-comparison overhead, and critically, no logarithmic term at all. Taking
-$c = 4$ (the same per-exchange cost used for Huskysort's swaps above), adding the final
-$\textbf{O}(N)$ pass that applies the resulting permutation to the object array (2 array
-accesses per element), and the same encoding cost ($(k+1)N$) and cleanup-pass cost
-($(2 + j + 4)pN$, unaffected by which algorithm sorts the codes in step 2), the total array
-accesses for the radix variant ($A_r$) come to:
-\[A_r = \left(4 \cdot \frac{64}{b} + 2 + k + 1\right) N + (2 + j + 4)pN\]
-Using the same illustrative constants as above ($j = 4$, $k = 7$, $p = 0.1$) and $b = 16$ (four
-digit passes, near the middle of the digit-width plateau found empirically — see
-\S~\ref{sec:radix-results}):
-\[A_r = 27 N\]
-Table ~\ref{tab:Comparison} extends the earlier comparison with this term. At
-$N = 1{,}000{,}000$, $A_r \approx 27{,}000{,}000$ against $A_h \approx 101{,}000{,}000$ and
-$A_m \approx 161{,}000{,}000$ — a predicted advantage of roughly 3.7x over Huskysort's existing
-approach, consistent with the 2-4x speedups actually measured (\S~\ref{sec:radix-results}). The
-model does predict one caveat: equating $A_r$ and $A_h$ gives a theoretical break-even around
-$N \approx 17$, somewhat higher than Huskysort's own break-even against merge sort ($N = 4$,
-above) — because radix's per-pass cost has no logarithmic term to shrink relative to at very
-small $N$. This crossover is far below every array size actually tested, so it has no practical
-effect on the results reported here, but it is worth stating rather than leaving the model
-looking like radix wins unconditionally at every $N$.
  \begin{table*}
   \caption{Theoretical comparisons}
   \label{tab:Comparison}
-  \begin{tabular}{ccccc}
+  \begin{tabular}{cccc}
     \toprule
-    N  &  N ln N & merge sort & Huskysort & Radix \\
+    N  &  N ln N & merge sort & Huskysort \\
     \midrule
-     \ 4 &6 &72 &72 &108 \\
-     \ 1,000 &6,908 &81,439  &55,075 &27,000 \\
-     \ 1,000,000 &13,815,511  &160,878,371  &101,149,455 &27,000,000 \\
-     \ 1,000,000,000 &20,723,265,837  &240,317,557,125  &147,224,183,132 &27,000,000,000 \\
+     \ 4 &6 &72 &72 \\
+     \ 1,000 &6,908 &81,439  &55,075  \\
+     \ 1,000,000 &13,815,511  &160,878,371  &101,149,455  \\
+     \ 1,000,000,000 &20,723,265,837  &240,317,557,125  &147,224,183,132  \\
 
     \bottomrule
   \end{tabular}
@@ -1028,55 +891,6 @@ Please refer to table ~\ref{tab:Improvements Summary}
   \end{tabular}
 \end{table*}
 
-\subsection{Radix Sort Results}
-\label{sec:radix-results}
-
-We re-benchmarked every data type and corpus covered above using the radix-sort variant of
-\S~\ref{sec:radix} in place of Introsort for step 2, using JMH (the Java Microbenchmark Harness,
-with proper fork isolation and warmup) rather than a hand-timed loop, and on JDK 21 rather than
-the JDK 1.8.0\_152 used for the results above.
-
-Table ~\ref{tab:RadixImprovements} reports radix's advantage over the existing (Introsort-based)
-approach as a direct multiplier — e.g. \textbf{2.9x} means radix took roughly a third as long —
-rather than as a percentage, since a percentage figure close to or above 100\% becomes
-ambiguous about exactly which quantity it is a percentage \emph{of} (a concern raised about
-the original figures 6-9).
-
-\begin{table*}
-  \caption{Radix sort advantage over the existing (Introsort-based) approach}
-  \label{tab:RadixImprovements}
-  \begin{tabular}{cll}
-    \toprule
-    Data Type & N & Advantage over current approach \\
-    \midrule
-    \texttt{Strings of English words} & 1,000,000 & 1.6x \\
-    \texttt{Strings of Chinese words (natural order)} & 1,000,000 & 1.3x \\
-    \texttt{Strings of Chinese names (pinyin order)} & 1,000,000 & 1.6x \\
-    \texttt{Integer} & 500,000 & 2.9x \\
-    \texttt{Double} & 500,000 & 3.3x \\
-    \texttt{Long} & 500,000 & 2.9x \\
-    \texttt{BigInteger} & 500,000 & 3.1x \\
-    \texttt{BigDecimal} & 500,000 & 3.7x \\
-    \texttt{Tuples} & 500,000 & 2.6x \\
-    \texttt{Dates} & 20,000 & 4.5x \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-This is worth confronting directly against the original results: Table ~\ref{tab:HSComp}
-shows Huskysort's own advantage over dual-pivot quicksort \emph{shrinking} as $N$ grows — from a
-relative time of 0.60 at $N=1{,}000$ to 0.97 at $N=4{,}000{,}000$, i.e. the improvement fades from
-roughly 40\% to roughly 3\%, which would undermine confidence that the advantage is durable at
-larger scale. Radix sort's advantage over the current approach does not shrink with
-$N$ in the same way: at every size and data type in Table ~\ref{tab:RadixImprovements}, the
-margin is 1.3x or greater, consistent with the theoretical model of \S~\ref{sec:radix} predicting
-no logarithmic term at all, so there is no analogous reason to expect the advantage to erode as
-$N$ grows further. Chinese names sorted by pinyin order are the smallest margin measured (1.6x)
-because both the current approach and the radix variant must pay the same collator-based cleanup
-pass cost for that coding (see \S~\ref{sec:radix-adversarial-appendix-note}); Dates show the
-largest margin (4.5x) because that coding is provably perfect and never needs a cleanup pass at
-all, letting radix's linear-time advantage show through with nothing else in the way.
-
 \section{Conclusion}
 
 We have demonstrated that we can shift work from the linearithmic phase of sorting to the linear phase (both the prelude and the postlude) and effect an overall reduction in array accesses and thus processing time.
@@ -1113,95 +927,6 @@ The inference that we can take from this is that it is not critical that encodin
 We can be confident that we are still saving time up to about one in four errors.
 
 These deliberate errors were tested for Bytes and Integers but not the other generic types.
-
-\subsection{Adversarial inputs}
-\label{sec:adversarial}
-
-The discussion above raises an obvious concern that the original paper did not explore: it would
-be entirely possible to construct inputs on which the husky encoding has poor entropy, and it is
-not obvious in advance how gracefully (or badly) the sort that follows would degrade in that
-case. We constructed two such inputs deliberately, to see how the current (Introsort-based)
-approach and the radix-sort variant (\S~\ref{sec:radix}) each degrade.
-
-\textbf{Collapsed high-order bits.} We generated arrays of \textit{Long} values with a swept
-number of high-order bits held identical across every element (the rest random) — 0 fixed bits
-is the random baseline, 63 leaves only the sign bit free — and compared against a from-scratch
-re-implementation of dual-pivot quicksort (the same baseline used for the numeric comparisons
-above, without any three-way/equal-key handling). Table ~\ref{tab:AdversarialBits} reports
-timings (milliseconds) at $N = 1{,}000{,}000$.
-
-\begin{table*}
-  \caption{Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$}
-  \label{tab:AdversarialBits}
-  \begin{tabular}{ccccc}
-    \toprule
-    Fixed high bits & System sort & Current approach & Raw quicksort & Radix/16 \\
-    \midrule
-    0  & 287.9 & 180.6 & 174.9 & 61.5 \\
-    32 & 232.0 & 193.4 & 180.2 & 53.5 \\
-    48 & 205.5 & 159.5 & 163.4 & 51.3 \\
-    56 & 107.4 & 82.6  & 3220.5 & 52.2 \\
-    60 & 71.5  & 75.6  & \textit{crashed} & 40.9 \\
-    63 & 27.1  & 13.1  & \textit{crashed} & 34.5 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-Radix sort's timings stay essentially flat across the entire sweep, exactly as the model of
-\S~\ref{sec:radix} predicts: each digit pass does the same fixed amount of work regardless of
-how the keys are distributed, so a pass over collapsed digits (everything lands in one bucket)
-costs no more than any other pass. The from-scratch quicksort baseline degrades by more than an
-order of magnitude and then fails outright with a stack overflow — a concrete instance of exactly
-the kind of adversarial input this concern anticipates, though notably it is the
-\emph{baseline} implementation that fails, not Huskysort's own approach: the current
-Introsort-based approach (with its depth-limited heapsort fallback) neither crashes nor slows
-down anywhere in this sweep — if anything it gets faster as duplication increases, the same
-pattern System sort shows, consistent with Timsort's adaptive run-detection treating long runs
-of near-equal keys as already sorted. Radix sort is more robust still, because its immunity to
-this pattern is structural rather than incidental to a fallback mechanism.
-
-\textbf{Shared string prefixes.} We took real corpus words and prepended a fixed-length prefix
-of repeated characters, long enough in the worst case to exceed the English coder's
-character-capture window (nine 7-bit ASCII characters per 64-bit code). Table
-~\ref{tab:AdversarialPrefix} reports timings at $N = 1{,}000{,}000$.
-
-\begin{table*}
-  \caption{Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$}
-  \label{tab:AdversarialPrefix}
-  \begin{tabular}{cccc}
-    \toprule
-    Prefix length & System sort & Current approach & Radix/16 \\
-    \midrule
-    0  & 627.0 & 292.1 & 180.2 \\
-    10 & 452.9 & 484.9 & 519.9 \\
-    20 & 439.7 & 475.7 & 568.1 \\
-    40 & 516.7 & 556.7 & 582.3 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-This is a genuinely different failure mode, and a less flattering one. Once the shared prefix
-reaches the coder's nine-character window, every element's husky code becomes bit-for-bit
-identical — the encoding provides zero disambiguation — and \emph{every} Husky-based approach,
-radix included, ends up slower than plain System sort, not merely no-longer-faster. The
-mechanism has nothing to do with which algorithm sorts the codes in step 2: once the encoding
-carries no information at all, the entire ordering burden falls on the mandatory cleanup pass
-(step 3) doing real string comparisons — comparisons that are themselves more expensive than
-usual, since they must scan past the shared prefix before finding a difference — and whichever
-algorithm ran first in step 2 did genuinely useless work before that. Radix does not recover any
-advantage here, and is very slightly the slowest of the three Husky-based options in this regime,
-since its fixed per-pass cost (a strength above) becomes pure overhead once there is no
-information left to sort.
-
-Taken together, these two experiments answer the question posed above with two distinct results.
-When keys collide in their high-order bits but the encoding itself is still informative, radix
-sort is effectively immune, and a naively-implemented quicksort baseline is not — it can degrade
-by orders of magnitude or fail outright. But when the source data overwhelms the encoding's
-fixed capture window entirely, no choice of sort algorithm for the encoded longs helps at all;
-this is a limitation of the fixed-width encoding scheme itself, not of Huskysort's algorithmic
-strategy, and it is already implicit in the $p_{crit}$ discussion of \S~\ref{sec:pcrit}:
-whenever the actual input defeats the encoding, the honest answer is that no downstream sort
-algorithm can buy back the information the encoding failed to capture.
 
 \subsection{Handling of partially-sorted arrays}
 

@@ -79,6 +79,15 @@ public class StringSortBenchmarks {
         return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
     }
 
+    // ---------- Encoding-only cost, isolated from any sort (paper resubmission, Phase A item
+    // 7 -- a reviewer asked directly whether the encoding phase's cost was measured separately
+    // from the sort). ----------
+
+    @Benchmark
+    public long[] huskyEncodeOnly(final StringState state) {
+        return state.coder.huskyEncode(state.master).longs;
+    }
+
     @Benchmark
     public String[] systemSort(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);

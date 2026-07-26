@@ -157,6 +157,55 @@ public class RadixHuskySortTest {
         assertArrayEquals(expected, ys);
     }
 
+    /**
+     * Broader sweep than testAdversarialCollapsedHighBits above (TODO.md item 7 / Reviewer 4's
+     * critique that the paper never showed what happens when the encoding has poor entropy):
+     * correctness must hold regardless of how severely the high-order bits collapse, not just
+     * for one arbitrary severity. Sweeps from no collapse (0 fixed bits) to near-total collapse
+     * (63 of 64 bits fixed, only the sign bit varies).
+     */
+    @Test
+    public void testAdversarialCollapsedHighBitsSweep() {
+        final Random r = new Random(101);
+        for (final int fixedHighBits : new int[]{0, 8, 16, 32, 48, 56, 60, 63}) {
+            final long mask = fixedHighBits == 0 ? 0L : (-1L << (64 - fixedHighBits));
+            final long fixedBits = 0x5A5A_5A5A_5A5A_5A5AL & mask;
+            final int N = 2000;
+            final Long[] xs = new Long[N];
+            for (int i = 0; i < N; i++) xs[i] = (r.nextLong() & ~mask) | fixedBits;
+            final Long[] expected = Arrays.copyOf(xs, N);
+            Arrays.sort(expected);
+
+            final RadixHuskySort<Long> sorter = new RadixHuskySort<>(HuskyCoderFactory.longCoder, config);
+            final Long[] ys = sorter.sort(xs);
+            assertArrayEquals("fixedHighBits=" + fixedHighBits, expected, ys);
+        }
+    }
+
+    /**
+     * Strings sharing a long common prefix: a realistic version of Reviewer 4's "poor entropy
+     * in high-order bits" concern, since string husky coders pack characters left-to-right into
+     * the long (most significant first) -- a shared prefix means the leading many bits of every
+     * element's husky code are identical, exactly the adversarial condition the brief asks
+     * about, but arising naturally rather than being artificially constructed.
+     */
+    @Test
+    public void testAdversarialSharedPrefixStrings() {
+        final Random r = new Random(102);
+        for (final int prefixLength : new int[]{0, 5, 10, 20, 40}) {
+            final String prefix = "a".repeat(prefixLength);
+            final int N = 2000;
+            final String[] xs = new String[N];
+            for (int i = 0; i < N; i++) xs[i] = prefix + (r.nextLong() & Long.MAX_VALUE);
+            final String[] expected = Arrays.copyOf(xs, N);
+            Arrays.sort(expected);
+
+            final RadixHuskySort<String> sorter = new RadixHuskySort<>(HuskyCoderFactory.englishCoder, config);
+            final String[] ys = sorter.sort(xs);
+            assertArrayEquals("prefixLength=" + prefixLength, expected, ys);
+        }
+    }
+
     @Test
     public void testAlreadySortedAndReverseSorted() {
         final int N = 1000;

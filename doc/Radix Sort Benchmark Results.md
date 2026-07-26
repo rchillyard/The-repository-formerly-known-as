@@ -375,6 +375,28 @@ Headline: radix now beats PureHuskySort on Chinese names by roughly **1.5-1.6x**
 categories, but a real, solid win, recovered by fixing the `getCollator()` bug and then further
 improved by encoding tone.
 
+## Encoding-only cost (Reviewer 1)
+
+Reviewer 1 of the original submission asked directly: "did you time the encoding phase? How
+much time does it account for?" Nothing in the original ad hoc harness isolated Step 1
+(`huskyEncode`) from Step 2 (sort). New `StringSortBenchmarks.huskyEncodeOnly` benchmark,
+N=1,000,000 (`java -jar target/benchmarks.jar 'StringSortBenchmarks\.(huskyEncodeOnly|pureHuskySort|radixHuskySort16)$' -p n=1000000 -p corpus=english,chinesenames`):
+
+| Corpus | Encoding only (ms) | PureHuskySort total (ms) | Encoding % of PureHuskySort | Radix/16 total (ms) | Encoding % of Radix/16 |
+|---|---|---|---|---|---|
+| English | 52.7 | 383.2 | 13.7% | 249.3 | 21.1% |
+| Chinese names (pinyin) | 311.6 | 1070.2 | 29.1% | 779.4 | 40.0% |
+
+Encoding is a real but minority cost in every case measured — consistent with the paper's own
+"linear, doesn't contribute to overall growth" framing, now backed by a measurement rather than
+an assumption. It's a noticeably bigger share for the pinyin encoding (which does per-character
+syllable+tone lookups) than for the simple ASCII/Unicode string packing, and a bigger share for
+radix than for PureHuskySort in both cases — not because radix's encoding is different, but
+because radix's own sort-phase cost is smaller, making whatever encoding cost exists a larger
+fraction of a smaller total. This suggests encoding cost, particularly for pinyin, is now the
+more promising target if further optimization is wanted, since the sort phase is no longer the
+dominant cost once radix is in the picture.
+
 ## Adversarial inputs (Reviewer 4)
 
 TODO.md item 7, answering the other unanswered critique from the original review round:

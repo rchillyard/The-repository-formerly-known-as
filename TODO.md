@@ -269,3 +269,20 @@ Robin asked Claude Chat for a venue recommendation previously and didn't get one
     text (already covered by `\authornote`s); flag the "broken Bentley citation" issue to Robin
     — **no Bentley citation exists anywhere in this v1 source** (confirmed via `grep`), so this
     can't be "fixed" without guessing what was meant.
+
+15. **Implement a parallel RadixHuskySort variant.** The paper's literature paragraph (§Introduction)
+    and `\S~\ref{sec:radix}` currently say a parallel radix-sort variant is left as future work —
+    Robin wants this actually built rather than left as a claim. RadixHuskySort's per-digit
+    counting-sort passes are natural candidates for CPU (or GPU) parallelization. Once
+    implemented and benchmarked, update the paper text to describe it as done, with real
+    numbers, rather than "we leave as future work."
+
+16. **Audit the "3 15/16ths characters" Unicode encoding claim** (Discussion of Husky Encoding
+    section). `HuskyCoderFactory.java`: `BIT_WIDTH_UNICODE=16`, `MAX_LENGTH_UNICODE=4`,
+    `unicodeToLong` does `stringToLong(...) >>> 1` (sacrificing the last bit), and
+    `unicodeCoder` declares its perfect-encoding length as `MAX_LENGTH_UNICODE - 1 = 3`. The raw
+    arithmetic checks out (3 full characters + 15/16 of a 4th = 63 of 64 bits used), but Robin
+    flagged this as questionable and it's worth verifying this is still the right/current
+    explanation given later changes (RadixHuskySort's own sign-bit XOR-bias handling, the pinyin
+    coder rewrite) rather than stale reasoning carried over from 2020. Not yet resolved —
+    tracked for review, not an immediate fix.
