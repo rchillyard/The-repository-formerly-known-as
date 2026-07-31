@@ -326,6 +326,41 @@ We describe our Test Cases in Section 5 and present results in Section 6, with o
 
 
 \section{BACKGROUND}
+
+Before introducing Huskysort, it is worth laying out the four comparison-based algorithms it
+draws on side by side, since each contributes a different property to the final design. Table
+~\ref{tab:PriorAlgorithms} summarizes their standard complexity and stability characteristics.
+
+\begin{table*}
+  \caption{Prior comparison-based sorting algorithms}
+  \label{tab:PriorAlgorithms}
+  \begin{tabular}{lllll}
+    \toprule
+    Algorithm & Average case & Worst case & Stable & Notes \\
+    \midrule
+    Insertion sort & $\textbf{O}(N + I)$ & $\textbf{O}(N^2)$ & Yes & $I$ = number of inversions; fast only for small or nearly-sorted $N$ \\
+    Merge sort & $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Linearithmic regardless of input order; $\textbf{O}(N)$ extra space \\
+    Quicksort & $\textbf{O}(N \log N)$ & $\textbf{O}(N^2)$ & No & In-place, cache-friendly; the quadratic worst case is mitigated in practice (e.g. Introsort's heapsort fallback \cite{doi:10.1002}) \\
+    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+Quicksort is fastest in practice on unordered data (its actual average case), because its
+in-place partitioning and cache-friendly access pattern outweigh merge sort's guaranteed
+$\textbf{O}(N \log N)$ bound; but it buys that speed at the cost of stability, and its
+worst case is quadratic unless mitigated (as Introsort does, by falling back to heapsort past a
+recursion-depth threshold — see \S~\ref{sec:radix} below). Timsort takes the opposite trade:
+guaranteed $\textbf{O}(N \log N)$ worst case and stability, at the cost of being merge-sort-based
+(extra space, and no faster than $\textbf{O}(N \log N)$ on unordered data) — but it is adaptive,
+so on data that is already close to sorted (few inversions, $I$), its cost drops toward
+$\textbf{O}(N)$, which quicksort's partitioning does not exploit in the same way. Huskysort's
+own strategy follows directly from this contrast: husky-coding turns step 2's input into
+something quicksort (or, as described in \S~\ref{sec:radix}, radix sort) can sort at its best
+case — the coded longs are effectively unordered, cheap-to-compare data — and reserves Timsort
+for exactly the regime where it is strongest: cleaning up the (hopefully few) remaining
+inversions in step 3, where the array is already close to sorted rather than random.
+
 Timsort is ideally suited to the partially ordered data which is common in the real-world business applications.
 For this use case it is easily the fastest standard algorithm.
 It is less well suited, however, for another use case, which is unordered data.
@@ -529,6 +564,10 @@ The total time to sort the array is made up of these three time-consuming steps 
  \[T_3 = k_3 (N + p X)\]
 \end{steps}
 Provided that the total time $T = T_1 + T_2 + T_3$ is less than the time required to use Timsort on the original element array, we have a win.
+This same three-step decomposition ($T_1$/$T_2$/$T_3$, i.e. encode/sort/cleanup) is revisited in
+\S~\ref{sec:analysis} in more concrete terms — counting array accesses directly rather than
+folding everything into abstract system-dependent constants $k_1, k_2, k_3$ — and extended there
+to cover the radix-sort variant of \S~\ref{sec:radix} as a fourth alternative for the $T_2$ step.
 The actual values of $p_{crit}$ are very much dependent on the machine running the sort.
 We have not calculated a typical value for $p_{crit}$ but, even for the worst-case: Chinese characters using UTF8 encoding, we still find very significant gains.
 Please refer to table ~\ref{tab:Improvements Summary}	
@@ -639,54 +678,6 @@ return result\;
 
 \section{Implementation}
 
-\subsection{Data Source}
-The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection \cite{GOLDHAHN12.327}.
-
-In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in  code~\ref{lst:DS}
-
-The sample of data can be seen here ~\ref{fig:Example}
-\begin{figure}[]
-  \caption{Strings Data Example}
-  \label{fig:Example}
-   \Description{An Example of Data file}
-  \centering
-  \includegraphics[width=0.5\textwidth]{Strings.png}
-\end{figure}
-
-\begin{lstlisting}[caption={Data Source},label={lst:DS},language=Java]
-private static String[] getLeipzigWordsFromResource(final String resource) {
-    return getWords(resource, HuskySortBenchmark::getLeipzigWords);
-}
-private static List<String> getLeipzigWords(final String line) {
-    return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRINGSPLITTER);
-}
-final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-public static final Pattern REGEX_STRINGSPLITTER = Pattern.compile("[\\s\\p{Punct}\\uFF0C]");
-
-
-static List<String> splitLineIntoStrings(final String line, final Pattern lineMatcher, final Pattern stringsplitter) {
-    final Matcher matcher = lineMatcher.matcher(line);
-    if (matcher.find()) return Arrays.asList(stringsplitter.split(matcher.group(1)));
-    else return new ArrayList<>();
-}
-
-static String[] getWords(final String resource, final Function<String, List<String>> stringListFunction) {
-    try {
-        File file = new File(getPathname(resource, QuickHuskySort.class));
-        return getWordArray(file, stringListFunction, 2);
-    } catch (FileNotFoundException e) {
-        logger.warn("Cannot find resource: "+resource, e);
-        return new String[0];
-    }
-}
-    } catch (final Exception e) {
-        throw new RuntimeException(e);
-    }
-}
-
-
-\end{lstlisting}
-
 \subsection{System Environment}
 
 The configurations of the system that is used for implementation is shown in figure ~\ref{fig:SE}.
@@ -781,7 +772,61 @@ private static final int MASK_ASCII = 0x7F;
 \end{itemize}
 
 \section{Test Case and Analysis}
-Let’s try to do an analysis of Huskysort's performance.
+
+\subsection{Data Source}
+The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection \cite{GOLDHAHN12.327}.
+
+In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in  code~\ref{lst:DS}
+
+The sample of data can be seen here ~\ref{fig:Example}
+\begin{figure}[]
+  \caption{Strings Data Example}
+  \label{fig:Example}
+   \Description{An Example of Data file}
+  \centering
+  \includegraphics[width=0.5\textwidth]{Strings.png}
+\end{figure}
+
+\begin{lstlisting}[caption={Data Source},label={lst:DS},language=Java]
+private static String[] getLeipzigWordsFromResource(final String resource) {
+    return getWords(resource, HuskySortBenchmark::getLeipzigWords);
+}
+private static List<String> getLeipzigWords(final String line) {
+    return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRINGSPLITTER);
+}
+final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+public static final Pattern REGEX_STRINGSPLITTER = Pattern.compile("[\\s\\p{Punct}\\uFF0C]");
+
+
+static List<String> splitLineIntoStrings(final String line, final Pattern lineMatcher, final Pattern stringsplitter) {
+    final Matcher matcher = lineMatcher.matcher(line);
+    if (matcher.find()) return Arrays.asList(stringsplitter.split(matcher.group(1)));
+    else return new ArrayList<>();
+}
+
+static String[] getWords(final String resource, final Function<String, List<String>> stringListFunction) {
+    try {
+        File file = new File(getPathname(resource, QuickHuskySort.class));
+        return getWordArray(file, stringListFunction, 2);
+    } catch (FileNotFoundException e) {
+        logger.warn("Cannot find resource: "+resource, e);
+        return new String[0];
+    }
+}
+    } catch (final Exception e) {
+        throw new RuntimeException(e);
+    }
+}
+
+
+\end{lstlisting}
+
+\subsection{Analysis}
+\label{sec:analysis}
+Let’s try to do an analysis of Huskysort's performance. This expands on the $T_1$/$T_2$/$T_3$
+decomposition introduced in \S~\ref{sec:pcrit} above, replacing its abstract time constants
+with concrete array-access counts, and extending it to cover radix sort (\S~\ref{sec:radix}) as
+an alternative to quicksort for the $T_2$ step.
 The first thing to note is that, like merge sort, Huskysort requires $\textbf{O}(N)$ extra space.
 This is because, in addition to the array of object references, we must have an equal-length array of longs (the huskyCode values).
 

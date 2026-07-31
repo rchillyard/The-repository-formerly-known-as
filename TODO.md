@@ -256,10 +256,21 @@ Robin asked Claude Chat for a venue recommendation previously and didn't get one
     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md) before the
     corresponding paragraph is written.
 
-13. **Phase B — structural reorganization** (Reviews 2, 3): prior-algorithms comparison passage
-    in Background before introducing Huskysort; move Data Source subsection out of the start of
-    Implementation; consolidate analysis currently split between §3.3 (`p_crit`) and §5 (Test
-    Case and Analysis).
+13. ~~**Phase B — structural reorganization**~~ **DONE.** (Reviews 2, 3): added a new
+    "Prior comparison-based sorting algorithms" table to Background, contrasting insertion
+    sort/merge sort/quicksort/Timsort before introducing Huskysort, plus a paragraph tying the
+    contrast directly to Huskysort's own design choice (quicksort/radix for step 2's
+    unordered data, Timsort for step 3's already-close-to-sorted cleanup). Moved the
+    `Data Source` subsection out of the start of `Implementation` (which now opens with
+    `System Environment`/`Implementation of Algorithm`) into a new first subsection of
+    `Test Case and Analysis` (renamed its old content to a sibling `Analysis` subsection), so
+    data provenance sits next to the experiments that use it rather than opening the
+    implementation discussion. Tied together the previously-disconnected analyses in §3.3
+    (`Discussion of $p_{crit}$`, the abstract $T_1$/$T_2$/$T_3$ time model) and §5 (`Analysis`,
+    the concrete array-access derivation) with explicit forward/back cross-references, rather
+    than merging or rewriting either — they're at different levels of detail (abstract time
+    constants vs. concrete array-access counts) and both are worth keeping, they just weren't
+    previously acknowledged as the same three-step decomposition.
 
 14. **Phase C — mechanical/presentation fixes** (Reviews 1, 3): convert Figures 4 and 6-9 from
     image screenshots to real LaTeX tables using the new JMH numbers; state units (ms) on every
