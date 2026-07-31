@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{14}
+\begin{thebibliography}{16}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -69,6 +69,21 @@
 \url{http://arxiv.org/abs/1805.08612}
 \showURL{%
 \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Bentley and McIlroy}{Bentley and
+  McIlroy}{1993}]%
+        {10.1002/spe.4380231105}
+\bibfield{author}{\bibinfo{person}{Jon~L. Bentley} {and}
+  \bibinfo{person}{M.~Douglas McIlroy}.} \bibinfo{year}{1993}\natexlab{}.
+\newblock \showarticletitle{Engineering a sort function}.
+\newblock \bibinfo{journal}{\emph{Software: Practice and Experience}}
+  \bibinfo{volume}{23}, \bibinfo{number}{11} (\bibinfo{year}{1993}),
+  \bibinfo{pages}{1249--1265}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1002/spe.4380231105}
+\showDOI{\tempurl}
 
 
 \bibitem[\protect\citeauthoryear{Frigo, Leiserson, Prokop, and
@@ -149,6 +164,22 @@
 \url{https://doi.org/10.1137/1.9781611975994.101}
 \showDOI{\tempurl}
 \showeprint{https://epubs.siam.org/doi/pdf/10.1137/1.9781611975994.101}
+
+
+\bibitem[\protect\citeauthoryear{LaMarca and Ladner}{LaMarca and
+  Ladner}{1999}]%
+        {LAMARCA199966}
+\bibfield{author}{\bibinfo{person}{Anthony LaMarca} {and}
+  \bibinfo{person}{Richard~E. Ladner}.} \bibinfo{year}{1999}\natexlab{}.
+\newblock \showarticletitle{The Influence of Caches on the Performance of
+  Sorting}.
+\newblock \bibinfo{journal}{\emph{Journal of Algorithms}} \bibinfo{volume}{31},
+  \bibinfo{number}{1} (\bibinfo{year}{1999}), \bibinfo{pages}{66--104}.
+\newblock
+\urldef\tempurl%
+\url{https://www.sciencedirect.com/science/article/pii/S0196677498909853}
+\showURL{%
+\tempurl}
 
 
 \bibitem[\protect\citeauthoryear{McIlroy}{McIlroy}{1993}]%

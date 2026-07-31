@@ -310,7 +310,7 @@ run-detection are both substantially more data-dependent and sequential in chara
 sort's fixed per-digit passes, so parallelizing them well is a separate, harder problem that this
 paper does not address.
 
-Even though sorting appears to be a settled area of research, yet new improvements are still being made: \cite{Dual-pivot,Timsort,doi:10.1137/1.9781611975994.101,10.5555/313559.313859}.
+Even though sorting appears to be a settled area of research, yet new improvements are still being made: \cite{Dual-pivot,Timsort,doi:10.1137/1.9781611975994.101,10.5555/313559.313859,10.1002/spe.4380231105}.
 There is, therefore, an abundance of sorting techniques available.
 Nevertheless, there is still room for improved versions in regard to computation, memory, time, and space complexity.
 In a recent paper \cite{sort}, the authors conclude that quicksort is indeed the fastest general-purpose sorting algorithm, especially when appropriate care is taken to avoid the quadratic worst-case with several other improvements (e.g. dual-pivot quicksort)\cite{Dual-pivot} over the traditional version \cite{10.1145/366622.366644}.
@@ -381,7 +381,7 @@ Afterward, it became apparent that it was not such a crazy idea after all.
 A quick implementation showed that, indeed, we could see an improvement over the system sort (Timsort) for sorting objects.
 The essence of the algorithm lies in the fact that quicksort can sort an array of (64-bit) longs very quickly.
 64 bits affords sufficient room to encode many objects uniquely, but even if the coding is not unique, post-sorting an array of objects which are quasi-ordered can be very fast using Timsort.
-The key innovation of the algorithm was developed by Liaozheng: swap the objects at the same time as swapping the longs.
+The key innovation of the algorithm is to swap the objects at the same time as swapping the longs.
 
 
 \section{ALGORITHM}
@@ -569,10 +569,9 @@ This same three-step decomposition ($T_1$/$T_2$/$T_3$, i.e. encode/sort/cleanup)
 folding everything into abstract system-dependent constants $k_1, k_2, k_3$ — and extended there
 to cover the radix-sort variant of \S~\ref{sec:radix} as a fourth alternative for the $T_2$ step.
 The actual values of $p_{crit}$ are very much dependent on the machine running the sort.
-We have not calculated a typical value for $p_{crit}$ but, even for the worst-case: Chinese characters using UTF8 encoding, we still find very significant gains.
-Please refer to table ~\ref{tab:Improvements Summary}	
+We have not calculated a typical value for $p_{crit}$ but, even for the worst-case: Chinese characters using UTF8 encoding, we still find very significant gains, summarized later in Table ~\ref{tab:Improvements Summary} (\S~\ref{sec:summary}).
 
-\subsection{Explanation of Working}
+\subsection{Why Huskysort Works}
 
 So, why does this work? Well, first of all, we observe that 64-bit word length in today’s computers is the norm.
 This allows for an encoding which has a low, possibly zero, value of $p_{crit}$.
@@ -593,10 +592,20 @@ Merge sort, like insertion sort, is linear when the number of inversions is smal
 But merge sort does use extra memory.
 But values such as 64-bit integers (int or long), doubles, can be compared extremely quickly in modern machines—far quicker than the time required to follow a reference (pointer) to an object in memory.
 In Java, this distinction is described by contrasting primitives with objects.
-Primitives can be quick-sorted very fast and of course, long is primitive.
+Primitives can be quick-sorted very fast, and \textit{long} is a primitive data type.
 
 Exchanging (swapping), on the other hand, takes the same amount of time whatever type you are sorting because swapping an object reference is just the same as swapping any 64-bit word.
-The other reason why quicksort is so fast is that it is cache-friendly.
+The other reason why quicksort is so fast is that it is cache-friendly: its in-place
+partitioning scans memory sequentially rather than jumping between widely-separated locations,
+giving it markedly better cache behavior than, for example, heapsort
+\cite{LAMARCA199966}. Cache behavior also distinguishes quicksort variants from one another, not
+just quicksort from other algorithm families: dual-pivot quicksort's own performance advantage
+over classic single-pivot quicksort has likewise been attributed largely to cache effects
+\cite{Dual-pivot}. (LaMarca and Ladner's study also found that a naive radix sort, sorting keys
+directly rather than through a deferred index permutation, has relatively poor cache behavior of
+its own on 1990s hardware — a finding about a different radix sort design than
+\S~\ref{sec:radix}'s, on much older hardware, so it does not bear on this paper's own radix-sort
+results.)
 So, we perform a fast quicksort on the array of longs.
 The only difference between the Husky version of quicksort and standard quicksort is that the swap operation must actually do two swaps: one of the longs and one of the object references.
 But, again, swapping is fast because elements of both arrays (i.e. both longs and refs) have good chances of being cached.
@@ -609,8 +618,10 @@ For sequences (in practice, these are always Strings), we check each sequence’
 
 If the coding was perfect, we simply skip the final pass.
 
-Given the notion of hashing that the algorithm uses, it would seem natural to call is Hash Sort.
+Given the notion of hashing that the algorithm uses, it would seem natural to call it Hash Sort.
 Unfortunately, that name was already taken for quite a different algorithm \cite{DBLP:journals/corr/cs-DS-0408040}.
+We chose the name Husky Sort instead, after the husky, Northeastern University's mascot, where
+this work was developed.
 
 \begin{algorithm}
 \KwIn{\it{xs} as an array of object X which extends Comparable<X>}
@@ -680,103 +691,83 @@ return result\;
 
 \subsection{System Environment}
 
-The configurations of the system that is used for implementation is shown in figure ~\ref{fig:SE}.
-The Java Virtual Machine running is 1.8.0\_152.
-\begin{figure}[]
-  
-  \caption{System Environment}
-  \label{fig:SE}
-  \Description{System configuration }
-  \centering
-  \includegraphics[width=0.5\textwidth]{SystemEnivornment.png}
-\end{figure}
+Table ~\ref{tab:SysEnvOriginal} lists the configuration used for the original benchmarks (the
+JDK 1.8.0\_152-based results reported in \S~\ref{sec:analysis} and Table ~\ref{tab:HSComp}). A
+natural question is whether these results generalize to other machines and JVM versions, since
+only one environment was used there. Table ~\ref{tab:SysEnvCurrent} lists the very different
+environment used for the radix-sort and JMH work of \S~\ref{sec:radix}-\S~\ref{sec:radix-results},
+run several years later on different hardware and a current JVM. The qualitative finding
+(Huskysort, and now radix sort, beating System sort) held up unchanged across this substantial a
+difference in both machine and JVM
+version.
+
+\begin{table}
+  \caption{Original benchmark environment (2020)}
+  \label{tab:SysEnvOriginal}
+  \begin{tabular}{ll}
+    \toprule
+    Model & MacBook Pro (MacBookPro14,3) \\
+    Processor & Quad-Core Intel Core i7, 2.8 GHz, 1 processor, 4 cores, Hyper-Threading \\
+    Cache & 256 KB L2 (per core), 6 MB L3 \\
+    Memory & 16 GB 2133 MHz LPDDR3 \\
+    JVM & 1.8.0\_152 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}
+  \caption{Current benchmark environment (2026, radix sort and JMH work)}
+  \label{tab:SysEnvCurrent}
+  \begin{tabular}{ll}
+    \toprule
+    Model & MacBook (Apple Silicon) \\
+    Processor & Apple M1, 8 cores (4 performance + 4 efficiency) \\
+    Cache & 128 KB L1I / 64 KB L1D per core; 12 MB L2 (performance cluster), 4 MB L2 (efficiency cluster) \\
+    Memory & 16 GB unified \\
+    OS & macOS 26.5.2 \\
+    JVM & OpenJDK 21.0.10 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \subsection{Implementation of Algorithm}
-\begin{itemize}
-                        \item {} Huskysort (top level)
-\begin{lstlisting}[language=Java, caption=Husky Overview]
-public void sort(final X[] xs) {
-        // NOTE: we start with a random shuffle
-        // This is necessary if we might be sorting a pre-sorted array. Otherwise, we usually don't need it.
-        if (mayBeSorted) Collections.shuffle(Arrays.asList(xs));
-        // NOTE: First pass where we code to longs and sort according to those.
-        final Coding coding = huskyCoder.huskyEncode(xs);
-        final long[] longs = coding.longs;
-        introSort(xs, longs, 0, longs.length, 2 * floor_lg(xs.length));
-        // NOTE: Second pass (if required) to fix any remaining inversions.
-        if (coding.perfect)
-            return;
-        Arrays.sort(xs);
-    }
-\end{lstlisting}
 
-                \item {} Huskysort (Husky Encoding)
-                \begin{lstlisting}[language=Java, caption=HuskyEncode]
- default Coding huskyEncode(X[] xs) {
-        long[] result = new long[xs.length];
-        for (int i = 0; i < xs.length; i++) result[i] = huskyEncode(xs[i]);
-        return new Coding(result, perfect());
-    }
-\end{lstlisting}
+The top-level \textit{sort} method and the default \textit{huskyEncode} method are implemented
+directly as shown in Algorithms ~\ref{alg:the_alg} and ~\ref{alg:the_alg2} above; rather than
+repeat that logic here as Java source, we describe only the details not already covered by
+those two listings.
 
+\textit{Coding} is a simple immutable holder combining the resulting \textit{long[]} array of
+codes with the \textit{perfect} flag used by both algorithms (two fields, set once by its
+constructor).
 
-                \item {} Class to combine the long codes for an array of objects with a determination of coding perfection.
-                \begin{lstlisting}[language=Java, caption=HuskyEncode]
-public class Coding {
-    public Coding(long[] longs, boolean perfect) {
-        this.longs = longs;
-        this.perfect = perfect;
-    }
-    public final long[] longs;
-    public final boolean perfect;
-}
-\end{lstlisting}
+\textit{unicodeToLong} and \textit{asciiToLong} are both thin wrappers around
+\textit{stringToLong} (Algorithm ~\ref{alg:the_alg4}), differing only in which bit-width, maximum
+length, and mask constant they pass in; \textit{unicodeToLong} additionally discards the lowest
+bit of the packed result (an unsigned right shift by one) to guarantee a non-negative code
+regardless of the input string's content. Table ~\ref{tab:EncodingConstants} lists the constants
+each wrapper uses.
 
-
-
-                \item {} Unicode to Long :
-                \begin{lstlisting}[language=Java, caption=unicodeToLong]
- private static long unicodeToLong(final String str) {
-        return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
-    }
-    \end{lstlisting}
-    
-             \item {} String To Long :
-                \begin{lstlisting}[language=Java, caption=stringToLong]
- private static long unicodeToLong(final String str) {
-        return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
-    }
-    \end{lstlisting}
-    
-             \item {} Ascii to Long:
-                \begin{lstlisting}[language=Java, caption=asciiToLong]
-private static long asciiToLong(final String str) {
-    return stringToLong(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, MASK_ASCII);
-}
-    }
-\end{lstlisting}
-
-
-                \item {} Constants:
-                \begin{lstlisting}[language=Java, caption=Constants]
-private static final int BITS_LONG = 64;
-private static final int BIT_WIDTH_UNICODE = 16;
-private static final int MAX_LENGTH_UNICODE = BITS_LONG / BIT_WIDTH_UNICODE;
-private static final int MASK_SHORT = 0xFFFF;
-private static final int MASK_UNICODE = MASK_SHORT;
-private static final int BIT_WIDTH_ASCII = 7;
-private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
-private static final int MASK_ASCII = 0x7F;
-\end{lstlisting}
-
-\end{itemize}
+\begin{table}
+  \caption{String-encoding constants}
+  \label{tab:EncodingConstants}
+  \begin{tabular}{lll}
+    \toprule
+    Constant & Unicode & ASCII \\
+    \midrule
+    Bit width per character & 16 & 7 \\
+    Max length (64 / bit width) & 4 & 9 \\
+    Mask & \texttt{0xFFFF} & \texttt{0x7F} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{Test Case and Analysis}
 
 \subsection{Data Source}
 The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection \cite{GOLDHAHN12.327}.
 
-In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in  code~\ref{lst:DS}
+In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in Listing~\ref{lst:DS}.
 
 The sample of data can be seen here ~\ref{fig:Example}
 \begin{figure}[]
@@ -913,23 +904,28 @@ small $N$. This crossover is far below every array size actually tested, so it h
 effect on the results reported here, but it is worth stating rather than leaving the model
 looking like radix wins unconditionally at every $N$.
  \begin{table*}
-  \caption{Theoretical comparisons}
+  \caption{Theoretical comparisons (array accesses, dimensionless counts)}
   \label{tab:Comparison}
-  \begin{tabular}{ccccc}
+  \begin{tabular}{rrrrr}
     \toprule
     N  &  N ln N & merge sort & Huskysort & Radix \\
     \midrule
-     \ 4 &6 &72 &72 &108 \\
-     \ 1,000 &6,908 &81,439  &55,075 &27,000 \\
-     \ 1,000,000 &13,815,511  &160,878,371  &101,149,455 &27,000,000 \\
-     \ 1,000,000,000 &20,723,265,837  &240,317,557,125  &147,224,183,132 &27,000,000,000 \\
+     4 & 6 & 72 & 72 & 108 \\
+     1,000 & 6,908 & 81,439 & 55,075 & 27,000 \\
+     1,000,000 & 13,815,511 & 160,878,371 & 101,149,455 & 27,000,000 \\
+     1,000,000,000 & 20,723,265,837 & 240,317,557,125 & 147,224,183,132 & 27,000,000,000 \\
 
     \bottomrule
   \end{tabular}
 \end{table*}
 
+Table ~\ref{tab:HSComp} was generated by sorting arrays of random English words, sampled with
+replacement at each size shown from the Leipzig Corpora Collection \cite{GOLDHAHN12.327},
+comparing Huskysort, a re-implemented dual-pivot quicksort (see \S~\ref{sec:analysis}), and the
+Java system sort (Timsort), on the original 2020 environment (Table ~\ref{tab:SysEnvOriginal}).
+
 \begin{table*}
-  \caption{Relative sort times for Huskysort, dual-pivot quicksort, system sort}
+  \caption{Relative sort times for Huskysort, dual-pivot quicksort, system sort (dimensionless ratio, normalized to DP quicksort = 1.00)}
   \label{tab:HSComp}
   \begin{tabular}{cccc}
     \toprule
@@ -957,11 +953,11 @@ Indeed, insertion sort is sometimes faster.
 However, as the size of the array increases beyond this value, Timsort begins to win out over insertion sort. Please refer to table ~\ref{tab:TimvsInsertion}.
 
  \begin{table*}
-  \caption{Timsort or insertion sort}
+  \caption{Timsort or insertion sort as the cleanup pass (time in milliseconds)}
   \label{tab:TimvsInsertion}
   \begin{tabular}{ccc}
     \toprule
-    N & Husky with Tim & Husky with Insertion\\
+    N & Husky with Tim (ms) & Husky with Insertion (ms)\\
     \midrule
     \ 1000&0.14&0.14 \\
 \ 2000&0.31&0.30 \\
@@ -998,49 +994,66 @@ Please refer to figure ~\ref{Fig:TvsN}
   \includegraphics[width=0.5\textwidth]{BenchmarkTvsN.png}
 \end{figure}
 
-\item {}Comparison of Huskysort with system sort for numeric types (Integer, Double, Long, BigInteger, BigDecimal): Please refer to figure ~\ref{Fig:HS_BM_N} for results.
-\begin{figure}[]
-  
-  \caption{Comparison of Huskysort with system sort (Numeric) }
-  \Description{Comparison of multiple runs}
-  \label{Fig:HS_BM_N}
-  \centering
-  \includegraphics[width=0.5\textwidth]{HS_BM_N.png}
-\end{figure}
+\item {}Comparison of Huskysort with system sort for numeric types (Integer, Double, Long, BigInteger, BigDecimal): Table ~\ref{tab:HS_BM_N} (JMH, $N=500{,}000$, ms $\pm$ 99.9\% CI).
 
-\item {}Comparison of Huskysort with system sort for (String types--English Words, Chinese Words): Please refer to figures ~\ref{Fig:HS_BM_SE}, ~\ref{Fig:HS_BM_SC} for results.
-\begin{figure}[]
-  
-  \caption{Comparison of Huskysort with system sort (Strings--English Words) }
-  \Description{Comparison of multiple runs}
-  \label{Fig:HS_BM_SE}
-  \centering
-  \includegraphics[width=0.5\textwidth]{HS_BM_SE.png}
-\end{figure}
-\begin{figure}[]
-  
-  \caption{Comparison of Huskysort with system sort (Strings--Chinese Words) }
-  \Description{Comparison of multiple runs}
-  \label{Fig:HS_BM_SC}
-  \centering
-  \includegraphics[width=0.5\textwidth]{HS_BM_SC.png}
-\end{figure}
+\begin{table*}
+  \caption{Comparison of Huskysort with system sort (Numeric, $N=500{,}000$, ms, mean $\pm$ 99.9\% CI)}
+  \label{tab:HS_BM_N}
+  \begin{tabular}{lllllll}
+    \toprule
+    Type & System & PureHuskySort & DualPivotQuicksort & quicksort (raw) & Radix/8 & Radix/16 \\
+    \midrule
+    Integer & 94.4$\pm$4.8 & 68.9$\pm$8.3 & 67.0$\pm$5.8 & 36.3$\pm$3.4 & 27.3$\pm$3.8 & 26.0$\pm$2.8 \\
+    Double & 109.6$\pm$15.6 & 73.5$\pm$5.1 & 94.9$\pm$59.4 & 41.4$\pm$1.3 & 29.1$\pm$6.0 & 22.3$\pm$2.1 \\
+    Long & 101.5$\pm$8.6 & 74.9$\pm$3.7 & 77.0$\pm$11.3 & 35.2$\pm$0.5 & 25.4$\pm$5.3 & 38.2$\pm$42.1 \\
+    BigInteger & 157.1$\pm$10.5 & 108.6$\pm$5.7 & 157.9$\pm$10.3 & 38.4$\pm$2.8 & 42.4$\pm$10.8 & 35.4$\pm$2.1 \\
+    BigDecimal & 201.4$\pm$21.2 & 145.0$\pm$136.9 & 189.6$\pm$39.1 & 46.2$\pm$1.9 & 45.0$\pm$8.0 & 39.4$\pm$5.3 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
-\item {}Comparison of Huskysort with system sort for Tuples: Please refer to figure ~\ref{Fig:HS_BM_T} for results.
-\begin{figure}[]
-  
-  \caption{Comparison of Huskysort with system sort (Tuples) }
-  \Description{Comparison of multiple runs}
-  \label{Fig:HS_BM_T}
-  \centering
-  \includegraphics[width=0.5\textwidth]{HS_BM_T.png}
-\end{figure}
+\item {}Comparison of Huskysort with system sort for String types (English words, Chinese words):
+Table ~\ref{tab:HS_BM_S} (JMH, ms $\pm$ 99.9\% CI).
+
+\begin{table*}
+  \caption{Comparison of Huskysort with system sort (Strings, ms, mean $\pm$ 99.9\% CI)}
+  \label{tab:HS_BM_S}
+  \begin{tabular}{llllll}
+    \toprule
+    N & Corpus & System sort & PureHuskySort & Radix/8 & Radix/16 \\
+    \midrule
+    32,000 & English & 12.25$\pm$5.04 & 12.86$\pm$5.05 & 4.00$\pm$0.85 & 3.79$\pm$0.75 \\
+    32,000 & Chinese & 11.25$\pm$4.24 & 4.11$\pm$0.52 & 1.82$\pm$0.35 & 1.79$\pm$0.81 \\
+    200,000 & English & 146.09$\pm$111.5 & 87.18$\pm$36.9 & 50.39$\pm$19.6 & 41.12$\pm$4.3 \\
+    200,000 & Chinese & 61.65$\pm$11.7 & 25.99$\pm$4.0 & 10.50$\pm$1.9 & 9.76$\pm$4.3 \\
+    1,000,000 & English & 571.87$\pm$53.4 & 391.09$\pm$154.9 & 260.81$\pm$65.8 & 239.17$\pm$49.4 \\
+    1,000,000 & Chinese & 287.60$\pm$17.4 & 112.13$\pm$7.2 & 98.26$\pm$20.3 & 85.43$\pm$37.2 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\item {}Comparison of Huskysort with system sort for Tuples: Table ~\ref{tab:HS_BM_T} (JMH, ms $\pm$ 99.9\% CI).
+
+\begin{table*}
+  \caption{Comparison of Huskysort with system sort (Tuples, ms, mean $\pm$ 99.9\% CI)}
+  \label{tab:HS_BM_T}
+  \begin{tabular}{lllll}
+    \toprule
+    N & System & PureHuskySort & DualPivotQuicksort & Radix/16 \\
+    \midrule
+    20,000 & 3.11$\pm$0.40 & 2.19$\pm$0.10 & 2.71$\pm$0.13 & 1.03$\pm$0.05 \\
+    100,000 & 19.93$\pm$1.52 & 13.63$\pm$1.05 & 19.58$\pm$3.50 & 4.89$\pm$0.23 \\
+    500,000 & 174.30$\pm$13.6 & 117.14$\pm$20.8 & 155.56$\pm$16.1 & 45.00$\pm$4.6 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
 \end{itemize}
 
 
 
 \subsection{Summary}
+\label{sec:summary}
 Huskysort’s target application is the sorting of randomly ordered arrays of objects on the JVM (Java Virtual Machine).
 Let’s eliminate the non-use-cases first:
 \begin{itemize}
@@ -1051,7 +1064,11 @@ For such use cases, Timsort (the Java system sort for objects) would be more sui
 Dual-pivot quicksort (the Java system sort for primitives) is already the fastest algorithm for sorting such types.
 \end{itemize}
 Thus, Huskysort is best for any object array where there’s no expectation of partial ordering.
-Here is a summary of typical improvements in performance over Timsort:
+Here is a summary of typical improvements in performance over Timsort, expressed as a direct
+multiplier (e.g. \textbf{1.5x} means Huskysort took roughly two-thirds the time) rather than a
+percentage, since a percentage figure is easy to misread: a "42\% improvement" and a "1.7x
+speedup" describe the same measurement, but only one of them is unambiguous about what it's a
+percentage \emph{of}.
 Please refer to table ~\ref{tab:Improvements Summary}
 
 \begin{table*}
@@ -1059,16 +1076,16 @@ Please refer to table ~\ref{tab:Improvements Summary}
   \label{tab:Improvements Summary}
   \begin{tabular}{ccl}
     \toprule
-    Data Type  &  Percentage of Improvement\\
+    Data Type  &  Advantage over Timsort\\
     \midrule
-    \texttt{Strings of English words (4,000—500,000 elements)} &  33-41 \\
-    \texttt{Strings of Chinese words (4,000—500,000 elements)}&  31-52\\
-    \texttt{Tuples (20,000-500,000 elements))}&  14-19\\
-    \texttt{Integers (20,000-500,000 elements))}&  31-41\\
-    \texttt{Doubles (20,000-500,000 elements))}&  25-38\\
-    \texttt{Longs (20,000-500,000 elements))}&  31-42\\
-    \texttt{BigIntegers (20,000-500,000 elements))}& 35-40\\
-    \texttt{BigDecimals (20,000-500,000 elements)}&  36-38\\
+    \texttt{Strings of English words (4,000—500,000 elements)} &  1.5-1.7x \\
+    \texttt{Strings of Chinese words (4,000—500,000 elements)}&  1.4-2.1x\\
+    \texttt{Tuples (20,000-500,000 elements))}&  1.2x\\
+    \texttt{Integers (20,000-500,000 elements))}&  1.4-1.7x\\
+    \texttt{Doubles (20,000-500,000 elements))}&  1.3-1.6x\\
+    \texttt{Longs (20,000-500,000 elements))}&  1.4-1.7x\\
+    \texttt{BigIntegers (20,000-500,000 elements))}& 1.5-1.7x\\
+    \texttt{BigDecimals (20,000-500,000 elements)}&  1.6x\\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1198,12 +1215,18 @@ how the keys are distributed, so a pass over collapsed digits (everything lands 
 costs no more than any other pass. The from-scratch quicksort baseline degrades by more than an
 order of magnitude and then fails outright with a stack overflow — a concrete instance of exactly
 the kind of adversarial input this concern anticipates, though notably it is the
-\emph{baseline} implementation that fails, not Huskysort's own approach: the current
-Introsort-based approach (with its depth-limited heapsort fallback) neither crashes nor slows
-down anywhere in this sweep — if anything it gets faster as duplication increases, the same
-pattern System sort shows, consistent with Timsort's adaptive run-detection treating long runs
-of near-equal keys as already sorted. Radix sort is more robust still, because its immunity to
-this pattern is structural rather than incidental to a fallback mechanism.
+\emph{baseline} implementation that fails, not Huskysort's own approach. This is a well-known
+failure mode for a quicksort implementation that partitions naively around a heavily-duplicated
+pivot value: Bentley and McIlroy's classic treatment of engineering a practical quicksort
+\cite{10.1002/spe.4380231105} specifically addresses this case (a solution to Dijkstra's Dutch
+National Flag problem, partitioning into three regions — less than, equal to, and greater than
+the pivot — rather than two), precisely to avoid the pathological recursion depth this baseline
+exhibits. The current Introsort-based approach (with its depth-limited heapsort fallback)
+neither crashes nor slows down anywhere in this sweep — if anything it gets faster as
+duplication increases, the same pattern System sort shows, consistent with Timsort's adaptive
+run-detection treating long runs of near-equal keys as already sorted. Radix sort is more robust
+still, because its immunity to this pattern is structural rather than incidental to a fallback
+mechanism.
 
 \textbf{Shared string prefixes.} We took real corpus words and prepended a fixed-length prefix
 of repeated characters, long enough in the worst case to exceed the English coder's

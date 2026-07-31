@@ -272,14 +272,41 @@ Robin asked Claude Chat for a venue recommendation previously and didn't get one
     constants vs. concrete array-access counts) and both are worth keeping, they just weren't
     previously acknowledged as the same three-step decomposition.
 
-14. **Phase C — mechanical/presentation fixes** (Reviews 1, 3): convert Figures 4 and 6-9 from
-    image screenshots to real LaTeX tables using the new JMH numbers; state units (ms) on every
-    table and switch "% faster" framing to "Nx faster" ratio framing throughout; trim verbatim
-    Java code listings in favor of the existing Algorithm pseudocode; grammar/wording pass per
-    Review 3's itemized list; move the inline per-author-contribution sentence out of the body
-    text (already covered by `\authornote`s); flag the "broken Bentley citation" issue to Robin
-    — **no Bentley citation exists anywhere in this v1 source** (confirmed via `grep`), so this
-    can't be "fixed" without guessing what was meant.
+14. ~~**Phase C — mechanical/presentation fixes**~~ **DONE** (Reviews 1, 3). Read the actual
+    screenshot images (`SystemEnivornment.png`, `HS_BM_N.png`, `HS_BM_SE.png`, `HS_BM_SC.png`,
+    `HS_BM_T.png`) to confirm they're genuine spreadsheet/console screenshots before replacing:
+    Figure 4 (System Environment) became two real tables — the original 2020 machine (Intel
+    Core i7 MacBook Pro, JDK 1.8.0\_152) and the current one (Apple M1, JDK 21.0.10) used for the
+    radix-sort/JMH work, directly answering the portability question about other machines/JVM
+    versions. Figures 6-9 became three real tables (Numeric, Strings, Tuples) using the new,
+    statistically rigorous JMH numbers rather than the old ad hoc screenshots. Every table now
+    states its units explicitly; all "% faster" framing (including the "Improvements Summary"
+    table, the exact one the 42%-vs-1.7x critique targeted) converted to "Nx faster" ratio
+    framing. Trimmed the verbatim Java code listings in `Implementation of Algorithm` down to
+    prose plus one small constants table — found and removed a genuine copy-paste bug along the
+    way (the "stringToLong" listing was an exact duplicate of the "unicodeToLong" listing above
+    it, not the actual `stringToLong` method). Full grammar/wording pass per Review 3's itemized
+    list: retitled "Explanation of Working" to "Why Huskysort Works"; fixed "long is primitive";
+    "code 1" → "Listing 1" throughout; Table 1 (`tab:Comparison`) now states what's counted and
+    is right-aligned; added a methodology sentence for Table 2 (`tab:HSComp`, corpus/sampling/
+    environment); fixed a premature forward-reference to the "Improvements Summary" table that
+    appeared one section before that table was actually introduced. Moved the inline
+    per-author-contribution sentence out of the body text (redundant with the existing
+    `\authornote`, which already credited the same innovation to the same author). Flagged the
+    "broken Bentley citation" issue to Robin directly — **no Bentley citation exists anywhere in
+    this v1 source** (confirmed via `grep`), so this couldn't be "fixed" without guessing what
+    was meant. **Resolved 2026-07-31**: Robin supplied the actual reference — Bentley and
+    McIlroy, "Engineering a sort function," Software: Practice and Experience, Vol. 23, Issue 11,
+    pp. 1249-1265, 1993 (DOI `10.1002/spe.4380231105`), confirmed via web search. Added as a new
+    hand-written `\bibitem` in `HuskySort.bbl` and cited in two places: the Introduction's
+    existing cluster of "sorting still sees new improvements" citations, and — more
+    substantively — the Adversarial Inputs section, where it's the classic reference for the
+    Dutch-National-Flag three-way partitioning that the crashing `PureDualPivotQuicksort`
+    baseline lacks, directly explaining the mechanism behind that crash. The "why Husky?" naming
+    gap is now
+    resolved too — Robin confirmed it's named for Northeastern's mascot (having wanted "Hash
+    Sort" first, but that name was already taken by a different algorithm, Gilreath 2004,
+    already cited right at that spot) — added to the paper directly.
 
 15. **Implement a parallel RadixHuskySort variant.** The paper's literature paragraph (§Introduction)
     and `\S~\ref{sec:radix}` currently say a parallel radix-sort variant is left as future work —
@@ -297,3 +324,21 @@ Robin asked Claude Chat for a venue recommendation previously and didn't get one
     explanation given later changes (RadixHuskySort's own sign-bit XOR-bias handling, the pinyin
     coder rewrite) rather than stale reasoning carried over from 2020. Not yet resolved —
     tracked for review, not an immediate fix.
+
+18. **Cite the "quicksort is cache-friendly" claim** (§Why Huskysort Works, near where it used
+    to be line 598). **DONE 2026-07-31.** Robin asked whether this bare assertion needed
+    justification; recommended against reusing the Bentley & McIlroy citation for it (that paper
+    is about partitioning robustness, not cache behavior — would have been a citation mismatch).
+    Added the actual standard reference instead: LaMarca and Ladner, "The Influence of Caches on
+    the Performance of Sorting," Journal of Algorithms, Vol. 31, Issue 1, pp. 66-104, 1999
+    (new `\bibitem` in `HuskySort.bbl`, key `LAMARCA199966`). Added a parenthetical caveat per
+    Robin's request: that same paper found *raw* radix sort (sorting keys directly, no deferred
+    permutation) has relatively poor cache behavior on 1990s hardware — noted explicitly as a
+    different radix-sort design on much older hardware, so it doesn't undercut this paper's own
+    radix-sort results. Robin also pointed out Yaroslavskiy's dual-pivot quicksort paper
+    (`\cite{Dual-pivot}`, already in the bibliography) discusses caching's role across several
+    quicksort variants specifically. Couldn't independently verify the exact passage (the
+    bibliography's own URL for it, codeblab.com, is now dead, and the web.archive.org mirror
+    isn't fetchable from here) — trusted Robin's direct recollection and added it as a second,
+    complementary citation alongside LaMarca & Ladner (general cross-algorithm cache study vs.
+    Yaroslavskiy's quicksort-variant-specific one), rather than replacing either.
