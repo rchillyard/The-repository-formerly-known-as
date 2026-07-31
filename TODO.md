@@ -308,22 +308,83 @@ Robin asked Claude Chat for a venue recommendation previously and didn't get one
     Sort" first, but that name was already taken by a different algorithm, Gilreath 2004,
     already cited right at that spot) — added to the paper directly.
 
-15. **Implement a parallel RadixHuskySort variant.** The paper's literature paragraph (§Introduction)
-    and `\S~\ref{sec:radix}` currently say a parallel radix-sort variant is left as future work —
-    Robin wants this actually built rather than left as a claim. RadixHuskySort's per-digit
-    counting-sort passes are natural candidates for CPU (or GPU) parallelization. Once
-    implemented and benchmarked, update the paper text to describe it as done, with real
-    numbers, rather than "we leave as future work."
+15. ~~**Implement a parallel RadixHuskySort variant.**~~ **DONE 2026-07-31.** The paper's
+    literature paragraph (§Introduction) and `\S~\ref{sec:radix}` said a parallel radix-sort
+    variant was left as future work — Robin wanted this actually built rather than left as a
+    claim. New `ParallelRadixHuskySort` (same package): splits each digit pass into contiguous
+    chunks, one per thread. Each chunk computes its own local per-bucket histogram independently
+    (no synchronization), a short sequential step combines histograms into an exact
+    per-(chunk, bucket) starting offset (preserving LSD stability — a chunk's elements always
+    land after all lower-numbered chunks' same-bucket elements), then chunks scatter
+    independently using only their own precomputed offsets. New `ParallelRadixHuskySortTest` (13
+    tests, mirroring `RadixHuskySortTest`'s coverage — small/random strings, a digit-width
+    stress sweep, negative numbers, already/reverse-sorted, empty/singleton, and the same
+    `Tagged`/`TaggedKeyCoder` stability tests) with one addition specific to parallelism: every
+    test also sweeps chunk/thread counts (1, and several others including counts that do not
+    evenly divide N and one exceeding N), since a broken histogram-to-offset combine step would
+    only show up when chunk boundaries actually split a run of equal/adjacent keys. All pass
+    (run four times to check for intermittent concurrency bugs); full existing suite (329 tests)
+    still passes too.
 
-16. **Audit the "3 15/16ths characters" Unicode encoding claim** (Discussion of Husky Encoding
-    section). `HuskyCoderFactory.java`: `BIT_WIDTH_UNICODE=16`, `MAX_LENGTH_UNICODE=4`,
-    `unicodeToLong` does `stringToLong(...) >>> 1` (sacrificing the last bit), and
-    `unicodeCoder` declares its perfect-encoding length as `MAX_LENGTH_UNICODE - 1 = 3`. The raw
-    arithmetic checks out (3 full characters + 15/16 of a 4th = 63 of 64 bits used), but Robin
-    flagged this as questionable and it's worth verifying this is still the right/current
-    explanation given later changes (RadixHuskySort's own sign-bit XOR-bias handling, the pinyin
-    coder rewrite) rather than stale reasoning carried over from 2020. Not yet resolved —
-    tracked for review, not an immediate fix.
+    **First implementation and its real overhead**: dispatched fresh tasks to an
+    `ExecutorService` twice per digit pass (twelve executor round-trips per sort call at
+    11-bit digits). JMH showed this overhead eating a real share of the theoretical parallel
+    benefit — isolating parallelism itself (1 thread vs. 8, same framework overhead) gave a
+    resolved 2.16x at N=10,000,000, but against the existing zero-overhead serial
+    `RadixHuskySort` the net win shrank to ~1.2-1.3x, not statistically resolved at either size.
+    Robin asked for ideas to reduce this; recommended (over Java parallel streams, a simpler but
+    less targeted fix) a redesign spawning worker threads once per sort call rather than once
+    per phase, synchronizing via two reused `CyclicBarrier`s whose barrier actions do the
+    sequential combine/swap steps — collapsing twelve executor round-trips into one `invokeAll`
+    for the whole sort. Robin agreed to go straight to this redesign.
+
+    **Redesign, and a real detour through a confounded benchmark run**: the first
+    re-measurement after the redesign looked worse, not better (noisier CIs, a reversed
+    chunk-count trend at N=10,000,000). Checking `uptime`/`ps` before concluding anything found
+    the actual cause: unrelated background processes (an enterprise antivirus daemon, macOS's
+    media-analysis indexer, a lab-monitoring client) each consuming 80-130% CPU, load average
+    8.58-11.10 on an 8-core machine. Robin rebooted and closed other applications; a re-run on a
+    verified-clean machine (load average ~3) gave a clean result.
+
+    **Final JMH results** (`ParallelRadixSortBenchmarks`, `Long[]`, 11-bit digits,
+    N=2,000,000/10,000,000) — full table and discussion in the "Parallel radix sort" section of
+    [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md). The
+    redesign worked: 1-vs-4-threads (same framework overhead) is now statistically resolved at
+    both sizes (1.41x, 1.61x), versus only being resolved at the larger size before. Against the
+    existing serial `RadixHuskySort`, the win is now resolved at N=10,000,000 (574.3ms →
+    426.4ms, 1.35x) and suggestive-but-not-fully-resolved at N=2,000,000 (1.32x). Four threads
+    is the practical sweet spot on this machine (Apple M1, 4 performance + 4 efficiency cores) —
+    p=4 and p=8 are statistically indistinguishable at both sizes.
+
+    **Paper text DONE 2026-07-31.** New `\subsection{Parallel Radix Sort}` (label
+    `sec:parallel-radix`) after the existing Radix Sort Results subsection, with the design
+    description, the barrier-based redesign rationale, the results table above, and the same
+    honest statistical framing (which comparisons are resolved vs. suggestive). The
+    Introduction's literature paragraph now points to this subsection instead of saying "we
+    leave as future work," and no longer claims GPU parallelization (only CPU threads were
+    actually implemented and measured). Also fixed a real, pre-existing, unrelated bug found
+    while editing nearby: a broken cross-reference (`\ref{sec:radix-adversarial-appendix-note}`,
+    never actually defined anywhere) in the Radix Sort Results subsection's Chinese-names
+    sentence — oddly did not trigger LaTeX's usual undefined-reference warning, but was
+    confirmed broken via the `.aux` file; removed the dangling pointer rather than guessing what
+    it should have pointed to, since the paper never actually built out a fuller discussion for
+    it to reference.
+
+16. ~~**Audit the "3 15/16ths characters" Unicode encoding claim**~~ **DONE 2026-07-31.** The
+    claim is accurate and still current — nothing stale about it. Verified empirically (a small
+    Python bit-trace, not just reasoning by hand): the final `>>> 1` in `unicodeToLong` exists to
+    guarantee a non-negative packed value — without it, any string starting with a character
+    whose code point is `>= 0x8000` (common for CJK, e.g. `0x9EC4`) would set the sign bit and
+    encode as a *negative* `long`, corrupting simple numeric comparison. The shift sacrifices
+    exactly the lowest bit of a true 4th character (confirmed: two 4-character strings differing
+    only in that bit collide to the identical code after the shift); for strings of length <= 3
+    that bit is always an unused padding zero, so nothing is lost, which is exactly why
+    `unicodeCoder` declares `perfect()` only up to 3 characters, not 4. Unrelated to both the
+    pinyin coder rewrite (a separate coder entirely) and RadixHuskySort's sign-bit XOR bias
+    (harmless but redundant here, since this coder already guarantees non-negative output on its
+    own). The only real gap was that the paper stated the claim with no explanation, same pattern
+    as the cache-friendliness issue — added a short explanatory clause to
+    `paper/HuskySort.tex` covering the mechanism and tying it to the `perfect()` cutoff.
 
 18. **Cite the "quicksort is cache-friendly" claim** (§Why Huskysort Works, near where it used
     to be line 598). **DONE 2026-07-31.** Robin asked whether this bare assertion needed

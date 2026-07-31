@@ -302,13 +302,12 @@ observation is orthogonal to, not a substitute for, the external-memory and cach
 literature, which is chiefly concerned with data too large to fit in memory (or in cache) at
 all, rather than with the comparison cost of individual elements that do fit. Separately, radix
 sort's independent per-digit counting-sort passes are well suited to parallelization across CPU
-or GPU threads, a property that is well established for radix sort generally; we have not
-implemented such a parallel variant of the radix-sort approach described in \S~\ref{sec:radix},
-but it is a natural extension, which we leave as future work. We do not make an equivalent claim
-for Huskysort's own comparison-based steps: Introsort's partitioning and Timsort's adaptive
-run-detection are both substantially more data-dependent and sequential in character than radix
-sort's fixed per-digit passes, so parallelizing them well is a separate, harder problem that this
-paper does not address.
+threads, a property that is well established for radix sort generally; \S~\ref{sec:parallel-radix}
+describes and benchmarks a parallel variant of the radix-sort approach of \S~\ref{sec:radix}. We
+do not make an equivalent claim for Huskysort's own comparison-based steps: Introsort's
+partitioning and Timsort's adaptive run-detection are both substantially more data-dependent and
+sequential in character than radix sort's fixed per-digit passes, so parallelizing them well is a
+separate, harder problem that this paper does not address.
 
 Even though sorting appears to be a settled area of research, yet new improvements are still being made: \cite{Dual-pivot,Timsort,doi:10.1137/1.9781611975994.101,10.5555/313559.313859,10.1002/spe.4380231105}.
 There is, therefore, an abundance of sorting techniques available.
@@ -576,7 +575,7 @@ We have not calculated a typical value for $p_{crit}$ but, even for the worst-ca
 So, why does this work? Well, first of all, we observe that 64-bit word length in today’s computers is the norm.
 This allows for an encoding which has a low, possibly zero, value of $p_{crit}$.
 
-Even though a Unicode string can encode only the first 3 15/16ths characters in 64 bits, this is extremely helpful in getting the elements close to their final order.
+Even though a Unicode string can encode only the first 3 15/16ths characters in 64 bits, this is extremely helpful in getting the elements close to their final order. The 15/16ths comes from a final unsigned right shift by one bit, applied after packing four 16-bit characters into the 64-bit code: without it, any string beginning with a character whose code point is 0x8000 or above (common among CJK characters) would set the sign bit and be encoded as a negative \textit{long}, corrupting simple numeric comparison. The shift costs exactly the least-significant bit of a true fourth character; for strings of three characters or fewer, that bit is always an unused padding zero, so nothing is actually lost — which is exactly why this encoding is only declared \textit{perfect} up to three characters, not four.
 
 Here, we may compare the method of Huskysort with that of ShellSort.\cite{10.1007/3-540-61680-2_42}
 
@@ -1135,9 +1134,55 @@ margin is 1.3x or greater, consistent with the theoretical model of \S~\ref{sec:
 no logarithmic term at all, so there is no analogous reason to expect the advantage to erode as
 $N$ grows further. Chinese names sorted by pinyin order are the smallest margin measured (1.6x)
 because both the current approach and the radix variant must pay the same collator-based cleanup
-pass cost for that coding (see \S~\ref{sec:radix-adversarial-appendix-note}); Dates show the
+pass cost for that coding; Dates show the
 largest margin (4.5x) because that coding is provably perfect and never needs a cleanup pass at
 all, letting radix's linear-time advantage show through with nothing else in the way.
+
+\subsection{Parallel Radix Sort}
+\label{sec:parallel-radix}
+
+Radix sort's digit passes are natural candidates for parallelization (\S~\ref{sec:radix}
+above). We implemented and benchmarked a parallel variant: each pass is split into a configurable
+number of contiguous chunks, one per worker thread. Every chunk first computes its own local
+per-bucket histogram independently, with no synchronization required; a short sequential step
+then combines those histograms into an exact starting offset, in the output array, for every
+(chunk, bucket) pair — preserving the stability that step 3's cleanup pass, when needed, relies
+on, since a chunk's elements always land after all lower-numbered chunks' elements sharing the
+same bucket; finally, every chunk scatters its own elements into the output arrays independently,
+using only its own precomputed offsets, so no two chunks ever write to the same location.
+
+An initial implementation dispatched the two phases above to a thread pool separately on every
+pass. Measurement showed this repeated dispatch itself contributing a real, non-trivial share of
+the total cost, particularly at more moderate array sizes. The overhead was substantially reduced
+by starting the worker threads once per sort, rather than once per phase per pass: each thread
+runs its own loop over every pass, and the two phases synchronize via reused barriers whose
+associated actions — code that runs exactly once per synchronization point, in whichever thread
+arrives last — perform the histogram-combine and buffer-swap steps. Table
+~\ref{tab:ParallelRadix} reports the result (\textit{Long[]}, 11-bit digits, milliseconds, mean
+$\pm$ 99.9\% CI).
+
+\begin{table*}
+  \caption{Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads}
+  \label{tab:ParallelRadix}
+  \begin{tabular}{cccccc}
+    \toprule
+    N & Serial & 1 thread & 2 threads & 4 threads & 8 threads \\
+    \midrule
+    2,000,000 & 100.4$\pm$24.0 & 107.5$\pm$10.7 & 83.7$\pm$3.3 & 76.3$\pm$4.1 & 77.3$\pm$3.6 \\
+    10,000,000 & 574.3$\pm$83.3 & 685.3$\pm$135.5 & 569.5$\pm$307.0 & 426.4$\pm$49.1 & 444.0$\pm$127.3 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+Isolating parallelism itself — comparing 1 thread against 4, both paying identical
+thread-coordination overhead — gives a real, statistically resolved speedup at both sizes: 1.41x
+at $N=2{,}000{,}000$ and 1.61x at $N=10{,}000{,}000$, non-overlapping confidence intervals in
+both cases. Against the existing serial implementation, the improvement is resolved at
+$N=10{,}000{,}000$ (574.3ms to 426.4ms, 1.35x) and directionally consistent but not fully
+resolved at $N=2{,}000{,}000$ (1.32x, overlapping intervals). Four threads is the practical sweet
+spot on the machine used for this measurement (four performance and four efficiency cores):
+eight threads performs statistically indistinguishably from four at both sizes, consistent with
+only four of the eight cores being full-performance ones.
 
 \section{Conclusion}
 

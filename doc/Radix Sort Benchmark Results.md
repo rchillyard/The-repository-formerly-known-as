@@ -540,6 +540,73 @@ first strengthens the case for radix specifically; the second is a limitation of
 scheme itself, already implicit in the original paper's own `p_crit` discussion, and applies
 equally regardless of whether quicksort or radix sorts the codes.
 
+## Parallel radix sort
+
+TODO.md item 15: implement (not just claim as future work) a parallel variant of
+RadixHuskySort's digit passes. New `ParallelRadixHuskySort`: each pass is split into contiguous
+chunks (one per thread), each chunk computes its own local per-bucket histogram independently,
+a short sequential step combines histograms into an exact per-(chunk, bucket) starting offset
+(preserving LSD stability), then chunks scatter independently using only their own precomputed
+offsets. Correctness verified first (13 new tests, `ParallelRadixHuskySortTest`, mirroring
+`RadixHuskySortTest`'s coverage but additionally sweeping chunk/thread counts including ones
+that do not evenly divide N — a broken histogram-to-offset combine would only show up when
+chunk boundaries actually split a run of equal/adjacent keys); full existing suite (329 tests)
+still passes.
+
+### First cut: real overhead, then a redesign
+
+The first implementation dispatched fresh tasks to an `ExecutorService` twice per digit pass
+(once for the histogram phase, once for the scatter phase — twelve executor round-trips per
+sort call at 11-bit digits' six passes). JMH showed this overhead eating a real share of the
+theoretical parallel benefit: isolating parallelism itself (1 thread vs. 8, same framework
+overhead in both) gave a resolved 2.16x at N=10,000,000, but against the existing
+zero-overhead serial `RadixHuskySort` the net win shrank to ~1.2-1.3x and was not statistically
+resolved at either size tested.
+
+Redesigned to spawn the worker threads once per sort call (not once per phase): each thread
+runs a loop over every pass, synchronizing via two reused `CyclicBarrier`s (one per phase
+transition) whose "barrier actions" — code that runs exactly once per trip, in whichever thread
+arrives last — do the sequential histogram-combine step and the buffer-swap/shift-advance step.
+This collapses twelve executor round-trips into one `invokeAll` for the whole sort; ongoing
+synchronization between phases and passes is then just a barrier wait. Correctness re-verified
+after the redesign (all 13 tests, run four times to check for intermittent concurrency bugs;
+full 329-test suite unaffected).
+
+The first re-measurement after this redesign looked worse, not better — noisier confidence
+intervals and even a reversed chunk-count trend at N=10,000,000. Before concluding anything,
+checking `uptime`/`ps` found the actual cause: the machine's load average was 8.58/10.62/11.10
+(on 8 cores) during that run, with unrelated background processes — an enterprise antivirus
+daemon, macOS's media-analysis indexer, a lab-monitoring client — each consuming 80-130% CPU
+concurrently. Robin rebooted and closed other applications; a re-run on a verified-clean machine
+(load average 3.62/3.60/3.04) gave the numbers below. This is the same "don't trust a noisy
+single run" lesson this document has already learned twice with ad hoc timing versus JMH,
+playing out a third time with system-level noise instead.
+
+JMH (`ParallelRadixSortBenchmarks`), `Long[]`, 11-bit digits, N=2,000,000 and 10,000,000, ms
+mean ± 99.9% CI, clean-machine run:
+
+| N | PureHuskySort | Serial Radix/11 | Parallel p=1 | Parallel p=2 | Parallel p=4 | Parallel p=8 |
+|---|---|---|---|---|---|---|
+| 2,000,000 | 366.7±10.8 | 100.4±24.0 | 107.5±10.7 | 83.7±3.3 | 76.3±4.1 | 77.3±3.6 |
+| 10,000,000 | 2589.4±215.1 | 574.3±83.3 | 685.3±135.5 | 569.5±307.0 | 426.4±49.1 | 444.0±127.3 |
+
+- **The redesign worked**: comparing 1 thread against 4 threads (same framework overhead in
+  both) is now statistically resolved at **both** sizes — 1.41x at N=2,000,000 and 1.61x at
+  N=10,000,000, non-overlapping confidence intervals at both. Under the first design, this
+  comparison (1 vs. 8) was only resolved at the larger size.
+- **Against the existing serial `RadixHuskySort`**, the win is now resolved at N=10,000,000:
+  574.3ms → 426.4ms, **1.35x**, non-overlapping. At N=2,000,000 the comparison (100.4ms →
+  76.3ms, 1.32x) is suggestive but the intervals still overlap slightly, so not fully resolved
+  there.
+- **Four threads is the practical sweet spot on this machine** (Apple M1, 4 performance + 4
+  efficiency cores): p=4 and p=8 are statistically indistinguishable at both sizes (ratio
+  0.96-0.99x, heavily overlapping CIs) — using the efficiency cores does not help further,
+  consistent with only 4 cores actually being "fast" ones.
+- Against `PureHuskySort`, the parallel variant at p=4 is ~4.8-6.1x — as before, most of that
+  margin is radix sort's own advantage (already ~3.6-4.5x serial-vs-PureHuskySort at these
+  sizes), with parallelism's own incremental contribution being the smaller 1.3-1.6x discussed
+  above.
+
 ## Headline conclusion
 
 Radix sort with a deferred permutation beats the repo's current quicksort-based husky
