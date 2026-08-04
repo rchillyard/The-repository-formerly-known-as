@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * JMH benchmarks for {@link ParallelRadixHuskySort} against the existing serial
- * {@link RadixHuskySort} and {@link PureHuskySort}, answering the paper's own claim (previously
+ * {@link RadixHuskySort} and {@link QuickHuskySort}, answering the paper's own claim (previously
  * "left as future work") that RadixHuskySort's per-digit passes are a natural candidate for
  * parallelization. Uses large N throughout, since parallel overhead (thread-pool creation,
  * per-chunk task submission) only pays for itself once the per-pass work is substantial.
@@ -40,9 +40,9 @@ public class ParallelRadixSortBenchmarks {
     }
 
     @Benchmark
-    public Long[] pureHuskySort(final LongState state) {
+    public Long[] quickHuskySort(final LongState state) {
         final Long[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.longCoder, false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.longCoder, false, false).sort(copy);
         return copy;
     }
 

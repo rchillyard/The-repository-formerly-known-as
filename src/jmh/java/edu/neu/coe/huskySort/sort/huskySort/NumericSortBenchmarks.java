@@ -54,6 +54,85 @@ public class NumericSortBenchmarks {
         return result;
     }
 
+    // NOTE: "raw radix sort on primitives" baseline -- the radix-sort analogue of
+    // rawLongQuicksort/rawDoubleQuicksort above, and the strongest possible non-Husky baseline
+    // for the radix comparison specifically. Unlike RadixHuskySort, there is no separate payload
+    // array to carry in sync, no generic HuskyCoder abstraction, and no optional cleanup pass --
+    // sorting the primitive key array directly *is* the whole job, so each digit pass simply
+    // reorders that one array rather than needing a deferred int[] permutation applied
+    // afterward. This isolates how much of RadixHuskySort's cost is its generality (working on
+    // any Comparable type via an encoding function, plus the payload-permutation/cleanup-pass
+    // machinery that generality requires) versus the radix algorithm itself.
+    private static long[] radixSortLongsBiased(final long[] biased, final int digitBits) {
+        final int n = biased.length;
+        final int buckets = 1 << digitBits;
+        final int mask = buckets - 1;
+        long[] current = biased;
+        long[] buffer = new long[n];
+        final int[] count = new int[buckets + 1];
+        for (int shift = 0; shift < Long.SIZE; shift += digitBits) {
+            Arrays.fill(count, 0);
+            for (int i = 0; i < n; i++) count[(int) ((current[i] >>> shift) & mask) + 1]++;
+            for (int b = 0; b < buckets; b++) count[b + 1] += count[b];
+            for (int i = 0; i < n; i++) {
+                final int b = (int) ((current[i] >>> shift) & mask);
+                buffer[count[b]++] = current[i];
+            }
+            final long[] temp = current;
+            current = buffer;
+            buffer = temp;
+        }
+        return current;
+    }
+
+    // Standard bijective bit-trick for encoding a double as a long with the same relative
+    // order: flip the sign bit for non-negative values, flip every bit for negative ones. This
+    // needs to be invertible, since there is no separate original-object payload to fall back
+    // on here (unlike HuskyCoderFactory.doubleToLong, which only needs one-way ordering because
+    // the original Double reference is what actually gets permuted); sortableSignedLongToDouble
+    // below is its exact inverse. A sign-plus-magnitude-negation encoding (the first version of
+    // this method) looks equivalent but is not actually bijective: it collapses +0.0 and -0.0
+    // to the identical encoded value 0, silently losing the distinction Arrays.sort itself
+    // preserves (Double.compare treats -0.0 as strictly less than 0.0) -- caught by comparing
+    // against Arrays.sort on an explicit -0.0/+0.0 test case, not by reasoning about the bits
+    // alone.
+    private static long doubleToSortableSignedLong(final double value) {
+        final long bits = Double.doubleToLongBits(value);
+        final long mask = -(bits >>> 63) | Long.MIN_VALUE;
+        return bits ^ mask;
+    }
+
+    private static double sortableSignedLongToDouble(final long sortable) {
+        final long mask = ((sortable >>> 63) - 1) | Long.MIN_VALUE;
+        return Double.longBitsToDouble(sortable ^ mask);
+    }
+
+    private static Long[] rawLongRadixSort(final Number[] xs) {
+        final int n = xs.length;
+        final long[] biased = new long[n];
+        for (int i = 0; i < n; i++) biased[i] = xs[i].longValue() ^ Long.MIN_VALUE;
+        final long[] sorted = radixSortLongsBiased(biased, 16);
+        final Long[] result = new Long[n];
+        for (int i = 0; i < n; i++) result[i] = sorted[i] ^ Long.MIN_VALUE;
+        return result;
+    }
+
+    private static Double[] rawDoubleRadixSort(final Number[] xs) {
+        final int n = xs.length;
+        // NOTE: unlike rawLongRadixSort, no extra XOR Long.MIN_VALUE bias here --
+        // doubleToSortableSignedLong's own output is already directly unsigned-comparable
+        // (that is the whole point of the sign-bit/full-bit-flip trick), so radixSortLongsBiased
+        // (which sorts its input in ascending unsigned order) needs no further transform. Adding
+        // one anyway was a real bug caught during verification: it happened to still produce a
+        // valid permutation, just not always the *correctly sorted* one.
+        final long[] sortable = new long[n];
+        for (int i = 0; i < n; i++) sortable[i] = doubleToSortableSignedLong(xs[i].doubleValue());
+        final long[] sorted = radixSortLongsBiased(sortable, 16);
+        final Double[] result = new Double[n];
+        for (int i = 0; i < n; i++) result[i] = sortableSignedLongToDouble(sorted[i]);
+        return result;
+    }
+
     // ---------- Integer ----------
 
     @State(Scope.Thread)
@@ -78,9 +157,9 @@ public class NumericSortBenchmarks {
     }
 
     @Benchmark
-    public Integer[] integerPureHuskySort(final IntegerState state) {
+    public Integer[] integerQuickHuskySort(final IntegerState state) {
         final Integer[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.integerCoder, false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.integerCoder, false, false).sort(copy);
         return copy;
     }
 
@@ -94,6 +173,11 @@ public class NumericSortBenchmarks {
     @Benchmark
     public Long[] integerRawQuicksort(final IntegerState state) {
         return rawLongQuicksort(state.master);
+    }
+
+    @Benchmark
+    public Long[] integerRawRadixSort(final IntegerState state) {
+        return rawLongRadixSort(state.master);
     }
 
     @Benchmark
@@ -138,9 +222,9 @@ public class NumericSortBenchmarks {
     }
 
     @Benchmark
-    public Double[] doublePureHuskySort(final DoubleState state) {
+    public Double[] doubleQuickHuskySort(final DoubleState state) {
         final Double[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.doubleCoder, false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.doubleCoder, false, false).sort(copy);
         return copy;
     }
 
@@ -154,6 +238,11 @@ public class NumericSortBenchmarks {
     @Benchmark
     public Double[] doubleRawQuicksort(final DoubleState state) {
         return rawDoubleQuicksort(state.master);
+    }
+
+    @Benchmark
+    public Double[] doubleRawRadixSort(final DoubleState state) {
+        return rawDoubleRadixSort(state.master);
     }
 
     @Benchmark
@@ -198,9 +287,9 @@ public class NumericSortBenchmarks {
     }
 
     @Benchmark
-    public Long[] longPureHuskySort(final LongState state) {
+    public Long[] longQuickHuskySort(final LongState state) {
         final Long[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.longCoder, false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.longCoder, false, false).sort(copy);
         return copy;
     }
 
@@ -214,6 +303,11 @@ public class NumericSortBenchmarks {
     @Benchmark
     public Long[] longRawQuicksort(final LongState state) {
         return rawLongQuicksort(state.master);
+    }
+
+    @Benchmark
+    public Long[] longRawRadixSort(final LongState state) {
+        return rawLongRadixSort(state.master);
     }
 
     @Benchmark
@@ -258,9 +352,9 @@ public class NumericSortBenchmarks {
     }
 
     @Benchmark
-    public BigInteger[] bigIntegerPureHuskySort(final BigIntegerState state) {
+    public BigInteger[] bigIntegerQuickHuskySort(final BigIntegerState state) {
         final BigInteger[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.bigIntegerCoder, false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.bigIntegerCoder, false, false).sort(copy);
         return copy;
     }
 
@@ -274,6 +368,11 @@ public class NumericSortBenchmarks {
     @Benchmark
     public Long[] bigIntegerRawQuicksort(final BigIntegerState state) {
         return rawLongQuicksort(state.master);
+    }
+
+    @Benchmark
+    public Long[] bigIntegerRawRadixSort(final BigIntegerState state) {
+        return rawLongRadixSort(state.master);
     }
 
     @Benchmark
@@ -318,9 +417,9 @@ public class NumericSortBenchmarks {
     }
 
     @Benchmark
-    public BigDecimal[] bigDecimalPureHuskySort(final BigDecimalState state) {
+    public BigDecimal[] bigDecimalQuickHuskySort(final BigDecimalState state) {
         final BigDecimal[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.bigDecimalCoder, false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.bigDecimalCoder, false, false).sort(copy);
         return copy;
     }
 
@@ -334,6 +433,11 @@ public class NumericSortBenchmarks {
     @Benchmark
     public Double[] bigDecimalRawQuicksort(final BigDecimalState state) {
         return rawDoubleQuicksort(state.master);
+    }
+
+    @Benchmark
+    public Double[] bigDecimalRawRadixSort(final BigDecimalState state) {
+        return rawDoubleRadixSort(state.master);
     }
 
     @Benchmark

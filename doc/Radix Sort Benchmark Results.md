@@ -35,7 +35,7 @@ Coder: Unicode (default) for English/Chinese; ASCII/English-family coder for com
 
 Time per sort (ms):
 
-| N | Corpus | System sort | PureHuskySort (current approach) | Radix/8 | Radix/11 | Radix/16 |
+| N | Corpus | System sort | QuickHuskySort (current approach) | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|
 | 32,000 | English | 10.03 | 7.30 | 4.20 | 3.78 | 4.17 |
 | 32,000 | Chinese | 10.04 | 3.78 | 2.02 | 1.65 | 1.58 |
@@ -48,15 +48,15 @@ Time per sort (ms):
 | 1,000,000 | Common words | 234.54 | 125.33 | 132.99 | 116.62 | 157.28 |
 
 Notes:
-- At 32K and 200K, the ranking is consistently System > PureHuskySort > Radix/8 > Radix/11 >
+- At 32K and 200K, the ranking is consistently System > QuickHuskySort > Radix/8 > Radix/11 >
   Radix/16 (i.e. radix wins, and wider digits win more, monotonically).
 - At 1,000,000, results get inconsistent: English favors Radix/8 (reversing the 200K trend),
-  Chinese favors Radix/16 heavily, and common words slightly favors PureHuskySort over two of
+  Chinese favors Radix/16 heavily, and common words slightly favors QuickHuskySort over two of
   the three radix variants. English has plenty of unique words at this scale (275,333, so the
   1M sample isn't as duplicate-dominated as it might look) — that reversal is more likely
   single-run measurement noise than a duplicate effect. Chinese (24,017 unique) and especially
   common words (2,998 unique) *are* heavily duplicate-skewed at N=1,000,000, which plausibly
-  explains PureHuskySort's competitive/better showing there (its 3-way quicksort partition can
+  explains QuickHuskySort's competitive/better showing there (its 3-way quicksort partition can
   collapse a run of equal keys in one pass; radix's LSD passes are a fixed cost regardless of
   duplicate density). **This needs repeated/JMH-quality runs before treating as conclusive** —
   see TODO.md items 1-2.
@@ -68,7 +68,7 @@ target/benchmarks.jar StringSortBenchmarks` — see [JMH Benchmarks.md](JMH%20Be
 default settings (2 forks x (3 warmup + 5 measurement) 1-second iterations = 10 samples per
 row). Same corpora/coders/sampling as above. Score ± is the 99.9% CI half-width.
 
-| N | Corpus | System sort | PureHuskySort | Radix/8 | Radix/11 | Radix/16 |
+| N | Corpus | System sort | QuickHuskySort | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|
 | 32,000 | English | 12.25 ± 5.04 | 12.86 ± 5.05 | 4.00 ± 0.85 | 4.32 ± 0.71 | 3.79 ± 0.75 |
 | 32,000 | Chinese | 11.25 ± 4.24 | 4.11 ± 0.52 | 1.82 ± 0.35 | 1.40 ± 0.04 | 1.79 ± 0.81 |
@@ -84,14 +84,14 @@ row). Same corpora/coders/sampling as above. Score ± is the 99.9% CI half-width
 proper measurement.** Radix/11's own confidence interval there (337 ± 368) is wider than its
 mean — i.e. statistically indistinguishable from noise — and Radix/8's (261 ± 66) and Radix/16's
 (239 ± 49) intervals overlap substantially. The honest reading at that specific
-corpus/size is: **radix clearly and robustly beats both System sort and PureHuskySort (no
+corpus/size is: **radix clearly and robustly beats both System sort and QuickHuskySort (no
 overlap there), but which of 8/11/16-bit wins against each other is not resolved by this data**
 — not "8-bit wins," which is what the ad hoc numbers implied. Robin's read on skipping
 Reviewer 3's actual question for years turns out to extend one level deeper: even the "fewer
 passes wins at scale" digit-width story needs real statistics before trusting a specific
 ranking, not just real data.
 
-At every other row, radix's advantage over System sort and PureHuskySort holds up with tight,
+At every other row, radix's advantage over System sort and QuickHuskySort holds up with tight,
 non-overlapping intervals — the headline finding (radix wins, often 2-4x) is unaffected. The
 16-bit-common-words 1,000,000 row also has one large outlier interval (87 ± 75 for Radix/8) —
 consistent with the corpus's severe duplicate skew (2,998 unique words) making that specific
@@ -153,7 +153,7 @@ Time per sort (ms):
 
 ### Integer
 
-| N | System | PureHuskySort | DualPivotQuicksort | quicksort (raw long) | Radix/8 | Radix/11 | Radix/16 |
+| N | System | QuickHuskySort | DualPivotQuicksort | quicksort (raw long) | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|---|
 | 20,000 | 4.38 | 2.02 | 3.29 | 1.52 | 1.13 | 0.87 | 0.79 |
 | 100,000 | 19.13 | 13.12 | 16.15 | 6.01 | 3.82 | 3.21 | 2.90 |
@@ -161,7 +161,7 @@ Time per sort (ms):
 
 ### Double
 
-| N | System | PureHuskySort | DualPivotQuicksort | quicksort (raw double) | Radix/8 | Radix/11 | Radix/16 |
+| N | System | QuickHuskySort | DualPivotQuicksort | quicksort (raw double) | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|---|
 | 20,000 | 3.74 | 2.17 | 2.82 | 1.34 | 0.68 | 0.60 | 0.74 |
 | 100,000 | 23.03 | 15.45 | 20.08 | 7.28 | 3.84 | 3.48 | 3.28 |
@@ -169,7 +169,7 @@ Time per sort (ms):
 
 ### Long
 
-| N | System | PureHuskySort | DualPivotQuicksort | quicksort (raw long) | Radix/8 | Radix/11 | Radix/16 |
+| N | System | QuickHuskySort | DualPivotQuicksort | quicksort (raw long) | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|---|
 | 20,000 | 3.16 | 1.91 | 2.40 | 1.05 | 0.52 | 0.43 | 0.59 |
 | 100,000 | 19.40 | 13.00 | 16.84 | 6.09 | 3.41 | 2.90 | 3.43 |
@@ -177,7 +177,7 @@ Time per sort (ms):
 
 ### BigInteger
 
-| N | System | PureHuskySort | DualPivotQuicksort | quicksort (raw long) | Radix/8 | Radix/11 | Radix/16 |
+| N | System | QuickHuskySort | DualPivotQuicksort | quicksort (raw long) | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|---|
 | 20,000 | 3.70 | 2.29 | 3.25 | 1.22 | 0.82 | 0.81 | 0.86 |
 | 100,000 | 27.60 | 15.63 | 23.12 | 8.56 | 5.97 | 6.62 | 5.85 |
@@ -185,7 +185,7 @@ Time per sort (ms):
 
 ### BigDecimal
 
-| N | System | PureHuskySort | DualPivotQuicksort | quicksort (raw double) | Radix/8 | Radix/11 | Radix/16 |
+| N | System | QuickHuskySort | DualPivotQuicksort | quicksort (raw double) | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|---|
 | 20,000 | 5.87 | 3.58 | 6.80 | 6.00 | 2.20 | 2.06 | 1.85 |
 | 100,000 | 49.22 | 27.93 | 40.17 | 29.90 | 12.37 | 11.14 | 11.55 |
@@ -202,7 +202,7 @@ Re-ran under JMH (`java -jar target/benchmarks.jar NumericSortBenchmarks`); same
 except Double/BigDecimal now exercise the full signed range rather than `[0, Long.MAX_VALUE)`
 only (see `NumericSortBenchmarks.java`). N=500,000 shown (ms, mean ± 99.9% CI):
 
-| Type | System | PureHuskySort | DualPivotQuicksort | quicksort (raw) | Radix/8 | Radix/11 | Radix/16 |
+| Type | System | QuickHuskySort | DualPivotQuicksort | quicksort (raw) | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|---|
 | Integer | 94.4±4.8 | 68.9±8.3 | 67.0±5.8 | 36.3±3.4 | 27.3±3.8 | 24.1±5.3 | 26.0±2.8 |
 | Double | 109.6±15.6 | 73.5±5.1 | 94.9±**59.4** | 41.4±1.3 | 29.1±6.0 | 28.0±10.0 | 22.3±2.1 |
@@ -225,24 +225,24 @@ type); Long's Radix/16 and BigDecimal's Radix/11 rows are this run's outlier-int
 Composite key type (`birthYear`/`zip`/`name` packed into one husky code, imperfect encoding —
 needs the cleanup pass) matching the paper's synthetic Tuple benchmark.
 
-| N | System | PureHuskySort | DualPivotQuicksort | Radix/8 | Radix/11 | Radix/16 |
+| N | System | QuickHuskySort | DualPivotQuicksort | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|
 | 20,000 | 3.72 | 3.36 | 4.68 | 1.32 | 1.15 | 1.16 |
 | 100,000 | 23.98 | 18.11 | 17.52 | 8.31 | 8.73 | 6.31 |
 | 500,000 | 214.15 | 127.41 | 159.41 | 83.27 | 64.95 | 73.32 |
 
-Radix/11 wins at 500,000 (~2x faster than the current PureHuskySort approach).
+Radix/11 wins at 500,000 (~2x faster than the current QuickHuskySort approach).
 
 ### JMH update (2026-07-23)
 
-| N | System | PureHuskySort | DualPivotQuicksort | Radix/8 | Radix/11 | Radix/16 |
+| N | System | QuickHuskySort | DualPivotQuicksort | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|
 | 20,000 | 3.11±0.40 | 2.19±0.10 | 2.71±0.13 | 1.17±0.17 | 0.99±0.03 | 1.03±0.05 |
 | 100,000 | 19.93±1.52 | 13.63±1.05 | 19.58±3.50 | 6.19±0.33 | 5.38±0.28 | 4.89±0.23 |
 | 500,000 | 174.30±13.6 | 117.14±20.8 | 155.56±16.1 | 52.56±3.7 | 52.04±9.0 | 45.00±4.6 |
 
 A clean run — no outlier-interval rows this time. Radix/16 is modestly best at N=500,000
-(~2.6x faster than PureHuskySort, ~3.9x faster than System sort), consistent with the ad hoc
+(~2.6x faster than QuickHuskySort, ~3.9x faster than System sort), consistent with the ad hoc
 numbers but now with tight, trustworthy intervals throughout.
 
 ## Dates
@@ -254,14 +254,14 @@ harness run; this is JMH-only, N=20,000 (`java -jar target/benchmarks.jar DateSo
 | Sorter | Time (ms, mean ± 99.9% CI) |
 |---|---|
 | System sort | 2.96 ± 0.13 |
-| QuickHuskySort | 2.81 ± 0.13 |
-| QuickHuskySort + insertion cleanup | 3.06 ± 0.70 |
+| DutchHuskySort | 2.81 ± 0.13 |
+| DutchHuskySort + insertion cleanup | 3.06 ± 0.70 |
 | Radix/8 | 0.72 ± 0.03 |
 | Radix/11 | 0.63 ± 0.04 |
 | Radix/16 | 0.67 ± 0.03 |
 
 The largest relative win anywhere in this benchmark: radix is **~4-4.5x faster** than every
-quicksort-based option, including the existing QuickHuskySort. The "perfect" single-long
+quicksort-based option, including the existing DutchHuskySort. The "perfect" single-long
 encoding removes any need for a cleanup pass, so radix's O(N) advantage shows through with
 nothing else in the way.
 
@@ -274,7 +274,7 @@ sweep: `java -jar target/benchmarks.jar 'StringSortBenchmarks\..*' -p corpus=chi
 **Important caveat on "System sort" here**: unlike the Leipzig English/Chinese corpora (where
 natural String order via System sort *is* the semantically correct comparison target), System
 sort here does raw Unicode-code-point order, which is *not* correct pinyin order for this
-corpus. The meaningful comparison is PureHuskySort vs RadixHuskySort — both correctly produce
+corpus. The meaningful comparison is QuickHuskySort vs RadixHuskySort — both correctly produce
 pinyin order; System sort's number is included only as a "how fast is a differently-defined
 sort" reference point, not a real competitor.
 
@@ -284,14 +284,14 @@ post-sorter and never consulted `HuskyCoder.getCollator()`. `HuskyCoderChinesePi
 needs the cleanup pass (it never claims `perfect()`), so every prior `RadixHuskySort` result
 for Chinese names was silently sorted by natural Unicode-code-point order, not real pinyin
 order — invalidating the RadixHuskySort numbers from the first pass of this benchmark (though
-not PureHuskySort's, which already checked `getCollator()` correctly). Fixed by making the
+not QuickHuskySort's, which already checked `getCollator()` correctly). Fixed by making the
 convenience constructor check `getCollator()`, with a dedicated regression test added. Robin
 predicted correctly that the fix would come at a real performance cost, not be free — the
 collator-based comparator does genuinely more work (a cached syllable+tone lookup and
 comparison) than a raw `char` comparison. Confirmed below: RadixHuskySort's advantage over
-PureHuskySort shrinks substantially now that both pay the same expensive cleanup-pass cost.
+QuickHuskySort shrinks substantially now that both pay the same expensive cleanup-pass cost.
 
-| N | System (wrong order) | PureHuskySort (correct) | Radix/8 | Radix/10 | Radix/11 | Radix/12 | Radix/13 | Radix/14 | Radix/16 |
+| N | System (wrong order) | QuickHuskySort (correct) | Radix/8 | Radix/10 | Radix/11 | Radix/12 | Radix/13 | Radix/14 | Radix/16 |
 |---|---|---|---|---|---|---|---|---|---|
 | 32,000 | 14.8±5.3 | 52.6±**33.5** | 42.0±16.3 | 42.8±25.9 | 47.0±18.6 | 34.3±6.1 | 37.1±7.4 | 40.1±16.2 | 33.8±2.1 |
 | 200,000 | 105.1±10.6 | 276.6±85.9 | 434.7±**248.9** | 310.9±**152.6** | 207.2±27.3 | 221.1±58.3 | 235.0±65.2 | 199.6±47.9 | 211.2±44.6 |
@@ -299,7 +299,7 @@ PureHuskySort shrinks substantially now that both pay the same expensive cleanup
 
 Radix still wins at every size, but by a much smaller margin than the invalid numbers implied
 — roughly **1.3-1.5x** at N=1,000,000 (Radix/10 and Radix/12, the tightest/lowest of the
-bunch, at ~970ms vs PureHuskySort's ~1439ms), not the previously-reported 2.4-3.8x. That makes
+bunch, at ~970ms vs QuickHuskySort's ~1439ms), not the previously-reported 2.4-3.8x. That makes
 sense: with both sorters now paying the same expensive collator-based cleanup cost, radix's
 advantage is confined to the (proportionally much smaller) first-pass cost difference.
 
@@ -322,7 +322,7 @@ This benchmark also motivated two earlier fixes (TODO.md item 4, stage 2, both s
 unaffected by the correction above): `HuskyCoderChinesePinyin` previously always claimed
 `perfect()` (skipping the cleanup pass unconditionally, regardless of correctness), and,
 separately, the cleanup pass's pinyin lookup was uncached, making an even earlier cut of this
-benchmark badly misleading (PureHuskySort ~150ms, RadixHuskySort ~37-38ms at N=20,000, before
+benchmark badly misleading (QuickHuskySort ~150ms, RadixHuskySort ~37-38ms at N=20,000, before
 caching; both numbers were also using the wrong-order RadixHuskySort at that point, on top of
 being uncached).
 
@@ -343,7 +343,7 @@ correctly stays `false`.
 
 Confirmed empirically — this is a clear, consistent win, not just a hoped-for one:
 
-| N | System (wrong order) | PureHuskySort | Radix/8 | Radix/10 | Radix/11 | Radix/12 | Radix/13 | Radix/14 | Radix/16 |
+| N | System (wrong order) | QuickHuskySort | Radix/8 | Radix/10 | Radix/11 | Radix/12 | Radix/13 | Radix/14 | Radix/16 |
 |---|---|---|---|---|---|---|---|---|---|
 | 32,000 | 10.9±6.7 | 33.3±9.2 | 29.4±9.4 | 33.8±11.1 | 24.6±2.1 | 34.8±**20.2** | 23.5±3.4 | 24.4±4.6 | 36.5±**30.8** |
 | 200,000 | 99.2±54.1 | 244.2±110.8 | 206.8±**157.9** | 165.7±41.7 | 165.0±54.7 | 133.8±5.7 | 141.6±14.6 | 142.3±27.0 | 159.6±34.5 |
@@ -351,13 +351,13 @@ Confirmed empirically — this is a clear, consistent win, not just a hoped-for 
 
 Compared to the syllable-only table above (same corpus, same sizes, same digit widths, only
 the encoding changed):
-- **Both sorters got faster**, confirming the mechanism is real: PureHuskySort improved
+- **Both sorters got faster**, confirming the mechanism is real: QuickHuskySort improved
   ~1.13-1.58x depending on N (e.g. at N=1,000,000: 1439ms → 1145ms), and most radix widths
   improved by a similar or larger factor (e.g. Radix/12 at N=200,000: 221ms → 134ms, ~1.65x;
   Radix/11 at N=1,000,000: 1096ms → 724ms, ~1.51x).
-- **Radix's relative advantage over PureHuskySort widened**, as expected if radix's already-cheap
+- **Radix's relative advantage over QuickHuskySort widened**, as expected if radix's already-cheap
   first pass now leaves even less work for the shared cleanup cost to dominate: the
-  PureHuskySort/Radix-11 ratio grew from ~1.31x (syllable-only) to ~1.58x (syllable+tone) at
+  QuickHuskySort/Radix-11 ratio grew from ~1.31x (syllable-only) to ~1.58x (syllable+tone) at
   N=1,000,000.
 - **Confidence intervals got tighter for the best-behaved widths**, not just the means
   improving — Radix/11 at N=1,000,000 went from 1096±199 to 724±71, nearly a 3x tighter
@@ -370,7 +370,7 @@ the encoding changed):
   suggestion of a "middle widths (11-14) do best" pattern at both 200,000 and 1,000,000, but
   given the overlapping CIs this isn't asserted as settled.
 
-Headline: radix now beats PureHuskySort on Chinese names by roughly **1.5-1.6x** at scale
+Headline: radix now beats QuickHuskySort on Chinese names by roughly **1.5-1.6x** at scale
 (using the tightest, most reliable width, Radix/11) — smaller than the 2-4x seen on the other
 categories, but a real, solid win, recovered by fixing the `getCollator()` bug and then further
 improved by encoding tone.
@@ -380,9 +380,9 @@ improved by encoding tone.
 Reviewer 1 of the original submission asked directly: "did you time the encoding phase? How
 much time does it account for?" Nothing in the original ad hoc harness isolated Step 1
 (`huskyEncode`) from Step 2 (sort). New `StringSortBenchmarks.huskyEncodeOnly` benchmark,
-N=1,000,000 (`java -jar target/benchmarks.jar 'StringSortBenchmarks\.(huskyEncodeOnly|pureHuskySort|radixHuskySort16)$' -p n=1000000 -p corpus=english,chinesenames`):
+N=1,000,000 (`java -jar target/benchmarks.jar 'StringSortBenchmarks\.(huskyEncodeOnly|quickHuskySort|radixHuskySort16)$' -p n=1000000 -p corpus=english,chinesenames`):
 
-| Corpus | Encoding only (ms) | PureHuskySort total (ms) | Encoding % of PureHuskySort | Radix/16 total (ms) | Encoding % of Radix/16 |
+| Corpus | Encoding only (ms) | QuickHuskySort total (ms) | Encoding % of QuickHuskySort | Radix/16 total (ms) | Encoding % of Radix/16 |
 |---|---|---|---|---|---|
 | English | 52.7 | 383.2 | 13.7% | 249.3 | 21.1% |
 | Chinese names (pinyin) | 311.6 | 1070.2 | 29.1% | 779.4 | 40.0% |
@@ -391,7 +391,7 @@ Encoding is a real but minority cost in every case measured — consistent with 
 "linear, doesn't contribute to overall growth" framing, now backed by a measurement rather than
 an assumption. It's a noticeably bigger share for the pinyin encoding (which does per-character
 syllable+tone lookups) than for the simple ASCII/Unicode string packing, and a bigger share for
-radix than for PureHuskySort in both cases — not because radix's encoding is different, but
+radix than for QuickHuskySort in both cases — not because radix's encoding is different, but
 because radix's own sort-phase cost is smaller, making whatever encoding cost exists a larger
 fraction of a smaller total. This suggests encoding cost, particularly for pinyin, is now the
 more promising target if further optimization is wanted, since the sort phase is no longer the
@@ -417,7 +417,7 @@ library for Comparable objects, so we re-implemented the class for objects" — 
 recursive partition with no equal-element/3-way handling). Time (ms, mean; CI omitted here for
 readability, available in the raw CSV):
 
-| N | fixedHighBits | System sort | PureHuskySort | DualPivotQuicksort (raw) | Radix/8 | Radix/11 | Radix/16 |
+| N | fixedHighBits | System sort | QuickHuskySort | DualPivotQuicksort (raw) | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|---|
 | 200,000 | 0 | 42.8 | 26.7 | 24.6 | 6.1 | 6.3 | 6.3 |
 | 200,000 | 16 | 32.8 | 41.0 | 27.9 | 6.8 | 5.5 | 6.0 |
@@ -448,13 +448,13 @@ Three findings:
    "everything lands in one bucket," no more expensive than any other pass.
 2. **The paper's own re-implemented dual-pivot quicksort baseline degrades catastrophically,
    then crashes outright.** It tracks the random baseline closely up to `fixedHighBits=48`
-   (163-194ms at N=1,000,000, similar to System sort/PureHuskySort), then blows up by more than
+   (163-194ms at N=1,000,000, similar to System sort/QuickHuskySort), then blows up by more than
    an order of magnitude at 56 (3220ms) and 60 (2059ms at N=200,000), before failing completely
    at 60 (N=1,000,000) and 63 (both sizes) with a stack overflow. This is the sharpest possible
    illustration of Reviewer 4's point — a plausible, simple construction (many keys sharing most
    of their high-order bits) doesn't just slow this implementation down, it crashes it — but the
    crashing implementation is the *baseline comparison*, not Huskysort itself.
-3. **PureHuskySort — Huskysort's actual current approach (Introsort, i.e. quicksort with a
+3. **QuickHuskySort — Huskysort's actual current approach (Introsort, i.e. quicksort with a
    depth-limited heapsort fallback per Musser 1997, plus the mandatory Timsort cleanup pass) —
    neither crashes nor degrades anywhere in this sweep; if anything it gets faster as
    `fixedHighBits` grows** (26.7ms → 1.8ms at N=200,000), the same pattern System sort shows,
@@ -476,7 +476,7 @@ so `prefixLength >= 9` means every element's husky code is *identical*, i.e. tot
 loss before the sort even starts). No dual-pivot-quicksort baseline here (String sorting always
 goes through Timsort/comparator machinery, not a primitive dual-pivot path). Time (ms, mean):
 
-| N | prefixLength | System sort | PureHuskySort | Radix/8 | Radix/11 | Radix/16 |
+| N | prefixLength | System sort | QuickHuskySort | Radix/8 | Radix/11 | Radix/16 |
 |---|---|---|---|---|---|---|
 | 200,000 | 0 | 97.1 | 46.2 | 31.1 | 32.4 | 31.5 |
 | 200,000 | 10 | 64.6 | 86.4 | 72.5 | 98.7 | 73.0 |
@@ -489,12 +489,12 @@ goes through Timsort/comparator machinery, not a primitive dual-pivot path). Tim
 
 A genuinely different, and less flattering, story than Scenario A:
 
-- At `prefixLength=0` (baseline), the usual pattern holds — radix beats PureHuskySort, which
+- At `prefixLength=0` (baseline), the usual pattern holds — radix beats QuickHuskySort, which
   beats System sort (e.g. N=1,000,000: 174-215ms vs 292ms vs 627ms).
 - **Once `prefixLength` reaches 10 (past the 9-character encoding window), the entire ranking
   inverts: plain System sort becomes the fastest option, and every Husky-based approach —
-  PureHuskySort *and* Radix, at every digit width — becomes slower than System sort**, not just
-  no-longer-faster (e.g. N=1,000,000, prefixLength=10: System 452.9ms vs. PureHuskySort 484.9ms,
+  QuickHuskySort *and* Radix, at every digit width — becomes slower than System sort**, not just
+  no-longer-faster (e.g. N=1,000,000, prefixLength=10: System 452.9ms vs. QuickHuskySort 484.9ms,
   Radix 490-520ms). This holds at prefixLength 20 and 40 too.
 - The mechanism is different from Scenario A, and it isn't a sort-algorithm problem at all: once
   the shared prefix meets or exceeds the coder's fixed capture window, *every* husky code is
@@ -507,7 +507,7 @@ A genuinely different, and less flattering, story than Scenario A:
   every Husky variant ends up slower than just running System sort directly.
 - Radix doesn't recover any advantage here, and is very slightly the slowest of the three
   Husky-based options in this regime (e.g. N=1,000,000, prefixLength=40: Radix/8-16 582-600ms vs
-  PureHuskySort 556.7ms) — its fixed per-pass cost, a strength in Scenario A, becomes pure
+  QuickHuskySort 556.7ms) — its fixed per-pass cost, a strength in Scenario A, becomes pure
   overhead once the encoding carries no information at all: it still does the full digit sweep
   for zero sorting progress.
 
@@ -585,7 +585,7 @@ playing out a third time with system-level noise instead.
 JMH (`ParallelRadixSortBenchmarks`), `Long[]`, 11-bit digits, N=2,000,000 and 10,000,000, ms
 mean ± 99.9% CI, clean-machine run:
 
-| N | PureHuskySort | Serial Radix/11 | Parallel p=1 | Parallel p=2 | Parallel p=4 | Parallel p=8 |
+| N | QuickHuskySort | Serial Radix/11 | Parallel p=1 | Parallel p=2 | Parallel p=4 | Parallel p=8 |
 |---|---|---|---|---|---|---|
 | 2,000,000 | 366.7±10.8 | 100.4±24.0 | 107.5±10.7 | 83.7±3.3 | 76.3±4.1 | 77.3±3.6 |
 | 10,000,000 | 2589.4±215.1 | 574.3±83.3 | 685.3±135.5 | 569.5±307.0 | 426.4±49.1 | 444.0±127.3 |
@@ -602,8 +602,8 @@ mean ± 99.9% CI, clean-machine run:
   efficiency cores): p=4 and p=8 are statistically indistinguishable at both sizes (ratio
   0.96-0.99x, heavily overlapping CIs) — using the efficiency cores does not help further,
   consistent with only 4 cores actually being "fast" ones.
-- Against `PureHuskySort`, the parallel variant at p=4 is ~4.8-6.1x — as before, most of that
-  margin is radix sort's own advantage (already ~3.6-4.5x serial-vs-PureHuskySort at these
+- Against `QuickHuskySort`, the parallel variant at p=4 is ~4.8-6.1x — as before, most of that
+  margin is radix sort's own advantage (already ~3.6-4.5x serial-vs-QuickHuskySort at these
   sizes), with parallelism's own incremental contribution being the smaller 1.3-1.6x discussed
   above.
 

@@ -13,21 +13,21 @@ import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
-public class PureHuskySortTest {
+public class QuickHuskySortTest {
 
     private final ComparableSortHelper<String> helper = new ComparableSortHelper<>("dummy helper");
 
     @Test
     public void testSortString1() {
         final String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.unicodeCoder, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.unicodeCoder, false, false);
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
 
     @Test
     public void testSortString2() {
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
         final int N = 1000;
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
@@ -37,7 +37,7 @@ public class PureHuskySortTest {
 
     @Test
     public void testSortString3() {
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
         final int N = 1000;
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> {
@@ -52,7 +52,7 @@ public class PureHuskySortTest {
     @Test
     public void testSortString4() {
         final String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
@@ -60,7 +60,7 @@ public class PureHuskySortTest {
     @Test
     public void testSortString5() {
         final String[] xs = {"Hello", "Goodbye", "Ciao", "Welcome"};
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
         sorter.sort(xs);
         assertTrue("sorted", helper.sorted(xs));
     }
@@ -69,7 +69,7 @@ public class PureHuskySortTest {
     public void testSortString6() {
         // order:       453922  252568   145313   673679   181452   31014   988329   659494    923995   890721   744769   293165   520163   199395   669978   765753
         final String[] xs = {"刘持平", "洪文胜", "樊辉辉", "苏会敏", "高民政", "曹玉德", "袁继鹏", "舒冬梅", "杨腊香", "许凤山", "王广风", "黄锡鸿", "罗庆富", "顾芳芳", "宋雪光", "王诗卉"};
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.chineseEncoderCollator, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.chineseEncoderCollator, false, false);
         sorter.sort(xs);
         System.out.println(Arrays.toString(xs));
         // order:           31014   145313   181452   199395   252568   293165   453922  520163   659494    669978   673679  744769   765753   890721   923995    988329
@@ -80,7 +80,7 @@ public class PureHuskySortTest {
     @Test
     public void testSortString7() {
         final String[] xs = {"刘持平", "洪文胜", "樊辉辉", "苏会敏", "高民政", "曹玉德", "袁继鹏", "舒冬梅", "杨腊香", "许凤山", "王广风", "黄锡鸿", "罗庆富", "顾芳芳", "宋雪光", "王诗卉"};
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
         sorter.sort(xs);
         System.out.println(Arrays.toString(xs));
         // NOTE: shu correctly comes before song in Hanyu (fixed 2026-07-23: HuskyCoderChinesePinyin
@@ -93,14 +93,14 @@ public class PureHuskySortTest {
 
     @Test
     public void testFloorLg() {
-        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(PureHuskySort.class);
+        final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(QuickHuskySort.class);
         assertEquals(1, privateMethodInvoker.invokePrivate("floor_lg", 3));
         assertEquals(2, privateMethodInvoker.invokePrivate("floor_lg", 5));
     }
 
     @Test
     public void testWithInsertionSort() {
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, true);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, true);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(sorter);
         //noinspection unchecked
         final HuskyCoder<String> huskyCoder = (HuskyCoder<String>) privateMethodInvoker.invokePrivate("getHuskyCoder");
@@ -108,13 +108,13 @@ public class PureHuskySortTest {
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
         final Coding coding = huskyCoder.huskyEncode(xs);
-        PureHuskySort.insertionSort(xs, coding.longs, 0, N);
+        QuickHuskySort.insertionSort(xs, coding.longs, 0, N);
         assertEquals(0, helper.inversions(xs));
     }
 
     @Test
     public void testInsertionSort() {
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
         final PrivateMethodInvoker privateMethodInvoker = new PrivateMethodInvoker(sorter);
         //noinspection unchecked
         final HuskyCoder<String> huskyCoder = (HuskyCoder<String>) privateMethodInvoker.invokePrivate("getHuskyCoder");
@@ -122,7 +122,7 @@ public class PureHuskySortTest {
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
         final Coding coding = huskyCoder.huskyEncode(xs);
-        PureHuskySort.insertionSort(xs, coding.longs, 0, N);
+        QuickHuskySort.insertionSort(xs, coding.longs, 0, N);
         assertEquals(0, helper.inversions(xs));
     }
 }

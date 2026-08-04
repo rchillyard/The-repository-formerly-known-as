@@ -303,7 +303,7 @@ literature, which is chiefly concerned with data too large to fit in memory (or 
 all, rather than with the comparison cost of individual elements that do fit. Separately, radix
 sort's independent per-digit counting-sort passes are well suited to parallelization across CPU
 threads, a property that is well established for radix sort generally; \S~\ref{sec:parallel-radix}
-describes and benchmarks a parallel variant of the radix-sort approach of \S~\ref{sec:radix}. We
+describes and benchmarks a parallel variant of RadixHuskySort (\S~\ref{sec:radix}). We
 do not make an equivalent claim for Huskysort's own comparison-based steps: Introsort's
 partitioning and Timsort's adaptive run-detection are both substantially more data-dependent and
 sequential in character than radix sort's fixed per-digit passes, so parallelizing them well is a
@@ -424,7 +424,7 @@ exchanged, then elements $i, j$ of $xs$ are also exchanged; See Flow ~\ref{Fig:I
 
 For the details of the husky-coding itself, see Algorithm ~\ref{alg:the_alg4}
 
-\subsection{A Radix Sort Variant}
+\subsection{RadixHuskySort}
 \label{sec:radix}
 
 Step 2 sorts the husky codes using Introsort, an $\textbf{O}(N log N)$ algorithm, but the codes
@@ -432,7 +432,7 @@ themselves are fixed-width 64-bit values, and radix sort can sort $k$-bit keys i
 $\textbf{O}(N \cdot \frac{k}{b})$ time using $b$-bit digits — linear in $N$ for any fixed digit
 width $b$. Given that Huskysort's entire premise is to move work from the linearithmic phase to
 the linear phase, this raises a natural question we had not previously addressed: could step 2
-itself be made linear? This section describes the radix-sort variant we built to answer it
+itself be made linear? This section describes RadixHuskySort, which we built to answer it
 (Algorithm ~\ref{alg:the_alg5}).
 
 A naive adaptation — swapping the object reference alongside each long at every exchange within
@@ -477,7 +477,7 @@ or 128 bits wide, since only the (fixed-cost) comparison itself touches the key'
 Radix sort, by contrast, makes the key width an explicit, first-class parameter: a $k$-bit key
 simply takes $\frac{k}{b}$ passes instead of $\frac{64}{b}$, with no change to the algorithm
 itself. So while nothing about the discussion above depends on 64-bit words specifically, the
-radix variant generalizes to other key widths more directly than a comparison-based sort does —
+RadixHuskySort generalizes to other key widths more directly than a comparison-based sort does —
 if a future encoding needed, say, 128 bits to capture more of an object's structure, the same
 radix sort would apply unchanged, merely with twice as many passes.
 
@@ -580,7 +580,7 @@ Provided that the total time $T = T_1 + T_2 + T_3$ is less than the time require
 This same three-step decomposition ($T_1$/$T_2$/$T_3$, i.e. encode/sort/cleanup) is revisited in
 \S~\ref{sec:analysis} in more concrete terms — counting array accesses directly rather than
 folding everything into abstract system-dependent constants $k_1, k_2, k_3$ — and extended there
-to cover the radix-sort variant of \S~\ref{sec:radix} as a fourth alternative for the $T_2$ step.
+to cover RadixHuskySort (\S~\ref{sec:radix}) as a fourth alternative for the $T_2$ step.
 The actual values of $p_{crit}$ are very much dependent on the machine running the sort.
 We have not calculated a typical value for $p_{crit}$ but, even for the worst-case: Chinese characters using UTF8 encoding, we still find very significant gains, summarized later in Table ~\ref{tab:Improvements Summary} (\S~\ref{sec:summary}).
 
@@ -810,7 +810,7 @@ static List<String> splitLineIntoStrings(final String line, final Pattern lineMa
 
 static String[] getWords(final String resource, final Function<String, List<String>> stringListFunction) {
     try {
-        File file = new File(getPathname(resource, QuickHuskySort.class));
+        File file = new File(getPathname(resource, DutchHuskySort.class));
         return getWordArray(file, stringListFunction, 2);
     } catch (FileNotFoundException e) {
         logger.warn("Cannot find resource: "+resource, e);
@@ -857,7 +857,7 @@ For ASCII strings, it is nine.
 For Unicode strings, it is four.
 
 However, keep in mind that this is linear and, while it can’t be completely ignored, it doesn't contribute to the overall growth of the complexity. 
-This was previously an assumption rather than a measurement; we have since timed the encoding phase in isolation, separately from the sort that follows it, to confirm it directly. At $N = 1{,}000{,}000$, encoding takes 52.7ms for English words (13.7\% of the Introsort approach's 383.2ms total, 21.1\% of the radix variant's 249.3ms total) and 311.6ms for Chinese names encoded via pinyin (29.1\% of the Introsort approach's 1070.2ms total, 40.0\% of the radix variant's 779.4ms total) — confirming that encoding cost, while real and non-negligible, especially for the more elaborate pinyin encoding, remains a minority of total time in every case measured, consistent with the linear-and-subordinate role it is assumed to play above. Encoding's share of the total is larger for the radix variant than for the Introsort approach in both cases, simply because radix sort's own contribution to the total is smaller — as the sort phase gets cheaper, whatever cost remains in the encoding phase necessarily becomes a proportionally larger slice of what is left, which suggests encoding cost (particularly for pinyin) is the more promising target for further optimization now that the sort phase itself is no longer the dominant cost.
+This was previously an assumption rather than a measurement; we have since timed the encoding phase in isolation, separately from the sort that follows it, to confirm it directly. At $N = 1{,}000{,}000$, encoding takes 52.7ms for English words (13.7\% of QuickHuskySort's 383.2ms total, 21.1\% of RadixHuskySort's 249.3ms total) and 311.6ms for Chinese names encoded via pinyin (29.1\% of QuickHuskySort's 1070.2ms total, 40.0\% of RadixHuskySort's 779.4ms total) — confirming that encoding cost, while real and non-negligible, especially for the more elaborate pinyin encoding, remains a minority of total time in every case measured, consistent with the linear-and-subordinate role it is assumed to play above. Encoding's share of the total is larger for RadixHuskySort than for QuickHuskySort in both cases, simply because radix sort's own contribution to the total is smaller — as the sort phase gets cheaper, whatever cost remains in the encoding phase necessarily becomes a proportionally larger slice of what is left, which suggests encoding cost (particularly for pinyin) is the more promising target for further optimization now that the sort phase itself is no longer the dominant cost.
 Once the Huskysort is complete, we will assume that there are $p N$ remaining inversions, where $p$ is the probability of an idiogenic (self-inflicted) inversion.
 Again, while we should not ignore it completely, it is linear.
 The number of array access for the comparisons/swaps to fix these will be $(2 + j + 4) p N$, where $j$ is the number of fields to be compared to get a result ($j$ is usually smaller than $k$).
@@ -892,7 +892,7 @@ As $N$ increases, we expect the advantage of Huskysort to increase further.
 This is generally borne out by the benchmarks.
 Please refer to tables ~\ref{tab:Comparison} and ~\ref{tab:HSComp}.
 
-The same style of analysis extends naturally to the radix sort variant of \S~\ref{sec:radix}.
+The same style of analysis extends naturally to RadixHuskySort (\S~\ref{sec:radix}).
 Each of its $\frac{64}{b}$ digit passes touches every element a small constant number of times,
 $c$, to bucket it and to record its new position in the (deferred) index array — with no
 partitioning or pivot-comparison overhead, and critically, no logarithmic term at all. Taking
@@ -900,7 +900,7 @@ $c = 4$ (the same per-exchange cost used for Huskysort's swaps above), adding th
 $\textbf{O}(N)$ pass that applies the resulting permutation to the object array (2 array
 accesses per element), and the same encoding cost ($(k+1)N$) and cleanup-pass cost
 ($(2 + j + 4)pN$, unaffected by which algorithm sorts the codes in step 2), the total array
-accesses for the radix variant ($A_r$) come to:
+accesses for RadixHuskySort ($A_r$) come to:
 \[A_r = \left(4 \cdot \frac{64}{b} + 2 + k + 1\right) N + (2 + j + 4)pN\]
 Using the same illustrative constants as above ($j = 4$, $k = 7$, $p = 0.1$) and $b = 16$ (four
 digit passes, near the middle of the digit-width plateau found empirically — see
@@ -908,7 +908,7 @@ digit passes, near the middle of the digit-width plateau found empirically — s
 \[A_r = 27 N\]
 Table ~\ref{tab:Comparison} extends the earlier comparison with this term. At
 $N = 1{,}000{,}000$, $A_r \approx 27{,}000{,}000$ against $A_h \approx 101{,}000{,}000$ and
-$A_m \approx 161{,}000{,}000$ — a predicted advantage of roughly 3.7x over the Introsort approach,
+$A_m \approx 161{,}000{,}000$ — a predicted advantage of roughly 3.7x over QuickHuskySort,
 consistent with the 2-4x speedups actually measured (\S~\ref{sec:radix-results}). The
 model does predict one caveat: equating $A_r$ and $A_h$ gives a theoretical break-even around
 $N \approx 17$, somewhat higher than Huskysort's own break-even against merge sort ($N = 4$,
@@ -1014,7 +1014,7 @@ Please refer to figure ~\ref{Fig:TvsN}
   \label{tab:HS_BM_N}
   \begin{tabular}{lllllll}
     \toprule
-    Type & System & PureHuskySort & DualPivotQuicksort & quicksort (raw) & Radix/8 & Radix/16 \\
+    Type & System & QuickHuskySort & DualPivotQuicksort & quicksort (raw) & Radix/8 & Radix/16 \\
     \midrule
     Integer & 94.4$\pm$4.8 & 68.9$\pm$8.3 & 67.0$\pm$5.8 & 36.3$\pm$3.4 & 27.3$\pm$3.8 & 26.0$\pm$2.8 \\
     Double & 109.6$\pm$15.6 & 73.5$\pm$5.1 & 94.9$\pm$59.4 & 41.4$\pm$1.3 & 29.1$\pm$6.0 & 22.3$\pm$2.1 \\
@@ -1033,7 +1033,7 @@ Table ~\ref{tab:HS_BM_S} (JMH, ms $\pm$ 99.9\% CI).
   \label{tab:HS_BM_S}
   \begin{tabular}{llllll}
     \toprule
-    N & Corpus & System sort & PureHuskySort & Radix/8 & Radix/16 \\
+    N & Corpus & System sort & QuickHuskySort & Radix/8 & Radix/16 \\
     \midrule
     32,000 & English & 12.25$\pm$5.04 & 12.86$\pm$5.05 & 4.00$\pm$0.85 & 3.79$\pm$0.75 \\
     32,000 & Chinese & 11.25$\pm$4.24 & 4.11$\pm$0.52 & 1.82$\pm$0.35 & 1.79$\pm$0.81 \\
@@ -1052,7 +1052,7 @@ Table ~\ref{tab:HS_BM_S} (JMH, ms $\pm$ 99.9\% CI).
   \label{tab:HS_BM_T}
   \begin{tabular}{lllll}
     \toprule
-    N & System & PureHuskySort & DualPivotQuicksort & Radix/16 \\
+    N & System & QuickHuskySort & DualPivotQuicksort & Radix/16 \\
     \midrule
     20,000 & 3.11$\pm$0.40 & 2.19$\pm$0.10 & 2.71$\pm$0.13 & 1.03$\pm$0.05 \\
     100,000 & 19.93$\pm$1.52 & 13.63$\pm$1.05 & 19.58$\pm$3.50 & 4.89$\pm$0.23 \\
@@ -1106,23 +1106,23 @@ Please refer to table ~\ref{tab:Improvements Summary}
 \subsection{Radix Sort Results}
 \label{sec:radix-results}
 
-We re-benchmarked every data type and corpus covered above using the radix-sort variant of
-\S~\ref{sec:radix} in place of Introsort for step 2, using JMH (the Java Microbenchmark Harness,
+We re-benchmarked every data type and corpus covered above using RadixHuskySort
+(\S~\ref{sec:radix}) in place of Introsort for step 2, using JMH (the Java Microbenchmark Harness,
 with proper fork isolation and warmup) rather than a hand-timed loop, and on JDK 21 rather than
 the JDK 1.8.0\_152 used for the results above.
 
-Table ~\ref{tab:RadixImprovements} reports radix's advantage over the existing (Introsort-based)
-approach as a direct multiplier — e.g. \textbf{2.9x} means radix took roughly a third as long —
+Table ~\ref{tab:RadixImprovements} reports radix's advantage over QuickHuskySort as a direct
+multiplier — e.g. \textbf{2.9x} means radix took roughly a third as long —
 rather than as a percentage, since a percentage figure close to or above 100\% becomes
 ambiguous about exactly which quantity it is a percentage \emph{of} (a concern raised about
 the original figures 6-9).
 
 \begin{table*}
-  \caption{Radix sort advantage over the Introsort approach}
+  \caption{Radix sort advantage over QuickHuskySort}
   \label{tab:RadixImprovements}
   \begin{tabular}{cll}
     \toprule
-    Data Type & N & Advantage over Introsort approach \\
+    Data Type & N & Advantage over QuickHuskySort \\
     \midrule
     \texttt{Strings of English words} & 1,000,000 & 1.6x \\
     \texttt{Strings of Chinese words (natural order)} & 1,000,000 & 1.3x \\
@@ -1142,12 +1142,12 @@ This is worth confronting directly against the original results: Table ~\ref{tab
 shows Huskysort's own advantage over dual-pivot quicksort \emph{shrinking} as $N$ grows — from a
 relative time of 0.60 at $N=1{,}000$ to 0.97 at $N=4{,}000{,}000$, i.e. the improvement fades from
 roughly 40\% to roughly 3\%, which would undermine confidence that the advantage is durable at
-larger scale. Radix sort's advantage over the Introsort approach does not shrink with
+larger scale. Radix sort's advantage over QuickHuskySort does not shrink with
 $N$ in the same way: at every size and data type in Table ~\ref{tab:RadixImprovements}, the
 margin is 1.3x or greater, consistent with the theoretical model of \S~\ref{sec:radix} predicting
 no logarithmic term at all, so there is no analogous reason to expect the advantage to erode as
 $N$ grows further. Chinese names sorted by pinyin order are the smallest margin measured (1.6x)
-because both the Introsort approach and the radix variant must pay the same collator-based cleanup
+because both QuickHuskySort and RadixHuskySort must pay the same collator-based cleanup
 pass cost for that coding; Dates show the
 largest margin (4.5x) because that coding is provably perfect and never needs a cleanup pass at
 all, letting radix's linear-time advantage show through with nothing else in the way.
@@ -1241,7 +1241,7 @@ These deliberate errors were tested for Bytes and Integers but not the other gen
 The discussion in section A.1 raises a concern: it would
 be entirely possible to construct inputs on which the husky encoding has poor entropy, and it is
 not obvious in advance how gracefully (or badly) the sort that follows would degrade in that
-case. We constructed two such inputs deliberately, to see how the two variants (Introsort-based and radix-sort-based (\S~\ref{sec:radix})) each degrade.
+case. We constructed two such inputs deliberately, to see how the two variants (QuickHuskySort and RadixHuskySort, \S~\ref{sec:radix}) each degrade.
 
 \textbf{Collapsed high-order bits.} We generated arrays of \textit{Long} values with a swept
 number of high-order bits held identical across every element (the rest random) — 0 fixed bits
@@ -1255,7 +1255,7 @@ timings (milliseconds) at $N = 1{,}000{,}000$.
   \label{tab:AdversarialBits}
   \begin{tabular}{ccccc}
     \toprule
-    Fixed high bits & System sort & Introsort approach & Raw quicksort & Radix/16 \\
+    Fixed high bits & System sort & QuickHuskySort & Raw quicksort & Radix/16 \\
     \midrule
     0  & 287.9 & 180.6 & 174.9 & 61.5 \\
     32 & 232.0 & 193.4 & 180.2 & 53.5 \\
@@ -1273,13 +1273,13 @@ how the keys are distributed, so a pass over collapsed digits (everything lands 
 costs no more than any other pass. The from-scratch quicksort baseline degrades by more than an
 order of magnitude and then fails outright with a stack overflow — a concrete instance of exactly
 the kind of adversarial input this concern anticipates, though notably it is the
-\emph{baseline} implementation that fails, not the Introsort approach itself. This is a
+\emph{baseline} implementation that fails, not QuickHuskySort itself. This is a
 well-known failure mode for a quicksort implementation that partitions naively around a
 heavily-duplicated pivot value: Bentley and McIlroy's classic treatment of engineering a
 practical quicksort \cite{10.1002/spe.4380231105} specifically addresses this case (a solution to
 Dijkstra's Dutch National Flag problem, partitioning into three regions — less than, equal to,
 and greater than the pivot — rather than two), precisely to avoid the pathological recursion
-depth this baseline exhibits. The Introsort-based approach (with its depth-limited heapsort fallback)
+depth this baseline exhibits. QuickHuskySort (with its depth-limited heapsort fallback)
 neither crashes nor slows down anywhere in this sweep — if anything it gets faster as
 duplication increases, the same pattern System sort shows, consistent with Timsort's adaptive
 run-detection treating long runs of near-equal keys as already sorted. Radix sort is more robust
@@ -1296,7 +1296,7 @@ character-capture window (nine 7-bit ASCII characters per 64-bit code). Table
   \label{tab:AdversarialPrefix}
   \begin{tabular}{cccc}
     \toprule
-    Prefix length & System sort & Introsort approach & Radix/16 \\
+    Prefix length & System sort & QuickHuskySort & Radix/16 \\
     \midrule
     0  & 627.0 & 292.1 & 180.2 \\
     10 & 452.9 & 484.9 & 519.9 \\

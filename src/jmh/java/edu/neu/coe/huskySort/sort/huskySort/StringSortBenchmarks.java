@@ -96,9 +96,9 @@ public class StringSortBenchmarks {
     }
 
     @Benchmark
-    public String[] pureHuskySort(final StringState state) {
+    public String[] quickHuskySort(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(state.coder, false, false).sort(copy);
+        new QuickHuskySort<>(state.coder, false, false).sort(copy);
         return copy;
     }
 

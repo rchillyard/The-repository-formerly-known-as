@@ -49,7 +49,7 @@ public final class HuskySortBenchmarkHelper {
      * @return an array of Strings.
      */
     static String[] getWordArray(final String resource, final Function<String, List<String>> stringListFunction, final int minLength) {
-        try (final InputStream is = QuickHuskySort.class.getClassLoader().getResourceAsStream(resource)) {
+        try (final InputStream is = DutchHuskySort.class.getClassLoader().getResourceAsStream(resource)) {
             if (is == null) throw new FileNotFoundException(resource);
             try (final Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
                 return getWordList(reader, stringListFunction, minLength).toArray(new String[0]);

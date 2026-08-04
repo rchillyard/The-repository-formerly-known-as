@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * high-order bits (i.e. many keys collide there), and it would be "trivial to construct inputs
  * that cause the proposed scheme to perform poorly". This class benchmarks (not just tests for
  * correctness -- see RadixHuskySortTest for that) how RadixHuskySort's performance actually
- * degrades relative to the existing quicksort-based approach (PureHuskySort) as entropy in the
+ * degrades relative to the existing quicksort-based approach (QuickHuskySort) as entropy in the
  * high-order bits is progressively removed, via two scenarios:
  * <ul>
  *     <li>{@link CollapsedBitsState}: synthetic longs with a swept number of high-order bits
@@ -75,9 +75,9 @@ public class AdversarialSortBenchmarks {
     }
 
     @Benchmark
-    public Long[] collapsedBitsPureHuskySort(final CollapsedBitsState state) {
+    public Long[] collapsedBitsQuickHuskySort(final CollapsedBitsState state) {
         final Long[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.longCoder, false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.longCoder, false, false).sort(copy);
         return copy;
     }
 
@@ -144,9 +144,9 @@ public class AdversarialSortBenchmarks {
     }
 
     @Benchmark
-    public String[] sharedPrefixPureHuskySort(final SharedPrefixState state) {
+    public String[] sharedPrefixQuickHuskySort(final SharedPrefixState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.englishCoder, false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.englishCoder, false, false).sort(copy);
         return copy;
     }
 

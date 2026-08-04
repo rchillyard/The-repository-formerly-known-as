@@ -48,15 +48,15 @@ public class DateSortBenchmarks {
     }
 
     @Benchmark
-    public ChronoLocalDateTime<?>[] quickHuskySort(final DateState state) {
+    public ChronoLocalDateTime<?>[] dutchHuskySort(final DateState state) {
         final ChronoLocalDateTime<?>[] copy = Arrays.copyOf(state.master, state.master.length);
-        return new QuickHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, state.config).sort(copy);
+        return new DutchHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, state.config).sort(copy);
     }
 
     @Benchmark
-    public ChronoLocalDateTime<?>[] quickHuskySortWithInsertion(final DateState state) {
+    public ChronoLocalDateTime<?>[] dutchHuskySortWithInsertion(final DateState state) {
         final ChronoLocalDateTime<?>[] copy = Arrays.copyOf(state.master, state.master.length);
-        return new QuickHuskySort<>("QuickHuskySort/Insertion", HuskyCoderFactory.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, state.config).sort(copy);
+        return new DutchHuskySort<>("DutchHuskySort/Insertion", HuskyCoderFactory.chronoLocalDateTimeCoder, new InsertionSort<ChronoLocalDateTime<?>>()::mutatingSort, state.config).sort(copy);
     }
 
     @Benchmark

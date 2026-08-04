@@ -2,7 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark;
 import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper;
-import edu.neu.coe.huskySort.sort.huskySort.PureHuskySort;
+import edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -78,7 +78,7 @@ public class HuskyCoderChinesePinyinTest {
     @Test
     public void testToneOnlyCollision() {
         final String[] names = {"骂", "马", "麻", "妈"}; // deliberately out of order
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
         sorter.sort(names);
         assertArrayEquals(new String[]{"妈", "麻", "马", "骂"}, names);
     }
@@ -98,7 +98,7 @@ public class HuskyCoderChinesePinyinTest {
 
     @Test
     public void testEmptyAndSingleton() {
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
         final String[] empty = new String[0];
         sorter.sort(empty);
         assertArrayEquals(new String[0], empty);
@@ -126,7 +126,7 @@ public class HuskyCoderChinesePinyinTest {
         Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
 
         final String[] actual = Arrays.copyOf(names, names.length);
-        final PureHuskySort<String> sorter = new PureHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.chineseEncoderPinyin, false, false);
         sorter.sort(actual);
 
         assertArrayEquals(expected, actual);

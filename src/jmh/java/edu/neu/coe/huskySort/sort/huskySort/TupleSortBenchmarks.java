@@ -49,9 +49,9 @@ public class TupleSortBenchmarks {
     }
 
     @Benchmark
-    public HuskySortBenchmark.Tuple[] pureHuskySort(final TupleState state) {
+    public HuskySortBenchmark.Tuple[] quickHuskySort(final TupleState state) {
         final HuskySortBenchmark.Tuple[] copy = Arrays.copyOf(state.master, state.master.length);
-        new PureHuskySort<>(HuskyCoderFactory.<HuskySortBenchmark.Tuple>createGenericCoder(), false, false).sort(copy);
+        new QuickHuskySort<>(HuskyCoderFactory.<HuskySortBenchmark.Tuple>createGenericCoder(), false, false).sort(copy);
         return copy;
     }
 

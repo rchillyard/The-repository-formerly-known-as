@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * HuskySort variant which sorts the husky-coded longs using LSD radix sort with a deferred
  * permutation, rather than swapping the payload objects at every key exchange during the
- * linearithmic phase (as IntroHuskySort/QuickHuskySort do).
+ * linearithmic phase (as IntroHuskySort/DutchHuskySort do).
  * <p>
  * This addresses a question raised by a reviewer of the original Huskysort paper
  * (arXiv:2012.00866): why not use radix sort -- which is O(N) rather than O(N log N) -- on the
@@ -57,7 +57,7 @@ public final class RadixHuskySort<X extends Comparable<X>> extends AbstractHusky
      * real bug found 2026-07-24 -- this constructor previously hardcoded {@code Arrays::sort}
      * regardless of huskyCoder.getCollator(), silently producing natural-order (not
      * Collator-order) results whenever the cleanup pass actually ran for a Collator-supplying
-     * coder. PureHuskySort already got this right; RadixHuskySort did not.
+     * coder. QuickHuskySort already got this right; RadixHuskySort did not.
      *
      * @param digitBits  the width, in bits, of each radix-sort digit/pass.
      * @param huskyCoder the Husky coder.

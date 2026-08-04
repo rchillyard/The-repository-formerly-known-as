@@ -46,7 +46,7 @@ public class HuskySortIntegrationTest {
     public Timeout timeoutBuilder = new ProcessorDependentTimeout(10, TimeUnit.SECONDS, config);
 
     final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-    final MyBenchmark benchmarkHuskySort = new MyBenchmark(new QuickHuskySort<String>(UNICODE_CODER, config), 19.1);
+    final MyBenchmark benchmarkHuskySort = new MyBenchmark(new DutchHuskySort<String>(UNICODE_CODER, config), 19.1);
     final MyBenchmark benchmarkQuick3sort = new MyBenchmark(new QuickSort_3way<String>(), 20);
     private static Config config;
 

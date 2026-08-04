@@ -211,7 +211,7 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
 
     /**
      * Minimal Collator wrapping {@link #NAME_ORDER}, sufficient for use as the second-pass
-     * comparator ({@code Arrays.sort(xs, collator)} in PureHuskySort et al., which only calls
+     * comparator ({@code Arrays.sort(xs, collator)} in QuickHuskySort et al., which only calls
      * {@code compare}).
      */
     private static final class PinyinOrdinalCollator extends Collator {

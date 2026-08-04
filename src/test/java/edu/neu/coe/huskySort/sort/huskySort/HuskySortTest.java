@@ -80,7 +80,7 @@ public class HuskySortTest {
     @Test
     public void testSortPerson() {
         final Person[] xs = {new Person("Robin", "Hillyard"), new Person("Yunlu", "Liao Zheng"), new Person("Miranda", "Hillyard"), new Person("William", "Hillyard"), new Person("Ella", "Hillyard"), new Person("Paul", "Hillyard"), new Person("Mia", "Hillyard")};
-        final QuickHuskySort<Person> sorter = new QuickHuskySort<>(Person::huskyCode, config);
+        final DutchHuskySort<Person> sorter = new DutchHuskySort<>(Person::huskyCode, config);
         final Person[] sorted = sorter.sort(xs);
         assertTrue("sorted", sorter.getHelper().sorted(sorted));
     }
@@ -88,14 +88,14 @@ public class HuskySortTest {
     @Test
     public void testSortString1() {
         final String[] xs = {"Hello", "Goodbye", "Ciao", "Willkommen"};
-        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, config);
+        final DutchHuskySort<String> sorter = new DutchHuskySort<>(HuskyCoderFactory.asciiCoder, config);
         assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));
     }
 
     @Test
     public void testSortString2() {
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, config);
+        final DutchHuskySort<String> sorter = new DutchHuskySort<>(HuskyCoderFactory.asciiCoder, config);
         final HuskyHelper<String> helper = sorter.getHelper();
         final int N = 1000;
         helper.init(N);
@@ -118,7 +118,7 @@ public class HuskySortTest {
     @Test
     public void testSortString3() {
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "true");
-        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, config);
+        final DutchHuskySort<String> sorter = new DutchHuskySort<>(HuskyCoderFactory.asciiCoder, config);
         final HuskyHelper<String> helper = sorter.getHelper();
         final int N = 1000;
         helper.init(N);
@@ -200,7 +200,7 @@ public class HuskySortTest {
     public void testSortOldDate() {
         // NOTE it's OK that these methods are deprecated.
         final Date[] xs = {new Date(2018, 11, 9), new Date(2018, 11, 6), new Date(2018, 10, 31), new Date(2018, 1, 1)};
-        final AbstractHuskySort<Date> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<>(HuskyCoderFactory.dateCoder, config);
+        final AbstractHuskySort<Date> sorter = new edu.neu.coe.huskySort.sort.huskySort.DutchHuskySort<>(HuskyCoderFactory.dateCoder, config);
         assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));
     }
 
@@ -212,7 +212,7 @@ public class HuskySortTest {
         final ChronoLocalDateTime<?> d4 = LocalDateTime.of(2018, 10, 31, 22, 3, 15);
         final ChronoLocalDateTime<?> d5 = LocalDateTime.of(2018, 1, 1, 0, 0, 0);
         final ChronoLocalDateTime<?>[] xs = {d1, d2, d3, d4, d5};
-        final QuickHuskySort<ChronoLocalDateTime<?>> sorter = new edu.neu.coe.huskySort.sort.huskySort.QuickHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, config);
+        final DutchHuskySort<ChronoLocalDateTime<?>> sorter = new edu.neu.coe.huskySort.sort.huskySort.DutchHuskySort<>(HuskyCoderFactory.chronoLocalDateTimeCoder, config);
         assertTrue("sorted", sorter.getHelper().sorted(sorter.sort(xs)));
     }
 

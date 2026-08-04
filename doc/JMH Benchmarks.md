@@ -52,7 +52,7 @@ java -jar target/benchmarks.jar -rf csv -rff target/jmh-results.csv
 
 Each of the four benchmark classes (`StringSortBenchmarks`, `NumericSortBenchmarks`,
 `TupleSortBenchmarks`, `DateSortBenchmarks`) mirrors one of `HuskySortBenchmark`'s existing
-categories, comparing System sort / PureHuskySort / (where applicable) a raw quicksort
+categories, comparing System sort / QuickHuskySort / (where applicable) a raw quicksort
 baseline against `RadixHuskySort` at 8/11/16-bit digit widths.
 
 ## Defaults and overriding them

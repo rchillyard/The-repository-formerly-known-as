@@ -236,7 +236,7 @@ public class RadixHuskySortTest {
      * HuskyCoder.getCollator() -- so for a Collator-supplying coder (HuskyCoderChinesePinyin,
      * which always needs the cleanup pass, since it never claims perfect()), the result was
      * silently sorted by natural (Unicode code point) order instead of the coder's actual
-     * intended order. PureHuskySort already handled this correctly; RadixHuskySort did not.
+     * intended order. QuickHuskySort already handled this correctly; RadixHuskySort did not.
      * No existing test caught this: RadixHuskySortTest never used a Collator-supplying coder,
      * and HuskyCoderChinesePinyinTest never exercised RadixHuskySort.
      */

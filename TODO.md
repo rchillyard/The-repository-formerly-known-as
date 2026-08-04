@@ -18,7 +18,7 @@ for the benchmark numbers this backlog refers to).
    does not survive proper measurement (Radix/11's own CI there is wider than its mean) — see
    the "JMH update" section in
    [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md). Radix's
-   win over System sort/PureHuskySort holds up everywhere; the 8-vs-11-vs-16 ordering at
+   win over System sort/QuickHuskySort holds up everywhere; the 8-vs-11-vs-16 ordering at
    N=1,000,000 specifically is genuinely not resolved by this data, not "settled in favor of
    8-bit" as the ad hoc numbers implied. **2026-07-23:** also ran Numerics/Tuples/Dates under
    JMH (previously only smoke-tested) — same "radix wins everywhere" conclusion holds, with
@@ -71,7 +71,7 @@ for the benchmark numbers this backlog refers to).
      per-character tie-break — the "Xiandai Hanyu Cidian" convention, not the "compare whole
      word's spelling first" ABC-dictionary convention; see
      https://en.wikipedia.org/wiki/Pinyin_alphabetical_order for the distinction). This fixed
-     the existing `// FIXME` in `PureHuskySortTest.testSortString7` (removed the FIXME; the
+     the existing `// FIXME` in `QuickHuskySortTest.testSortString7` (removed the FIXME; the
      test now passes) and required updating one magic-number test
      (`HuskyCoderFactoryTest.testChineseEncoderPinyin1`) to the new encoding's value. New
      `HuskyCoderChinesePinyinTest`: real-corpus stress test (3000 names) plus 200 small random
@@ -93,11 +93,11 @@ for the benchmark numbers this backlog refers to).
      to tolerate the homonym ties) — including one new dedicated test for the fallback itself.
    - **Stage 3 (done):** JMH wiring. Added `"chinesenames"` as a `StringSortBenchmarks` corpus
      option (`Chinese_Names_Corpus.txt`, 1,145,009 unique names, using `chineseEncoderPinyin`),
-     reusing the existing System/PureHuskySort/Radix comparison methods rather than adding
+     reusing the existing System/QuickHuskySort/Radix comparison methods rather than adding
      MSDStringSort/UnicodeMSDStringSort (a different, non-`HuskyCoder`-based sorter family —
      could be added later but was not what this item's JMH-wiring ask was about). Found and
      fixed a real performance bug while first running this: the cleanup-pass pinyin lookup was
-     uncached, making the first cut of numbers badly misleading (PureHuskySort ~150ms,
+     uncached, making the first cut of numbers badly misleading (QuickHuskySort ~150ms,
      RadixHuskySort ~37-38ms at N=20,000) until a simple per-character memoization cache
      dropped that to ~15ms and ~7.5ms respectively (10x and 5x).
    - **2026-07-24 correction — a real correctness bug, found while answering Robin's question
@@ -107,10 +107,10 @@ for the benchmark numbers this backlog refers to).
      cleanup pass since it never claims `perfect()`), every `RadixHuskySort` result for Chinese
      names was silently sorted by natural Unicode-code-point order, not the intended pinyin
      order. Verified empirically (the 16-name canonical test case came out completely wrong).
-     `PureHuskySort` already handled this correctly; `RadixHuskySort` did not, and no existing
+     `QuickHuskySort` already handled this correctly; `RadixHuskySort` did not, and no existing
      test caught it (`RadixHuskySortTest` never used a Collator-supplying coder;
      `HuskyCoderChinesePinyinTest` never exercised `RadixHuskySort`). Fixed by making the
-     convenience constructor check `getCollator()`, matching `PureHuskySort`'s pattern; added a
+     convenience constructor check `getCollator()`, matching `QuickHuskySort`'s pattern; added a
      dedicated regression test (`testChineseNamesUseCollatorNotNaturalOrder`, digit widths
      8/11/16). Robin predicted correctly that the fix would be slower, not free: the
      collator-based comparator does real work (syllable+tone lookup, even cached) vs. a raw
@@ -128,12 +128,12 @@ for the benchmark numbers this backlog refers to).
      bits/character (9 syllable + 3 tone), capacity dropping from 7 to 5 characters (still
      comfortable margin over "4 common, 5 is about the practical maximum" for real names, per
      Robin). Confirmed empirically, not just theoretically: both sorters got faster (e.g.
-     PureHuskySort at N=1,000,000: 1439ms → 1145ms), radix's relative advantage over
-     PureHuskySort widened (as expected, since its already-cheap first pass now leaves even
+     QuickHuskySort at N=1,000,000: 1439ms → 1145ms), radix's relative advantage over
+     QuickHuskySort widened (as expected, since its already-cheap first pass now leaves even
      less for the shared cleanup cost to dominate), and confidence intervals got meaningfully
      tighter for the best-behaved widths (Radix/11 at N=1,000,000: 1096±199ms → 724±71ms) —
      consistent with TimSort doing genuinely less work, not just running faster by chance.
-     Headline margin at scale is now ~1.5-1.6x (Radix/11 vs PureHuskySort), up from the
+     Headline margin at scale is now ~1.5-1.6x (Radix/11 vs QuickHuskySort), up from the
      collator-fix-only ~1.3-1.5x. Full corrected tables in
      [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
    - **Still to do:** a second dialect (Bopomofo/Zhuyin, already stubbed as dead code in
@@ -165,7 +165,7 @@ for the benchmark numbers this backlog refers to).
    still otherwise informative, RadixHuskySort is essentially immune (flat cost by
    construction) while the paper's own re-implemented dual-pivot-quicksort baseline degrades by
    orders of magnitude and then crashes outright with `StackOverflowError` at the extreme end
-   (3 of 14 parameter combinations); PureHuskySort (the actual existing Introsort-based
+   (3 of 14 parameter combinations); QuickHuskySort (the actual existing Introsort-based
    approach) avoids the crash but radix removes even the slowdown. (B) When the *source data*
    (a shared string prefix ≥ the coder's 9-character capture window) defeats the encoding
    entirely, no sort-algorithm choice helps — every Husky-based approach, radix included, ends
@@ -442,3 +442,40 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     separate gap; the Zhang et al. 2016 "quicksort is fastest" claim resting on an arXiv-only
     preprint predates this revision entirely (already in the original 2020 paper) and was noted
     by the assessment as minor — no action taken, flagged here in case it comes up later.
+
+21. ~~**Rename QuickHuskySort to DutchHuskySort, and PureHuskySort to QuickHuskySort.**~~ **DONE
+    2026-08-04.** Robin proposed naming the Introsort-based approach "QuickHuskySort" in the
+    paper, but that name already belonged to a different, existing class (plain quicksort, 3-way
+    Dutch-national-flag partitioning, no depth-limit/heapsort fallback — unlike the actual
+    Introsort-based class this session's benchmarks all used, `PureHuskySort`). Rather than
+    create a paper-vs-repo naming mismatch, Robin asked for a two-stage rename instead: the old
+    `QuickHuskySort` class became `DutchHuskySort` (its docstring updated to explain the Dutch
+    National Flag partitioning the new name refers to), then `PureHuskySort` became
+    `QuickHuskySort`. Mechanical rename across the whole codebase (`git mv` for the four affected
+    files — the class itself plus its unit and integration tests — content substitution
+    everywhere else), done in that specific order to avoid double-substitution. One real gotcha
+    hit along the way: the first `sed` pass used `\b` word-boundary syntax, which BSD/macOS sed
+    (the default on this machine) does not support the way GNU sed does — it silently matched
+    nothing at all rather than erroring, so the "stage 1 done" report the first time through was
+    wrong. Caught by verifying with a grep afterward rather than trusting the sed's silent
+    success, redone with plain substitution instead. Verified via full recompile and the full
+    329-test suite (unchanged) after every stage, not just at the end. Also updated the paper's
+    "Introsort approach"/"Introsort-based approach" phrasing throughout to use "QuickHuskySort"
+    directly, per Robin's request to stop using vague relative naming.
+
+    A second, easy-to-miss layer surfaced only because Robin explicitly asked "don't forget
+    config.ini too": three copies of `config.ini` (main/test/it resources) plus
+    `HuskySortBenchmark.java` reference the same rename concept through all-lowercase config-key
+    strings (`purehuskysort`, `purehuskysortwithinsertionsort`, `quickhuskysort`,
+    `quickhuskyinsertionsort`, and a pre-existing typo'd `quickuskyinsertionsort`, kept as-is
+    since fixing typos wasn't part of this request) that the original capitalized-only
+    `sed` passes never touched. Applied the same two-stage rename to every one of these, in the
+    same order, across all three `config.ini` files and the Java code that reads them, plus the
+    JMH benchmark method names that had the same problem (`DateSortBenchmarks`'s
+    `quickHuskySort`/`quickHuskySortWithInsertion` methods were silently testing the *new*
+    `DutchHuskySort` after the class rename; three other files had methods still named
+    `pureHuskySort`). Verified with a direct side-by-side diff of every Java string-literal config
+    lookup against every actual `config.ini` key afterward, not just a recompile+retest, since a
+    silent key mismatch would not have failed any test — it would have just silently disabled a
+    benchmark path. Also fixed one stale, literally-broken command example in
+    `doc/Radix Sort Benchmark Results.md` that referenced the old `pureHuskySort` JMH method name.
