@@ -243,18 +243,18 @@ referenced in that session, or re-derive from the reviews doc if picking this up
 format/venue (SIAM template vs. staying with `acmart`) is explicitly deferred until last —
 Robin asked Claude Chat for a venue recommendation previously and didn't get one.
 
-12. **Phase A — new algorithmic/experimental content** (answers Reviews 2, 3, 4 and the PC's
-    "not enough algorithmic innovation" verdict): RadixHuskySort algorithm subsection; extend
-    the array-access complexity analysis with a radix term; adversarial-inputs appendix section
-    (collapsed high bits + shared-prefix strings, including the `StackOverflowError` finding);
-    explicit rebuttal of Review 1's "advantage shrinks with N" critique using the new JMH data;
-    generalization-beyond-64-bits paragraph; literature paragraph (external-memory/
-    cache-oblivious sorting citations + parallelizability note) with two new hand-written
-    `\bibitem` entries in `paper/HuskySort.bbl` (no `.bib` source exists in the tarball); new
-    encoding-only JMH benchmark (isolating `huskyEncode` cost) to answer Review 1's "did you
-    time the encoding phase" question, folded into
+12. ~~**Phase A — new algorithmic/experimental content**~~ **DONE.** (answers Reviews 2, 3, 4
+    and the PC's "not enough algorithmic innovation" verdict): RadixHuskySort algorithm
+    subsection; extend the array-access complexity analysis with a radix term; adversarial-inputs
+    appendix section (collapsed high bits + shared-prefix strings, including the
+    `StackOverflowError` finding); explicit rebuttal of Review 1's "advantage shrinks with N"
+    critique using the new JMH data; generalization-beyond-64-bits paragraph; literature
+    paragraph (external-memory/cache-oblivious sorting citations + parallelizability note) with
+    two new hand-written `\bibitem` entries in `paper/HuskySort.bbl` (no `.bib` source exists in
+    the tarball); new encoding-only JMH benchmark (isolating `huskyEncode` cost) to answer
+    Review 1's "did you time the encoding phase" question, folded into
     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md) before the
-    corresponding paragraph is written.
+    corresponding paragraph was written.
 
 13. ~~**Phase B — structural reorganization**~~ **DONE.** (Reviews 2, 3): added a new
     "Prior comparison-based sorting algorithms" table to Background, contrasting insertion
@@ -403,3 +403,42 @@ Robin asked Claude Chat for a venue recommendation previously and didn't get one
     isn't fetchable from here) — trusted Robin's direct recollection and added it as a second,
     complementary citation alongside LaMarca & Ladner (general cross-algorithm cache study vs.
     Yaroslavskiy's quicksort-variant-specific one), rather than replacing either.
+
+## Claude Chat assessment and venue decision (2026-08-04)
+
+Robin shared `Huskysort_Revision_Assessment_and_Venue_Recommendations.pdf` (prepared by a
+separate Claude Chat session, dated 2026-07-31) — an independent assessment of the revision
+against all four original reviews, plus venue recommendations. It confirmed every
+reviewer-mapping item above is addressed, flagged three small items, and recommended among SIAM
+ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
+
+19. **Venue decided: SIAM ACDA27.** Submission deadline confirmed mid-September 2026 via SIAM's
+    own EasyChair CFP page (`easychair.org/cfp/ACDA27`) — the SIAM.org page itself blocks
+    automated fetches (403). The detailed CFP (page limits, required LaTeX template/style) is
+    **not yet published** as of 2026-08-04 — both the assessment (2026-07-31) and this direct
+    check found the same "will be published in Spring 2026" placeholder with no specifics yet.
+    This is a real external blocker, not a research gap: the Phase D document-class/template
+    swap (item to be added once real requirements exist) cannot start until SIAM actually
+    publishes them — expected before the deadline, but not yet available. Worth checking back
+    periodically.
+
+20. ~~**Add classic string-sorting literature** (MSD radix sort, three-way/multikey radix
+    quicksort, burstsort).~~ **DONE 2026-08-04.** The assessment flagged this as a real gap:
+    RadixHuskySort's own contribution invites the comparison more directly than the original
+    paper did. New paragraph in `\S~\ref{sec:radix}` (right after the 64-bit-generalization
+    paragraph) situating RadixHuskySort relative to this literature — different in kind, not
+    degree: a general mechanism for any `Comparable` type via a 64-bit encoding, not a
+    string-specialized sorting algorithm — and explicitly scoping a direct empirical comparison
+    against these as future work, not something this paper claims to have done. Two new
+    hand-written `\bibitem` entries in `HuskySort.bbl` (bibliographic details verified via web
+    search, not guessed, consistent with how every other citation this session was added):
+    Bentley and Sedgewick, "Fast Algorithms for Sorting and Searching Strings," SODA '97,
+    pp. 360-369 (covers MSD radix sort and three-way/multikey quicksort for strings in one
+    canonical paper); Sinha and Zobel, "Cache-Conscious Sorting of Large Sets of Strings with
+    Dynamic Tries," ACM J. Exp. Algorithmics, Vol. 9, Article 1.5, 2004 (the burstsort paper).
+
+    Two other small items from the assessment, not acted on: the leftover ACM Trans. Graph.
+    template boilerplate is already covered by the deferred Phase D template swap above, not a
+    separate gap; the Zhang et al. 2016 "quicksort is fastest" claim resting on an arXiv-only
+    preprint predates this revision entirely (already in the original 2020 paper) and was noted
+    by the assessment as minor — no action taken, flagged here in case it comes up later.

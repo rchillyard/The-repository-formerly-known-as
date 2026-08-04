@@ -41,6 +41,8 @@
 \newlabel{Fig:Introsort}{{2}{3}{Introsort Flow\relax }{figure.caption.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}A Radix Sort Variant}{3}{subsection.3.2}\protected@file@percent }
 \newlabel{sec:radix}{{3.2}{3}{A Radix Sort Variant}{subsection.3.2}{}}
+\citation{314161.314321}
+\citation{1064546.1180622}
 \citation{6115063}
 \citation{GOLDHAHN12.327}
 \@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces RadixHuskySort.sort\relax }}{4}{algocf.1}\protected@file@percent }
@@ -57,15 +59,15 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Why Huskysort Works}{5}{subsection.3.5}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces Huskysort.sort\relax }}{5}{algocf.3}\protected@file@percent }
 \newlabel{alg:the_alg}{{3}{5}{Why Huskysort Works}{algocf.3}{}}
-\@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces huskyEncode\relax }}{5}{algocf.4}\protected@file@percent }
-\newlabel{alg:the_alg2}{{4}{5}{Why Huskysort Works}{algocf.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation}{5}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}System Environment}{5}{subsection.4.1}\protected@file@percent }
 \citation{GOLDHAHN12.327}
+\@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces huskyEncode\relax }}{6}{algocf.4}\protected@file@percent }
+\newlabel{alg:the_alg2}{{4}{6}{Why Huskysort Works}{algocf.4}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {5}{\ignorespaces huskyEncode (for character sequence)\relax }}{6}{algocf.5}\protected@file@percent }
 \newlabel{alg:the_alg3}{{5}{6}{Why Huskysort Works}{algocf.5}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {6}{\ignorespaces stringToLong\relax }}{6}{algocf.6}\protected@file@percent }
 \newlabel{alg:the_alg4}{{6}{6}{Why Huskysort Works}{algocf.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation}{6}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}System Environment}{6}{subsection.4.1}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Original benchmark environment (2020)\relax }}{6}{table.caption.11}\protected@file@percent }
 \newlabel{tab:SysEnvOriginal}{{2}{6}{Original benchmark environment (2020)\relax }{table.caption.11}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Current benchmark environment (2026, radix sort and JMH work)\relax }}{6}{table.caption.12}\protected@file@percent }
@@ -82,8 +84,6 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Analysis}{7}{subsection.5.2}\protected@file@percent }
 \newlabel{sec:analysis}{{5.2}{7}{Analysis}{subsection.5.2}{}}
 \citation{GOLDHAHN12.327}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Time vs Size ($N$)\relax }}{8}{figure.caption.18}\protected@file@percent }
-\newlabel{Fig:TvsN}{{4}{8}{Time vs Size ($N$)\relax }{figure.caption.18}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Results and Observations}{8}{section.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Benchmarks}{8}{subsection.6.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Summary}{8}{subsection.6.2}\protected@file@percent }
@@ -100,6 +100,8 @@
 \newlabel{tab:HS_BM_S}{{9}{10}{Comparison of Huskysort with system sort (Strings, ms, mean $\pm $ 99.9\% CI)\relax }{table.caption.20}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Comparison of Huskysort with system sort (Tuples, ms, mean $\pm $ 99.9\% CI)\relax }}{10}{table.caption.21}\protected@file@percent }
 \newlabel{tab:HS_BM_T}{{10}{10}{Comparison of Huskysort with system sort (Tuples, ms, mean $\pm $ 99.9\% CI)\relax }{table.caption.21}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Time vs Size ($N$)\relax }}{10}{figure.caption.18}\protected@file@percent }
+\newlabel{Fig:TvsN}{{4}{10}{Time vs Size ($N$)\relax }{figure.caption.18}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Radix Sort Results}{10}{subsection.6.3}\protected@file@percent }
 \newlabel{sec:radix-results}{{6.3}{10}{Radix Sort Results}{subsection.6.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort}{10}{subsection.6.4}\protected@file@percent }
@@ -109,29 +111,31 @@
 \bibcite{10.1145/48529.48535}{{1}{1988}{{Aggarwal and Vitter}}{{Aggarwal and Vitter}}}
 \bibcite{DBLP:journals/corr/abs-1805-08612}{{2}{2018}{{Auger et~al\mbox  {.}}}{{Auger, Jug{\'{e}}, Nicaud, and Pivoteau}}}
 \bibcite{10.1002/spe.4380231105}{{3}{1993}{{Bentley and McIlroy}}{{Bentley and McIlroy}}}
-\bibcite{814600}{{4}{1999}{{Frigo et~al\mbox  {.}}}{{Frigo, Leiserson, Prokop, and Ramachandran}}}
-\bibcite{DBLP:journals/corr/cs-DS-0408040}{{5}{2004}{{Gilreath}}{{Gilreath}}}
-\bibcite{GOLDHAHN12.327}{{6}{2012}{{Goldhahn et~al\mbox  {.}}}{{Goldhahn, Eckart, and Quasthoff}}}
+\bibcite{314161.314321}{{4}{1997}{{Bentley and Sedgewick}}{{Bentley and Sedgewick}}}
 \@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Improvements Summary\relax }}{11}{table.caption.22}\protected@file@percent }
 \newlabel{tab:Improvements Summary}{{11}{11}{Improvements Summary\relax }{table.caption.22}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Radix sort advantage over the existing (Introsort-based) approach\relax }}{11}{table.caption.23}\protected@file@percent }
 \newlabel{tab:RadixImprovements}{{12}{11}{Radix sort advantage over the existing (Introsort-based) approach\relax }{table.caption.23}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{11}{table.caption.24}\protected@file@percent }
-\newlabel{tab:ParallelRadix}{{13}{11}{Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.24}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{11}{section.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{Acknowledgments}{11}{section*.26}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{References}{11}{section*.28}\protected@file@percent }
-\bibcite{10.1145/366622.366644}{{7}{1961}{{Hoare}}{{Hoare}}}
-\bibcite{doi:10.1137/1.9781611975994.101}{{8}{[n.d.]}{{Jugé}}{{Jugé}}}
-\bibcite{LAMARCA199966}{{9}{1999}{{LaMarca and Ladner}}{{LaMarca and Ladner}}}
-\bibcite{10.5555/313559.313859}{{10}{1993}{{McIlroy}}{{McIlroy}}}
-\bibcite{doi:10.1002}{{11}{1997}{{MUSSER}}{{MUSSER}}}
-\bibcite{Timsort}{{12}{2002}{{Peters}}{{Peters}}}
-\bibcite{10.1007/3-540-61680-2_42}{{13}{1996}{{Sedgewick}}{{Sedgewick}}}
-\bibcite{6115063}{{14}{2011}{{{Xiang}}}{{{Xiang}}}}
-\bibcite{Dual-pivot}{{15}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
-\bibcite{sort}{{16}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
+\bibcite{814600}{{5}{1999}{{Frigo et~al\mbox  {.}}}{{Frigo, Leiserson, Prokop, and Ramachandran}}}
+\bibcite{DBLP:journals/corr/cs-DS-0408040}{{6}{2004}{{Gilreath}}{{Gilreath}}}
+\bibcite{GOLDHAHN12.327}{{7}{2012}{{Goldhahn et~al\mbox  {.}}}{{Goldhahn, Eckart, and Quasthoff}}}
+\bibcite{10.1145/366622.366644}{{8}{1961}{{Hoare}}{{Hoare}}}
+\bibcite{doi:10.1137/1.9781611975994.101}{{9}{[n.d.]}{{Jugé}}{{Jugé}}}
+\bibcite{LAMARCA199966}{{10}{1999}{{LaMarca and Ladner}}{{LaMarca and Ladner}}}
+\bibcite{10.5555/313559.313859}{{11}{1993}{{McIlroy}}{{McIlroy}}}
+\bibcite{doi:10.1002}{{12}{1997}{{MUSSER}}{{MUSSER}}}
+\bibcite{Timsort}{{13}{2002}{{Peters}}{{Peters}}}
+\bibcite{10.1007/3-540-61680-2_42}{{14}{1996}{{Sedgewick}}{{Sedgewick}}}
+\bibcite{1064546.1180622}{{15}{2004}{{Sinha and Zobel}}{{Sinha and Zobel}}}
+\bibcite{6115063}{{16}{2011}{{{Xiang}}}{{{Xiang}}}}
+\bibcite{Dual-pivot}{{17}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
+\bibcite{sort}{{18}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
 \citation{10.1002/spe.4380231105}
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{12}{table.caption.24}\protected@file@percent }
+\newlabel{tab:ParallelRadix}{{13}{12}{Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.24}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{12}{appendix.A}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Discussion of coding accuracy}{12}{subsection.A.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Adversarial inputs}{12}{subsection.A.2}\protected@file@percent }

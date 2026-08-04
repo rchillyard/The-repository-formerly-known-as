@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{16}
+\begin{thebibliography}{18}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -84,6 +84,20 @@
 \urldef\tempurl%
 \url{https://doi.org/10.1002/spe.4380231105}
 \showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Bentley and Sedgewick}{Bentley and
+  Sedgewick}{1997}]%
+        {314161.314321}
+\bibfield{author}{\bibinfo{person}{Jon~L. Bentley} {and}
+  \bibinfo{person}{Robert Sedgewick}.} \bibinfo{year}{1997}\natexlab{}.
+\newblock \showarticletitle{Fast Algorithms for Sorting and Searching
+  Strings}. In \bibinfo{booktitle}{\emph{Proceedings of the Eighth Annual
+  ACM-SIAM Symposium on Discrete Algorithms}} \emph{(\bibinfo{series}{SODA
+  '97})}. \bibinfo{publisher}{Society for Industrial and Applied
+  Mathematics}, \bibinfo{address}{USA}, \bibinfo{pages}{360--369}.
+\newblock
+\showISBNx{0898713900}
 
 
 \bibitem[\protect\citeauthoryear{Frigo, Leiserson, Prokop, and
@@ -233,6 +247,21 @@ Retrieved November 3, 2020 from \tempurl}
   \bibinfo{address}{Berlin, Heidelberg}, \bibinfo{pages}{1--11}.
 \newblock
 \showISBNx{978-3-540-70667-0}
+
+
+\bibitem[\protect\citeauthoryear{Sinha and Zobel}{Sinha and
+  Zobel}{2004}]%
+        {1064546.1180622}
+\bibfield{author}{\bibinfo{person}{Ranjan Sinha} {and}
+  \bibinfo{person}{Justin Zobel}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Cache-Conscious Sorting of Large Sets of Strings
+  with Dynamic Tries}.
+\newblock \bibinfo{journal}{\emph{ACM J. Exp. Algorithmics}}
+  \bibinfo{volume}{9} (\bibinfo{year}{2004}), \bibinfo{articleno}{1.5}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/1064546.1180622}
+\showDOI{\tempurl}
 
 
 \bibitem[\protect\citeauthoryear{{Xiang}}{{Xiang}}{2011}]%

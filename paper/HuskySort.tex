@@ -481,6 +481,20 @@ radix variant generalizes to other key widths more directly than a comparison-ba
 if a future encoding needed, say, 128 bits to capture more of an object's structure, the same
 radix sort would apply unchanged, merely with twice as many passes.
 
+Radix sort applied to strings specifically has its own substantial, and older, literature,
+distinct from the general fixed-width-key radix sort described above. Three-way radix quicksort
+(also called multikey quicksort) and MSD (most-significant-digit) radix sort for strings were
+both popularized by Bentley and Sedgewick's classic treatment \cite{314161.314321}, and burstsort
+\cite{1064546.1180622} improves cache behaviour further by building a small trie to bucket
+strings before sorting. These string-specialized algorithms sort variable-length strings
+directly, character by character, without a separate fixed-width encoding step. RadixHuskySort's
+contribution is different in kind, not degree: it is not a string-sorting algorithm, but a
+general mechanism applicable to any \textit{Comparable} type with a 64-bit husky encoding
+(strings among them), at the cost of the encoding's own fixed capture window (\S~\ref{sec:radix}
+above) and a fallback cleanup pass whenever that encoding is imperfect. A direct empirical
+comparison against these string-specialized algorithms, for the specific case of sorting only
+strings, would be a natural next step, but is outside the scope of this paper.
+
 \begin{algorithm}
 \KwIn{\it{xs} as an array of object X which extends Comparable<X>}
 \KwIn{\it{b} as the number of bits per digit}
