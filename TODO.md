@@ -209,6 +209,17 @@ for the benchmark numbers this backlog refers to).
    sample will likely hit a homonym/polyphone pair and fail spuriously, for reasons unrelated
    to whether the sort itself is correct.
 
+   **Re-checked 2026-08-05**, after item 28's two real `NAME_ORDER`/`HanyuPinyinSyllables` bug
+   fixes: 93.43% of all 1,145,008 adjacent pairs agree (1,069,784 agree, 75,224 disagree) —
+   essentially unchanged from the original 93.4% finding, despite `NAME_ORDER` itself genuinely
+   changing behavior for lü/nü-syllable characters (the second bug). Makes sense on reflection:
+   most adjacent name pairs in the corpus are decided by an earlier character before the
+   comparison ever reaches an lü/nü-syllable one, so the fix barely moves this particular
+   statistic even though 吕 is a common surname. The "-a" syllable fix (the first bug)
+   shouldn't have touched this number at all — `NAME_ORDER` never consulted the ordinal table
+   in the first place, only the raw `HanyuPinyinSyllables.ORDER` string comparator, which
+   doesn't care whether a syllable is in the table.
+
 10. **Replace the Unicode-code-point homonym tiebreak with genuine stroke-count order**, using
     the Unicode Unihan database's `kTotalStrokes` (or `kRSUnicode` for full radical+stroke)
     property as a lookup table. Confirmed via Unicode's own documentation
@@ -221,7 +232,7 @@ for the benchmark numbers this backlog refers to).
     standard Unicode Character Database), not a clever trick. Only affects the 6.24%
     homonym-tiebreak disagreement quantified in item 9's finding above; unrelated to item 11.
 
-11. **Resolve polyphone pinyin readings using the corpus itself as training data**, rather than
+11. **[Yunlu]** **Resolve polyphone pinyin readings using the corpus itself as training data**, rather than
     `ChineseCharacter.alt()`'s current arbitrary choice of `pinyinStrings[0]` (pinyin4j's
     first/default reading). `PinyinHelper.toHanyuPinyinStringArray()` returns *all* valid
     readings for a character; for each polyphone character, check every occurrence in the
