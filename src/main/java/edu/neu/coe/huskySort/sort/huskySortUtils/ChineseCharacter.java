@@ -40,7 +40,15 @@ public class ChineseCharacter extends UnicodeCharacter {
             // NOTE: not everything has a tone and I think we need to do this more carefully.
             // However, this is the code in a (private) method in the library.
             final String tone = pinyin.substring(pinyin.length() - 1);
-            final String py = pinyin.substring(0, pinyin.length() - 1);
+            // Bug fix, 2026-08-05: pinyin4j represents u-umlaut as "u:" (colon), which the line
+            // above turns into "u~" -- but this method used to leave it as "u~" rather than
+            // converting on to the actual "ü" character, unlike parsePinyin's BoPoMoFo path
+            // (see UTildePattern), which already does this conversion correctly. That meant
+            // every lu:/nu:-syllable character (e.g. 吕, 律, 女) produced a syllable string that
+            // could never match HanyuPinyinSyllables' correctly-spelled "lü"/"nü" entries.
+            // Applied to just the syllable portion (after tone has already been split off, by
+            // position, so this length-changing substitution can't disturb that).
+            final String py = UTildePattern.matcher(pinyin.substring(0, pinyin.length() - 1)).replaceAll("ü");
             return py + " " + tone;
         } else throw new RuntimeException("no pinyin available for: " + unicode);
     }

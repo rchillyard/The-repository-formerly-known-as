@@ -4,6 +4,9 @@
 
 package edu.neu.coe.huskySort.sort.simple;
 
+import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmark;
+import edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderChinesePinyin;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -90,6 +93,54 @@ public class MultikeyQuicksortTest {
         final String[] expected = Arrays.copyOf(xs, xs.length);
         Arrays.sort(expected);
         MultikeyQuicksort.sort(xs);
+        assertArrayEquals(expected, xs);
+    }
+
+    /**
+     * sortByPinyin, checked against the same ground truth this codebase already trusts for
+     * pinyin ordering: HuskyCoderChinesePinyin.NAME_ORDER, the comparator RadixHuskySort's own
+     * cleanup pass relies on for correctness (see doc/Radix Sort Benchmark Results.md's "Chinese
+     * names" section).
+     */
+    @Test
+    public void sortsRealChineseNamesCorrectlyByPinyin() throws Exception {
+        final String[] names = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
+        final String[] xs = Arrays.copyOf(names, names.length);
+        final String[] expected = Arrays.copyOf(names, names.length);
+        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
+        MultikeyQuicksort.sortByPinyin(xs);
+        assertArrayEquals(expected, xs);
+    }
+
+    /**
+     * Explicit true-homonym check: 郗 and 奚 are both pronounced "xi1" -- identical syllable and
+     * tone -- so pinyin order alone cannot distinguish them; NAME_ORDER's documented fallback is
+     * Unicode code point. Confirms sortByPinyin reproduces that exact tie-break, not just "some"
+     * order for characters pinyin can't distinguish.
+     */
+    @Test
+    public void breaksTrueHomonymTiesByCodePointLikeNameOrderDoes() {
+        final String[] xs = {"奚", "郗", "奚", "郗"};
+        final String[] expected = Arrays.copyOf(xs, xs.length);
+        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
+        MultikeyQuicksort.sortByPinyin(xs);
+        assertArrayEquals(expected, xs);
+    }
+
+    @Test
+    public void sortsSyntheticPinyinNamesWithDuplicatesAndVaryingLengths() {
+        final Random random = new Random(4);
+        final String[] characters = {"张", "王", "李", "赵", "刘", "陈", "杨", "黄", "周", "吴"};
+        final String[] xs = new String[2000];
+        for (int i = 0; i < xs.length; i++) {
+            final int len = 2 + random.nextInt(2);
+            final StringBuilder sb = new StringBuilder(len);
+            for (int j = 0; j < len; j++) sb.append(characters[random.nextInt(characters.length)]);
+            xs[i] = sb.toString();
+        }
+        final String[] expected = Arrays.copyOf(xs, xs.length);
+        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
+        MultikeyQuicksort.sortByPinyin(xs);
         assertArrayEquals(expected, xs);
     }
 

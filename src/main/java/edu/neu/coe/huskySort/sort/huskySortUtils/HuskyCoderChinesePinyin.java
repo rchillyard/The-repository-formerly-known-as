@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Husky coder for Chinese Strings, ordered by their pinyin romanization.
  * <p>
  * The Hanyu encoding packs each character's pinyin syllable <i>and</i> tone into 12 bits (9
- * for the syllable ordinal -- see {@link HanyuPinyinSyllables}, an alphabet of 395 standard
+ * for the syllable ordinal -- see {@link HanyuPinyinSyllables}, an alphabet of 413 standard
  * syllables -- plus 3 for tone) rather than spelling the syllable out as ASCII text (roughly 6
  * bits per <i>letter</i> of the romanization, the old approach) or dropping tone entirely (an
  * earlier version of this class, 2026-07-23 through 2026-07-24). That fits 5 characters per
@@ -103,6 +103,34 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
         }
         return Integer.compare(a.length(), b.length());
     };
+
+    /**
+     * A single packed key for character c, ordered by pinyin syllable (per
+     * {@link HanyuPinyinSyllables#ordinalOf}), then tone, then Unicode code point as a final
+     * tie-break for true homonyms -- the same three-level order {@link #NAME_ORDER} uses,
+     * packed into a single long so that plain numeric comparison of two characters' keys
+     * reproduces exactly the order {@link #NAME_ORDER} would give for those two characters.
+     * Exposed for reuse by other sorters -- e.g. a pinyin-aware multikey quicksort, partitioning
+     * per character -- that want this same per-character ordering without duplicating the
+     * syllable/tone parsing logic.
+     * <p>
+     * Relies on {@link HanyuPinyinSyllables#ordinalOf}'s numeric order matching
+     * {@link HanyuPinyinSyllables#ORDER}'s comparator order, which is how {@link #encodeHanyuOrdinal}
+     * already uses it (verified directly against the full 413-syllable table, not merely assumed).
+     *
+     * @param c the character.
+     * @return a packed key; higher means later in pinyin order.
+     */
+    public static long pinyinCharacterKey(final char c) {
+        final String alt = altOf(c);
+        final int space = alt.indexOf(' ');
+        final String syllable = space >= 0 ? alt.substring(0, space) : alt;
+        final String toneText = space >= 0 ? alt.substring(space + 1) : "";
+        final int ordinal = HanyuPinyinSyllables.ordinalOf(syllable);
+        final long syllableValue = ordinal >= 0 ? ordinal + 1L : 0L;
+        final long toneValue = toneOf(toneText);
+        return (syllableValue << (BITS_PER_TONE + Character.SIZE)) | (toneValue << Character.SIZE) | c;
+    }
 
     private static int compareCharacter(final char x, final char y) {
         if (x == y) return 0;

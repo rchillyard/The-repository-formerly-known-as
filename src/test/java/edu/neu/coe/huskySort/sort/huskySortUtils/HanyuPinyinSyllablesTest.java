@@ -12,8 +12,46 @@ public class HanyuPinyinSyllablesTest {
 
     @Test
     public void testSize() {
-        assertEquals(395, HanyuPinyinSyllables.size());
-        assertEquals(395, HanyuPinyinSyllables.SYLLABLES.length);
+        assertEquals(413, HanyuPinyinSyllables.size());
+        assertEquals(413, HanyuPinyinSyllables.SYLLABLES.length);
+    }
+
+    /**
+     * Regression test for a real bug found 2026-08-05: the original table silently dropped the
+     * entire bare "-a" final column (18 syllables, one per compatible initial). Discovered
+     * indirectly, via a pinyin-aware sorter with no cleanup pass producing a visibly wrong order
+     * on real corpus data. Checks every one of the 18 missing syllables is present and correctly
+     * ordered relative to its "-ai"/"-an" sibling, not just that the total count is right.
+     */
+    @Test
+    public void testPreviouslyMissingBareAFinalSyllables() {
+        final String[] missingWereFound = {"a", "ba", "ca", "cha", "da", "fa", "ga", "ha", "ka", "la", "ma", "na", "pa", "sa", "sha", "ta", "za", "zha"};
+        for (final String syllable : missingWereFound)
+            assertTrue(syllable + " should now be a recognized syllable", HanyuPinyinSyllables.ordinalOf(syllable) >= 0);
+        // Each "-a" syllable must sort immediately before its same-initial "-ai" (or "-an" for
+        // "fa", which has no "fai") sibling, per pinyin alphabetical order (shorter prefix first).
+        assertTrue(HanyuPinyinSyllables.ordinalOf("a") < HanyuPinyinSyllables.ordinalOf("ai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("ba") < HanyuPinyinSyllables.ordinalOf("bai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("ca") < HanyuPinyinSyllables.ordinalOf("cai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("cha") < HanyuPinyinSyllables.ordinalOf("chai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("da") < HanyuPinyinSyllables.ordinalOf("dai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("fa") < HanyuPinyinSyllables.ordinalOf("fan"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("ga") < HanyuPinyinSyllables.ordinalOf("gai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("ha") < HanyuPinyinSyllables.ordinalOf("hai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("ka") < HanyuPinyinSyllables.ordinalOf("kai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("la") < HanyuPinyinSyllables.ordinalOf("lai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("ma") < HanyuPinyinSyllables.ordinalOf("mai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("na") < HanyuPinyinSyllables.ordinalOf("nai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("pa") < HanyuPinyinSyllables.ordinalOf("pai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("sa") < HanyuPinyinSyllables.ordinalOf("sai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("sha") < HanyuPinyinSyllables.ordinalOf("shai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("ta") < HanyuPinyinSyllables.ordinalOf("tai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("za") < HanyuPinyinSyllables.ordinalOf("zai"));
+        assertTrue(HanyuPinyinSyllables.ordinalOf("zha") < HanyuPinyinSyllables.ordinalOf("zhai"));
+        // Confirmed non-existent combinations correctly remain absent (j/q/x never combine with
+        // bare "a"; "ra" is not a standard Mandarin syllable).
+        for (final String notASyllable : new String[]{"ja", "qa", "xa", "ra"})
+            assertEquals(notASyllable + " should not be a recognized syllable", -1, HanyuPinyinSyllables.ordinalOf(notASyllable));
     }
 
     @Test
@@ -40,8 +78,8 @@ public class HanyuPinyinSyllablesTest {
 
     @Test
     public void testFirstAndLast() {
-        assertEquals(0, HanyuPinyinSyllables.ordinalOf("ai"));
-        assertEquals(394, HanyuPinyinSyllables.ordinalOf("zuo"));
+        assertEquals(0, HanyuPinyinSyllables.ordinalOf("a"));
+        assertEquals(412, HanyuPinyinSyllables.ordinalOf("zuo"));
     }
 
     @Test

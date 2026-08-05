@@ -12,13 +12,26 @@ import java.util.Map;
  * Source: the "Overall table" on
  * <a href="https://en.wikipedia.org/wiki/Pinyin_table">Wikipedia's Pinyin table</a> (fetched
  * and parsed 2026-07-23), which lists every valid initial+final combination in Standard
- * Chinese. Only entries marked as standard are included here (395 of them) -- entries the
+ * Chinese. Only entries marked as standard are included here (413 of them) -- entries the
  * page marks as nonstandard (regionalisms, neologisms, or Taiwan/PRC variant-only readings,
  * e.g. "biang" from biangbiang noodles) are excluded, since they are vanishingly unlikely to
- * appear in real personal names. This is a different count from the "~449" figure recalled
- * from memory when this table was commissioned -- that discrepancy is unresolved (possibly a
- * different source, or a count that includes something else, e.g. erhua forms), but it does
- * not affect the encoding design: both figures need the same 9 bits (2^9 = 512) per syllable.
+ * appear in real personal names.
+ * <p>
+ * <b>Correction, 2026-08-05:</b> the original parse of the source table silently dropped the
+ * entire bare "-a" final column (18 syllables: a, ba, ca, cha, da, fa, ga, ha, ka, la, ma, na,
+ * pa, sa, sha, ta, za, zha -- all standard, none nonstandard), which is very likely the actual
+ * explanation for the "~449 vs. 395" discrepancy this comment used to flag as unresolved: this
+ * one column alone accounts for a third of that gap, and a systematic one-column parsing miss
+ * (rather than scattered errors) is exactly the kind of thing more of the same bug elsewhere
+ * could still explain the rest of it. Discovered indirectly: a new pinyin-aware sorter with no
+ * cleanup-pass safety net (unlike {@code HuskyCoderChinesePinyin}, which always runs one)
+ * depended on {@link #ordinalOf} being complete, and produced a visibly wrong order for real
+ * corpus data as a result. Re-verified against the same Wikipedia source (and cross-checked
+ * against a second pinyin chart) before adding the missing 18 back in. This did not affect the
+ * final correctness of anything with a cleanup pass (radix's first pass over a name using one
+ * of these syllables was doing more cleanup-pass work than necessary, not producing a wrong
+ * final answer), but it does affect the honesty of this file's own claim to be "the complete
+ * alphabet."
  * <p>
  * Ordering follows the rules at
  * <a href="https://en.wikipedia.org/wiki/Pinyin_alphabetical_order">Pinyin alphabetical
@@ -97,35 +110,37 @@ public final class HanyuPinyinSyllables {
     // NOTE: SYLLABLES must be declared (and thus initialized) before ORDINALS, since static
     // field initializers run in textual order and buildOrdinals() reads SYLLABLES.
     public static final String[] SYLLABLES = {
-            "ai", "an", "ang", "ao", "bai", "ban", "bang", "bao", "bei", "ben", "beng", "bi", "bian", "biao",
-            "bie", "bin", "bing", "bo", "bu", "cai", "can", "cang", "cao", "ce", "cen", "ceng", "chai", "chan",
-            "chang", "chao", "che", "chen", "cheng", "chi", "chong", "chou", "chu", "chua", "chuai", "chuan",
-            "chuang", "chui", "chun", "chuo", "ci", "cong", "cou", "cu", "cuan", "cui", "cun", "cuo", "dai", "dan",
-            "dang", "dao", "de", "dei", "den", "deng", "di", "dian", "diao", "die", "din", "ding", "diu", "dong",
-            "dou", "du", "duan", "dui", "dun", "duo", "e", "ei", "en", "eng", "er", "ê", "fan", "fang", "fei",
-            "fen", "feng", "fo", "fou", "fu", "gai", "gan", "gang", "gao", "ge", "gei", "gen", "geng", "gong",
-            "gou", "gu", "gua", "guai", "guan", "guang", "gui", "gun", "guo", "hai", "han", "hang", "hao", "he",
-            "hei", "hen", "heng", "hm", "hng", "hong", "hou", "hu", "hua", "huai", "huan", "huang", "hui", "hun",
-            "huo", "ji", "jia", "jian", "jiang", "jiao", "jie", "jin", "jing", "jiong", "jiu", "ju", "juan", "jue",
-            "jun", "kai", "kan", "kang", "kao", "ke", "ken", "keng", "kong", "kou", "ku", "kua", "kuai", "kuan",
-            "kuang", "kui", "kun", "kuo", "lai", "lan", "lang", "lao", "le", "lei", "leng", "li", "lian", "liang",
-            "liao", "lie", "lin", "ling", "liu", "lo", "long", "lou", "lu", "luan", "lun", "luo", "lü", "lüe", "m",
-            "mai", "man", "mang", "mao", "me", "mei", "men", "meng", "mi", "mian", "miao", "mie", "min", "ming",
-            "miu", "mo", "mou", "mu", "n", "nai", "nan", "nang", "nao", "ne", "nei", "nen", "neng", "ng", "ni",
-            "nian", "niang", "niao", "nie", "nin", "ning", "niu", "nong", "nou", "nu", "nuan", "nun", "nuo", "nü",
-            "nüe", "o", "ou", "pai", "pan", "pang", "pao", "pei", "pen", "peng", "pi", "pian", "piao", "pie",
-            "pin", "ping", "po", "pou", "pu", "qi", "qia", "qian", "qiang", "qiao", "qie", "qin", "qing", "qiong",
-            "qiu", "qu", "quan", "que", "qun", "ran", "rang", "rao", "re", "ren", "reng", "ri", "rong", "rou",
-            "ru", "ruan", "rui", "run", "ruo", "sai", "san", "sang", "sao", "se", "sen", "seng", "shai", "shan",
-            "shang", "shao", "she", "shei", "shen", "sheng", "shi", "shou", "shu", "shua", "shuai", "shuan",
-            "shuang", "shui", "shun", "shuo", "si", "song", "sou", "su", "suan", "sui", "sun", "suo", "tai", "tan",
-            "tang", "tao", "te", "teng", "ti", "tian", "tiao", "tie", "ting", "tong", "tou", "tu", "tuan", "tui",
-            "tun", "tuo", "wa", "wai", "wan", "wang", "wei", "wen", "weng", "wo", "wu", "xi", "xia", "xian",
-            "xiang", "xiao", "xie", "xin", "xing", "xiong", "xiu", "xu", "xuan", "xue", "xun", "ya", "yan", "yang",
-            "yao", "ye", "yi", "yin", "ying", "yo", "yong", "you", "yu", "yuan", "yue", "yun", "zai", "zan",
-            "zang", "zao", "ze", "zei", "zen", "zeng", "zhai", "zhan", "zhang", "zhao", "zhe", "zhen", "zheng",
-            "zhi", "zhong", "zhou", "zhu", "zhua", "zhuai", "zhuan", "zhuang", "zhui", "zhun", "zhuo", "zi",
-            "zong", "zou", "zu", "zuan", "zui", "zun", "zuo"
+            "a", "ai", "an", "ang", "ao", "ba", "bai", "ban", "bang", "bao", "bei", "ben", "beng", "bi",
+            "bian", "biao", "bie", "bin", "bing", "bo", "bu", "ca", "cai", "can", "cang", "cao", "ce", "cen",
+            "ceng", "cha", "chai", "chan", "chang", "chao", "che", "chen", "cheng", "chi", "chong", "chou",
+            "chu", "chua", "chuai", "chuan", "chuang", "chui", "chun", "chuo", "ci", "cong", "cou", "cu",
+            "cuan", "cui", "cun", "cuo", "da", "dai", "dan", "dang", "dao", "de", "dei", "den", "deng", "di",
+            "dian", "diao", "die", "din", "ding", "diu", "dong", "dou", "du", "duan", "dui", "dun", "duo", "e",
+            "ei", "en", "eng", "er", "ê", "fa", "fan", "fang", "fei", "fen", "feng", "fo", "fou", "fu", "ga",
+            "gai", "gan", "gang", "gao", "ge", "gei", "gen", "geng", "gong", "gou", "gu", "gua", "guai",
+            "guan", "guang", "gui", "gun", "guo", "ha", "hai", "han", "hang", "hao", "he", "hei", "hen",
+            "heng", "hm", "hng", "hong", "hou", "hu", "hua", "huai", "huan", "huang", "hui", "hun", "huo",
+            "ji", "jia", "jian", "jiang", "jiao", "jie", "jin", "jing", "jiong", "jiu", "ju", "juan", "jue",
+            "jun", "ka", "kai", "kan", "kang", "kao", "ke", "ken", "keng", "kong", "kou", "ku", "kua", "kuai",
+            "kuan", "kuang", "kui", "kun", "kuo", "la", "lai", "lan", "lang", "lao", "le", "lei", "leng", "li",
+            "lian", "liang", "liao", "lie", "lin", "ling", "liu", "lo", "long", "lou", "lu", "luan", "lun",
+            "luo", "lü", "lüe", "m", "ma", "mai", "man", "mang", "mao", "me", "mei", "men", "meng", "mi",
+            "mian", "miao", "mie", "min", "ming", "miu", "mo", "mou", "mu", "n", "na", "nai", "nan", "nang",
+            "nao", "ne", "nei", "nen", "neng", "ng", "ni", "nian", "niang", "niao", "nie", "nin", "ning",
+            "niu", "nong", "nou", "nu", "nuan", "nun", "nuo", "nü", "nüe", "o", "ou", "pa", "pai", "pan",
+            "pang", "pao", "pei", "pen", "peng", "pi", "pian", "piao", "pie", "pin", "ping", "po", "pou", "pu",
+            "qi", "qia", "qian", "qiang", "qiao", "qie", "qin", "qing", "qiong", "qiu", "qu", "quan", "que",
+            "qun", "ran", "rang", "rao", "re", "ren", "reng", "ri", "rong", "rou", "ru", "ruan", "rui", "run",
+            "ruo", "sa", "sai", "san", "sang", "sao", "se", "sen", "seng", "sha", "shai", "shan", "shang",
+            "shao", "she", "shei", "shen", "sheng", "shi", "shou", "shu", "shua", "shuai", "shuan", "shuang",
+            "shui", "shun", "shuo", "si", "song", "sou", "su", "suan", "sui", "sun", "suo", "ta", "tai", "tan",
+            "tang", "tao", "te", "teng", "ti", "tian", "tiao", "tie", "ting", "tong", "tou", "tu", "tuan",
+            "tui", "tun", "tuo", "wa", "wai", "wan", "wang", "wei", "wen", "weng", "wo", "wu", "xi", "xia",
+            "xian", "xiang", "xiao", "xie", "xin", "xing", "xiong", "xiu", "xu", "xuan", "xue", "xun", "ya",
+            "yan", "yang", "yao", "ye", "yi", "yin", "ying", "yo", "yong", "you", "yu", "yuan", "yue", "yun",
+            "za", "zai", "zan", "zang", "zao", "ze", "zei", "zen", "zeng", "zha", "zhai", "zhan", "zhang",
+            "zhao", "zhe", "zhen", "zheng", "zhi", "zhong", "zhou", "zhu", "zhua", "zhuai", "zhuan", "zhuang",
+            "zhui", "zhun", "zhuo", "zi", "zong", "zou", "zu", "zuan", "zui", "zun", "zuo"
     };
 
     private static final Map<String, Integer> ORDINALS = buildOrdinals();
