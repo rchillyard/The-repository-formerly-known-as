@@ -808,6 +808,74 @@ amortize it against — the same fixed-vs-variable-cost story as the parallel-ra
 in this document (thread/barrier setup only pays off once there's enough work to divide across
 threads), just one level further down the stack.
 
+## Multikey quicksort baseline: a real comparison against the cited literature
+
+The classic-string-sorting-literature paragraph in `\S~\ref{sec:radix}` (Bentley and Sedgewick,
+three-way/multikey radix quicksort; Sinha and Zobel, burstsort) explicitly scoped a direct
+empirical comparison as future work rather than something actually done. Robin asked for the
+real comparison instead, and picked the specific algorithm to implement: three-way radix
+quicksort (multikey quicksort), Bentley and Sedgewick 1997 — already in the bibliography, so
+this lets the paper honestly say it compared against the cited algorithm, not just cited it.
+
+New `MultikeyQuicksort` in `sort.simple`: per-character three-way (Dutch national flag) partition
+around a pivot character at the current depth. The `<` and `>` partitions recurse at the same
+depth; the `=` partition recurses at depth + 1, since every string in it has already been
+confirmed to share the same character at every depth up to and including this one. A string
+shorter than the current depth is treated as having a character below every real character code,
+so shorter strings sort before longer strings sharing the same prefix — ordinary lexicographic
+order. Falls back to the newly-fixed, binary-search-based `InsertionSort` for small subarrays,
+per Bentley and Sedgewick's own recommendation (their paper suggests insertion sort; this reuses
+the one already fixed and verified earlier in this same document).
+
+Correctness verified first, per this document's established practice of not trusting a new sort
+implementation until it has been checked against `Arrays.sort`: random ASCII strings (N up to
+10,000, 5 trials each), heavy-duplicate strings (alphabet as small as 3 characters), strings of
+varying length including exact-prefix relationships ("b", "ba", "ban", "banana", ...),
+empty/singleton arrays, an all-identical 5,000-element array, and — matching this document's own
+adversarial-input theme — 500 strings sharing a 5,000-character common prefix, specifically to
+check that the recursion into the `=` partition for a long shared prefix does not overflow the
+stack. All 6 tests pass.
+
+JMH (`StringSortBenchmarks.multikeyQuicksort`), English and Chinese Leipzig corpora, natural
+Unicode order (so all four sorters below are doing the same task):
+
+| N | RadixHuskySort | MultikeyQuicksort | QuickHuskySort | System sort |
+|---|---|---|---|---|
+| **English** 32,000 | 3.65ms | 6.38ms | 7.64ms | 9.80ms |
+| **English** 200,000 | 41.11ms | 53.76ms | 71.18ms | 90.67ms |
+| **English** 1,000,000 | 209.07ms | 292.70ms | 338.82ms | 545.95ms |
+| **Chinese** 32,000 | 1.68ms | 5.13ms | 4.16ms | 7.75ms |
+| **Chinese** 200,000 | 8.52ms | 26.79ms | 25.06ms | 54.21ms |
+| **Chinese** 1,000,000 | 70.92ms | 142.96ms | 103.14ms | 298.38ms |
+
+**RadixHuskySort beats the real Bentley-Sedgewick algorithm by 1.3-1.75x on English and 2-3.1x
+on Chinese**, non-overlapping 99.9% confidence intervals at every single N tested. This is a
+real result against real competition, not a strawman comparison — MultikeyQuicksort itself
+consistently beats plain System sort here, exactly as the literature's own claims for it would
+predict.
+
+Chinese-names results were also collected but are deliberately excluded from the table above:
+`MultikeyQuicksort` and `systemSort` sort that corpus by natural Unicode code-point order, while
+`QuickHuskySort`/`RadixHuskySort` sort it by pinyin (via a `Collator`) — not the same task.
+Robin's framing of this exclusion is worth keeping for the paper's own write-up: sorting by
+natural Unicode order is a much easier task than sorting by pinyin, generally speaking (and,
+depending on the application, not even the *correct* order for Chinese names) — so this isn't
+just "not directly comparable," the excluded numbers would be unfairly flattering to
+`MultikeyQuicksort` if included as though they meant something. A possible follow-up Robin
+raised: implementing pinyin-aware character ordering inside `MultikeyQuicksort` itself, to make
+a fair comparison possible for that corpus too. Not started.
+
+One honesty note on data quality: `RadixHuskySort`'s confidence intervals were noticeably wider
+than System sort's in this particular run — up to ±34% of the mean at N=1,000,000 on Chinese,
+versus System sort's ~1.6-7% at the same points. This could be residual contention from the
+LabStatsGoClient background-CPU saga (see the parallel-radix section's own earlier confound, and
+this document's `TODO.md` for the ongoing story — not yet resolved by IT as of this writing), or
+it could be inherent GC/allocation variability in `RadixHuskySort` specifically; this run doesn't
+distinguish between the two. The headline finding above survives regardless, since the gaps
+between RadixHuskySort and MultikeyQuicksort are non-overlapping even at RadixHuskySort's widest
+CIs — but the exact ratios (1.3-1.75x, 2-3.1x) should be treated as provisional pending a rerun
+on a confirmed-clean machine, not as final numbers to quote precisely in the paper.
+
 ## Headline conclusion
 
 Radix sort with a deferred permutation beats the repo's current quicksort-based husky

@@ -443,6 +443,10 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     preprint predates this revision entirely (already in the original 2020 paper) and was noted
     by the assessment as minor — no action taken, flagged here in case it comes up later.
 
+    **Update 2026-08-05:** the direct empirical comparison scoped as future work above has now
+    been done — see item 27 below. RadixHuskySort beats the actual Bentley and Sedgewick
+    three-way radix quicksort outright, not just in theory.
+
 21. ~~**Rename QuickHuskySort to DutchHuskySort, and PureHuskySort to QuickHuskySort.**~~ **DONE
     2026-08-04.** Robin proposed naming the Introsort-based approach "QuickHuskySort" in the
     paper, but that name already belonged to a different, existing class (plain quicksort, 3-way
@@ -598,3 +602,60 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     here, that may be worth revisiting (with the same care around the same three bug classes).
     Full table and discussion in the "Crossover points" section of
     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
+
+26. **Cloud (AWS) run for larger-than-local-capacity benchmarks.** Not started, low priority,
+    may or may not happen before the deadline. Motivation is a genuine capability gap, not just
+    avoiding the local machine's CPU contention (see item 25's LabStatsGoClient saga): Robin's
+    machine has 16GB RAM and 8 cores (4 performance + 4 efficiency), which caps how far N can go
+    for the String/numeric/tuple comparisons and how many threads `ParallelRadixHuskySort`'s
+    scaling question can actually be tested against locally (already found 4 threads is the
+    practical ceiling on this machine, item 16 above — an open question whether that holds with
+    real many-core hardware). If it happens, a one-off large-memory/many-core instance (e.g.
+    AWS's Graviton `r7g`/`c7g` family) for a few hours would answer both: does RadixHuskySort's
+    advantage over QuickHuskySort hold or grow past N=1-10M, and does parallel radix scale past 4
+    threads with more cores actually available. Robin's co-author Yunlu works at AWS and would
+    likely be the one to actually set this up and run it.
+
+27. ~~**Real empirical comparison against three-way radix quicksort.**~~ **DONE 2026-08-05.**
+    Item 20's classic-string-sorting-literature addition scoped a direct empirical comparison as
+    future work rather than something the paper had actually done. Robin asked for the real
+    comparison instead of just the reasoned argument already in `\S~\ref{sec:radix}`, and picked
+    the specific algorithm: three-way radix quicksort (multikey quicksort), Bentley and
+    Sedgewick 1997 — already cited in the bibliography.
+
+    New `MultikeyQuicksort` in `sort.simple`: per-character three-way (Dutch-flag) partition
+    around a pivot character at the current depth, `<`/`>` partitions recurse at the same depth,
+    the `=` partition recurses at depth+1, a string shorter than the current depth is treated as
+    having a character below every real one (so shorter strings sort first, matching ordinary
+    lexicographic order). Falls back to the newly-fixed `InsertionSort` for small subarrays, per
+    Bentley and Sedgewick's own recommendation. Verified correctness first (6 new tests: random
+    strings, heavy duplicates, varying-length/prefix relationships, empty/singleton,
+    all-identical, and an adversarial 5,000-character shared-prefix case checking recursion
+    depth doesn't overflow the stack) before trusting any benchmark — same discipline as every
+    other new sort implementation this session.
+
+    JMH (`StringSortBenchmarks.multikeyQuicksort`, English and Chinese Leipzig corpora, natural
+    Unicode order so all four sorters are doing the same task): **RadixHuskySort beats the real
+    Bentley-Sedgewick algorithm by 1.3-1.75x on English and 2-3.1x on Chinese**, non-overlapping
+    99.9% CIs at every N tested (32K/200K/1M). MultikeyQuicksort itself beats plain System sort
+    consistently, so this is a real result against real competition, not a strawman. Chinese
+    names results were also collected but are excluded from this comparison — `MultikeyQuicksort`
+    and `systemSort` sort that corpus by natural Unicode order while `QuickHuskySort`/
+    `RadixHuskySort` sort by pinyin (via a Collator), so it is not the same task for that corpus.
+    One honesty note: `RadixHuskySort`'s CIs were noticeably wider than System sort's in this
+    run (up to ±34% at N=1M on Chinese) — plausibly residual LabStatsGoClient contention (see
+    item 25's saga, not yet resolved by IT as of this writing), plausibly RadixHuskySort's own
+    GC/allocation variability, not fully distinguished. The headline finding survives regardless
+    (gaps are non-overlapping even at the widest CIs), but exact ratios should be treated as
+    provisional pending a rerun once the machine is confirmed clean.
+
+    Not yet folded into the paper — Robin is currently rewriting the conclusion himself
+    (`paper/HuskySort.tex`, in progress with a literal `TODO` placeholder at time of writing) and
+    asked to commit this work first; where and how this result lands in the paper is still open.
+    Robin's own observation worth remembering for that write-up: sorting Chinese names by
+    natural Unicode order (what `MultikeyQuicksort` did) is a much easier task than sorting by
+    pinyin (what `QuickHuskySort`/`RadixHuskySort` actually do for that corpus) — not just "not
+    comparable," but a genuine reason the excluded numbers would be unfairly flattering to
+    `MultikeyQuicksort` if included. Possible next step Robin raised: implementing pinyin
+    ordering inside `MultikeyQuicksort` itself, to make a fair comparison possible for that
+    corpus too — not started.

@@ -3,6 +3,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
+import edu.neu.coe.huskySort.sort.simple.MultikeyQuicksort;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.Utilities;
 import org.openjdk.jmh.annotations.*;
@@ -93,6 +94,20 @@ public class StringSortBenchmarks {
     public String[] systemSort(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         Arrays.sort(copy);
+        return copy;
+    }
+
+    // ---------- Three-way radix quicksort / multikey quicksort (Bentley and Sedgewick 1997),
+    // as a real empirical baseline for the paper's classic string-sorting literature discussion,
+    // replacing a purely theoretical comparison. NOTE: like systemSort, this sorts by natural
+    // Unicode order, not by pinyin -- for the chinesenames corpus this is not directly comparable
+    // to RadixHuskySort/QuickHuskySort's pinyin-ordered result, the same pre-existing limitation
+    // systemSort already has for that corpus. ----------
+
+    @Benchmark
+    public String[] multikeyQuicksort(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        MultikeyQuicksort.sort(copy);
         return copy;
     }
 

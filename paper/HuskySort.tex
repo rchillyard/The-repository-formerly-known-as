@@ -1188,11 +1188,11 @@ $\pm$ 99.9\% CI).
   \end{tabular}
 \end{table*}
 
-Isolating parallelism itself — comparing 1 thread against 4, both paying identical
-thread-coordination overhead — gives a real, statistically resolved speedup at both sizes: 1.41x
-at $N=2{,}000{,}000$ and 1.61x at $N=10{,}000{,}000$, non-overlapping confidence intervals in
-both cases. Against the existing serial implementation, the improvement is resolved at
-$N=10{,}000{,}000$ (574.3ms to 426.4ms, 1.35x) and directionally consistent but not fully
+Isolating parallelism itself, that's to say comparing 1 thread against 4, both paying identical
+thread-coordination overhead, gives a real, statistically resolved speedup at both sizes: 1.41x
+at $N=2{,}000{,}000$ and 1.61x at $N=10{,}000{,}000$. These are non-overlapping confidence intervals in
+both cases. Compared with the serial implementation, the improvement is resolved at
+$N=10{,}000{,}000$ (574.3ms to 426.4ms, 1.35x) and is directionally consistent but not fully
 resolved at $N=2{,}000{,}000$ (1.32x, overlapping intervals). Four threads is the practical sweet
 spot on the machine used for this measurement (four performance and four efficiency cores):
 eight threads performs statistically indistinguishably from four at both sizes, consistent with
@@ -1200,10 +1200,13 @@ only four of the eight cores being full-performance ones.
 
 \section{Conclusion}
 
-We have demonstrated that we can shift work from the linearithmic phase of sorting to the linear phase (both the prelude and the postlude) and effect an overall reduction in array accesses and thus processing time.
-When sorting objects rather than primitives, Huskysort is always faster than dual-pivot quicksort.
+The original idea behind HuskySort, that's to say QuickHuskySort, was to shift work from the linearithmic phase of sorting to the linear phase (both the prelude and the postlude) and effect an overall reduction in array accesses and thus processing time.
+This has been demonstrated such that, when sorting objects rather than primitives, Huskysort is always faster than dual-pivot quicksort.
 It is faster than Timsort for arrays which are not partially ordered.
 It is especially fast for Unicode character strings.
+
+In the case of RadixHuskySort, the performance improvement is even better for large datasets (n > 2000).
+Of course, in this case, there was no linearithmic phase, so the time savings come TODO
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
