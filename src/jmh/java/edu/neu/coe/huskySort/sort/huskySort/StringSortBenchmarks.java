@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
+import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.Utilities;
 import org.openjdk.jmh.annotations.*;
@@ -92,6 +93,17 @@ public class StringSortBenchmarks {
     public String[] systemSort(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         Arrays.sort(copy);
+        return copy;
+    }
+
+    // ---------- Insertion sort (paper resubmission, small-N crossover follow-up): Robin asked
+    // how plain insertion sort compares at very small N, since System sort likely already
+    // defers to something insertion-sort-like below its own internal threshold. ----------
+
+    @Benchmark
+    public String[] insertionSort(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        InsertionSort.mutatingInsertionSort(copy);
         return copy;
     }
 

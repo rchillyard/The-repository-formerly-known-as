@@ -607,6 +607,207 @@ mean ± 99.9% CI, clean-machine run:
   sizes), with parallelism's own incremental contribution being the smaller 1.3-1.6x discussed
   above.
 
+## Raw radix sort baseline: quantifying overhead where Husky was never meant to be used
+
+Every comparison so far has been RadixHuskySort (generic, works on any `Comparable` type via a
+`HuskyCoder`, permutes a boxed object array, always available for a cleanup pass even when
+unused) against comparison-based baselines. The numeric benchmarks already had a "raw quicksort"
+baseline (sorting the primitive array directly, no Husky machinery at all) as "the strongest
+possible non-Husky baseline" for the comparison-sort side; there was no equivalent for the radix
+side. Added one: a plain LSD radix sort directly on primitive `long[]`/`double[]` arrays, no
+encoding-function indirection, no boxed payload array to permute, no cleanup-pass consideration
+— sorting the primitive keys directly *is* the whole job, unlike RadixHuskySort which always
+carries a deferred `int[]` permutation for a separate object array even when, as for these
+numeric types, the "object" and the "key" happen to be the same value.
+
+Worth being explicit about what this comparison actually tests, since the framing matters:
+Huskysort's entire premise (\S~\ref{sec:radix} and the paper's own array-access analysis) is
+amortizing an O(N) encoding pass against the *savings from avoiding expensive comparisons* in the
+sort phase that follows. Integer/Long/Double/BigInteger/BigDecimal are exactly the case where
+that premise does not apply — comparing two of them directly is already cheap, so there is no
+expensive-comparison cost for the encoding to amortize against, only the encoding/permutation
+machinery's own overhead with nothing to offset it. So a result where RadixHuskySort loses to a
+type-specialized raw radix sort here is not a weakness the data exposes; it is the expected
+outcome of applying a general mechanism to a case it was never designed for, and this section
+exists to quantify that overhead precisely rather than to argue RadixHuskySort is the wrong
+choice for primitives (nobody claims otherwise).
+
+Correctness verified first, and a real bug turned up in the process (worth being honest about,
+consistent with everything else in this document): the first version of the double-to-long
+encoding used a sign-plus-magnitude-negation scheme that looked bijective but collapsed `+0.0`
+and `-0.0` to the identical encoded value, silently losing a distinction `Arrays.sort` itself
+preserves (`Double.compare` treats `-0.0` as strictly less than `0.0`). Caught by an explicit
+`-0.0`/`+0.0` test case, not by reasoning about the bits alone — replaced with the standard
+bijective bit-trick (flip the sign bit for non-negative values, flip every bit for negative
+ones), which handles this correctly by construction. 400 random trials (long and double,
+including negatives) plus edge cases (exact zero, negative zero, `MIN_VALUE`, `MAX_VALUE`, empty,
+singleton) all pass against `Arrays.sort` as ground truth.
+
+JMH (`NumericSortBenchmarks`), best RadixHuskySort digit width vs. the new raw radix baseline, ms
+mean:
+
+| Type | N=20,000 ratio | N=500,000 ratio |
+|---|---|---|
+| Integer | 1.13x | 1.38x |
+| Long | 1.28x | 1.60x |
+| Double | 1.31x | 1.88x |
+| BigInteger | 1.40x | 2.55x |
+| BigDecimal | 1.42x | 2.11x |
+
+Two findings, both consistent with (rather than a challenge to) the case for RadixHuskySort made
+everywhere else in this document:
+
+- **Generality has a quantifiable, and here entirely expected, overhead** — RadixHuskySort is
+  consistently 1.1-2.6x slower than a hand-specialized raw radix sort on the same primitive data.
+  Since primitives were never the case Husky-encoding was meant to help with, this is exactly the
+  overhead one should expect to see: the encoding/permutation machinery's own cost, with no
+  expensive-comparison saving on the other side of the ledger to offset it.
+- **The overhead grows with both N and "type weight".** At the smaller size, the gap is a
+  fairly uniform 1.1-1.4x across all five types. At N=500,000, it widens to 1.4-1.6x for the
+  lightweight types (Integer, Long) but 1.9-2.6x for Double and especially the arbitrary-precision
+  types (BigInteger, BigDecimal). Both raw and Husky baselines pay the same `.longValue()`/
+  `.doubleValue()` conversion cost from BigInteger/BigDecimal, so that conversion itself is not
+  the explanation; the remaining difference is most plausibly the cost of permuting a boxed
+  object array (rather than a primitive one) and going through the `HuskyCoder` interface's
+  function-call indirection, both of which RadixHuskySort must pay unconditionally to remain
+  generic, and neither of which a type-specialized raw radix sort needs to pay at all.
+
+For use-case guidance: if the data to be sorted is already a primitive numeric type amenable to
+hand-specialization, a raw radix sort will beat RadixHuskySort by a real, and at scale
+substantial, margin — but that was never RadixHuskySort's target case in the first place.
+RadixHuskySort's value proposition is specifically for types that are *not* already cheap to
+compare (Strings, Tuples, dates, and similar), where no realistic "raw" alternative exists to
+compare against at all, and where every other benchmark in this document shows it winning
+decisively. This section quantifies the cost of generality where that premise does not apply,
+which is a different — and considerably less interesting — question than whether RadixHuskySort
+is good at what it is actually for.
+
+## Crossover points: System sort, QuickHuskySort, and RadixHuskySort by N
+
+Robin's question: is there a value of N below which QuickHuskySort (the Introsort-based
+approach) actually beats RadixHuskySort? Every other comparison in this document is at
+N >= 20,000 or so, which leaves the small-N regime unexamined.
+
+JMH (`StringSortBenchmarks`), English corpus, `avgt` mode, ms/op, N=4 through 10,000:
+
+| N | QuickHuskySort | RadixHuskySort (16-bit) | System sort |
+|---|---|---|---|
+| 4 | 0.000055 | 0.183361 | 0.000037 |
+| 10 | 0.000163 | 0.170093 | 0.000119 |
+| 20 | 0.000466 | 0.169802 | 0.000322 |
+| 50 | 0.001420 | 0.170411 | 0.001152 |
+| 100 | 0.003113 | 0.182189 | 0.002873 |
+| 200 | 0.007251 | 0.176831 | 0.007034 |
+| 500 | 0.018859 | 0.195186 | 0.025214 |
+| 1,000 | 0.051111 | 0.199768 | 0.086396 |
+| 2,000 | 0.180584 | 0.264943 | 0.261751 |
+| 5,000 | 0.574760 | 0.409341 | 0.910646 |
+| 10,000 | 1.450683 | 0.772005 | 2.154067 |
+
+There is indeed a crossover, and it's well up in the range this document otherwise treats as
+"small N": QuickHuskySort is faster everywhere from N=4 through N=2,000, and RadixHuskySort
+takes over somewhere between N=2,000 and N=5,000 (at N=2,000 QuickHuskySort's CI and
+RadixHuskySort's CI are essentially non-overlapping in QuickHuskySort's favor; at N=5,000 they're
+clearly non-overlapping in RadixHuskySort's favor). We didn't sample finely enough between those
+two points to pin down the exact crossover N more precisely than "somewhere in the low
+thousands," and given how flat RadixHuskySort's curve is through this whole range, that's
+probably not worth chasing further.
+
+The shape of RadixHuskySort's curve explains why: from N=4 to N=1,000 its cost is nearly flat,
+between 0.17ms and 0.20ms, regardless of N — that's the fixed cost of setting up the digit
+passes (histogram/prefix-sum/scatter buffers) dominating completely, with the actual linear-in-N
+work still too small to matter. QuickHuskySort, with no comparable fixed setup cost, wins easily
+in that regime simply by doing less work overall for a handful of elements. Only once N is large
+enough for RadixHuskySort's O(N) term to overtake its own fixed floor does its structural
+advantage (avoiding Quicksort's O(N log N) comparisons) start to show, and it does so quickly:
+by N=10,000 RadixHuskySort is already the best of the three by nearly 2x over QuickHuskySort.
+
+The same table holds a second crossover that's easy to miss looking only at the
+QuickHuskySort-vs-RadixHuskySort comparison: at the very smallest sizes, plain `Arrays.sort`
+(System sort) beats QuickHuskySort too. At N=20 and N=50 System sort is clearly faster
+(non-overlapping 99.9% CIs: N=20, System 0.000322±0.000025ms vs. QuickHuskySort
+0.000466±0.000095ms; N=50, System 0.001152±0.000083ms vs. QuickHuskySort
+0.001420±0.000202ms). By N=100 and N=200 the two are statistically indistinguishable (CIs
+overlap substantially), and by N=500 QuickHuskySort has pulled clearly ahead (0.018859±0.001182ms
+vs. System's 0.025214±0.002988ms, non-overlapping). So the QuickHuskySort/System crossover sits
+in roughly the same neighborhood as often cited for switching from an $O(N \log N)$ sort to
+$O(N^2)$ insertion sort on tiny arrays — informally "N < 2^8 (256)" is a reasonable
+approximation, though the data only pins it down to "somewhere between 200 and 500," same
+caveat as the RadixHuskySort crossover above. The explanation is the same shape as the main
+crossover, one level down: QuickHuskySort pays a husky-encoding pass before it ever gets to sort,
+and for a handful of elements that fixed cost isn't recovered by anything Quicksort itself saves
+over `Arrays.sort`'s own highly-tuned (and, for tiny arrays, insertion-sort-based) implementation.
+
+That last parenthetical is worth checking rather than asserting: Robin's expectation was that a
+plain insertion sort should beat System sort outright below roughly N=16, since System sort's
+own tuned implementation (TimSort, for `Object[]`) is understood to defer to something
+insertion-sort-like below its own internal merge threshold anyway. Simple to test — the repo
+already has a working `InsertionSort` (`src/main/java/.../sort/simple/InsertionSort.java`) — so
+added `insertionSort` as a new `@Benchmark` in `StringSortBenchmarks` alongside the existing
+`systemSort` and `quickHuskySort`. JMH, English corpus, N=4 through 1,000 (capped well below the
+main sweep's range — insertion sort is $O(N^2)$, so it stops being worth measuring past a
+thousand elements):
+
+| N | Insertion sort | QuickHuskySort | System sort |
+|---|---|---|---|
+| 4 | 0.000052 | 0.000056 | 0.000039 |
+| 10 | 0.000159 | 0.000165 | 0.000126 |
+| 20 | 0.000396 | 0.000445 | 0.000341 |
+| 50 | 0.001157 | 0.001474 | 0.001211 |
+| 100 | 0.002600 | 0.004125 | 0.003207 |
+| 200 | 0.006032 | 0.006949 | 0.007464 |
+| 500 | 0.025012 | 0.019597 | 0.024630 |
+| 1,000 | 0.111075 | 0.046448 | 0.092414 |
+
+**Note on this table's provenance (2026-08-05):** these numbers are from a second run, after
+`InsertionSort` was rewritten mid-session from a plain linear adjacent-swap scan to
+binary-search-based insertion (`swapIntoSorted`) — a genuine algorithm change, made while fixing
+real bugs that change surfaced (subarray corruption when used as a fallback elsewhere, a swap
+miscount, and a tie-handling issue that broke stability for duplicate keys; see commit
+`408011c`). An earlier version of this table, measured against the old linear-scan
+implementation, showed insertion sort losing to both alternatives by N=50 and falling behind by
+12-24x at N=1,000. The new implementation is a different story entirely, below.
+
+At the smallest sizes (N=4 through 20), the picture is unchanged from before: insertion sort and
+System sort remain statistically indistinguishable (overlapping or barely-overlapping 99.9% CIs
+throughout), consistent with Robin's *other* hypothesis that System sort already defers to
+something insertion-sort-like below its own internal merge threshold — there's no room for a
+hand-written insertion sort to win outright when the two are doing essentially the same work.
+
+The real change is in the middle of the range. With the binary-search rewrite, insertion sort
+now **beats both QuickHuskySort and System sort outright from roughly N=100 through N=200**
+(non-overlapping CIs both ways at N=200; resolved against System sort specifically at N=100).
+It's only from N=500 that QuickHuskySort pulls back ahead (non-overlapping), with insertion sort
+and System sort still statistically tied there; by N=1,000 insertion sort's $O(N^2)$ shift cost
+finally dominates and it falls behind both. So the old "insertion sort loses ground steadily
+past N=20" story no longer holds — the optimized version is actually the *best* choice in this
+document for a real middle band of sizes, not just a tiny-N curiosity.
+
+This is worth reconciling with the "Use-case guidance" section below, which currently only
+compares System sort, QuickHuskySort, and RadixHuskySort (the crossover-N sweep in items 23-24
+never included plain `InsertionSort` as a candidate). Since `InsertionSort` is itself a usable,
+exposed sorter (not just an internal fallback), this result suggests it may deserve its own tier
+in that guidance for a String-keyed collection roughly in the 100-200 range — not something
+folded in here unilaterally, since it changes the shape of the existing guidance rather than
+just adding a data point to it.
+
+Also worth flagging as a natural follow-up, not yet acted on: `QuickHuskySort`'s *own* internal
+small-subarray fallback (used when its Introsort recursion bottoms out) still uses the old-style
+linear scan — it has a separate, dormant `OPTIMIZED` flag guarding an equivalent
+binary-search-based path that was never turned on. Given how much faster the binary-search
+version measures here, that dormant path may be worth revisiting, though enabling it would need
+the same care (and probably the same three bug classes) this session just worked through for
+the standalone `InsertionSort`.
+
+Use-case takeaway: for genuinely small collections, prefer the simplest sort that's still winning
+— plain System sort below roughly N=256 for String keys, QuickHuskySort from there up to roughly
+N=2,000, and RadixHuskySort above that. Every one of these crossovers has the same underlying
+shape: each successive algorithm carries a larger fixed setup cost (Quicksort's encoding pass,
+then RadixHuskySort's digit-pass buffers) that only pays for itself once there's enough work to
+amortize it against — the same fixed-vs-variable-cost story as the parallel-radix design earlier
+in this document (thread/barrier setup only pays off once there's enough work to divide across
+threads), just one level further down the stack.
+
 ## Headline conclusion
 
 Radix sort with a deferred permutation beats the repo's current quicksort-based husky
@@ -647,3 +848,43 @@ work on a fully-collided key is paid on top of a cleanup pass that has to do all
 regardless. The first result is a genuine, radix-specific answer to Reviewer 4; the second is
 an honest limitation of the encoding scheme itself, already implicit in the original paper's
 `p_crit` discussion.
+
+## Use-case guidance: which sort to actually reach for
+
+Pulling every result in this document together into a single decision guide, in the same spirit
+as the original paper's own use-case eliminations (Timsort for partially-ordered input,
+dual-pivot quicksort for primitive arrays):
+
+1. **Is the data already a cheap-to-compare primitive** (Integer, Long, Double, BigInteger,
+   BigDecimal, or similar)? If so, and hand-specializing for that exact type is practical, a raw
+   type-specialized radix sort beats RadixHuskySort by 1.1-2.6x (see "Raw radix sort baseline"
+   above) — but this is the one case Husky-encoding was never meant to help with in the first
+   place, since there's no expensive-comparison cost for the encoding to amortize against.
+   RadixHuskySort's actual value proposition starts at the next question.
+2. **Is N very small** (roughly below 256 for String keys — see "Crossover points" above)? Then
+   plain System sort wins outright: even QuickHuskySort's own encoding pass isn't recovered by
+   anything Quicksort saves over `Arrays.sort`'s own tuned implementation at that size. Neither
+   Husky-based sorter is the right choice for genuinely tiny collections.
+3. **Otherwise, is N still small** (roughly 256 to 2,000 for String keys)? Then QuickHuskySort
+   wins: RadixHuskySort's fixed per-call digit-pass setup cost isn't amortized yet, and
+   QuickHuskySort has no comparable fixed floor to pay (beyond its own encoding pass, which is
+   now worth it). Both of these small-N crossovers were only measured for Strings; it's plausible
+   other key types have similarly-shaped curves (the fixed setup costs involved are largely
+   type-independent) but that hasn't been separately confirmed.
+4. **Does the source data defeat the husky encoding's fixed capture window** (e.g. a shared
+   string prefix longer than the coder's character limit, so the encoded keys collapse to the
+   same or nearly the same value)? Then neither QuickHuskySort nor RadixHuskySort helps — both
+   end up slower than plain `System.sort`, since the wasted encode/sort work on collided keys is
+   paid on top of a cleanup pass that has to do all the real work regardless. This is a limitation
+   of Husky-encoding itself, not of either sort algorithm layered on top of it.
+5. **Otherwise** (N large enough to clear RadixHuskySort's setup cost, data not already a cheap
+   primitive, encoding not defeated) — which covers the great majority of the realistic use
+   cases this paper targets — **RadixHuskySort is the right choice**, typically **2-4x faster**
+   than QuickHuskySort (up to ~4.5x for Dates), and structurally immune to the high-order-bit
+   adversarial inputs that make QuickHuskySort's underlying quicksort degrade or crash.
+6. **Is the workload large enough, and are spare cores available, to make parallelizing worth
+   it?** `ParallelRadixHuskySort` widens RadixHuskySort's own advantage further at scale — 1.4x
+   at N=2,000,000 and 1.6x at N=10,000,000 with 4 threads on this machine's 4 performance cores
+   — but pays its own fixed thread/barrier setup cost, so it only pays for itself once there's
+   enough work to divide (the same fixed-vs-variable-cost shape as the serial crossovers in
+   points 2 and 3, just realized across threads instead of within one).
