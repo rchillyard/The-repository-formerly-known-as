@@ -659,3 +659,62 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     `MultikeyQuicksort` if included. Possible next step Robin raised: implementing pinyin
     ordering inside `MultikeyQuicksort` itself, to make a fair comparison possible for that
     corpus too — not started.
+
+28. ~~**Pinyin-aware MultikeyQuicksort, and two real pre-existing pinyin bugs found doing it.**~~
+    **DONE 2026-08-05.** Robin asked for item 27's followup: implement pinyin ordering inside
+    `MultikeyQuicksort` itself, reusing the same utilities `HuskyCoderChinesePinyin` already
+    uses rather than duplicating pinyin lookup logic, so the excluded chinesenames comparison
+    from item 27 becomes fair. Generalized `MultikeyQuicksort` to take a pluggable per-character
+    key plus a matching small-subarray fallback (natural order's existing `InsertionSort`-based
+    fallback untouched, so item 27's already-committed benchmark numbers stay valid); added
+    `sortByPinyin`, keyed on a new `HuskyCoderChinesePinyin.pinyinCharacterKey` that packs
+    syllable/tone/code-point into one long, same three-level priority as `NAME_ORDER`. Verified
+    the packing scheme directly (`ordinalOf`'s numeric order matches `ORDER`'s comparator order
+    across the full syllable table) before relying on it.
+
+    Testing against the real names corpus (not just synthetic cases) surfaced two real,
+    independent, pre-existing bugs in code this whole effort had trusted for correctness —
+    neither caused by the new sorter, both just newly *visible* because of it:
+
+    - **`HanyuPinyinSyllables` was missing the entire bare "-a" final column** — 18 syllables
+      (a, ba, ca, cha, da, fa, ga, ha, ka, la, ma, na, pa, sa, sha, ta, za, zha), one per
+      compatible initial, apparently dropped when the table was originally parsed from
+      Wikipedia's Pinyin table. Verified the replacement list independently (18 confirmed
+      standard, plus confirmed "ja"/"qa"/"xa"/"ra" correctly do not exist) before touching the
+      data. Very likely the actual explanation for the "~449 vs. 395" discrepancy that class's
+      own comment already flagged as unresolved — one missing column accounts for roughly a
+      third of that gap. Table grown from 395 to 413 entries.
+    - **`ChineseCharacter.alt()` never finished converting pinyin4j's "u:" (ü) marker** — it
+      converted the colon to a literal tilde placeholder ("lu~") and left it there, instead of
+      finishing the conversion to the actual "ü" character the way the BoPoMoFo encoding path
+      already did with its own `UTildePattern`. This reaches `NAME_ORDER` itself, the comparator
+      this whole effort has treated as ground truth: every lü/lüe/nü/nüe-syllable character
+      (e.g. 吕, 律, common surname characters) produced a syllable string that could never match
+      `HanyuPinyinSyllables`' correctly-spelled entries. Fixed by reusing the existing
+      `UTildePattern`, applied only to the syllable portion (after tone is split off by
+      position, so the length-changing substitution cannot disturb that).
+
+    Neither bug ever produced a wrong *final* sort order through the existing pipeline — both
+    were silently paid for as unnecessary cleanup-pass work, not visibly wrong results, since
+    `RadixHuskySort`/`QuickHuskySort` always run a Timsort cleanup pass for Chinese names
+    regardless. They only became visible now because the new pinyin-aware sorter has no such
+    safety net.
+
+    Confirmed neither fix disturbs any actual source of truth before making them: the names
+    corpus itself is raw input data, never a presorted reference, and every existing test in
+    this area computes its own oracle from `NAME_ORDER` fresh at test time — so correcting
+    `NAME_ORDER` only makes that oracle more accurate, it does not invalidate anything. Updated
+    a couple of tests that had the old buggy output baked into a hardcoded expected value
+    (`CharacterMapTest`, `HuskyCoderFactoryTest`), recomputing each new value directly from the
+    corrected code. Added a dedicated regression test enumerating all 18 previously-missing
+    syllables and the 4 confirmed non-syllables, plus corpus-scale coverage for the new sorter
+    (all 1,145,009 real names, not just synthetic samples). Full suite: 350 tests passing.
+    Committed as `d9be40f`.
+
+    `StringSortBenchmarks.multikeyQuicksort` now dispatches to `sortByPinyin` for the
+    chinesenames corpus specifically (natural order still used for english/chinese), making the
+    comparison item 27 excluded finally fair. **Actual timed numbers not yet collected** —
+    `LabStatsGoClient` (see item 25) is still at ~98% CPU with load average 13+ as of this
+    writing, worse than before; running the benchmark now would just add more noise to chase.
+    Waiting for a confirmed-clean machine before trusting any chinesenames-pinyin timing
+    comparison.

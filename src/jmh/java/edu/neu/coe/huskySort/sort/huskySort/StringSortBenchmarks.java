@@ -99,15 +99,16 @@ public class StringSortBenchmarks {
 
     // ---------- Three-way radix quicksort / multikey quicksort (Bentley and Sedgewick 1997),
     // as a real empirical baseline for the paper's classic string-sorting literature discussion,
-    // replacing a purely theoretical comparison. NOTE: like systemSort, this sorts by natural
-    // Unicode order, not by pinyin -- for the chinesenames corpus this is not directly comparable
-    // to RadixHuskySort/QuickHuskySort's pinyin-ordered result, the same pre-existing limitation
-    // systemSort already has for that corpus. ----------
+    // replacing a purely theoretical comparison. For the chinesenames corpus, sorts by pinyin
+    // (MultikeyQuicksort.sortByPinyin) rather than natural Unicode order, so that this benchmark
+    // is directly comparable to RadixHuskySort/QuickHuskySort's pinyin-ordered result for that
+    // corpus too, not just for english/chinese. ----------
 
     @Benchmark
     public String[] multikeyQuicksort(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
-        MultikeyQuicksort.sort(copy);
+        if (state.corpus.equals("chinesenames")) MultikeyQuicksort.sortByPinyin(copy);
+        else MultikeyQuicksort.sort(copy);
         return copy;
     }
 
