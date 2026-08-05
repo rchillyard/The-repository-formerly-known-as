@@ -63,7 +63,7 @@ public final class InstrumentedComparisonSortHelper<X extends Comparable<X>> ext
      */
     @Override
     public void swapInto(final X[] xs, final int i, final int j) {
-        instrumenter.incrementSwaps(j - 1);
+        instrumenter.incrementSwaps(j - i);
         if (instrumenter.isCountFixes())
             instrumenter.fixes += (j - i);
         instrumenter.incrementHits((j - i + 1) * 2);

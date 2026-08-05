@@ -153,7 +153,7 @@ public class QuickHuskySort<X extends Comparable<X>> {
     static <T extends Comparable<T>> void insertionSort(final T[] objects, final long[] longs, final int from, final int to) {
         for (int i = from + 1; i < to; i++)
             if (OPTIMIZED)
-                swapIntoSorted(objects, longs, i);
+                swapIntoSorted(objects, longs, from, i);
             else
                 for (int j = i; j > from && longs[j] < longs[j - 1]; j--)
                     swap(objects, longs, j, j - 1);
@@ -181,14 +181,15 @@ public class QuickHuskySort<X extends Comparable<X>> {
 
     /**
      * Swap method for insertion sort which takes advantage of the known fact that the elements of the array
-     * at indices less than i are in order.
+     * at indices from thru i-1 are in order.
      *
      * @param xs    the X array.
      * @param longs the long array.
+     * @param from  the first index of the sorted partition into which we want to insert the element at index i.
      * @param i     the index of the element to be moved.
      */
-    private static <T extends Comparable<T>> void swapIntoSorted(final T[] xs, final long[] longs, final int i) {
-        int j = binarySearch(longs, 0, i, longs[i]);
+    private static <T extends Comparable<T>> void swapIntoSorted(final T[] xs, final long[] longs, final int from, final int i) {
+        int j = binarySearch(longs, from, i, longs[i]);
         if (j < 0) j = -j - 1;
         if (j < i) swapInto(xs, longs, j, i);
     }

@@ -125,12 +125,13 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
      * the destination of x[i] thru x[i-1] are moved up one place.
      * This type of swap is used by insertion sort.
      *
-     * @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
-     * @param i  the index of the element to be swapped into the ordered array xs[0..i-1].
+     * @param xs   the array of X elements, whose elements from thru i-1 MUST be sorted.
+     * @param from the first index of the sorted partition into which we want to insert the element at index i.
+     * @param i    the index of the element to be swapped into the ordered array xs[from..i-1].
      */
     @Override
-    public void swapIntoSorted(final X[] xs, final int i) {
-        helper.swapIntoSorted(xs, i);
+    public void swapIntoSorted(final X[] xs, final int from, final int i) {
+        helper.swapIntoSorted(xs, from, i);
     }
 
     /**
