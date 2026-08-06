@@ -218,14 +218,21 @@
 %% article.
 
 \begin{abstract}
-Much of the copious literature on the subject of sorting has concentrated on minimizing the number of comparisons and/or exchanges/copies.
-However, a more appropriate yardstick for the performance of sorting algorithms is based on the total number of array accesses that are required (the "work").
-For a sort that is based on divide-and-conquer (including iterative variations on that theme), we can divide the work into linear, i.e. $\textbf{O}(N)$, work and linearithmic, i.e. $\textbf{O}(N log N)$, work.
-An algorithm that moves work from the linearithmic phase to the linear phase may be able to reduce the total number of array accesses and, indirectly, processing time.
-This paper describes an approach to sorting which reduces the number of \emph{expensive} comparisons in the linearithmic phase as much as possible by substituting inexpensive comparisons.
-In Java, the two system sorts are dual-pivot quicksort (for primitives) and Timsort for objects.
-We demonstrate that a combination of these two algorithms can run significantly faster than either algorithm alone for the types of objects which are expensive to compare.
-We call this improved sorting algorithm Huskysort.
+Most sorting-algorithm literature optimizes for the number of comparisons or exchanges; we argue
+the more appropriate yardstick is the total number of array accesses (the "work"), which for
+divide-and-conquer sorts splits into a linear, $\textbf{O}(N)$, phase and a linearithmic,
+$\textbf{O}(N \log N)$, phase.
+Moving work from the linearithmic phase to the linear phase reduces this total and, for types
+where comparison itself is expensive, reduces processing time as well.
+We present two algorithms built on this idea.
+QuickHuskySort encodes each object into a 64-bit husky code that is, as far as possible,
+order-preserving, sorts on the cheap encoded keys instead of the expensive originals, and falls
+back to a cleanup pass only where the encoding is imperfect.
+RadixHuskySort replaces that sort with a linear-time radix sort on the same encoded keys, moving
+the second phase itself from linearithmic to linear.
+Both consistently outperform Java's own system sorts — dual-pivot quicksort for primitives,
+Timsort for objects — for the types of objects expensive to compare; RadixHuskySort further
+improves on QuickHuskySort for sufficiently large arrays.
 \end{abstract}
 
 
