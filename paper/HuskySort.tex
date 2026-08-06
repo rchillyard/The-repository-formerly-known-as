@@ -224,9 +224,11 @@ divide-and-conquer sorts splits into a linear, $\textbf{O}(N)$, phase and a line
 $\textbf{O}(N \log N)$, phase.
 Moving work from the linearithmic phase to the linear phase reduces this total and, for types
 where comparison itself is expensive, reduces processing time as well.
-We present two algorithms built on this idea.
-QuickHuskySort encodes each object into a 64-bit husky code that is, as far as possible,
-order-preserving, sorts on the cheap encoded keys instead of the expensive originals, and falls
+The key concept is a 64-bit code that is, as far as possible, order-preserving, and stands in as a proxy for each original element.
+We call this code a "Husky" code.
+We present two algorithms built on this idea:
+QuickHuskySort encodes each object into its husky code in a linear preamble to the sorting process,
+then it sorts on the cheap encoded keys instead of the expensive originals, and falls
 back to a cleanup pass only where the encoding is imperfect.
 RadixHuskySort replaces that sort with a linear-time radix sort on the same encoded keys, moving
 the second phase itself from linearithmic to linear.
