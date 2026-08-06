@@ -1221,11 +1221,12 @@ only four of the eight cores being full-performance ones.
 
 The original idea behind HuskySort, that's to say QuickHuskySort, was to shift work from the linearithmic phase of sorting to the linear phase (both the prelude and the postlude) and effect an overall reduction in array accesses and thus processing time.
 This has been demonstrated such that, when sorting objects rather than primitives, Huskysort is always faster than dual-pivot quicksort.
-It is faster than Timsort for arrays which are not partially ordered.
+It is faster than Timsort for arrays which are not partially ordered, above a few hundred
+elements; below that, Timsort's own tuned handling of small arrays wins instead.
 It is especially fast for Unicode character strings.
 
-In the case of RadixHuskySort, the performance improvement is even better for large datasets (n > 2000).
-Of course, in this case, there was no linearithmic phase, so the time savings come TODO
+In the case of RadixHuskySort, the performance improvement is even better for datasets above a few thousand in length.
+Of course, in this case, there was no linearithmic phase, so the time savings come, as explained above, from more bit manipulation and fewer calls to \textit{equals}.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
