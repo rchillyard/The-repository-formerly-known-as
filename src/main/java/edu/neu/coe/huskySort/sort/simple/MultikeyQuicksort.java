@@ -62,22 +62,38 @@ public class MultikeyQuicksort {
         sort(a, 0, a.length - 1, 0, keyAt, smallRangeSorter);
     }
 
-    private static void sort(final String[] a, final int lo, final int hi, final int d, final CharacterKey keyAt, final RangeSorter smallRangeSorter) {
-        if (hi - lo < CUTOFF) {
-            if (hi > lo) smallRangeSorter.sort(a, lo, hi + 1);
-            return;
+    /**
+     * NOTE: the equal partition below is handled by looping back around (updating lo, hi, and d
+     * and re-entering the method) rather than by a direct recursive call to sort(lo, gt, d + 1,
+     * ...). A long run of strings sharing a common prefix recurses into that equal partition
+     * once per shared character, and a direct recursive call would consume one stack frame per
+     * character -- exactly the kind of unbounded-recursion-depth failure this document's own
+     * "Adversarial inputs" discussion describes for a naively-implemented quicksort. Looping
+     * instead keeps the equal partition at constant stack depth regardless of how long a shared
+     * prefix is; only the less-than and greater-than partitions still recurse, and their depth
+     * is bounded by how many times the array can be partitioned, not by prefix length.
+     */
+    private static void sort(final String[] a, int lo, int hi, int d, final CharacterKey keyAt, final RangeSorter smallRangeSorter) {
+        while (true) {
+            if (hi - lo < CUTOFF) {
+                if (hi > lo) smallRangeSorter.sort(a, lo, hi + 1);
+                return;
+            }
+            final long pivot = keyAt.at(a[lo], d);
+            int lt = lo, gt = hi, i = lo + 1;
+            while (i <= gt) {
+                final long t = keyAt.at(a[i], d);
+                if (t < pivot) swap(a, lt++, i++);
+                else if (t > pivot) swap(a, i, gt--);
+                else i++;
+            }
+            sort(a, lo, lt - 1, d, keyAt, smallRangeSorter);
+            sort(a, gt + 1, hi, d, keyAt, smallRangeSorter);
+            if (pivot < 0) return;
+            lo = lt;
+            hi = gt;
+            d = d + 1;
         }
-        final long pivot = keyAt.at(a[lo], d);
-        int lt = lo, gt = hi, i = lo + 1;
-        while (i <= gt) {
-            final long t = keyAt.at(a[i], d);
-            if (t < pivot) swap(a, lt++, i++);
-            else if (t > pivot) swap(a, i, gt--);
-            else i++;
-        }
-        sort(a, lo, lt - 1, d, keyAt, smallRangeSorter);
-        if (pivot >= 0) sort(a, lt, gt, d + 1, keyAt, smallRangeSorter);
-        sort(a, gt + 1, hi, d, keyAt, smallRangeSorter);
     }
 
     private static void insertionSortRange(final String[] a, final int lo, final int hiExclusive) {

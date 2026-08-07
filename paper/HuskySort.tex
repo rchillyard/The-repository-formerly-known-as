@@ -1361,6 +1361,20 @@ strategy, and it is already implicit in the $p_{crit}$ discussion of \S~\ref{sec
 whenever the actual input defeats the encoding, the honest answer is that no downstream sort
 algorithm can buy back the information the encoding failed to capture.
 
+Worth noting as a related, if incidental, finding: the three-way radix quicksort baseline used
+in \S~\ref{sec:radix} for the classic string-sorting-literature comparison (MultikeyQuicksort)
+shares exactly the same failure mode as the naive quicksort baseline above, for a similar
+structural reason.
+Its equal-partition recursion advances one level per shared prefix character;
+on a long enough run of strings sharing a common prefix — the same kind of adversarial
+construction as above — a straightforward recursive implementation consumes one stack frame per
+shared character and eventually overflows the stack.
+Unlike the failure discussed above, this is a property of the comparison algorithm itself and unrelated to Husky encoding.
+We fixed it in our own implementation by converting that one recursive call into a loop,
+restoring constant stack depth regardless of prefix length. RadixHuskySort was never at risk of
+this particular failure mode in the first place, since LSD radix sort has no recursion to begin
+with.
+
 \subsection{Handling of partially-sorted arrays}
 
 Not surprisingly, Huskysort is best suited for sorting random arrays.
