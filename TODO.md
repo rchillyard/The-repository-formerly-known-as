@@ -724,8 +724,22 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
 
     `StringSortBenchmarks.multikeyQuicksort` now dispatches to `sortByPinyin` for the
     chinesenames corpus specifically (natural order still used for english/chinese), making the
-    comparison item 27 excluded finally fair. **Actual timed numbers not yet collected** —
-    `LabStatsGoClient` (see item 25) is still at ~98% CPU with load average 13+ as of this
-    writing, worse than before; running the benchmark now would just add more noise to chase.
+    comparison item 27 excluded finally fair.
+
+    **Update 2026-08-07:** collected two attempts, `LabStatsGoClient` (item 25) killed
+    immediately before each, both ramping back to 90%+ CPU within ~30 seconds regardless — so
+    neither run is clean, but the headline held independently both times: RadixHuskySort and
+    QuickHuskySort (both pinyin-aware) clearly beat MultikeyQuicksort (also pinyin-aware) by
+    roughly 1.6-2.7x, same range as the English/Chinese results. The finer RadixHuskySort-vs-
+    QuickHuskySort distinction flips direction between the two runs and isn't resolvable from
+    this data — not a new gap, the dedicated crossover-N sweep already answers that precisely on
+    a clean run. Full tables and discussion in the "Multikey quicksort baseline" section of
+    [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
+
+    One framing note from Robin, applied to that write-up: natural-Unicode-order System sort is
+    deliberately *not* included in the chinesenames comparison table, unlike the English/Chinese
+    tables. For Chinese personal names, natural Unicode order isn't just a different, less
+    comparable ordering — it's the wrong order outright, not a real option anyone would choose,
+    so presenting a System-sort number there would wrongly suggest it as a viable competitor.
     Waiting for a confirmed-clean machine before trusting any chinesenames-pinyin timing
     comparison.

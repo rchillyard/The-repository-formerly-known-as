@@ -928,10 +928,41 @@ guessed at. Added a dedicated regression test enumerating all 18 previously-miss
 and the 4 confirmed non-syllables. Full suite: 350 tests passing.
 
 `StringSortBenchmarks.multikeyQuicksort` now dispatches to `sortByPinyin` for the chinesenames
-corpus specifically. **Actual timed numbers not yet collected**: `LabStatsGoClient` (see the
-Parallel radix sort section above) is still at ~98% CPU with load average 13+ as of this
-writing — worse than the last check, not better — so running the benchmark now would just add
-more noise to chase rather than a trustworthy result. Waiting for a confirmed-clean machine.
+corpus specifically, completing the three-corpus comparison alongside the English and Chinese
+(natural order) numbers earlier in this section. Two attempts, both with `LabStatsGoClient`
+killed immediately beforehand (see the Parallel radix sort section above) but ramping back to
+90%+ CPU within about 30 seconds each time, so neither run is clean:
+
+| N | RadixHuskySort | QuickHuskySort | MultikeyQuicksort (pinyin) |
+|---|---|---|---|
+| 32,000 (run 1) | 25.91ms | 28.36ms | 44.42ms |
+| 32,000 (run 2) | 27.61ms | 26.86ms | 52.26ms |
+| 200,000 (run 1) | 145.32ms | 170.05ms | 339.04ms |
+| 200,000 (run 2) | 163.79ms | 160.81ms | 363.39ms |
+| 1,000,000 (run 1) | 736.67ms | 1017.56ms | 2013.45ms |
+| 1,000,000 (run 2) | 821.81ms | 916.12ms | 1919.05ms |
+
+The fine RadixHuskySort-vs-QuickHuskySort distinction is not resolvable from this data — it
+flips direction between the two runs, consistent with confidence intervals up to ±29% wide in
+both attempts. That is not a new gap: the dedicated crossover-N sweep elsewhere in this document
+already answers that comparison precisely, on a clean run. What *did* hold, independently, in
+both attempts: **RadixHuskySort and QuickHuskySort (both pinyin-aware) clearly and consistently
+beat MultikeyQuicksort (also pinyin-aware) by a wide margin** — roughly 1.6-2.7x, in the same
+range as the English (1.3-1.75x) and Chinese (2-3.1x) results, and holding up across two
+independent, noisy attempts is itself reasonable corroborating evidence even without pristine
+CIs. Treat the exact ratios as provisional pending an actually clean machine; treat the
+direction of the finding as solid.
+
+One framing point worth being explicit about, since the table above could be misread otherwise:
+natural-Unicode-order System sort is not included in this table at all, unlike the English/Chinese
+comparisons earlier in this document. For those corpora, natural order is genuinely what all
+four sorters were computing, so System sort belonged in the comparison as a real alternative.
+For Chinese personal names, per Robin, natural Unicode code-point order is not merely a
+different, less-comparable ordering the way it was framed earlier in this section — it is simply
+the wrong order for that use case, full stop, not a legitimate choice a real user would ever
+reach for. Including a natural-order System-sort number here would invite reading it as a viable
+competitor for this specific corpus, which it is not; the only three sorters worth comparing for
+Chinese names are the three pinyin-aware ones in the table above.
 
 ## Headline conclusion
 
