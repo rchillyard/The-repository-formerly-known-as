@@ -134,8 +134,29 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
 
     private static int compareCharacter(final char x, final char y) {
         if (x == y) return 0;
-        final String altX = altOf(x);
-        final String altY = altOf(y);
+        final int cf = compareAltReadings(altOf(x), altOf(y));
+        if (cf != 0) return cf;
+        return Character.compare(x, y);
+    }
+
+    /**
+     * Compare two {@code ChineseCharacter.alt()}-format readings ("&lt;syllable&gt; &lt;tone&gt;")
+     * by pinyin syllable spelling (via {@link HanyuPinyinSyllables#ORDER}), then tone -- i.e. the
+     * first two levels of the three-level per-character order used by {@code compareCharacter}
+     * and {@link #NAME_ORDER}, WITHOUT the final Unicode-code-point tie-break (which is a
+     * property of the characters being compared, not of the readings themselves).
+     * <p>
+     * Package-private for reuse by {@code PolyphoneOverrideTrainer} (TODO.md item 11), which
+     * needs to test *candidate* readings of a polyphone character -- not just the character's
+     * currently-chosen reading -- for ordering consistency against corpus neighbors; a result
+     * of 0 there means "this pair's relative order was decided by the corpus curator's
+     * stroke-count tie-break, which readings alone cannot reproduce".
+     *
+     * @param altX one reading in alt() format, e.g. "lü 3".
+     * @param altY another reading in alt() format.
+     * @return negative/zero/positive per syllable-then-tone order.
+     */
+    static int compareAltReadings(final String altX, final String altY) {
         final int spaceX = altX.indexOf(' ');
         final int spaceY = altY.indexOf(' ');
         final String syllableX = spaceX >= 0 ? altX.substring(0, spaceX) : altX;
@@ -144,9 +165,7 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
         if (cf != 0) return cf;
         final String toneX = spaceX >= 0 ? altX.substring(spaceX + 1) : "";
         final String toneY = spaceY >= 0 ? altY.substring(spaceY + 1) : "";
-        final int tf = toneX.compareTo(toneY);
-        if (tf != 0) return tf;
-        return Character.compare(x, y);
+        return toneX.compareTo(toneY);
     }
 
     /**
@@ -212,6 +231,17 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     }
 
     private static final Map<Character, String> ALT_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * Package-private hook for {@code PolyphoneOverrideTrainer} and tests (TODO.md item 11):
+     * the alt() memoization above is static, so anything that changes what
+     * {@code ChineseCharacter.alt()} returns for a character (namely, installing or clearing
+     * the polyphone override table) must also invalidate this cache -- a "fresh coder
+     * instance" is not enough. Never called on any production path.
+     */
+    static void clearAltCache() {
+        ALT_CACHE.clear();
+    }
 
     private static long encodeBoPoMoFo(final String s) {
         final Long[] codes = ChineseCharacter.parsePinyin(Long.class, ChineseCharacter.convertToPinyin(s), s.length(), xs -> {
