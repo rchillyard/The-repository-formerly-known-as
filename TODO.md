@@ -602,9 +602,19 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     otherwise (the majority case this paper targets) → RadixHuskySort, typically 2-4x faster
     than QuickHuskySort; (6) large workload with spare cores → `ParallelRadixHuskySort` widens
     the advantage further (item 16 above), but only once there's enough work to amortize its own
-    thread/barrier setup cost. Not yet folded into the paper itself — the paper doesn't currently
-    have a dedicated use-case-guidance section analogous to the original's §6.2 "Summary"; worth
-    considering as a future addition once Robin has seen this write-up.
+    thread/barrier setup cost.
+
+    **2026-08-14 update — folded into the paper, and reconciled with item 25**: new
+    `\subsection{Use-Case Guidance}` (`sec:usecase`) in `paper/HuskySort.tex`, after
+    `sec:parallel-radix` and before the Conclusion. The doc's own six-point guide above was
+    reconciled first (this section had explicitly flagged the insertion-sort tier as not yet
+    folded in — see item 25) into a seven-point guide with `InsertionSort` as its own tier
+    (String keys, roughly N=100-200), then that reconciled version was written into the paper as
+    prose organized by crossover point rather than as a numbered list, to match the paper's own
+    style. The already-cheap-primitive point (item 22) was left out of the paper's version
+    deliberately — that benchmark itself was never written into the paper, so citing its
+    conclusion without the supporting data would be citing something the paper doesn't actually
+    show; still available in the doc's own guide for anyone who reads that far.
 
 25. ~~**Insertion sort small-N benchmark.**~~ **DONE 2026-08-04.** Robin expected plain insertion
     sort to beat System sort below roughly N=16, while separately noting System sort likely
@@ -632,16 +642,13 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     elsewhere in this document are unaffected (`QuickHuskySort` has its own separate, unchanged,
     still-linear-scan insertion-sort fallback, `OPTIMIZED=false`).
 
-    This is worth reconciling with the "Use-case guidance" section (item 24), which only
-    compares System sort/QuickHuskySort/RadixHuskySort — plain `InsertionSort` was never a
-    candidate in the crossover-N sweep (items 23-24), and this result suggests it may deserve
-    its own tier for String-keyed collections in the 100-200 range. Not folded into that
-    guidance yet — flagged in the doc file rather than decided unilaterally, since it changes
-    the shape of the existing guidance rather than just adding a data point. Also worth a look
-    later: `QuickHuskySort`'s own dormant `OPTIMIZED` flag guards an equivalent
-    binary-search-based fallback that was never turned on — given how much faster it measures
-    here, that may be worth revisiting (with the same care around the same three bug classes).
-    Full table and discussion in the "Crossover points" section of
+    **2026-08-14: reconciled into the "Use-case guidance" section (item 24)** — `InsertionSort`
+    now has its own tier there (String keys, roughly N=100-200), and that reconciled guidance is
+    now in the paper itself (see item 24's 2026-08-14 update). Still open: `QuickHuskySort`'s own
+    dormant `OPTIMIZED` flag guards an equivalent binary-search-based fallback that was never
+    turned on — given how much faster it measures here, that may be worth revisiting (with the
+    same care around the same three bug classes). Full table and discussion in the "Crossover
+    points" section of
     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
 
 26. **Cloud (AWS) run for larger-than-local-capacity benchmarks.** Not started, low priority,
@@ -656,6 +663,15 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     advantage over QuickHuskySort hold or grow past N=1-10M, and does parallel radix scale past 4
     threads with more cores actually available. Robin's co-author Yunlu works at AWS and would
     likely be the one to actually set this up and run it.
+
+    **2026-08-14 update — the LabStatsGoClient contention is not fixable locally.** Robin's IT
+    session confirmed the offending software is deployed via a machine image, not an individual
+    install, so it cannot be updated or removed without a full re-image; that can't happen until
+    Robin is back in Boston, and even then not likely before October given IT's typical
+    scheduling. This closes off the "just get IT to fix the local machine" option entirely for the
+    foreseeable future, strengthening the case for this item (or at least a rerun of the
+    still-provisional, contention-affected numbers flagged in items 15, 27, and 28) once an AWS
+    session is actually feasible.
 
 27. ~~**Real empirical comparison against three-way radix quicksort.**~~ **DONE 2026-08-05.**
     Item 20's classic-string-sorting-literature addition scoped a direct empirical comparison as
@@ -690,16 +706,15 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     (gaps are non-overlapping even at the widest CIs), but exact ratios should be treated as
     provisional pending a rerun once the machine is confirmed clean.
 
-    Not yet folded into the paper — Robin is currently rewriting the conclusion himself
-    (`paper/HuskySort.tex`, in progress with a literal `TODO` placeholder at time of writing) and
-    asked to commit this work first; where and how this result lands in the paper is still open.
-    Robin's own observation worth remembering for that write-up: sorting Chinese names by
-    natural Unicode order (what `MultikeyQuicksort` did) is a much easier task than sorting by
-    pinyin (what `QuickHuskySort`/`RadixHuskySort` actually do for that corpus) — not just "not
-    comparable," but a genuine reason the excluded numbers would be unfairly flattering to
-    `MultikeyQuicksort` if included. Possible next step Robin raised: implementing pinyin
-    ordering inside `MultikeyQuicksort` itself, to make a fair comparison possible for that
-    corpus too — not started.
+    **2026-08-14 update — fully folded into the paper now.** The English/Chinese natural-order
+    comparison above was already in `\S~\ref{sec:radix}` by the time the conclusion rewrite (that
+    this item's note used to be blocked on) was finished; this update adds the remaining piece —
+    item 28's pinyin-aware chinesenames comparison — as a new paragraph right after it, including
+    the CI-width honesty caveat (up to $\pm$29\%, finer RadixHuskySort-vs-QuickHuskySort
+    distinction not resolvable from this data) rather than quoting the ~1.6-2.7x margin as a
+    clean number. Robin's own observation about why natural-order System sort stays out of that
+    comparison (sorting Chinese names by natural Unicode order is a much easier, and not even
+    correct, task compared to pinyin order) is preserved in the new paragraph's framing too.
 
 28. ~~**Pinyin-aware MultikeyQuicksort, and two real pre-existing pinyin bugs found doing it.**~~
     **DONE 2026-08-05.** Robin asked for item 27's followup: implement pinyin ordering inside

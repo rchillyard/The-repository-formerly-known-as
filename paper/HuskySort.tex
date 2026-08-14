@@ -522,6 +522,18 @@ throughout — a real result against a real, competitive baseline, not merely a 
 argument. A direct empirical comparison against MSD radix sort and burstsort specifically remains
 future work.
 
+Natural Unicode order is not a meaningful comparison for Chinese personal names specifically —
+it is simply the wrong order for that use case, not merely a different one — so a fair
+comparison there requires a pinyin-aware MultikeyQuicksort. We extended it with the same
+syllable-then-tone character key the pinyin encoding of \S~\ref{sec:radix} already uses, restricted the
+comparison to the three pinyin-aware sorters (a natural-order system sort is not a real
+competitor for this corpus), and re-ran it. Across two independent runs, confidence intervals
+were wide enough (up to $\pm$29\%) that the finer RadixHuskySort-vs-QuickHuskySort distinction
+was not resolvable — a question the crossover analysis of \S~\ref{sec:usecase} already answers
+precisely on cleaner data — but one result held directionally in both attempts: RadixHuskySort
+and QuickHuskySort, both pinyin-aware, beat MultikeyQuicksort by roughly 1.6--2.7x, consistent
+with the margins measured above for English and Chinese natural-order text.
+
 \begin{algorithm}
 \KwIn{\it{xs} as an array of object X which extends Comparable<X>}
 \KwIn{\it{b} as the number of bits per digit}
@@ -1223,6 +1235,43 @@ resolved at $N=2{,}000{,}000$ (1.32x, overlapping intervals). Four threads is th
 spot on the machine used for this measurement (four performance and four efficiency cores):
 eight threads performs statistically indistinguishably from four at both sizes, consistent with
 only four of the eight cores being full-performance ones.
+
+\subsection{Use-Case Guidance}
+\label{sec:usecase}
+
+\S~\ref{sec:summary} already eliminates two cases outright: partially-ordered arrays, where
+Timsort's own adaptivity wins, and arrays of already-cheap-to-compare primitives, where
+dual-pivot quicksort is already the fastest option. For the remaining case — arrays of objects
+with no expectation of partial ordering — which sorter to reach for still depends on $N$.
+
+For String keys we measured every crossover directly (JMH, English corpus, $N=4$ through
+$10{,}000$). System sort is the fastest of the group at $N=20$ and $N=50$ (non-overlapping
+99.9\% confidence intervals against QuickHuskySort), essentially tied with QuickHuskySort by
+$N=100$--$200$, and clearly overtaken by QuickHuskySort from $N=500$ on. A plain, binary-search-based
+insertion sort is statistically indistinguishable from System sort at $N \le 20$, but wins
+outright over both System sort and QuickHuskySort from roughly $N=100$ through $N=200$
+(non-overlapping confidence intervals both ways) — the one regime in this paper where plain
+insertion sort, not either Huskysort variant, is the best available choice. QuickHuskySort pulls
+back ahead of insertion sort by $N=500$, and remains the best choice up to roughly $N=2{,}000$,
+since RadixHuskySort's own fixed digit-pass setup cost is not yet amortized below that point.
+Only somewhere between $N=2{,}000$ and $N=5{,}000$ does RadixHuskySort take over; its advantage
+then grows and holds at every larger size tested (Table~\ref{tab:RadixImprovements}). Every one
+of these crossovers shares the same shape: each successive algorithm carries a larger fixed setup
+cost that only pays for itself once there is enough work to amortize it against — the same
+fixed-vs-variable-cost story \S~\ref{sec:parallel-radix} found one level further down, where a
+parallel radix sort's own thread/barrier setup only pays off once there is enough work to divide
+across threads. These crossover points were measured only for String keys; the fixed costs
+involved are architectural rather than type-specific, so other key types plausibly show
+similarly-shaped curves at similar sizes, but this has not been separately confirmed.
+
+Two further caveats from elsewhere in this paper complete the picture. If the source data
+defeats the husky encoding's fixed capture window entirely — a shared prefix longer than the
+encoding's own character limit, for instance — neither QuickHuskySort nor RadixHuskySort helps
+regardless of $N$ (\S~\ref{sec:adversarial}): both lose to plain System sort, since the encoding
+pass becomes pure waste and the mandatory cleanup pass must do all the real work anyway. And
+given a large enough workload and spare cores, \textit{ParallelRadixHuskySort} widens
+RadixHuskySort's own advantage further still (\S~\ref{sec:parallel-radix}), provided there is
+enough total work to amortize its own thread-coordination cost.
 
 \section{Conclusion}
 
