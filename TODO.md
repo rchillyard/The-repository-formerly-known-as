@@ -243,6 +243,36 @@ for the benchmark numbers this backlog refers to).
     fixes the 0.32% polyphone-driven disagreement quantified in item 9's finding above;
     unrelated to item 10.
 
+    **2026-08-11 finding**: implemented as proposed (`PolyphoneOverrideTrainer`, a main()
+    program under src/test/java, generating `src/main/resources/polyphone_overrides.txt`,
+    which `ChineseCharacter.alt()` now consults — an override is honored only if it matches
+    one of pinyin4j's valid readings for that character, and a missing/empty table reproduces
+    the old behavior exactly). Votes are harvested from each adjacent pair's first differing
+    character position (shared prefixes cancel; prefix pairs and pairs whose deciding
+    characters are both polyphones carry no attributable signal — the latter are retried in a
+    second round after round-1 winners are fixed). Two subtleties proved essential: (1) a pair
+    is only counted if it *discriminates*, i.e. at least one candidate reading sorts strictly
+    consistently with the observed order and at least one strictly inconsistently; and (2) if
+    *any* candidate reading ties the opponent on syllable+tone, the whole pair must be
+    discarded, because its order may be a stroke-count tie-break (item 10 territory) that
+    would otherwise credit the non-tying readings with spurious unanimous votes — without
+    exclusion (2), the trained table actually made agreement *worse* than baseline (93.34%,
+    −0.09pp). With both rules plus decisiveness thresholds (winner ≠ default, ≥75% of FOR
+    votes, ≥10 FOR votes), training learns a 20-entry override table (all of them
+    real-name-convention readings, e.g. 肖 xiao4→xiao1, 柏 bo2→bai3, 贲 bi4→ben1, 蔚
+    yu4→wei4), and adjacent-pair agreement goes from 1,069,784 / 1,145,008 (93.4303%) before
+    to 1,072,555 / 1,145,008 (93.6723%) after — +2,771 pairs (+0.24pp) of the ~0.32%
+    (≈3,664 pairs) polyphone-driven disagreement. The residual polyphone disagreement is
+    largely context-dependent characters (the same character legitimately read differently in
+    different names — surname vs. given-name position, or neighboring-character context),
+    which a single global per-character map cannot express by construction. Note that the
+    override table encodes *this corpus curator's* reading conventions, learned from the
+    corpus's own ordering — a genuinely better fit for sorting this (and similar
+    surname-heavy) data than pinyin4j's dictionary-default readings, but not a claim of
+    universal correctness. One existing test expectation updated accordingly
+    (`ChineseCharacterTest.testConvertToPinyin`: 蔚 in 何欣蔚 now wei4, no longer pinyin4j's
+    yu4).
+
 ## Paper resubmission (2026-07-24 onward)
 
 The radix-sort backlog above (items 1-8) was groundwork for an actual SIAM ACDA21 resubmission.
