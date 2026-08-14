@@ -191,6 +191,12 @@ public class QuickHuskySort<X extends Comparable<X>> {
     private static <T extends Comparable<T>> void swapIntoSorted(final T[] xs, final long[] longs, final int from, final int i) {
         int j = binarySearch(longs, from, i, longs[i]);
         if (j < 0) j = -j - 1;
+        // NOTE: an exact match found by binarySearch may land anywhere within a run of indices
+        // sharing the same long code, not necessarily at the end of that run. Scan past any ties
+        // so that elements with equal codes are never shifted past each other (preserving
+        // stability) -- same fix as ComparisonSortHelper.swapIntoSorted (commit 408011c), which
+        // only ever reached this class's own separate copy of the method, not this one.
+        else while (j < i && longs[j] == longs[i]) j++;
         if (j < i) swapInto(xs, longs, j, i);
     }
 
@@ -217,11 +223,14 @@ public class QuickHuskySort<X extends Comparable<X>> {
         return huskyCoder;
     }
 
-    // NOTE that we keep this false because, for the size of arrays that we need to sort via insertion sort,
-    // This optimization doesn't really help.
-    // That might be because (a) arrays are short and (b) the binary search will likely take quite a bit longer than
-    // necessary when the array is already close to being in order (since binary search starts in the middle).
-    // It would be like looking up aardvark in the dictionary using strict binary search.
+    // 2026-08-14: swapIntoSorted's own tie-handling bug (see the fix above) is now corrected, so
+    // this path is safe to enable, but a JMH check (StringSortBenchmarks.quickHuskySort, English,
+    // N=1,000,000) found no measurable improvement over the linear-scan branch -- consistent with
+    // this method only ever running on subarrays of at most sizeThreshold+1 (17) elements, the
+    // same size regime where the standalone binary-search InsertionSort was itself found to be
+    // statistically indistinguishable from a plain scan (see TODO.md item 25). Left false; revisit
+    // if a cleaner machine (this run had real background contention -- see TODO.md) suggests
+    // otherwise.
     private static final boolean OPTIMIZED = false;
 
     private final HuskyCoder<X> huskyCoder;

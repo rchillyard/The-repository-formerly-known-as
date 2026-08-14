@@ -644,12 +644,42 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
 
     **2026-08-14: reconciled into the "Use-case guidance" section (item 24)** — `InsertionSort`
     now has its own tier there (String keys, roughly N=100-200), and that reconciled guidance is
-    now in the paper itself (see item 24's 2026-08-14 update). Still open: `QuickHuskySort`'s own
-    dormant `OPTIMIZED` flag guards an equivalent binary-search-based fallback that was never
-    turned on — given how much faster it measures here, that may be worth revisiting (with the
-    same care around the same three bug classes). Full table and discussion in the "Crossover
-    points" section of
+    now in the paper itself (see item 24's 2026-08-14 update). Full table and discussion in the
+    "Crossover points" section of
     [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md).
+
+    **2026-08-14: `QuickHuskySort`'s dormant `OPTIMIZED` flag, revisited and resolved.** This
+    flag guards `QuickHuskySort`'s own separate binary-search-based `swapIntoSorted`, used only
+    for the small-subarray fallback inside its Introsort recursion (`sizeThreshold=16`, so this
+    path never runs on more than 17 elements at a time). Turned out to still carry the third of
+    the three bug classes commit `408011c` fixed elsewhere: that commit fixed the subarray-corruption
+    bug (`from` not threaded through the binary search) in *this exact copy* of `swapIntoSorted`
+    too, but the tie-handling/stability fix only ever reached `ComparisonSortHelper`'s copy (used
+    by the standalone `InsertionSort`), never this one — so flipping `OPTIMIZED` on as-is would
+    have shipped a real, silent stability bug for duplicate keys. Fixed by porting the same
+    scan-past-ties logic (comparing `longs[]` values, matching this class's own convention of
+    comparing via the pre-encoded long codes rather than the objects themselves). Added a
+    dedicated stability regression test (`QuickHuskySortTest.testInsertionSortStableForDuplicateKeys`,
+    a `Tagged`-payload/duplicate-`longs[]` array, mirroring `InsertionSortCorrectnessTest`'s
+    pattern) — the existing tests all use distinct random Strings, so none of them would have
+    caught this. Full suite (355 tests) passes with `OPTIMIZED=true`.
+
+    With the bug fixed, benchmarked whether turning it on is actually worth it (JMH,
+    `StringSortBenchmarks.quickHuskySort`, English corpus, $N=1{,}000{,}000$): no measurable
+    improvement (371.6±158.1ms optimized vs. 367.0±24.2ms baseline on the first pair of runs,
+    heavily overlapping either way). Checked `uptime`/`ps` before trusting that, given how wide
+    the optimized run's CI was, and found the same contention pattern this document has hit
+    before: load average 6.9-8.7, with Microsoft Teams (~48% CPU), `WindowServer` (~44%), and
+    `LabStatsGoClient` (~26%, see item 26's IT update — unfixable until a re-imaging appointment,
+    not available before October) all running. So this comparison is not clean enough to trust
+    precisely, but the finding is consistent with the best available clean data: the standalone
+    `InsertionSort` benchmark above already found binary-search insertion statistically
+    indistinguishable from a plain scan at exactly this size regime ($N=4$-$20$), which is exactly
+    the range `QuickHuskySort`'s own fallback operates in ($\le 17$ elements). Decision: keep the
+    bug fix (real correctness issue in previously-dormant code, worth having regardless), leave
+    `OPTIMIZED=false` (no evidence it helps, some evidence it might not be worth the added binary-search
+    overhead at this scale), and leave a note in the flag's own comment to revisit only if a
+    clean machine becomes available.
 
 26. **Cloud (AWS) run for larger-than-local-capacity benchmarks.** Not started, low priority,
     may or may not happen before the deadline. Motivation is a genuine capability gap, not just

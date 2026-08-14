@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 
@@ -124,5 +125,49 @@ public class QuickHuskySortTest {
         final Coding coding = huskyCoder.huskyEncode(xs);
         QuickHuskySort.insertionSort(xs, coding.longs, 0, N);
         assertEquals(0, helper.inversions(xs));
+    }
+
+    /**
+     * Regression test for the OPTIMIZED (binary-search-based) swapIntoSorted path, added
+     * 2026-08-14 alongside the fix for its missing tie-handling scan (the same bug class fixed
+     * in ComparisonSortHelper.swapIntoSorted by commit 408011c, which never reached this class's
+     * own separate copy of the method). The existing insertionSort tests above use distinct
+     * random Strings, so a stability regression here would never have shown up in any of them --
+     * this uses many duplicate keys specifically to exercise the tie-scan.
+     */
+    @Test
+    public void testInsertionSortStableForDuplicateKeys() {
+        final Random random = new Random(3);
+        final int n = 2000;
+        final Tagged[] objects = new Tagged[n];
+        final long[] longs = new long[n];
+        for (int i = 0; i < n; i++) {
+            final long key = random.nextInt(20);
+            longs[i] = key;
+            objects[i] = new Tagged(key, i);
+        }
+        QuickHuskySort.insertionSort(objects, longs, 0, n);
+        for (int i = 1; i < n; i++) {
+            assertTrue("key order violated at index " + i, longs[i - 1] <= longs[i]);
+            assertEquals("objects/longs out of sync at index " + i, objects[i].key, longs[i]);
+            if (longs[i - 1] == longs[i])
+                assertTrue("stability violated at index " + i + ": originalIndex " +
+                                objects[i - 1].originalIndex + " should precede " + objects[i].originalIndex,
+                        objects[i - 1].originalIndex < objects[i].originalIndex);
+        }
+    }
+
+    private static final class Tagged implements Comparable<Tagged> {
+        final long key;
+        final int originalIndex;
+
+        Tagged(final long key, final int originalIndex) {
+            this.key = key;
+            this.originalIndex = originalIndex;
+        }
+
+        public int compareTo(final Tagged other) {
+            return Long.compare(key, other.key);
+        }
     }
 }
