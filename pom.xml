@@ -7,9 +7,9 @@
 
 <project>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>edu.neu.coe.mgen</groupId>
+    <groupId>edu.neu.coe.seis</groupId>
     <artifactId>HuskySort</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <build>
         <plugins>
             <plugin>
