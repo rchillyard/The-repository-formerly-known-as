@@ -75,6 +75,7 @@
 \usepackage{latexsym}
 \usepackage{etoolbox}
 \usepackage{academicons}
+\usepackage{tabularx}
 
 
 %New colors defined below
@@ -340,7 +341,7 @@ Table ~\ref{tab:PriorAlgorithms} summarizes their standard complexity and stabil
 \begin{table*}
   \caption{Prior comparison-based sorting algorithms}
   \label{tab:PriorAlgorithms}
-  \begin{tabular}{lllll}
+  \begin{tabularx}{\textwidth}{llllX}
     \toprule
     Algorithm & Average case & Worst case & Stable & Notes \\
     \midrule
@@ -349,7 +350,7 @@ Table ~\ref{tab:PriorAlgorithms} summarizes their standard complexity and stabil
     Quicksort & $\textbf{O}(N \log N)$ & $\textbf{O}(N^2)$ & No & In-place, cache-friendly; the quadratic worst case is mitigated in practice (e.g., Introsort's heapsort fallback \cite{doi:10.1002}) \\
     Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs \\
     \bottomrule
-  \end{tabular}
+  \end{tabularx}
 \end{table*}
 
 Quicksort is fastest in practice on unordered data (its actual average case),
@@ -401,20 +402,20 @@ The key innovation of the algorithm is to swap the objects at the same time as s
 
 \subsection{Overview}
 
-\begin{figure}[]
+\begin{figure}
   \caption{Huskysort Flow}
   \label{Fig:HS}
    \Description{An Overview of Huskysort}
   \centering
-  \includegraphics[width=0.5\textwidth]{HuskySortFlow.png}
+  \includegraphics[width=0.5\linewidth]{HuskySortFlow.png}
 \end{figure}
-\begin{figure}[]
+\begin{figure}
   
   \caption{Introsort Flow}
   \label{Fig:Introsort}
   \Description{An Overview of Introsort}
   \centering
-  \includegraphics[width=0.5\textwidth]{IntroSort.png}
+  \includegraphics[width=0.5\linewidth]{IntroSort.png}
 \end{figure}
 The strategy of Huskysort (see Flow ~\ref{Fig:HS}) is as follows (assuming that the dataset is presented as an array $xs$ of type $X$):
 see Algorithm ~\ref{alg:the_alg}
@@ -602,7 +603,7 @@ For example, taking an array of 100,000 English words chosen randomly from a cor
 
 
 
-\subsection{Discussion of $p_{crit}$}
+\subsection{Discussion of \texorpdfstring{$p_{crit}$}{p\_crit}}
 \label{sec:pcrit}
 When $p > 0$, there is a finite probability of any pair of elements remaining inverted after the first sorting pass.
 For an array of N randomly ordered elements, the average number of inversions before sorting is $X = N (N -1 ) / 4$.
@@ -761,7 +762,7 @@ beating System sort) holds unchanged across this substantial a difference in bot
 \begin{table}
   \caption{Benchmark environment used for the comparison-sort results (\S~\ref{sec:analysis})}
   \label{tab:SysEnvOriginal}
-  \begin{tabular}{ll}
+  \begin{tabularx}{\linewidth}{lX}
     \toprule
     Model & MacBook Pro (MacBookPro14,3) \\
     Processor & Quad-Core Intel Core i7, 2.8 GHz, 1 processor, 4 cores, Hyper-Threading \\
@@ -769,14 +770,14 @@ beating System sort) holds unchanged across this substantial a difference in bot
     Memory & 16 GB 2133 MHz LPDDR3 \\
     JVM & 1.8.0\_152 \\
     \bottomrule
-  \end{tabular}
+  \end{tabularx}
 \end{table}
 
 \begin{table}
   \caption{Benchmark environment used for the radix-sort and JMH results
     (\S~\ref{sec:radix}--\S~\ref{sec:radix-results})}
   \label{tab:SysEnvCurrent}
-  \begin{tabular}{ll}
+  \begin{tabularx}{\linewidth}{lX}
     \toprule
     Model & MacBook (Apple Silicon) \\
     Processor & Apple M1, 8 cores (4 performance + 4 efficiency) \\
@@ -785,7 +786,7 @@ beating System sort) holds unchanged across this substantial a difference in bot
     OS & macOS 26.5.2 \\
     JVM & OpenJDK 21.0.10 \\
     \bottomrule
-  \end{tabular}
+  \end{tabularx}
 \end{table}
 
 \subsection{Implementation of Algorithm}
@@ -824,12 +825,12 @@ The sources for the Strings (English and  Chinese) are retrieved from Leipzig Co
 In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in Listing~\ref{lst:DS}.
 
 The sample of data can be seen here ~\ref{fig:Example}
-\begin{figure}[]
+\begin{figure}
   \caption{Strings Data Example}
   \label{fig:Example}
    \Description{An Example of Data file}
   \centering
-  \includegraphics[width=0.5\textwidth]{Strings.png}
+  \includegraphics[width=0.5\linewidth]{Strings.png}
 \end{figure}
 
 \begin{lstlisting}[caption={Data Source},label={lst:DS},language=Java]
@@ -1064,13 +1065,13 @@ Please refer to table ~\ref{tab:HSComp}.
 
 \item {}Time vs Size ($N$) for Huskysort,
 Please refer to figure ~\ref{Fig:TvsN}
-\begin{figure}[]
+\begin{figure}
   
   \caption{Time vs Size ($N$)}
   \Description{Time taken with Huskysort Corresponding to  Size of Words}
   \label{Fig:TvsN}
   \centering
-  \includegraphics[width=0.5\textwidth]{BenchmarkTvsN.png}
+  \includegraphics[width=0.5\linewidth]{BenchmarkTvsN.png}
 \end{figure}
 
 \item {}Comparison of Huskysort with system sort for numeric types (Integer, Double, Long, BigInteger, BigDecimal):
