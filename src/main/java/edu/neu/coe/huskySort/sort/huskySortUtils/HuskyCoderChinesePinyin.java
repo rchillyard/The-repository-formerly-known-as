@@ -50,9 +50,11 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     }
 
     /**
-     * This encoding never claims to be perfect (see class javadoc: tone is deliberately
-     * excluded, so same-spelling-different-tone collisions are always possible regardless of
-     * length). The cleanup pass, using {@link #getCollator()}, is relied on for correctness.
+     * This encoding never claims to be perfect (see class javadoc: even with syllable and tone
+     * both encoded, two different characters can be true homonyms -- identical syllable and
+     * tone, e.g. 郗/奚, both "xi1" -- and no stroke-count data is available to distinguish them,
+     * so this residual collision is always possible regardless of length). The cleanup pass,
+     * using {@link #getCollator()}, is relied on for correctness.
      *
      * @return false.
      */
