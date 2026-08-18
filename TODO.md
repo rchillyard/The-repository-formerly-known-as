@@ -186,7 +186,8 @@ for the benchmark numbers this backlog refers to).
    all reviewers' comments (not just Reviewers 3 and 4, which is all
    [Husky sort radix task brief.md](Husky%20sort%20radix%20task%20brief.md) covers).
 
-9. **Track down and document the source of `Chinese_Names_Corpus.txt`.** No provenance
+9. ~~**Track down and document the source of `Chinese_Names_Corpus.txt`.**~~ **DONE 2026-08-18.**
+   Originally: no provenance
    exists anywhere in the repo: the commit that added it (`3d8576c`, July 2022) just says
    "Added Chinese_Names_Corpus", with no source URL, license, or attribution, and there's
    nothing in README.md, doc/, or the file itself either. Robin's best guess (2026-07-23) is
@@ -219,6 +220,17 @@ for the benchmark numbers this backlog refers to).
    shouldn't have touched this number at all — `NAME_ORDER` never consulted the ordinal table
    in the first place, only the raw `HanyuPinyinSyllables.ORDER` string comparator, which
    doesn't care whether a syllable is in the table.
+
+   **2026-08-18: source found.** Yunlu tracked it down (with help from his own Claude session) to
+   [wainshine/Chinese-Names-Corpus](https://github.com/wainshine/Chinese-Names-Corpus)
+   (Apache License 2.0, 4,325 stars), specifically
+   `Chinese_Names_Corpus/Chinese_Names_Corpus（120W）.txt` at commit
+   `95b1a185ae8b180d8030ba41ce2aea9214ca733e`. Verified independently rather than just trusting
+   the claim: the upstream file is 1,145,012 lines — 3 header/attribution lines ("By@萌名NameMoe",
+   a date, a blank line) followed by exactly 1,145,009 names, matching our resource file line for
+   line once those header lines are stripped. Attribution added as a doc comment on
+   `HuskySortBenchmark.CHINESE_NAMES_CORPUS`; the paper's Data Source section (§5.1) should cite
+   it too, closing the citation gap noted below.
 
 10. **Replace the Unicode-code-point homonym tiebreak with genuine stroke-count order**, using
     the Unicode Unihan database's `kTotalStrokes` (or `kRSUnicode` for full radical+stroke)

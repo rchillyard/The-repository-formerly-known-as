@@ -264,6 +264,20 @@ Retrieved November 3, 2020 from \tempurl}
 \showDOI{\tempurl}
 
 
+\bibitem[\protect\citeauthoryear{Wainshine}{Wainshine}{2020}]%
+        {wainshine2020chinesenames}
+\bibfield{author}{\bibinfo{person}{Wainshine}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Chinese-Names-Corpus}.
+\newblock \bibinfo{howpublished}{GitHub repository, commit
+  \texttt{95b1a18}}.
+\newblock
+\urldef\tempurl%
+\url{https://github.com/wainshine/Chinese-Names-Corpus}
+\showURL{%
+\tempurl}
+
+
 \bibitem[\protect\citeauthoryear{{Xiang}}{{Xiang}}{2011}]%
         {6115063}
 \bibfield{author}{\bibinfo{person}{W. {Xiang}}.}

@@ -866,6 +866,16 @@ public final class HuskySortBenchmark {
     };
 
     static final String COMMON_WORDS_CORPUS = "3000-common-words.txt";
+
+    /**
+     * Source (identified 2026-08-18, via a coauthor's own Claude session): the
+     * {@code Chinese_Names_Corpus（120W）.txt} file from
+     * <a href="https://github.com/wainshine/Chinese-Names-Corpus">wainshine/Chinese-Names-Corpus</a>
+     * (Apache License 2.0), commit {@code 95b1a185ae8b180d8030ba41ce2aea9214ca733e}. Confirmed by
+     * direct comparison: the upstream file is 1,145,012 lines: 3 header/attribution lines
+     * ("By@萌名NameMoe", a date, a blank line) followed by 1,145,009 names, matching this resource
+     * exactly once those header lines are stripped.
+     */
     public static final String CHINESE_NAMES_CORPUS = "Chinese_Names_Corpus.txt";
 
     static final int MIN_REPS = 20;

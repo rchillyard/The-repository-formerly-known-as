@@ -817,6 +817,7 @@ Table ~\ref{tab:EncodingConstants} lists the constants each wrapper uses.
 
 \subsection{Data Source}
 The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection \cite{GOLDHAHN12.327}.
+Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus \cite{wainshine2020chinesenames}.
 
 In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in Listing~\ref{lst:DS}.
 
@@ -1301,9 +1302,12 @@ Every one of these crossovers shares the same shape:
 each successive algorithm carries a larger fixed setup cost that only pays for itself once there is enough work to amortize it against —
 the same fixed-vs-variable-cost story \S~\ref{sec:parallel-radix} found one level further down,
 where a parallel radix sort's own thread/barrier setup only pays off once there is enough work to divide across threads.
-These crossover points were measured only for String keys;
-the fixed costs involved are architectural rather than type-specific,
-so other key types plausibly show similarly-shaped curves at similar sizes, but this has not been separately confirmed.
+These crossover points were measured only for String keys, and only on the machine of Table ~\ref{tab:SysEnvCurrent}.
+The fixed costs involved are architectural rather than type-specific,
+so other key types plausibly show similarly-shaped curves at similar sizes,
+but neither that nor the exact thresholds on different hardware has been separately confirmed —
+the AWS confirmation run of \S~\ref{sec:radix-results}--\S~\ref{sec:parallel-radix} only tested $N \ge 32{,}000$,
+outside the range where these crossovers occur.
 
 Two further caveats from elsewhere in this paper complete the picture.
 If the source data defeats the husky encoding's fixed capture window entirely —
