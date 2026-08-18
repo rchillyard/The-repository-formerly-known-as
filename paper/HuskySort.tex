@@ -234,8 +234,9 @@ and falls back to a cleanup pass only in those situations where the encoding is 
 RadixHuskySort replaces that sort with a linear-time radix sort on the same encoded keys,
 moving the second phase itself from linearithmic to linear.
 Both consistently outperform Java's own system sorts — dual-pivot quicksort for primitives,
-Timsort for objects — for the types of objects expensive to compare;
-RadixHuskySort further improves on QuickHuskySort for sufficiently large arrays.
+Timsort for objects — for the types of objects expensive to compare:
+QuickHuskySort by 1.2--2.1x, RadixHuskySort by 2--6x at realistic array sizes,
+a pattern confirmed independently across three CPU architectures.
 \end{abstract}
 
 %%
@@ -1373,6 +1374,24 @@ It is especially fast for Unicode character strings.
 In the case of RadixHuskySort, the performance improvement is even better for datasets above a few thousand in length.
 Of course, in this case, there was no linearithmic phase, so the time savings come, as explained above,
 from more bit manipulation and fewer calls to \textit{equals}.
+
+These findings are not an artifact of a single development machine.
+The same qualitative pattern held on three environments spanning two CPU vendors and three distinct architectures
+(Tables ~\ref{tab:SysEnvOriginal}, ~\ref{tab:SysEnvCurrent}, and ~\ref{tab:SysEnvAWS}),
+the last a 16-core ARM server instance with no performance/efficiency core split to confound the result.
+That same run also settled a question the parallel variant's own results had left open (\S~\ref{sec:parallel-radix}):
+its scaling ceiling past a handful of threads is a property of the design itself,
+the fixed sequential cost of combining per-thread histograms once per pass,
+not an artifact of any one machine's particular mix of core types.
+
+HuskySort's advantage is specific to a particular kind of workload, not universal:
+a large array — at least a few hundred elements for QuickHuskySort,
+growing to a few thousand or more before RadixHuskySort's own fixed per-pass setup cost is worth paying (\S~\ref{sec:usecase}) —
+of objects with no expectation of pre-existing order
+(a partially-sorted array favors Timsort's adaptivity instead, \S~\ref{sec:summary}),
+whose comparison or equality test costs more than a single machine-word check —
+Strings, arbitrary-precision numbers, and multi-field records,
+as opposed to \textit{int}/\textit{long}/\textit{double}, where dual-pivot quicksort already wins outright.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
