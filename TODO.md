@@ -681,7 +681,7 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     overhead at this scale), and leave a note in the flag's own comment to revisit only if a
     clean machine becomes available.
 
-26. **Cloud (AWS) run for larger-than-local-capacity benchmarks.** Not started, low priority,
+26. ~~**Cloud (AWS) run for larger-than-local-capacity benchmarks.**~~ **DONE 2026-08-18.**
     may or may not happen before the deadline. Motivation is a genuine capability gap, not just
     avoiding the local machine's CPU contention (see item 25's LabStatsGoClient saga): Robin's
     machine has 16GB RAM and 8 cores (4 performance + 4 efficiency), which caps how far N can go
@@ -702,6 +702,40 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     foreseeable future, strengthening the case for this item (or at least a rerun of the
     still-provisional, contention-affected numbers flagged in items 15, 27, and 28) once an AWS
     session is actually feasible.
+
+    **2026-08-18: Yunlu ran the full JMH suite on an AWS `c7g.4xlarge` (Graviton3, 16 vCPU, 30
+    GiB, Amazon Linux 2023, Corretto JDK 21), confirmed idle beforehand (load average
+    0.36/0.36/0.27) — PR #62, merged. All 81 benchmark methods, full parameter sweep, 385 result
+    rows, 2h37m wall time. Report: [doc/JMH Benchmark Results 2026-08-17.md](doc/JMH%20Benchmark%20Results%202026-08-17.md);
+    raw CSV committed alongside it since `target/` is gitignored. Reviewed by spot-checking every
+    headline number directly against the CSV (not just trusting the write-up) — all matched
+    exactly, including the 6 wide-CI rows (all `DualPivotQuicksort` on boxed types) and the 3
+    absent `StackOverflowError` rows.
+
+    Answers both open questions this item was created for:
+    - **Item 1's N=1,000,000 String question, settled**: the old ad hoc harness's noisy
+      N=1,000,000 English reversal was harness noise, not real. Under proper JMH fork
+      isolation/warmup, RadixHuskySort/16 beats QuickHuskySort by 2.51x (English) / 2.85x
+      (Chinese) and System sort by 4.21x / 5.85x at N=1,000,000, with median relative CI width
+      still under 2% at that size (1.3% at 32K, 1.8% at 200K, 2.0% at 1M) — the algorithm gap is
+      two orders of magnitude larger than the noise floor.
+    - **Item 16's parallel-scaling question, answered with real many-core hardware**: with 16
+      real vCPUs available (vs. 4 performance cores on the local Apple M1), scaling *still*
+      flattens past 2-4 threads — p=1 to p=8 is only 1.46x at N=10,000,000 (980.9 to 672.5
+      ms/op), consistent with the local finding rather than an artifact of core scarcity. The
+      whole parallel family still beats QuickHuskySort by roughly 6-9x regardless of thread
+      count, since most of that margin is radix's own serial advantage.
+
+    Other findings: radix wins 2-6x across every category at largest N tested (Numerics, Tuples,
+    Dates — Dates the largest single margin at ~4.9x); RadixHuskySort stays structurally flat
+    (30-75ms) across the full collapsed-high-bits adversarial sweep while the paper's own
+    from-scratch dual-pivot quicksort baseline degrades over 20x and then crashes on 3 of 14
+    combinations; and the chinesenames exception (System sort "wins" at N=1M) is explicitly
+    called out as an artifact of System sort computing the wrong, cheaper natural-Unicode order
+    rather than a real loss for Husky. One genuine caveat carried forward: this is an ARM/aarch64
+    host, so absolute ms/op numbers here are not comparable to the x86/Apple-Silicon numbers
+    elsewhere in [doc/Radix Sort Benchmark Results.md](doc/Radix%20Sort%20Benchmark%20Results.md)
+    — only relative comparisons within this run should be trusted across documents.
 
 27. ~~**Real empirical comparison against three-way radix quicksort.**~~ **DONE 2026-08-05.**
     Item 20's classic-string-sorting-literature addition scoped a direct empirical comparison as
