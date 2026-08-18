@@ -230,7 +230,7 @@ and falls back to a cleanup pass only in those situations where the encoding is 
 RadixHuskySort replaces that sort with a linear-time radix sort on the same encoded keys,
 moving the second phase itself from linearithmic to linear.
 Both consistently outperform Java's own system sorts — dual-pivot quicksort for primitives,
-Timsort for objects — for the types of objects expensive to compare:
+Timsort for objects — for the types of objects that are expensive to compare:
 QuickHuskySort by 1.2--2.1x, RadixHuskySort by 2--6x at realistic array sizes,
 a pattern confirmed independently across three CPU architectures.
 \end{abstract}
@@ -321,7 +321,10 @@ In a recent paper \cite{sort}, the authors conclude that quicksort is indeed the
 However, quicksort does not perform as well as some variations of merge sort, especially Timsort \cite{Timsort}, when the dataset is partially sorted.
 Timsort, a hybrid stable sorting algorithm derived from merge sort, is now available in the Python and Java libraries as the default object-sorting utility.
 
-We determined to test the efficacy of combining quicksort with Timsort for object types that are costly to compare.
+One of the authors had originally posed this as a hypothetical question in a mid-term exam (Fall 2018):
+encode a date-time object as a 64-bit hash code and sort the array of codes with quicksort.
+It turned out to be a pretty good idea,
+and we decided to test the efficacy of combining quicksort with Timsort for object types that are costly to compare.
 Such types include \emph{String, LocalDateTime, BigInteger, BigDecimal}, and many user-defined types of this kind.
 
 We review existing methods of sorting in Section 2 and go through the Huskysort algorithm in Section 3.
@@ -345,7 +348,7 @@ Table ~\ref{tab:PriorAlgorithms} summarizes their standard complexity and stabil
     Insertion sort & $\textbf{O}(N + I)$ & $\textbf{O}(N^2)$ & Yes & $I$ = number of inversions; fast only for small or nearly-sorted $N$ \\
     Merge sort & $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Linearithmic regardless of input order; $\textbf{O}(N)$ extra space \\
     Quicksort & $\textbf{O}(N \log N)$ & $\textbf{O}(N^2)$ & No & In-place, cache-friendly; the quadratic worst case is mitigated in practice (e.g., Introsort's heapsort fallback \cite{doi:10.1002}) \\
-    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs \\
+    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs; more precisely $\textbf{O}(N + N \log p)$ for $p$ runs \cite{DBLP:journals/corr/abs-1805-08612} \\
     \bottomrule
   \end{tabularx}
 \end{table*}
@@ -366,30 +369,6 @@ husky-coding turns step 2's input into something quicksort (or, as described in 
 can sort at its best case — the coded longs are effectively unordered, cheap-to-compare data —
 and reserves Timsort for exactly the regime where it is strongest:
 cleaning up the (hopefully few) remaining inversions in step 3, where the array is already close to sorted rather than random.
-
-Timsort is ideally suited to the partially ordered data which is common in the real-world business applications.
-For this use case it is easily the fastest standard algorithm.
-It is less well suited, however, for another use case, which is unordered data.
-Huskysort is designed specifically for this use case:
-unordered data consisting of objects which are relatively expensive to compare.
-
-Before talking about our approach let's look at insertion sort and Timsort in more detail.
-The key feature of both of these methods is that the number of comparisons (and swaps, in the case of insertion sort) is proportional to the number of inversions.
-Because insertion sort is an "elementary" sort (it reduces the complexity of the problem by iteratively partitioning by one element at a time), it is only suitable for small arrays.
-It traverses the array, moving each new element encountered into its proper place in the ordered partition, which therefore grows by one element in each iteration until the whole array is ordered.
-
-Timsort is a variation of bottom-up merge sort which takes advantage of existing ordered runs.
-Because of this, it is very efficient for partially-ordered arrays.
-Additionally, like merge sort, Timsort is stable.
-Timsort's worst case is as $\textbf{O}(N + N log p)$, where $p$ is the number of runs \cite{DBLP:journals/corr/abs-1805-08612}.
-
-One of the authors (Hillyard) had set a question in a mid-term exam (Fall, 2018) about a hypothetical algorithm that created a 64-bit hash code for a date-time object and then used quicksort to sort the array.
-Afterward, it became apparent that it was not such a crazy idea after all.
-A quick implementation showed that, indeed, we could see an improvement over the system sort (Timsort) for sorting objects.
-The essence of the algorithm lies in the fact that quicksort can sort an array of (64-bit) longs very quickly.
-64 bits affords sufficient room to encode many objects uniquely, but even if the coding is not unique, post-sorting an array of objects which are quasi-ordered can be very fast using Timsort.
-The key innovation of the algorithm is to swap the objects at the same time as swapping the longs.
-
 
 \section{ALGORITHM}
 
@@ -756,7 +735,10 @@ reporting both configurations lets a reader check directly.
 The finding (Huskysort, and now radix sort,
 beating System sort) holds unchanged across this substantial a difference in both machine and JVM version.
 
-Table ~\ref{tab:SysEnvAWS} lists a third, independently run configuration used to confirm the radix-sort and parallel-scaling findings of \S~\ref{sec:radix-results} and \S~\ref{sec:parallel-radix} at larger scale: a cloud server instance which, while also ARM-based like the machine of Table ~\ref{tab:SysEnvCurrent}, uses an entirely different core design, vendor, core count, and operating system, confirmed idle before the run.
+Table ~\ref{tab:SysEnvAWS} lists a third,
+independently run configuration used to confirm the radix-sort and parallel-scaling findings of \S~\ref{sec:radix-results} and \S~\ref{sec:parallel-radix} at larger scale:
+a cloud server instance which, while also ARM-based like the machine of Table ~\ref{tab:SysEnvCurrent},
+uses an entirely different core design, vendor, core count, and operating system, confirmed idle before the run.
 The qualitative finding holds there too, now checked across three machines that differ in vendor, architecture, and JVM build, not just two.
 
 \begin{table}
@@ -1241,8 +1223,7 @@ a margin two orders of magnitude larger than the measurement noise, on hardware 
 \subsection{Parallel Radix Sort}
 \label{sec:parallel-radix}
 
-Radix sort's digit passes are natural candidates for parallelization (\S~\ref{sec:radix}
-above).
+Radix sort's digit passes are natural candidates for parallelization (\S~\ref{sec:radix} above).
 We implemented and benchmarked a parallel variant:
 each pass is split into a configurable number of contiguous chunks, one per worker thread.
 Every chunk first computes its own local per-bucket histogram independently, with no synchronization required;
@@ -1286,7 +1267,7 @@ Four threads is the practical sweet spot on the machine used for this measuremen
 eight threads performs statistically indistinguishably from four at both sizes,
 consistent with only four of the eight cores being full-performance ones.
 
-A follow-up confirmation run rules out that explanation, though:
+A follow-up confirmation run rules out that explanation, however:
 on a cloud server instance with 16 uniform cores and no performance/efficiency split (Table ~\ref{tab:SysEnvAWS}),
 scaling from $p=1$ to $p=8$ threads at $N=10{,}000{,}000$ was 980.9ms to 672.5ms —
 only 1.46x for an 8x increase in thread count, essentially the same flattening pattern seen above despite there being no core asymmetry to blame it on.
@@ -1380,14 +1361,16 @@ its scaling ceiling past a handful of threads is a property of the design itself
 the fixed sequential cost of combining per-thread histograms once per pass,
 not an artifact of any one machine's particular mix of core types.
 
-HuskySort's advantage is specific to a particular kind of workload, not universal:
-a large array — at least a few hundred elements for QuickHuskySort,
-growing to a few thousand or more before RadixHuskySort's own fixed per-pass setup cost is worth paying (\S~\ref{sec:usecase}) —
-of objects with no expectation of pre-existing order
-(a partially-sorted array favors Timsort's adaptivity instead, \S~\ref{sec:summary}),
-whose comparison or equality test costs more than a single machine-word check —
+HuskySort's advantage is specific to a particular kind of workload, not universal.
+All three of the following need to hold:
+\begin{itemize}
+\item {}\textbf{A large array}: at least a few hundred elements for QuickHuskySort,
+growing to a few thousand or more before RadixHuskySort's own fixed per-pass setup cost is worth paying (\S~\ref{sec:usecase}).
+\item {}\textbf{No expectation of pre-existing order}: a partially-sorted array favors Timsort's adaptivity instead (\S~\ref{sec:summary}).
+\item {}\textbf{A comparison or equality test that costs more than a single machine-word check}:
 Strings, arbitrary-precision numbers, and multi-field records,
 as opposed to \textit{int}/\textit{long}/\textit{double}, where dual-pivot quicksort already wins outright.
+\end{itemize}
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
