@@ -759,6 +759,9 @@ reporting both configurations lets a reader check directly.
 The finding (Huskysort, and now radix sort,
 beating System sort) holds unchanged across this substantial a difference in both machine and JVM version.
 
+Table ~\ref{tab:SysEnvAWS} lists a third, independently run configuration used to confirm the radix-sort and parallel-scaling findings of \S~\ref{sec:radix-results} and \S~\ref{sec:parallel-radix} at larger scale: a cloud server instance which, while also ARM-based like the machine of Table ~\ref{tab:SysEnvCurrent}, uses an entirely different core design, vendor, core count, and operating system, confirmed idle before the run.
+The qualitative finding holds there too, now checked across three machines that differ in vendor, architecture, and JVM build, not just two.
+
 \begin{table}
   \caption{Benchmark environment used for the comparison-sort results (\S~\ref{sec:analysis})}
   \label{tab:SysEnvOriginal}
@@ -785,6 +788,20 @@ beating System sort) holds unchanged across this substantial a difference in bot
     Memory & 16 GB unified \\
     OS & macOS 26.5.2 \\
     JVM & OpenJDK 21.0.10 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}
+  \caption{Benchmark environment used for the AWS Graviton3 confirmation run}
+  \label{tab:SysEnvAWS}
+  \begin{tabularx}{\linewidth}{lX}
+    \toprule
+    Instance & AWS EC2 c7g.4xlarge (Graviton3) \\
+    Processor & ARM Neoverse V1, 16 vCPU, 2.6 GHz \\
+    Memory & 30 GiB \\
+    OS & Amazon Linux 2023 \\
+    JVM & OpenJDK 21.0.12 (Corretto) \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1219,6 +1236,11 @@ because both QuickHuskySort and RadixHuskySort must pay the same collator-based 
 Dates show the largest margin (4.5x) because that coding is provably perfect and never needs a cleanup pass at all,
 letting radix's linear-time advantage show through with nothing else in the way.
 
+An independent confirmation run on entirely different hardware (Table ~\ref{tab:SysEnvAWS}) reinforces this finding:
+at $N=1{,}000{,}000$, RadixHuskySort/16 beat QuickHuskySort by 2.51x on English text and 2.85x on Chinese text,
+with confidence intervals under 2\% of the mean even at that size —
+a margin two orders of magnitude larger than the measurement noise, on hardware entirely different from either machine of \S~\ref{sec:analysis} above.
+
 \subsection{Parallel Radix Sort}
 \label{sec:parallel-radix}
 
@@ -1266,6 +1288,16 @@ and is directionally consistent but not fully resolved at $N=2{,}000{,}000$ (1.3
 Four threads is the practical sweet spot on the machine used for this measurement (four performance and four efficiency cores):
 eight threads performs statistically indistinguishably from four at both sizes,
 consistent with only four of the eight cores being full-performance ones.
+
+A follow-up confirmation run rules out that explanation, though:
+on a cloud server instance with 16 uniform cores and no performance/efficiency split (Table ~\ref{tab:SysEnvAWS}),
+scaling from $p=1$ to $p=8$ threads at $N=10{,}000{,}000$ was 980.9ms to 672.5ms —
+only 1.46x for an 8x increase in thread count, essentially the same flattening pattern seen above despite there being no core asymmetry to blame it on.
+The parallel variant still beat QuickHuskySort by roughly 6-9x on that run even at this weak scaling,
+since most of that margin comes from radix sort's own serial advantage rather than parallelism's incremental contribution.
+This points instead to a property of the design itself:
+each pass's sequential histogram-combine step runs once per synchronization point regardless of thread count,
+so it becomes a proportionally larger part of the total as thread count grows — an Amdahl's-law-style bottleneck rather than an artifact of any one machine's core layout.
 
 \subsection{Use-Case Guidance}
 \label{sec:usecase}
