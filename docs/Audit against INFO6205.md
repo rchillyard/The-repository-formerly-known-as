@@ -21,7 +21,7 @@ tree cannot have the defect — and in the rest it was checked and found absent.
 | Five sorts ignored the Helper's comparator on their uninstrumented path, giving a *wrong answer* | **no** — see below | structural |
 | `swapInto` hit accounting | **correct** | see below |
 | TimSort's instrumentation was never finished, so it under-reported comparisons by 58% and reported **zero** on sorted input | **no** — see below | structural |
-| `InversionCounter` | **correct**, verified against brute force | see below |
+| `InversionCounter` | **correct**, verified against brute force; mutation fixed | see below |
 
 ## The comparator bug cannot occur here
 
@@ -75,17 +75,21 @@ normalised times from the Java system sort, which is what the text says they are
 `InstrumentationIsCompleteTest.timSortReportsNoComparisonsAtAll` records this, so
 that anyone who later instruments it is told the recording is out of date.
 
-## `InversionCounter` is correct, but mutates its argument
+## `InversionCounter` is correct, and no longer mutates its argument
 
 Checked against brute force over 200 random arrays of up to 40 elements: every
 count agrees. Empty and single-element arrays give zero.
 
-It does **sort its input as a side effect** — `[3, 1, 2]` comes back `[1, 2, 3]`.
-That is currently harmless, because nothing outside its own test uses it. It
-would not stay harmless: a benchmark which counted inversions and then timed a
-sort on the same array would be timing an already-sorted array, and the result
-would look wonderful. Worth a copy at the top of `getInversions` before anything
-else calls it.
+It **used to sort its input as a side effect** — `[3, 1, 2]` came back
+`[1, 2, 3]`. That was harmless only because nothing outside its own test used it,
+and it would not have stayed harmless: a benchmark which counted inversions and
+then timed a sort on the same array would have been timing already-sorted data,
+and the result would have looked wonderful.
+
+**Fixed**: `getInversions` works on a copy. The cost is nothing that matters, since
+the algorithm already allocates a temporary of the same length. Two tests pin it —
+that the argument is undisturbed, and that counting twice gives the same answer,
+which it did not before.
 
 ## What was added
 
@@ -108,11 +112,12 @@ The test also demonstrates its own teeth: the TimSort case shows a real
 divergence being detected — actual comparisons above zero, reported comparisons
 exactly zero.
 
-## One robustness defect found in passing
+## One robustness defect found in passing, also fixed
 
-`MergeSortBasic.sort(xs, from, to)` throws `NullPointerException` if `preSort` has
-not been called, because `aux` is allocated there and the sort reads it without
-checking. Reached only by calling the sub-array sort directly rather than through
-the lifecycle, so no benchmark hits it. INFO6205 had the same defect, where it has
-been fixed. Not fixed here, since it does not touch the paper and the
-resubmission is close.
+`MergeSortBasic.sort(xs, from, to)` threw `NullPointerException` if `preSort` had
+not been called, because `aux` is allocated there and the merge read it without
+checking. It is the method the `Sort` interface requires, so a caller may
+reasonably reach it directly. `aux` is now allocated lazily, which costs nothing
+on the recursive calls since it is already big enough by then — the same fix
+INFO6205 uses for the identical defect. Two tests cover it, including a proper
+sub-range to confirm nothing outside `from..to` is touched.

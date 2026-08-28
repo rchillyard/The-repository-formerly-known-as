@@ -42,6 +42,13 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
             insertionSort.sort(xs, from, to);
             return;
         }
+        // NOTE aux is normally allocated by preSort, but this is the method the
+        // Sort interface requires, so a caller may reach it directly -- and used to
+        // get a NullPointerException from the arraycopy below when it did.
+        // Allocating here costs nothing on the recursive calls, since aux is
+        // already big enough by then. INFO6205's MergeSortBasic had the same defect
+        // and the same fix.
+        if (aux == null || aux.length < xs.length) aux = Arrays.copyOf(xs, xs.length);
         final int mid = from + (to - from) / 2;
         sort(xs, lo, mid);
         sort(xs, mid, to);

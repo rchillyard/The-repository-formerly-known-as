@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -108,4 +109,34 @@ public class MergeSortBasicTest {
     }
 
     private static Config config;
+
+    /**
+     * sort(xs, from, to) is the method the Sort interface requires, so a caller may
+     * reach it directly rather than through the lifecycle. It used to throw a
+     * NullPointerException when they did, because the auxiliary array is allocated
+     * in preSort and the merge read it without checking. aux is now allocated
+     * lazily; INFO6205's MergeSortBasic had the same defect and the same fix.
+     */
+    @Test
+    public void sortASubArrayWithoutPreSort() throws IOException {
+        final ComparisonSortHelper<Integer> helper =
+                HelperFactory.create("MergeSortBasic", 5, Config.load(MergeSortBasicTest.class));
+        helper.init(5);
+        final MergeSortBasic<Integer> sorter = new MergeSortBasic<>(helper);
+        final Integer[] xs = {5, 4, 3, 2, 1};
+        sorter.sort(xs, 0, xs.length);
+        assertArrayEquals(new Integer[]{1, 2, 3, 4, 5}, xs);
+    }
+
+    @Test
+    public void sortAProperSubRangeWithoutPreSort() throws IOException {
+        final ComparisonSortHelper<Integer> helper =
+                HelperFactory.create("MergeSortBasic", 6, Config.load(MergeSortBasicTest.class));
+        helper.init(6);
+        final MergeSortBasic<Integer> sorter = new MergeSortBasic<>(helper);
+        final Integer[] xs = {9, 5, 4, 3, 2, 9};
+        sorter.sort(xs, 1, 5);
+        assertArrayEquals("the range outside from..to must be untouched",
+                new Integer[]{9, 2, 3, 4, 5, 9}, xs);
+    }
 }
