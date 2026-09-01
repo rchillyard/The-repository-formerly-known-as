@@ -188,8 +188,13 @@ both reported because they disagree by more than the effect at some sizes:
 
 The old column is stable across passes to within 6%; the new one is not, which is
 what widens the range. Read the effect as **roughly 1.3× at the sizes the paper
-reports, and not below 1.1× anywhere except one noisy small row**. Any table
-comparing a husky variant against `MSDStringSort` on time should be re-run.
+reports, and not below 1.1× anywhere except one noisy small row**.
+
+**No table needs re-running.** The paper reports no MSD timing: it says at line 502
+that a direct empirical comparison against MSD radix sort and burstsort "remains
+future work". So this was a handicap on a baseline that is benchmarked but not
+published — which is exactly when it would have gone unnoticed until someone drew a
+conclusion from it. It is fixed before that happens rather than after.
 
 ### Reproducing it
 
