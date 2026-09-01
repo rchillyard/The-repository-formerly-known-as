@@ -2,6 +2,8 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
+import edu.neu.coe.huskySort.sort.radix.Alphabet;
+import edu.neu.coe.huskySort.sort.radix.MSDStringSort;
 import edu.neu.coe.huskySort.sort.simple.InsertionSort;
 import edu.neu.coe.huskySort.sort.simple.MultikeyQuicksort;
 import edu.neu.coe.huskySort.util.Config;
@@ -109,6 +111,29 @@ public class StringSortBenchmarks {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         if (state.corpus.equals("chinesenames")) MultikeyQuicksort.sortByPinyin(copy);
         else MultikeyQuicksort.sort(copy);
+        return copy;
+    }
+
+    // ---------- MSD string sort (Bentley and Sedgewick 1997), the other classic string sort named
+    // in the paper's literature discussion. ENGLISH ONLY, and deliberately so: MSDStringSort's
+    // Alphabet has room for 256 distinct characters beyond ASCII, and the Chinese corpora contain
+    // 3,813 and 2,270 of them, so it is an extended-ASCII MSD rather than a Unicode one. It throws
+    // rather than returning a misleading number for those, since a benchmark that silently does
+    // nothing is worse than one that fails. Run with -p corpus=english.
+    //
+    // NOTE MSDStringSort's below-cutoff comparison used to allocate two Strings per comparison,
+    // which made it about 1.3x slower than it should have been. Fixed before this benchmark was
+    // added, so that the comparison is against MSD rather than against the allocator. ----------
+
+    @Benchmark
+    public String[] msdStringSort(final StringState state) {
+        if (!state.corpus.equals("english"))
+            throw new IllegalStateException("msdStringSort supports the english corpus only: "
+                    + "MSDStringSort's alphabet cannot represent the Chinese corpora. Use -p corpus=english.");
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        final MSDStringSort sorter = new MSDStringSort(new Alphabet(Alphabet.RADIX_UNICODE));
+        sorter.reset();
+        sorter.sort(copy);
         return copy;
     }
 

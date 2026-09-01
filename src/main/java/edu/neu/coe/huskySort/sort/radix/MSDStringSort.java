@@ -60,7 +60,13 @@ public final class MSDStringSort {
             // Copy back.
             if (hi - lo >= 0) System.arraycopy(aux, 0, a, lo, hi - lo);
             // Recursively sort for each character value.
-            for (int r = 0; r < alphabet.counts(); r++)
+            // NOTE r = 0 is the bucket of strings which have no character at depth d, because
+            // charAt returns 0 once a string is exhausted. Those strings are all equal and there is
+            // nothing at d + 1 to separate them by, so recursing into that bucket makes no progress:
+            // it would recurse until the stack ran out for any 15 or more equal strings, 15 being
+            // the cutoff below which insertion sort would otherwise have taken over.
+            // UnicodeMSDStringSort carries the same guard, as `key != UnicodeCharacter.NullChar`.
+            for (int r = 1; r < alphabet.counts(); r++)
                 sort(a, lo + count[r], lo + count[r + 1], d + 1);
         }
     }

@@ -21,8 +21,13 @@ public class Alphabet {
             position = spareCount++;
             map.put(x, position);
         }
-        if (position >= length)
-            throw new SortException("char " + x + " is out of bounds for count array: " + length);
+        // NOTE the count array is indexed at position + 2 (see MSDStringSort), so the last usable
+        // position is length - 3. Guarding on position >= length instead let the last two spare
+        // slots through and turned a capacity limit into an ArrayIndexOutOfBoundsException.
+        if (position + 2 >= length)
+            throw new SortException("char " + x + " is out of bounds for count array: " + length
+                    + ". This alphabet has room for " + (length - RADIX_ASCII - 2)
+                    + " distinct characters beyond ASCII, and that many have already been seen.");
         return position;
     }
 
