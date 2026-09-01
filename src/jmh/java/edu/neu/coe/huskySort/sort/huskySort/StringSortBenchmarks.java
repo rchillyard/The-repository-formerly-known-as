@@ -114,6 +114,18 @@ public class StringSortBenchmarks {
         return copy;
     }
 
+    // ---------- Diagnostic: multikey quicksort with a fallback comparable to MSD's, to separate
+    // the partitioning cost from the fallback overhead. See MultikeyQuicksortTuned. ----------
+
+    @Benchmark
+    public String[] multikeyQuicksortTuned(final StringState state) {
+        if (!state.corpus.equals("english"))
+            throw new IllegalStateException("diagnostic benchmark, english corpus only");
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        MultikeyQuicksortTuned.sort(copy);
+        return copy;
+    }
+
     // ---------- MSD string sort (Bentley and Sedgewick 1997), the other classic string sort named
     // in the paper's literature discussion. ENGLISH ONLY, and deliberately so: MSDStringSort's
     // Alphabet has room for 256 distinct characters beyond ASCII, and the Chinese corpora contain

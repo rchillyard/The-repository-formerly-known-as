@@ -18,6 +18,9 @@ public final class MSDStringSort {
     public void sort(final String[] a) {
         final int n = a.length;
         aux = new String[n];
+        // NOTE the alphabet must see the whole input before any of it is bucketed, so that characters
+        // beyond ASCII are given positions in code-point order rather than in order of first encounter.
+        alphabet.prepare(a);
         sort(a, 0, n, 0);
     }
 
