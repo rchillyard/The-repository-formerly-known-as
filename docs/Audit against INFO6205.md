@@ -109,6 +109,35 @@ the algorithm already allocates a temporary of the same length. Two tests pin it
 that the argument is undisturbed, and that counting twice gives the same answer,
 which it did not before.
 
+## The configured cutoff reaches only the instrumented path
+
+Checked 2026-09-01, at Robin's suggestion, because this is the shape of the defect
+that mislabelled Table 8.1 in the book.
+
+`ComparisonSortHelper.getCutoff()` is an interface default returning a hardcoded
+**7**. Only `InstrumentedComparisonSortHelper` overrides it to read
+`[helper] cutoff` from the configuration, and `ComparableSortHelper` has no
+constructor taking a `Config` at all — so the uninstrumented path cannot see one.
+`CountingSortHelper` and `InstrumentedCountingSortHelper` are the same pair.
+
+Three sorts consult it: `QuickSort` (and so its 3-way and dual-pivot subclasses),
+`MergeSortBasic`, and `UnicodeMSDStringSort`.
+
+**It does not affect the paper.** `cutoff` is empty in all three config files, so
+`getInt("helper", "cutoff", 0)` returns 0 and the instrumented override falls
+through to the same 7. Both paths agree as shipped; confirmed by construction.
+
+**But it is a trap, and precisely the one that caught the book.** Set
+`cutoff = 32` to explore the parameter and the instrumented counts move while the
+timings do not — so a table could be captioned with a cutoff it was never measured
+at. `CutoffIsHonouredOnBothPathsTest` fails the moment the two diverge, and says
+what to do about it; a second test records the mechanism, so the guard is
+understood rather than merely obeyed.
+
+Fixing it properly means threading a `Config` through `ComparableSortHelper`,
+which is a change to the hierarchy rather than a one-line correction. Not done:
+the paper is unaffected, and the guard makes the omission safe.
+
 ## What was added
 
 `InstrumentationIsCompleteTest` — the ground-truth check that the INFO6205 defect
