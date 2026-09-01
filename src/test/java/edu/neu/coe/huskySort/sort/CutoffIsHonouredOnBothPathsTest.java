@@ -1,5 +1,9 @@
 package edu.neu.coe.huskySort.sort;
 
+import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
+import edu.neu.coe.huskySort.sort.radix.BasicCountingSortHelper;
+import edu.neu.coe.huskySort.sort.radix.InstrumentedCountingSortHelper;
+import edu.neu.coe.huskySort.sort.radix.UnicodeString;
 import edu.neu.coe.huskySort.util.Config;
 import org.junit.Test;
 
@@ -14,46 +18,53 @@ import static org.junit.Assert.assertEquals;
  * uninstrumented, so every timed benchmark silently used the default instead of the configured
  * value — and a table captioned "256 cutoff" was in fact measured at 20.
  * <p>
- * This repository has the same shape. {@code ComparisonSortHelper.getCutoff()} is an interface
- * default returning a hardcoded 7; only {@link InstrumentedComparisonSortHelper} overrides it to read
- * {@code [helper] cutoff} from the configuration, and {@link ComparableSortHelper} has no constructor
- * that takes a {@code Config} at all, so the uninstrumented path cannot see one.
- * <p>
- * As shipped the two agree, because {@code cutoff} is empty in every config file and the instrumented
- * override falls through to the same 7. So this is a trap rather than a live defect: set
- * {@code cutoff = 32} to explore the parameter and the instrumented counts would move while the
- * timings would not, which is exactly how Table 8.1 came to be mislabelled.
- * <p>
- * This test fails the moment that divergence is introduced. If it fails, either revert the config
- * change or thread a {@code Config} through {@code ComparableSortHelper} so both paths read the same
- * value — do not simply delete the test.
+ * This repository had the same shape on both of its helper hierarchies. It no longer does: the
+ * uninstrumented helpers read {@code [helper] cutoff} too, and every helper a benchmark obtains is
+ * given the configuration. What follows pins that down, because a cutoff that reaches only the
+ * instrumented path is invisible — the counts move and the timings do not.
  */
 public class CutoffIsHonouredOnBothPathsTest {
 
+    /**
+     * The comparison path, through the factory that every such sort actually uses.
+     */
     @Test
-    public void bothPathsAgreeUnderTheShippedConfiguration() throws IOException {
-        Config config = Config.load();
-        int instrumented = new InstrumentedComparisonSortHelper<Integer>("instrumented", N, config).getCutoff();
-        int plain = new ComparableSortHelper<Integer>("uninstrumented", N).getCutoff();
-        assertEquals("The configured cutoff applies only when instrumented, so a timed benchmark would"
-                + " not use it. Either leave [helper] cutoff unset, or give ComparableSortHelper a Config"
-                + " so that both paths read the same value. See Table 8.1 in the INFO6205 book for what"
-                + " happens otherwise.", instrumented, plain);
+    public void comparisonHelpersAgreeOnTheConfiguredCutoff() throws IOException {
+        final Config config = Config.load().copy(HELPER, CUTOFF, "64");
+        assertEquals("the instrumented helper reads the configuration",
+                64, HelperFactory.create(DESCRIPTION, N, true, config).getCutoff());
+        assertEquals("so must the uninstrumented one, which is what a timed benchmark gets",
+                64, HelperFactory.create(DESCRIPTION, N, false, config).getCutoff());
     }
 
     /**
-     * The mechanism itself, recorded so that the guard above is understood rather than merely obeyed.
-     * With a cutoff configured, the two paths part company — that is the trap, and it is why the test
-     * above exists.
+     * The counting path, used by UnicodeMSDStringSort.
      */
     @Test
-    public void theTwoPathsDivergeOnceACutoffIsConfigured() throws IOException {
-        Config config = Config.load().copy("helper", "cutoff", "64");
+    public void countingHelpersAgreeOnTheConfiguredCutoff() throws IOException {
+        final Config config = Config.load().copy(HELPER, CUTOFF, "64");
         assertEquals("the instrumented helper reads the configuration",
-                64, new InstrumentedComparisonSortHelper<Integer>("instrumented", N, config).getCutoff());
-        assertEquals("the uninstrumented helper cannot see it, and returns the interface default",
-                7, new ComparableSortHelper<Integer>("uninstrumented", N).getCutoff());
+                64, new InstrumentedCountingSortHelper<UnicodeString, UnicodeCharacter>(DESCRIPTION, N, config).getCutoff());
+        assertEquals("so must the uninstrumented one, which is what a timed benchmark gets",
+                64, new BasicCountingSortHelper<UnicodeString, UnicodeCharacter>(DESCRIPTION, N, config).getCutoff());
     }
 
+    /**
+     * With no cutoff configured, every helper falls back to the same default. A constructor given no
+     * Config behaves as though the cutoff were unset, which is how the older call sites still work.
+     */
+    @Test
+    public void allHelpersShareOneDefault() throws IOException {
+        final Config config = Config.load();
+        assertEquals(DEFAULT_CUTOFF, HelperFactory.create(DESCRIPTION, N, true, config).getCutoff());
+        assertEquals(DEFAULT_CUTOFF, HelperFactory.create(DESCRIPTION, N, false, config).getCutoff());
+        assertEquals(DEFAULT_CUTOFF, new ComparableSortHelper<Integer>(DESCRIPTION, N).getCutoff());
+        assertEquals(DEFAULT_CUTOFF, new BasicCountingSortHelper<UnicodeString, UnicodeCharacter>(DESCRIPTION, N).getCutoff());
+    }
+
+    private static final String HELPER = "helper";
+    private static final String CUTOFF = "cutoff";
+    private static final String DESCRIPTION = "test";
     private static final int N = 100;
+    private static final int DEFAULT_CUTOFF = 7;
 }

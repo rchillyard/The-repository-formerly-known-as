@@ -294,7 +294,7 @@ public final class HuskySortBenchmark {
     private void benchmarkUnicodeStringSortersInstrumented(String corpus, String[] words, int nWords, int nRuns, Random random) {
         // TODO we don't actually do anything to instrument the runs.
         if (isConfigBenchmarkStringSorter("unicodemsdstringsort")) {
-            final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, "Hanyu", '阿'));
+            final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, "Hanyu", '阿'), config);
             final Benchmark<String[]> benchmark = new Benchmark<>(corpus, null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
         }
@@ -327,7 +327,7 @@ public final class HuskySortBenchmark {
     public void benchmarkUnicodeStringSortersSeeded(final String corpus, final String[] words, final int nWords, final int nRuns, final Random random) {
         logger.info("benchmarkUnicodeStringSortersSeeded: testing unicode string sorts with " + formatWhole(nRuns) + " runs of sorting " + formatWhole(nWords) + " words");
         if (isConfigBenchmarkStringSorter("unicodemsdstringsort")) {
-            final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, "Hanyu", '阿'));
+            final Sorter<String> sorter = new UnicodeMSDStringSort(new CharacterMap(ChineseCharacter::new, "Hanyu", '阿'), config);
             final Benchmark<String[]> benchmark = new Benchmark<>("UnicodeMSDStringSort (Chinese Names)", null, sorter::sortArray, HuskySortBenchmark::checkChineseSorted);
             doPureBenchmark(words, nWords, nRuns, random, benchmark, false);
         }

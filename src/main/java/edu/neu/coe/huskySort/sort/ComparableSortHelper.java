@@ -1,11 +1,16 @@
 package edu.neu.coe.huskySort.sort;
 
+import edu.neu.coe.huskySort.util.Config;
+
 import java.util.Random;
 
 /**
  * Concrete implementation of ComparisonSortHelper.
  * <p>
- * NOTE that this Helper is not affected in any way by the configuration.
+ * NOTE that the cutoff is the one aspect of this Helper which the configuration does affect. That is
+ * deliberate: a timed run is uninstrumented, so if only InstrumentedComparisonSortHelper read the
+ * configured cutoff, every timed benchmark would silently use the default while the instrumented
+ * counts moved. See CutoffIsHonouredOnBothPathsTest.
  *
  * @param <X> the type of elements to be compared (must be Comparable).
  */
@@ -14,6 +19,18 @@ public class ComparableSortHelper<X extends Comparable<X>> extends AbstractCompa
     @Override
     public boolean inverted(final X v, final X w) {
         return v.compareTo(w) > 0;
+    }
+
+    /**
+     * Get the configured cutoff value, so that a timed (and therefore uninstrumented) run uses the
+     * same value as an instrumented one.
+     *
+     * @return the configured cutoff if there is one, otherwise the inherited default.
+     */
+    @Override
+    public int getCutoff() {
+        // NOTE that a cutoff value of 0 or less would result in an infinite recursion, so it means "unset."
+        return (cutoff >= 1) ? cutoff : super.getCutoff();
     }
 
     /**
@@ -66,7 +83,31 @@ public class ComparableSortHelper<X extends Comparable<X>> extends AbstractCompa
      * @param random      a random number generator.
      */
     public ComparableSortHelper(final String description, final int n, final Random random) {
+        this(description, n, random, null);
+    }
+
+    /**
+     * Constructor which reads the cutoff from the given configuration.
+     *
+     * @param description the description of this ComparisonSortHelper (for humans).
+     * @param n           the number of elements expected to be sorted.
+     * @param random      a random number generator.
+     * @param config      the configuration, from which the cutoff is read; null means "take the default."
+     */
+    public ComparableSortHelper(final String description, final int n, final Random random, final Config config) {
         super(description, random, n);
+        this.cutoff = config == null ? 0 : config.getInt("helper", "cutoff", 0);
+    }
+
+    /**
+     * Constructor which reads the cutoff from the given configuration.
+     *
+     * @param description the description of this ComparisonSortHelper (for humans).
+     * @param n           the number of elements expected to be sorted.
+     * @param config      the configuration, from which the cutoff is read.
+     */
+    public ComparableSortHelper(final String description, final int n, final Config config) {
+        this(description, n, new Random(), config);
     }
 
     /**
@@ -99,4 +140,6 @@ public class ComparableSortHelper<X extends Comparable<X>> extends AbstractCompa
         this(description, 0);
     }
 
+
+    private final int cutoff;
 }

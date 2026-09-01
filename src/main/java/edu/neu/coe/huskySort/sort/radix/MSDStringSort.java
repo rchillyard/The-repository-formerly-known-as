@@ -76,8 +76,28 @@ public final class MSDStringSort {
                 swap(a, j, j - 1);
     }
 
+    /**
+     * Compare v and w from character d onwards, allocating nothing.
+     * <p>
+     * The result agrees with {@code v.substring(d).compareTo(w.substring(d)) < 0} for every d at which
+     * that expression is legal, and is additionally defined for d beyond a string's length, where
+     * substring would throw. Comparing in place matters here because this is a timed baseline against
+     * the HuskySort variants: two String allocations per comparison, over the whole below-cutoff phase,
+     * measures the allocator as much as the algorithm.
+     *
+     * @param v the first String.
+     * @param w the second String.
+     * @param d the number of leading characters known to be equal, and therefore skipped.
+     * @return true if v is less than w.
+     */
     private static boolean less(final String v, final String w, final int d) {
-        return v.substring(d).compareTo(w.substring(d)) < 0;
+        final int vLength = v.length(), wLength = w.length();
+        final int limit = Math.min(vLength, wLength);
+        for (int i = d; i < limit; i++) {
+            final char cv = v.charAt(i), cw = w.charAt(i);
+            if (cv != cw) return cv < cw;
+        }
+        return vLength < wLength;
     }
 
     private static void swap(final Object[] a, final int j, final int i) {
