@@ -111,11 +111,24 @@ rather than 1,000,000 — 250,000 distinct words is the most this corpus honestl
 Note that 32,000 and 200,000 appear in **both** requests, so those two rows can be compared directly
 with and against replacement. That comparison is the actual experiment.
 
-### The caution
+### What we already found, which points the other way
 
-The 200,000 row already argues against duplicates being the whole story: density there is only 1.41,
-meaning fewer than a third of the slots are repeats, yet MSD was already ahead by 1.20x. So we expect
-this to narrow the finding rather than dissolve it. Worth knowing which.
+We ran this ourselves at n=200,000, three forks, before writing the request. It does **not** support
+the hypothesis above:
+
+| sampling | MSD | radix/16 | multikey | MSD vs radix/16 |
+| --- | ---: | ---: | ---: | ---: |
+| distinct | 28.723 ± 1.967 | 37.850 ± 0.817 | 45.703 ± 0.974 | **1.32x** |
+| with replacement | 25.839 ± 1.272 | 31.106 ± 2.297 | 39.573 ± 0.310 | 1.20x |
+
+Removing the duplicates makes MSD's advantage *larger*. Both sorts slow down on all-distinct input --
+MSD by 11%, RadixHuskySort/16 by 22% -- so the duplicates were, if anything, helping RadixHuskySort.
+The confound we suspected is not there.
+
+That makes this request more worth running rather than less: the duplicate-free comparison is the
+cleaner one, and it is currently the least favourable number we have. Two of the three rows also come
+from different runs on a loaded machine, so the 1.32x against 1.20x could be partly noise, and that
+is exactly the sort of thing your machine settles and ours cannot.
 
 ## One thing that does not need re-running
 
