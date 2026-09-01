@@ -41,6 +41,16 @@ public class StringSortBenchmarks {
         @Param({"english", "chinese", "chinesenames"})
         public String corpus;
 
+        // NOTE only one value, so the default run matrix is unchanged. The corpus yields a fixed
+        // number of distinct words and the array is built by sampling it, so at large n the same word
+        // recurs: at n=1,000,000 over the 275,333-word English corpus the average word appears 3.7
+        // times. That is duplicate density, and a bucketing sort gets equal keys more cheaply than a
+        // comparison sort does, so it is a confound whenever sorts of the two kinds are compared
+        // across sizes. Pass -p sampling=distinct to draw without replacement instead, giving an
+        // array of wholly distinct words -- necessarily no larger than the corpus.
+        @Param({"withreplacement"})
+        public String sampling;
+
         String[] master;
         HuskyCoder<String> coder;
         Config config;
@@ -72,7 +82,35 @@ public class StringSortBenchmarks {
                     throw new IllegalStateException("unknown corpus: " + corpus);
             }
             final Random random = new Random(42);
-            master = Utilities.fillRandomArray(String.class, random, n, r -> corpusWords[r.nextInt(corpusWords.length)]);
+            switch (sampling) {
+                case "withreplacement":
+                    master = Utilities.fillRandomArray(String.class, random, n, r -> corpusWords[r.nextInt(corpusWords.length)]);
+                    break;
+                case "distinct":
+                    if (n > corpusWords.length)
+                        throw new IllegalStateException("cannot draw " + n + " distinct words from the "
+                                + corpus + " corpus, which holds " + corpusWords.length
+                                + ". Sampling without replacement bounds n by the corpus size.");
+                    master = drawWithoutReplacement(corpusWords, n, random);
+                    break;
+                default:
+                    throw new IllegalStateException("unknown sampling: " + sampling);
+            }
+        }
+
+        /**
+         * A shuffled prefix, so that the sample is not biased by the corpus's own order (which is
+         * frequency-ranked, and so correlates with word length).
+         */
+        private static String[] drawWithoutReplacement(final String[] corpusWords, final int n, final Random random) {
+            final String[] pool = Arrays.copyOf(corpusWords, corpusWords.length);
+            for (int i = pool.length - 1; i > 0; i--) {
+                final int j = random.nextInt(i + 1);
+                final String swap = pool[i];
+                pool[i] = pool[j];
+                pool[j] = swap;
+            }
+            return Arrays.copyOf(pool, n);
         }
     }
 
