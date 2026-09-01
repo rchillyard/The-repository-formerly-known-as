@@ -22,14 +22,14 @@ result this consequential.
 
 ## The run
 
-Commit **`a83e7ea`** on the **`Revisions`** branch — not `master`, which is 2c31d20 and predates all
+Commit **`d3c359f`** on the **`Revisions`** branch — not `master`, which is 2c31d20 and predates all
 of this. Please do not run an earlier commit: the baselines changed underneath these numbers
 repeatedly today, and anything before this is measuring different code. (This document lives on
 `Revisions` too and may have moved on; the commit above is the one to run.)
 
 ```
 git fetch origin Revisions
-git checkout a83e7ea
+git checkout d3c359f
 mvn -Pjmh package -DskipTests
 java -jar target/benchmarks.jar "StringSortBenchmarks.(msdStringSort|multikeyQuicksort|radixHuskySort8|radixHuskySort11|radixHuskySort16|systemSort)$" -p corpus=english -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff english-baselines.json
 ```
@@ -131,6 +131,52 @@ That makes this request more worth running rather than less: the duplicate-free 
 cleaner one, and it is currently the least favourable number we have. Two of the three rows also come
 from different runs on a loaded machine, so the 1.32x against 1.20x could be partly noise, and that
 is exactly the sort of thing your machine settles and ours cannot.
+
+## Third request: real data, the case the mechanism is best suited to
+
+New since the other two, and the one Robin is most likely to want in the paper. About forty minutes.
+
+```
+java -jar target/benchmarks.jar "PermitSortBenchmarks" -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff permits.json
+```
+
+No `-p` flags: the sizes and the corpus are the benchmark's own.
+
+### Why
+
+Every favourable case in the paper is synthetic — `Tuple.create()` generates composite keys,
+`generateRandomLocalDateTimeArray` generates dates — and the largest margin we report (4.5x, on dates)
+rests on generated data. This is the same shape of case on real data: San Francisco's published
+building permit record, 198,900 permits from 2013 to 2018, sorted by Assessor's block, then lot, then
+filing date, which is the order the records are actually browsed in.
+
+It is favourable on all three counts that decide the mechanism's advantage, which no other case in the
+paper manages simultaneously:
+
+- the native comparison is composite and expensive — two Strings and a date;
+- the encoding is **exact**, packing the whole ordering into 60 of 64 bits, so no cleanup pass runs
+  at all;
+- no sort specialised to municipal permit records exists.
+
+An indicative single-fork run put RadixHuskySort/11 at **4.6x** over the system sort, which would beat
+the synthetic dates row on real data.
+
+### The pair to look at
+
+`quickHuskySort` and `quickHuskySortWithCleanup` compute **identical codes**. They differ only in
+whether the coder declares itself perfect, so one skips the cleanup pass and the other runs it and
+finds nothing to do. The difference between them is therefore the cost of the cleanup pass on an input
+where it is provably unnecessary — which is the quantity the paper's $p_{crit}$ discussion turns on,
+and which has never been measured directly. Our indicative figure is about 11%.
+
+### On trusting these numbers
+
+`PermitCoderTest` verifies the exactness claim against every one of the 198,900 records — sorting by
+code against sorting by the ordering, plus two million random pairs checked for sign agreement — and
+`PermitSortCorrectnessTest` checks that every benchmarked sorter actually sorts, including over the
+whole corpus. Both run in `mvn test`. We added the second of those because this repository has already
+shipped a benchmarked sort that produced the wrong order at its largest size without anything noticing,
+and JMH never checks its subject's output.
 
 ## One thing that does not need re-running
 
