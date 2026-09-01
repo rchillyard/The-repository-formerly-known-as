@@ -22,12 +22,12 @@ result this consequential.
 
 ## The run
 
-Commit **`b1cd195`** on `master`. Please do not run an earlier commit — the baselines changed
+Commit **`a83e7ea`** on `master`. Please do not run an earlier commit — the baselines changed
 underneath these numbers repeatedly today, and anything before this is measuring different code.
 (This document itself lives on `master` and may have moved on; the commit above is the one to run.)
 
 ```
-git checkout b1cd195
+git checkout a83e7ea
 mvn -Pjmh package -DskipTests
 java -jar target/benchmarks.jar "StringSortBenchmarks.(msdStringSort|multikeyQuicksort|radixHuskySort8|radixHuskySort11|radixHuskySort16|systemSort)$" -p corpus=english -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff english-baselines.json
 ```
