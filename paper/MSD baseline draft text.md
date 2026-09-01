@@ -1,122 +1,93 @@
-# Draft text for the MSD baseline — placeholders pending a clean run
+# Draft reframing for §sec:radix — the boundary-condition version
 
-Scratch file, meant to be consumed and deleted. Edit 5 (the appendix paragraph on unbounded
-recursion) is already applied to `HuskySort.tex`; the four drafts below are not, because each needs
-numbers from a dedicated-hardware run. See
-[MSD baseline preview 2026-09-01.md](../doc/MSD%20baseline%20preview%202026-09-01.md) for the
-workstation preview and why it must not be quoted.
+Replaces the earlier drafts in this file, which were written before we knew the shape of the MSD
+result and assumed it would go the other way. Edit 5 (the appendix paragraph on unbounded recursion)
+is already applied to `HuskySort.tex`; nothing below is.
 
-Placeholders are written as `<<...>>`.
+Placeholders are `<<...>>` and there are only two, both awaiting Yunlu's run. **The argument itself
+needs no new data** — it rests on Table `RadixImprovements`, which is already in the paper.
 
-## What to run first
+## The observation this is built on
 
-```
-java -jar target/benchmarks.jar "StringSortBenchmarks.(msdStringSort|multikeyQuicksort|radixHuskySort11|systemSort)$" -p corpus=english -rf json -rff msd-clean.json
-```
+Table `RadixImprovements` already separates cleanly, and the paper does not currently say so:
 
-`msdStringSort` is English-only and throws for any other corpus, so `-p corpus=english` is required
-rather than merely advisable.
+| rows | advantage over QuickHuskySort |
+| --- | --- |
+| English words, Chinese words, Chinese names | 1.6x, 1.3x, 1.6x |
+| Integer, Double, Long, BigInteger, BigDecimal, Tuples, Dates | 2.9x, 3.3x, 2.9x, 3.1x, 3.7x, 2.6x, 4.5x |
 
-The numbers needed are, for each of n = 32,000 / 200,000 / 1,000,000: the RadixHuskySort/11-over-MSD
-ratio, and whether the 99.9% intervals overlap at each size. The 32,000 row is the one that decides
-how paragraph 2 has to be written.
+Every non-string row beats every string row, and the ranges do not overlap. Strings are RadixHuskySort's
+**weakest** domain by the paper's own headline measurement. Saying so, and explaining why, is stronger
+than leaving a reader to notice it — and it is what makes the MSD result a boundary rather than a
+refutation.
 
-## 1. Replacing the "future work" sentence (line 502)
+## Replacement text
 
-Currently:
-
-```latex
-A direct empirical comparison against MSD radix sort and burstsort specifically remains future work.
-```
-
-Becomes:
+Replacing the passage from "RadixHuskySort's contribution is different in kind" through
+"...remains future work."
 
 ```latex
-A direct empirical comparison against burstsort remains future work.
+RadixHuskySort's contribution is different in kind, not degree:
+it is not a string-sorting algorithm, but a general mechanism applicable to any \textit{Comparable} type
+with a 64-bit husky encoding (strings among them),
+at the cost of the encoding's own fixed capture window (\S~\ref{sec:pcrit} above)
+and a fallback cleanup pass whenever that encoding is imperfect.
+
+That framing carries a consequence which Table ~\ref{tab:RadixImprovements} makes plain,
+and which we state rather than leave to be noticed:
+strings are the domain in which this mechanism is \emph{least} advantageous.
+Every non-string row of that table (2.6--4.5x) exceeds every string row (1.3--1.6x),
+and the two ranges do not overlap.
+Three factors explain the ordering, and they compose.
+The advantage grows with the cost of the type's native comparison, since that is what the encoding replaces;
+it grows with the exactness of the encoding, since an imperfect one is paid for by the cleanup pass;
+and it shrinks in the presence of algorithms specialised to the type.
+Dates are the favourable extreme on all three counts — a provably perfect coding, no cleanup pass at all,
+and no specialised competitor — and yield the largest margin in the table.
+Chinese personal names are the instructive middle: the native comparison is expensive,
+requiring a table lookup per character per comparison, which is exactly the cost husky encoding is meant to amortise,
+but names of two or three characters with recurring syllables collide often enough that the cleanup pass
+consumes what the encoding saves.
+
+Strings are unfavourable on the third count in a way no other type in this paper is.
+Half a century of specialised string sorting exists,
+and a general mechanism should not be expected to beat it on its own ground.
+We compared RadixHuskySort directly against three-way radix quicksort
+(JMH, English and Chinese text, natural Unicode order so both algorithms sort under the same task):
+RadixHuskySort is faster at every size tested, by <<a--b>>x on English and <<c--d>>x on Chinese,
+non-overlapping 99.9\% confidence intervals throughout.
+Against MSD radix sort the result is the other way at scale:
+on English text MSD is faster than RadixHuskySort by <<e>>x at $N=200{,}000$ and <<f>>x at $N=1{,}000{,}000$,
+again with non-overlapping intervals.
+We report this because it locates the boundary rather than obscuring it.
+MSD earns that result on a corpus that suits it and within limits that are its own:
+our implementation indexes an alphabet of 256 characters beyond ASCII,
+which English text fits and neither Chinese corpus does,
+and it offers no pinyin ordering,
+so there is no MSD row for either Chinese corpus at all.
+RadixHuskySort reaches every corpus in this paper through one encoding,
+with no per-alphabet provision and no per-type implementation.
+That is the claim being made, and the English result bounds it without contradicting it.
+A direct empirical comparison against burstsort remains future work;
+it is a trie-based, cache-conscious algorithm designed to beat both baselines used here on exactly this workload,
+and we have not implemented it.
 ```
 
-Burstsort stays deferred deliberately: it is a trie-based, cache-conscious algorithm designed to beat
-both of the baselines used here on exactly this workload, and no implementation of it exists in our
-repository, so deferring it is a statement about scope rather than a gap in the argument.
+## Two smaller consequential edits
 
-## 2. The MSD result
+**Line 501's "competitive baseline".** The clause "a real result against a real, competitive baseline,
+not merely a theoretical argument" is dropped in the replacement above. With both baselines measured,
+the paper's own numbers show three-way radix quicksort is the weaker of the two, and describing it as
+*the* competitive one invites the objection that the weaker baseline was framed as strong.
 
-To follow line 501. **Two versions, because the shape of the claim depends on the 32,000 row.**
+**§sec:usecase.** The use-case guidance should inherit the same three factors, since it is the section
+a practitioner reads. The one-line version: *reach for husky encoding when the ordering is composite or
+the comparison expensive, when the key packs exactly into 64 bits, and when no sort specialised to your
+type already exists.* Dates satisfy all three; English words satisfy none.
 
-### 2a. If MSD is level with or ahead of RadixHuskySort at the smaller sizes
+## What still needs Yunlu
 
-```latex
-We also compared against MSD radix sort, the other classic string sort named above,
-on the English corpus.
-The result is more equivocal than the comparison with three-way radix quicksort,
-and more informative for it:
-MSD is the stronger of the two baselines at every size,
-and at $N=<<n>>$ the two are separated by <<x>>\% or less,
-with overlapping confidence intervals.
-RadixHuskySort's advantage appears only at the largest size tested,
-where it is faster by <<r>>x (<<CI statement>>).
-We report this because it bounds the claim honestly:
-against the best string-specialized baseline we implemented,
-RadixHuskySort's advantage on English text is a large-$N$ effect rather than a uniform one.
-```
-
-### 2b. If the clean run puts RadixHuskySort ahead throughout
-
-```latex
-We also compared against MSD radix sort, the other classic string sort named above,
-on the English corpus.
-MSD is the stronger of the two baselines at every size tested,
-and RadixHuskySort is faster than it by <<lo>>--<<hi>>x,
-a narrower margin than the <<...>>x measured against three-way radix quicksort
-and the more demanding of the two comparisons.
-```
-
-## 3. Softening line 501
-
-Currently:
-
-```latex
-a real result against a real, competitive baseline, not merely a theoretical argument.
-```
-
-Becomes:
-
-```latex
-a real result against a real baseline, not merely a theoretical argument.
-```
-
-The word "competitive" has to go, or move to MSD, since with both baselines measured the paper's own
-numbers show which of the two is the competitive one. Leaving it on three-way radix quicksort invites
-the objection that the weaker baseline was the one framed as strong.
-
-## 4. The two disclosures that must travel with the MSD number
-
-Append to whichever of the paragraphs in §2 is used. Both are the same kind of disclosure the paper
-already makes for its other baselines at lines 1421 and 1508.
-
-```latex
-Two qualifications attach to this baseline.
-Its below-cutoff comparison originally allocated a fresh string per comparison;
-we replaced that with an in-place comparison from the current depth,
-worth roughly 1.3x on this corpus,
-so that the measurement is of the algorithm rather than of the allocator.
-And our MSD implementation indexes an alphabet of 256 characters beyond ASCII,
-which the English corpus fits and neither Chinese corpus does
-(<<3813>> and <<2270>> distinct such characters respectively),
-so there is no MSD row for Chinese text.
-That limitation is the baseline's rather than the comparison's,
-but it is also the practical distinction being drawn:
-RadixHuskySort reaches both corpora through the same encoding,
-with no per-alphabet provision at all.
-```
-
-The `1.3x` figure is from the workstation and is stable enough to quote as "roughly" (see the preview
-document), but the clean run is the place to confirm it. The two character counts are exact and need
-no re-measurement.
-
-## Sequencing note
-
-§System Environment currently commits to three machines
-(Tables `SysEnvOriginal`, `SysEnvCurrent`, `SysEnvAWS`).
-If the MSD rows come from any of those three, nothing there changes.
-If they come from a fourth, that section needs a sentence.
+Only the six numbers in the two placeholders. Both come from the first request in
+[Run request for Yunlu.md](Run%20request%20for%20Yunlu.md). If the distinct-words run (second request)
+holds up, the MSD figures should be quoted from the with-replacement rows for comparability with the
+multikey figures, and the distinct-words result mentioned as confirming rather than as a separate claim.
