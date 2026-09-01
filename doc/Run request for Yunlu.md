@@ -22,11 +22,12 @@ result this consequential.
 
 ## The run
 
-Commit **`7752569`** on `master`. Please do not run an earlier commit — the baselines changed
+Commit **`b1cd195`** on `master`. Please do not run an earlier commit — the baselines changed
 underneath these numbers repeatedly today, and anything before this is measuring different code.
+(This document itself lives on `master` and may have moved on; the commit above is the one to run.)
 
 ```
-git checkout 7752569
+git checkout b1cd195
 mvn -Pjmh package -DskipTests
 java -jar target/benchmarks.jar "StringSortBenchmarks.(msdStringSort|multikeyQuicksort|radixHuskySort8|radixHuskySort11|radixHuskySort16|systemSort)$" -p corpus=english -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff english-baselines.json
 ```
@@ -40,6 +41,10 @@ enough that we need the intervals tight. Expect roughly an hour.
 
 Please send back `english-baselines.json`, and the machine's model, core count, OS and JVM version so
 we can add it to the System Environment table if these numbers go in the paper.
+
+If you run `mvn test` first, it should be clean at this commit — 378 tests, no failures. Anything
+red there is worth telling us about before you start the benchmark, since it would mean the freeze
+is not what we think it is.
 
 ## What we are trying to settle
 
