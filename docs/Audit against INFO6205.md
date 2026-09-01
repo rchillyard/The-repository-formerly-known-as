@@ -44,10 +44,28 @@ public int compare(final X v, final X w) {
 
 The instrumented path *is* `compareTo`. There is no comparator to be ignored.
 
-`ComparatorSortHelper` exists and does hold a `Comparator`, which would reopen the
-question — but it is never constructed anywhere in the repository, in `main` or in
-`test`. It is dead code, and the vestige of a design that was never wired up. If
-it is ever brought into use, these three sorts must be revisited first.
+`ComparatorSortHelper` exists and does hold a `Comparator`, returning
+`comparator.compare(v, w)`, which would reopen the question — but it is never
+constructed anywhere in the repository, in `main` or in `test`. It is dead code,
+and the vestige of a design that was never wired up.
+
+That last sentence used to end "if it is ever brought into use, these three sorts
+must be revisited first", which is a warning no refactor will ever read.
+`ComparatorIsNotInPlayTest` now enforces it: one test fails if any file other than
+the declaration mentions `ComparatorSortHelper`, naming the offender and saying
+which three sorts to revisit; a second checks by behaviour that the helper actually
+in use compares by the natural ordering. Verified by planting a use and watching it
+fail.
+
+**The other two sorts named in the plan are clear for different reasons, checked
+2026-09-01.** `PureDualPivotQuicksort` has no helper at all — it compares with
+`compareTo` throughout, so there are not two paths to disagree. `MSDStringSort` is
+a static utility with no helper and no instrumentation; it cuts over to its own
+private `insertionSort` below a cutoff of 15, and that uses
+`v.substring(d).compareTo(w.substring(d))`, which agrees with the radix ordering
+above it. So the concern recorded in the plan — that MSD might cut over to a sort
+ignoring its comparator — does not arise: there is no comparator anywhere in that
+class.
 
 ## `swapInto`'s hit accounting is right
 
