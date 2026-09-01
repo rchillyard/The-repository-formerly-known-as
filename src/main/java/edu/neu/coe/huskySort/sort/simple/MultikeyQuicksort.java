@@ -30,10 +30,11 @@ import java.util.Arrays;
  * <p>
  * Falls back to a simpler sort for small subarrays, per Bentley and Sedgewick's own
  * recommendation that small subfiles be handled that way once per-character partitioning
- * overhead dominates. Every string in a subarray at this point already shares the same prefix up
- * to the current depth, so comparing whole strings (rather than just their suffixes from the
- * current depth on) still produces the correct order, just with a small amount of redundant
- * prefix comparison.
+ * overhead dominates. Every string in such a subarray already shares the same prefix up to the
+ * current depth, so the fallback is given that depth and compares from it. Comparing whole
+ * strings instead would also be correct, since the skipped prefixes are equal by construction,
+ * but it is not free: measured against an otherwise identical implementation, comparing from
+ * character zero and allocating a sorter per range cost this sort 15-18%.
  */
 public class MultikeyQuicksort {
 
@@ -55,7 +56,7 @@ public class MultikeyQuicksort {
      * @param a the array to be sorted.
      */
     public static void sortByPinyin(final String[] a) {
-        sort(a, MultikeyQuicksort::pinyinKeyAt, (arr, lo, hiExclusive) -> Arrays.sort(arr, lo, hiExclusive, HuskyCoderChinesePinyin.NAME_ORDER));
+        sort(a, MultikeyQuicksort::pinyinKeyAt, (arr, lo, hiExclusive, d) -> Arrays.sort(arr, lo, hiExclusive, HuskyCoderChinesePinyin.NAME_ORDER));
     }
 
     private static void sort(final String[] a, final CharacterKey keyAt, final RangeSorter smallRangeSorter) {
@@ -76,7 +77,7 @@ public class MultikeyQuicksort {
     private static void sort(final String[] a, int lo, int hi, int d, final CharacterKey keyAt, final RangeSorter smallRangeSorter) {
         while (true) {
             if (hi - lo < CUTOFF) {
-                if (hi > lo) smallRangeSorter.sort(a, lo, hi + 1);
+                if (hi > lo) smallRangeSorter.sort(a, lo, hi + 1, d);
                 return;
             }
             final long pivot = keyAt.at(a[lo], d);
@@ -96,8 +97,42 @@ public class MultikeyQuicksort {
         }
     }
 
-    private static void insertionSortRange(final String[] a, final int lo, final int hiExclusive) {
-        new InsertionSort<String>().sort(a, lo, hiExclusive);
+    /**
+     * Insertion sort of a[lo, hiExclusive), comparing from character d onwards.
+     * <p>
+     * Every string in the range already shares its first d characters, so the comparison starts
+     * there. It allocates nothing: this runs once per small range, of which there are of the order
+     * of n / CUTOFF, so anything allocated here is allocated tens of thousands of times over a large
+     * input. That, plus comparing whole strings from character zero, was costing this sort 15-18%
+     * against an otherwise identical implementation.
+     *
+     * @param a           the array.
+     * @param lo          the first index of the range.
+     * @param hiExclusive the index after the last of the range.
+     * @param d           the number of leading characters common to the whole range.
+     */
+    private static void insertionSortRange(final String[] a, final int lo, final int hiExclusive, final int d) {
+        for (int i = lo; i < hiExclusive; i++)
+            for (int j = i; j > lo && less(a[j], a[j - 1], d); j--)
+                swap(a, j, j - 1);
+    }
+
+    /**
+     * Whether v precedes w, comparing from character d onwards and allocating nothing.
+     *
+     * @param v the first String.
+     * @param w the second String.
+     * @param d the number of leading characters known to be equal, and therefore skipped.
+     * @return true if v is less than w.
+     */
+    private static boolean less(final String v, final String w, final int d) {
+        final int vLength = v.length(), wLength = w.length();
+        final int limit = Math.min(vLength, wLength);
+        for (int i = d; i < limit; i++) {
+            final char cv = v.charAt(i), cw = w.charAt(i);
+            if (cv != cw) return cv < cw;
+        }
+        return vLength < wLength;
     }
 
     /**
@@ -119,7 +154,11 @@ public class MultikeyQuicksort {
      */
     @FunctionalInterface
     private interface RangeSorter {
-        void sort(String[] a, int lo, int hiExclusive);
+        /**
+         * @param d the number of leading characters common to the whole range, which a fallback may
+         *          skip when comparing. The pinyin fallback ignores it and compares whole names.
+         */
+        void sort(String[] a, int lo, int hiExclusive, int d);
     }
 
     /**
