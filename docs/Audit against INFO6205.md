@@ -61,11 +61,12 @@ fail.
 2026-09-01.** `PureDualPivotQuicksort` has no helper at all — it compares with
 `compareTo` throughout, so there are not two paths to disagree. `MSDStringSort` is
 a static utility with no helper and no instrumentation; it cuts over to its own
-private `insertionSort` below a cutoff of 15, and that uses
-`v.substring(d).compareTo(w.substring(d))`, which agrees with the radix ordering
-above it. So the concern recorded in the plan — that MSD might cut over to a sort
-ignoring its comparator — does not arise: there is no comparator anywhere in that
-class.
+private `insertionSort` below a cutoff of 15, and that compares on the characters
+from `d` onwards, which agrees with the radix ordering above it. So the concern
+recorded in the plan — that MSD might cut over to a sort ignoring its comparator —
+does not arise: there is no comparator anywhere in that class. (That comparison
+was written with `substring` when this was checked; see below for why it is not
+any more.)
 
 ## `swapInto`'s hit accounting is right
 
