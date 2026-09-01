@@ -158,8 +158,12 @@ paper manages simultaneously:
   at all;
 - no sort specialised to municipal permit records exists.
 
-An indicative single-fork run put RadixHuskySort/11 at **4.6x** over the system sort, which would beat
-the synthetic dates row on real data.
+A first measurement on our machine (4 forks, tight intervals) puts RadixHuskySort/16 at **4.40x** over
+the system sort at the full corpus, and **2.19x** over QuickHuskySort. Note that Table
+`RadixImprovements` reports the advantage over QuickHuskySort, so 2.19x is the comparable figure —
+below the synthetic Dates row's 4.5x rather than above it. Permits are not the best number in the
+paper; they are the best number on real data. Full results in
+[Permit benchmark results 2026-09-01.md](Permit%20benchmark%20results%202026-09-01.md).
 
 ### The pair to look at
 
@@ -167,7 +171,11 @@ the synthetic dates row on real data.
 whether the coder declares itself perfect, so one skips the cleanup pass and the other runs it and
 finds nothing to do. The difference between them is therefore the cost of the cleanup pass on an input
 where it is provably unnecessary — which is the quantity the paper's $p_{crit}$ discussion turns on,
-and which has never been measured directly. Our indicative figure is about 11%.
+and which has never been measured directly, because every other benchmark varies the encoding and the
+sort together. We measure it at 5.9% at n=32,000, 11.9% at 100,000 and **17.4% at 198,900** — growing
+with n, with non-overlapping intervals throughout. A pass that finds nothing to correct still costs a
+sixth of the running time at the full corpus. This may be the most useful single number in the three
+requests.
 
 ### On trusting these numbers
 
