@@ -1,0 +1,231 @@
+# Every edit this week's work implies — complete list, 2026-09-02
+
+Supersedes `MSD baseline draft text.md`. This is intended to be exhaustive: it lists the claims that
+must change, the claims that must be added, the claims that should be softened, the optional
+additions, **and the claims that were checked and found unaffected** — that last section exists so
+nothing gets re-litigated later.
+
+Only one edit is already applied to `HuskySort.tex`: the appendix paragraph on unbounded recursion in
+the baselines. Everything below is pending.
+
+## The measurements everything rests on
+
+Two machines, both quiet, `sampling=withreplacement`, English corpus. M1 is Table `SysEnvCurrent`;
+Graviton3 is Yunlu's run of 2026-09-01 at commit `a83e7ea` (PR #63), 5 forks × 10 iterations.
+
+**radix/16 ÷ MSD** — above 1 means MSD is faster:
+
+| n | M1 | Graviton3 |
+| ---: | ---: | ---: |
+| 32,000 | 1.02x (tied, overlapping) | 1.04x (tied, overlapping) |
+| 200,000 | 1.10x | **1.34x** |
+| 1,000,000 | **1.38x** | 1.09x |
+
+**multikey ÷ radix/16** — the paper claims 1.3–1.75x:
+
+| n | M1 | Graviton3 |
+| ---: | ---: | ---: |
+| 32,000 | 2.28x | 1.66x |
+| 200,000 | 1.65x | 1.39x |
+| 1,000,000 | 1.46x | 2.26x |
+
+Note the shapes disagree between machines in both tables, and in opposite directions. That is itself a
+finding and the text should say so rather than average it away.
+
+---
+
+# 1. Must fix — claims the evidence no longer supports
+
+## 1.1 Line 1356, in the Conclusion: "especially fast for Unicode character strings"
+
+> It is especially fast for Unicode character strings.
+
+**This is now the opposite of what the paper's own data says, and it is in the conclusion.** Table
+`RadixImprovements` gives 1.3–1.6x for the three string rows against 2.6–4.5x for every non-string
+row, with no overlap; and MSD beats RadixHuskySort on English at both large sizes on both machines.
+Strings are the mechanism's *weakest* domain, not its strongest.
+
+Suggested replacement:
+
+```latex
+It is especially fast for types whose ordering is composite or expensive to evaluate
+and whose keys encode exactly, where the encoding replaces the whole comparison and no cleanup pass is needed.
+Strings are not that case:
+they are the one domain with a mature specialised literature of its own (\S~\ref{sec:radix}),
+and they yield this mechanism's narrowest margins.
+```
+
+## 1.2 Line 500: the multikey range
+
+> by 1.3--1.75x on English and 2--3.1x on Chinese
+
+Measured against the repaired multikey: 1.39x to 2.28x on English across the two machines, breaking
+the stated range at the bottom on Graviton3 and at the top on the M1. Replace with a range that spans
+both machines and says why it is wide:
+
+```latex
+by 1.4--2.3x on English, non-overlapping 99.9\% confidence intervals throughout,
+with the margin varying by array size and by machine rather than holding a single value.
+```
+
+The Chinese figure (2–3.1x) is untouched — see §4.1.
+
+## 1.3 Line 501: "competitive baseline"
+
+> a real result against a real, competitive baseline, not merely a theoretical argument.
+
+With both baselines now measured, the paper's own numbers show three-way radix quicksort is the weaker
+of the two. Describing it as *the* competitive one invites the obvious objection. Drop the word:
+
+```latex
+a real result against a real baseline, not merely a theoretical argument.
+```
+
+## 1.4 Line 502: MSD is no longer future work
+
+> A direct empirical comparison against MSD radix sort and burstsort specifically remains future work.
+
+MSD is measured. Burstsort stays deferred. See §3 for the replacement passage, which absorbs this
+line.
+
+---
+
+# 2. Must add — disclosures
+
+The paper already discloses that its other two baselines were modified: line 1421 ("a
+re-implementation from scratch of dual-pivot quicksort") and line 1508 ("We fixed it in our own
+implementation"). MSD needs the same, and so does multikey, whose fallback changed this week.
+
+```latex
+Both string-sorting baselines were repaired before measurement.
+Each allocated a sorter per small subarray and compared whole strings from their first character,
+re-examining the prefix the recursion had already established;
+comparing in place from the current depth is worth 15--18\% to three-way radix quicksort
+and about 1.3x to MSD.
+Measuring against an unrepaired baseline would have measured our own overhead in the baseline's favour.
+Our MSD implementation also indexes an alphabet of 256 characters beyond ASCII,
+which English text fits and neither Chinese corpus does (3,813 and 2,270 distinct such characters respectively),
+so there is no MSD row for Chinese text at all.
+```
+
+---
+
+# 3. The §sec:radix reframing
+
+Replaces the passage from "RadixHuskySort's contribution is different in kind" through
+"...remains future work". Rests on Table `RadixImprovements`, which already separates cleanly and
+which the paper does not currently remark on.
+
+```latex
+RadixHuskySort's contribution is different in kind, not degree:
+it is not a string-sorting algorithm, but a general mechanism applicable to any \textit{Comparable} type
+with a 64-bit husky encoding (strings among them),
+at the cost of the encoding's own fixed capture window (\S~\ref{sec:pcrit} above)
+and a fallback cleanup pass whenever that encoding is imperfect.
+
+That framing carries a consequence which Table ~\ref{tab:RadixImprovements} makes plain,
+and which we state rather than leave to be noticed:
+strings are the domain in which this mechanism is \emph{least} advantageous.
+Every non-string row of that table (2.6--4.5x) exceeds every string row (1.3--1.6x),
+and the two ranges do not overlap.
+Three factors explain the ordering, and they compose.
+The advantage grows with the cost of the type's native comparison, since that is what the encoding replaces;
+it grows with the exactness of the encoding, since an imperfect one is paid for by the cleanup pass;
+and it shrinks in the presence of algorithms specialised to the type.
+Dates are the favourable extreme on all three counts --- a provably perfect coding, no cleanup pass at all,
+and no specialised competitor --- and yield the largest margin in the table.
+Chinese personal names are the instructive middle: the native comparison is expensive,
+requiring a table lookup per character per comparison, which is exactly the cost husky encoding is meant to amortise,
+but names of two or three characters with recurring syllables collide often enough that the cleanup pass
+consumes what the encoding saves.
+
+Strings are unfavourable on the third count in a way no other type in this paper is.
+Half a century of specialised string sorting exists,
+and a general mechanism should not be expected to beat it on its own ground.
+We compared RadixHuskySort against both of the classic string sorts named above,
+on two machines of different microarchitecture (Tables ~\ref{tab:SysEnvCurrent} and ~\ref{tab:SysEnvAWS}).
+Against three-way radix quicksort RadixHuskySort is faster at every size on both machines,
+by 1.4--2.3x on English and 2--3.1x on Chinese.
+Against MSD radix sort the result goes the other way at scale:
+on English text the two are statistically indistinguishable at $N=32{,}000$,
+and MSD is faster at $N=200{,}000$ and $N=1{,}000{,}000$ by between 1.09x and 1.38x,
+with non-overlapping intervals in every case.
+The size of that margin is machine-dependent and does not vary consistently with $N$:
+it grows with $N$ on one machine and shrinks on the other,
+so we report the range rather than a trend.
+We give this result because it locates the boundary rather than obscuring it.
+MSD earns it on a corpus that suits it and within limits that are its own:
+our implementation indexes an alphabet of 256 characters beyond ASCII,
+which English text fits and neither Chinese corpus does,
+and it offers no pinyin ordering,
+so there is no MSD row for either Chinese corpus.
+RadixHuskySort reaches every corpus in this paper through one encoding,
+with no per-alphabet provision and no per-type implementation.
+That is the claim being made, and the English result bounds it without contradicting it.
+A direct empirical comparison against burstsort remains future work;
+it is a trie-based, cache-conscious algorithm designed to beat both baselines used here on exactly this workload,
+and we have not implemented it.
+```
+
+---
+
+# 4. Should soften — not wrong, but overstated
+
+## 4.1 Line 1352: "always"
+
+> HuskySort is always faster than dual-pivot quicksort.
+
+Unqualified, in a conclusion that four lines later says the advantage "is specific to a particular
+kind of workload, not universal", and in a paper whose §sec:usecase identifies two regimes where other
+sorts win outright. There is also no measurement against dual-pivot at small $N$ — the crossover work
+compares against System sort and insertion sort. Suggest "faster than dual-pivot quicksort at every
+size we measured" or similar.
+
+---
+
+# 5. Optional additions — new evidence, not corrections
+
+## 5.1 The permits case study (§sec:radix-results)
+
+Real data, and the case the mechanism is best suited to. RadixHuskySort/16 over the system sort:
+4.02x / 3.87x / 4.40x at 32,000 / 100,000 / 198,900. Over QuickHuskySort — which is what Table
+`RadixImprovements` reports — **2.19x**, so it enters that table below Dates (4.5x) and beside Tuples
+(2.6x). It is not the best number in the paper; it is the best number on real data, and every other
+favourable case in the paper is synthetic. Full results in
+[Permit benchmark results 2026-09-01.md](../doc/Permit%20benchmark%20results%202026-09-01.md).
+
+## 5.2 The cleanup pass, measured directly (§sec:pcrit)
+
+The strongest new result, and it needs no reframing of anything. Two benchmarks compute identical
+codes and differ only in whether the coder declares itself perfect, so the gap is the cost of a
+cleanup pass that has nothing to correct: **5.9% at 32,000, 11.9% at 100,000, 17.4% at 198,900**,
+growing with $N$, non-overlapping intervals throughout. The $p_{crit}$ discussion has never had this
+isolated, because every other benchmark varies the encoding and the sort together. Awaiting Yunlu's
+confirmation (third request).
+
+---
+
+# 6. Checked and found unaffected — do not re-open
+
+- **Line 514, the pinyin comparison (1.6–2.7x).** Verified against the diff of `7752569`: the pinyin
+  fallback has always been `Arrays.sort` with `NAME_ORDER` and never used the allocating
+  `InsertionSort`, which was reached only from the natural-order entry point. It gained an ignored
+  parameter and nothing else.
+- **Table `HSComp` (lines 1164–1171)** — HuskySort against the system sort. Neither baseline changed.
+- **Table `RadixImprovements` (lines 1193–1202)** — radix against QuickHuskySort. Neither changed.
+- **Line 1218, Dates 4.5x**, and line 1216, Chinese names as the smallest margin — same table, same
+  reasoning.
+- **Line 1222, the AWS confirmation (2.51x / 2.85x)** — RadixHuskySort against QuickHuskySort.
+- **Lines 1265–1277, the parallel results** — `Long[]`, untouched by any string-sort work.
+- **The configured-cutoff fix** touches nothing published: `cutoff` was empty in both config files, so
+  both paths were already using the default.
+
+---
+
+# 7. One thing to check before publishing
+
+Table `SysEnvAWS` records the confirmation machine as **30 GiB, 16 vCPU**. Yunlu reports his run on a
+c7g.4xlarge with **32 GiB and 16 physical cores, no SMT**. Almost certainly the same instance type
+described twice, but the memory figure differs and one of the two is wrong. If Yunlu's run supplies
+numbers for the paper, that table needs reconciling — and no fourth machine needs adding, since the
+instance type already appears.
