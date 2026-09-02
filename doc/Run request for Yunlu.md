@@ -1,12 +1,42 @@
-# Benchmark run request — string sorts on English, 2026-09-01
+# Benchmark run requests for Yunlu — HuskySort paper, 2026-09-01 to 09-02
 
-Everything here is one command. The rest of the document explains why it is worth running and what
-we will do with the answer, but if you only read one section, read "The run".
+Five requests, of which two are already answered. **Start with the status table immediately below**;
+the rest of the document is background, one section per request.
 
-## Why
+# Status, 2026-09-02 — read this first
+
+| request | what | state |
+| --- | --- | --- |
+| 1 | English string baselines, with replacement | **done** — PR #63, thank you |
+| 2 | The same over wholly distinct words | **done** — PR #63 |
+| 3 | Real data: San Francisco building permits | **pending** |
+| 4 | Full suite re-run, so every table comes from one machine and one commit | **pending, and now the big one** |
+| 5 | Crossover sizes for the use-case section | **pending, short** |
+
+**Requests 1 and 2 are answered — please do not re-run them.** Their results are already merged as
+`doc/Run results from Yunlu 2026-09-01.md`, and they were exactly what was needed.
+
+**What changed since you ran them.** Robin has decided that every figure quoted in the paper should
+come from one machine, and that machine should be yours. The paper currently mixes three: its original
+comparison-sort results were measured on a 2017 Intel MacBook Pro running **Java 1.8.0_152**, and the
+radix-sort results on an Apple M1. Your machine becomes the single source of record, and the other two
+survive only as qualitative cross-checks with no figures quoted from them.
+
+Your full run of 2026-08-17 already covers most of what is needed, but it was taken at an older
+commit — before two string-sort baselines were repaired this week. Request 4 repeats it at the current
+commit so that **one machine and one commit** account for every number in the paper. That is the
+tidiest possible state and it is worth a few hours of instance time.
+
+Everything below is at the same commit, so `git fetch` and `git checkout` once and run requests 3, 4
+and 5 in whatever order suits you. Request 3 is the one Robin most wants; request 4 is the one that
+makes the paper internally consistent.
+
+---
+
+## Why any of this was needed (background to requests 1 and 2)
 
 The paper compares RadixHuskySort against classic string sorts on English text. Two things changed
-this week and both need re-measuring on hardware we trust:
+and both needed re-measuring on hardware we trust:
 
 1. **MSD radix sort has been added as a second baseline**, and had three correctness defects fixed
    before it could be benchmarked at all. On our workstation it is *beating* RadixHuskySort at the
@@ -20,12 +50,13 @@ agent, and at one point a closed lid. Confidence intervals ranged from 1% to 23%
 the same benchmark came out at 232, 259 and 330 ms on three occasions. That is not good enough for a
 result this consequential.
 
-## The run
+## The checkout — common to every request
 
 Commit **`d3c359f`** on the **`Revisions`** branch — not `master`, which is 2c31d20 and predates all
-of this. Please do not run an earlier commit: the baselines changed underneath these numbers
-repeatedly today, and anything before this is measuring different code. (This document lives on
-`Revisions` too and may have moved on; the commit above is the one to run.)
+of this. Please do not run an earlier commit: the string-sort baselines were repaired on 2026-09-01,
+and anything before that is measuring different code. Nothing under `src/` has changed since
+`d3c359f`, so the branch tip would behave identically; the commit is named so that the paper can
+record one. (This document lives on `Revisions` too and has moved on since you last read it.)
 
 ```
 git fetch origin Revisions
@@ -44,11 +75,12 @@ enough that we need the intervals tight. Expect roughly an hour.
 Please send back `english-baselines.json`, and the machine's model, core count, OS and JVM version so
 we can add it to the System Environment table if these numbers go in the paper.
 
-If you run `mvn test` first, it should be clean at this commit — 378 tests, no failures. Anything
-red there is worth telling us about before you start the benchmark, since it would mean the freeze
-is not what we think it is.
+If you run `mvn test` first, it should be clean at this commit — **392 tests**, no failures. Note that
+is more than the 378 you saw for requests 1 and 2: the permit corpus of request 3 arrived with fourteen
+tests of its own. Anything red is worth telling us about before you start, since it would mean the
+freeze is not what we think it is.
 
-## What we are trying to settle
+## What we were trying to settle (request 1 — ANSWERED)
 
 Three questions, in order of how much they matter.
 
@@ -77,10 +109,11 @@ From our (noisy) machine, an Apple M1 with OpenJDK 21, in ms/op:
 If your numbers are ordered very differently — particularly if `systemSort` is not comfortably the
 slowest — something is wrong and it is worth a message before you spend the hour.
 
-## Second request: the same comparison over wholly distinct words
+## Second request: the same comparison over wholly distinct words — ANSWERED
 
-Shorter than the first — one size, three sorts, about twenty minutes. Please run it, but run the
-first one first; if you only have time for one, the first is the one we need.
+**Answered in PR #63 — no action needed.** Retained because the reasoning below explains what the
+result means, and because the conclusion it reached (duplicates do not explain MSD's advantage) is one
+the paper now relies on.
 
 ```
 java -jar target/benchmarks.jar "StringSortBenchmarks.(msdStringSort|multikeyQuicksort|radixHuskySort16)$" -p corpus=english -p sampling=distinct -p n=32000,200000,250000 -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff english-distinct.json
@@ -132,7 +165,7 @@ cleaner one, and it is currently the least favourable number we have. Two of the
 from different runs on a loaded machine, so the 1.32x against 1.20x could be partly noise, and that
 is exactly the sort of thing your machine settles and ours cannot.
 
-## Third request: real data, the case the mechanism is best suited to
+## Third request: real data, the case the mechanism is best suited to — PENDING
 
 New since the other two, and the one Robin is most likely to want in the paper. About forty minutes.
 
@@ -186,10 +219,97 @@ whole corpus. Both run in `mvn test`. We added the second of those because this 
 shipped a benchmarked sort that produced the wrong order at its largest size without anything noticing,
 and JMH never checks its subject's output.
 
-## One thing that does not need re-running
+## Fourth request: the full suite at the current commit — PENDING
 
-The Chinese corpora. `msdStringSort` cannot run on them at all, and the pinyin comparisons are
-unaffected by any of this week's changes. English is the whole question.
+The long one, and the one that makes the paper consistent. Your 2026-08-17 run took 2:37:37 for the
+whole suite; at five forks and ten iterations this will take longer, perhaps four to five hours. It
+can run unattended.
+
+```
+java -jar target/benchmarks.jar -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff full-suite.json
+```
+
+No filter and no `-p` flags: every benchmark class, every default parameter. That includes
+`PermitSortBenchmarks`, so **if you run this, request 3 is covered by it** — request 3 exists
+separately only in case you want the permits result sooner, since it is the one Robin most wants.
+
+### Why re-run what you already ran
+
+Two reasons, and only the second is about the numbers.
+
+Your 2026-08-17 run is on the right machine but at an older commit. Since then, both of the paper's
+string-sorting baselines have been repaired: each allocated a sorter per small subarray and compared
+whole strings from character zero rather than from the depth the recursion had already established.
+That is worth 15–18% to three-way radix quicksort and about 1.3× to MSD. Those two sorts do not appear
+in your 2026-08-17 tables, so nothing there is *wrong* — but a paper whose figures come from two
+different commits invites the question of which one each number belongs to.
+
+Second, and more simply: the paper is being consolidated onto your machine as its single source of
+figures. Having every table trace to one command, one commit and one instance is worth more than the
+few hours it costs.
+
+### What it replaces
+
+| paper table | currently measured on | will come from this run |
+| --- | --- | --- |
+| `HSComp` — HuskySort against the system sort | 2017 Intel MacBook Pro, Java 1.8.0_152 | `NumericSortBenchmarks`, `TupleSortBenchmarks`, `StringSortBenchmarks` |
+| `RadixImprovements` — radix against QuickHuskySort | Apple M1 | the same three, plus `DateSortBenchmarks` |
+| `ParallelRadix` | Apple M1 | `ParallelRadixSortBenchmarks` |
+| the adversarial appendix | Apple M1 | `AdversarialSortBenchmarks` |
+
+### Please match your 2026-08-17 environment as closely as you can
+
+This is the environment the paper will describe, and the closer this run is to the one already
+reported the less there is to reconcile. From `doc/JMH Benchmark Results 2026-08-17.md`:
+
+| item | value to match |
+| --- | --- |
+| Instance | AWS EC2 `c7g.4xlarge` (AWS Graviton3), ARM Neoverse V1, aarch64 |
+| vCPUs | 16 — 16 cores × 1 thread/core, no SMT, 1 socket, 1 NUMA node |
+| Cache | L1d 64 KiB/core, L1i 64 KiB/core, L2 1 MiB/core, L3 32 MiB shared |
+| CPU clock | not exposed to the guest; Graviton3 documented at 2.6 GHz fixed |
+| Memory | **30 GiB** total, 0 B swap |
+| OS / kernel | Amazon Linux 2023, kernel 6.12.95-124.187.amzn2023.aarch64 |
+| JDK | OpenJDK **21.0.12** (2026-07-21 LTS), Amazon Corretto, 64-bit Server VM |
+| Maven | Apache Maven **3.9.16** |
+| Instance class | non-burstable — no CPU credits, so sustained performance rather than a burst window |
+| Load average at collection | 0.36 / 0.36 / 0.27 on 16 CPUs |
+
+Two small drifts between that run and yesterday's, worth pinning down rather than leaving:
+
+- yesterday you reported kernel **6.12.100** against 6.12.95 in August, and Maven **3.9.9** against
+  3.9.16. Neither should matter, but if it is easy to use the same AMI and Maven as August, do; if not,
+  just tell us which you used and we will record the range.
+- yesterday's report gives memory as **32 GiB** where August's gives **30 GiB**. The paper says 30, so
+  we have assumed August is right — please confirm which, since it goes in a table.
+
+Please send back `full-suite.json`, plus `lscpu`, `free -h`, `uname -r`, `java -version` and
+`mvn -v` output so the environment table can be written from fact rather than from memory.
+
+## Fifth request: the small-size crossover — PENDING
+
+Short, perhaps half an hour, and the last gap.
+
+```
+java -jar target/benchmarks.jar "StringSortBenchmarks.(insertionSort|systemSort|quickHuskySort|radixHuskySort16)$" -p corpus=english -p n=4,10,20,50,100,200,500,1000,2000,10000 -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff english-crossover.json
+```
+
+The paper's use-case guidance identifies, size by size, which sorter to reach for below ten thousand
+elements — where the system sort wins, where plain insertion sort wins outright, and where
+QuickHuskySort takes over. Those crossovers were measured on the M1 only, and the paper says so. They
+are the one set of figures the full suite will not produce, because its parameters start at 32,000.
+
+Expect very small numbers at the low end; that is fine, the crossovers are what matter rather than the
+absolute times.
+
+## A note on the Chinese corpora
+
+For **requests 1, 2 and 5** English is the whole question: `msdStringSort` cannot run on the Chinese
+corpora at all, and the string baselines we repaired are not used for pinyin ordering. Do not pass
+`-p corpus=chinese` to any of those.
+
+**Request 4 is different** — it runs every corpus, because Table `RadixImprovements` has Chinese rows
+and those figures now need to come from your machine too. It handles the corpora itself; no flags.
 
 ## Why not simply run a larger array
 
