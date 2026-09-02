@@ -29,8 +29,11 @@ Graviton3 is Yunlu's run of 2026-09-01 at commit `a83e7ea` (PR #63), 5 forks × 
 | 200,000 | 1.65x | 1.39x |
 | 1,000,000 | 1.46x | 2.26x |
 
-Note the shapes disagree between machines in both tables, and in opposite directions. That is itself a
-finding and the text should say so rather than average it away.
+Note the shapes disagree between machines in both tables, and in opposite directions.
+
+**Under the decision of §7, only the Graviton3 column is quotable.** The M1 column is kept here
+because it is what tells us the margin is machine-dependent — a fact the paper should state
+qualitatively — but no figure from it goes into the paper.
 
 ---
 
@@ -59,13 +62,13 @@ and they yield this mechanism's narrowest margins.
 
 > by 1.3--1.75x on English and 2--3.1x on Chinese
 
-Measured against the repaired multikey: 1.39x to 2.28x on English across the two machines, breaking
-the stated range at the bottom on Graviton3 and at the top on the M1. Replace with a range that spans
-both machines and says why it is wide:
+Measured against the repaired multikey on Graviton3: **1.66x / 1.39x / 2.26x** at 32,000 / 200,000 /
+1,000,000. The stated range breaks at the top. (The M1 gave 2.28 / 1.65 / 1.46, breaking it at the
+bottom instead — not quoted, but the reason for the "by machine" clause below.)
 
 ```latex
 by 1.4--2.3x on English, non-overlapping 99.9\% confidence intervals throughout,
-with the margin varying by array size and by machine rather than holding a single value.
+with the margin varying by array size rather than holding a single value.
 ```
 
 The Chinese figure (2–3.1x) is untouched — see §4.1.
@@ -142,17 +145,17 @@ consumes what the encoding saves.
 Strings are unfavourable on the third count in a way no other type in this paper is.
 Half a century of specialised string sorting exists,
 and a general mechanism should not be expected to beat it on its own ground.
-We compared RadixHuskySort against both of the classic string sorts named above,
-on two machines of different microarchitecture (Tables ~\ref{tab:SysEnvCurrent} and ~\ref{tab:SysEnvAWS}).
-Against three-way radix quicksort RadixHuskySort is faster at every size on both machines,
+We compared RadixHuskySort against both of the classic string sorts named above.
+Against three-way radix quicksort RadixHuskySort is faster at every size,
 by 1.4--2.3x on English and 2--3.1x on Chinese.
 Against MSD radix sort the result goes the other way at scale:
 on English text the two are statistically indistinguishable at $N=32{,}000$,
-and MSD is faster at $N=200{,}000$ and $N=1{,}000{,}000$ by between 1.09x and 1.38x,
-with non-overlapping intervals in every case.
-The size of that margin is machine-dependent and does not vary consistently with $N$:
-it grows with $N$ on one machine and shrinks on the other,
-so we report the range rather than a trend.
+and MSD is faster by 1.34x at $N=200{,}000$ and by 1.09x at $N=1{,}000{,}000$,
+with non-overlapping intervals in both cases.
+We repeated this comparison on a second machine of different microarchitecture and obtained the same
+qualitative result --- a tie at the smallest size and MSD ahead at both larger ones ---
+but with the margin distributed differently across $N$,
+so the magnitude should be read as machine-dependent even though the direction is not.
 We give this result because it locates the boundary rather than obscuring it.
 MSD earns it on a corpus that suits it and within limits that are its own:
 our implementation indexes an alphabet of 256 characters beyond ASCII,
@@ -222,10 +225,96 @@ confirmation (third request).
 
 ---
 
-# 7. One thing to check before publishing
+# 7. Consolidating onto one machine
 
-Table `SysEnvAWS` records the confirmation machine as **30 GiB, 16 vCPU**. Yunlu reports his run on a
-c7g.4xlarge with **32 GiB and 16 physical cores, no SMT**. Almost certainly the same instance type
-described twice, but the memory figure differs and one of the two is wrong. If Yunlu's run supplies
-numbers for the paper, that table needs reconciling — and no fourth machine needs adding, since the
-instance type already appears.
+**Decision taken 2026-09-02: Graviton3 becomes the primary machine. No results table quotes figures
+from any other.** The other two environments stay in §Implementation as qualitative cross-checks only.
+
+The reason is that the paper currently quotes three machines — and the oldest, which supplies its
+original core data, is a 2017 Intel MacBook Pro running **Java 1.8.0_152**. Two JVM generations and a
+different instruction set.
+
+## No new runs are needed for the existing tables
+
+Yunlu's full run of 2026-08-17 (PR #62, merged) covers every benchmark class on the Graviton3, and
+already holds `systemSort`, `quickHuskySort` and every radix width for every type. Both results tables
+can be rewritten from `doc/JMH Benchmark Results 2026-08-17.md` without asking for anything further.
+
+| paper table | currently from | rewrite from |
+| --- | --- | --- |
+| `HSComp` (§sec:analysis) | Intel i7, **Java 8** | Graviton3 System vs QuickHuskySort |
+| `RadixImprovements` | M1 | Graviton3 "vs QHS" columns |
+| `ParallelRadix` | M1 | Graviton3 `ParallelRadixSortBenchmarks` |
+
+### The figures to use
+
+Radix over QuickHuskySort, replacing Table `RadixImprovements`:
+
+| type | N | Graviton3 | currently says |
+| --- | ---: | ---: | ---: |
+| English words | 1,000,000 | **2.51x** | 1.6x |
+| Chinese words | 1,000,000 | **2.85x** | 1.3x |
+| Chinese names (pinyin) | 1,000,000 | **1.54x** | 1.6x |
+| Integer | 500,000 | 3.28x | 2.9x |
+| Double | 500,000 | 3.05x | 3.3x |
+| Long | 500,000 | 3.74x | 2.9x |
+| BigInteger | 500,000 | 2.81x | 3.1x |
+| BigDecimal | 500,000 | 3.00x | 3.7x |
+| Tuples | 500,000 | 2.41x | 2.6x |
+| Dates | 20,000 | **~5.6x over DutchHuskySort, 4.9x over System sort** | 4.5x |
+
+Most rows improve. Note the string rows improve *most*, which does not disturb §3's argument: that
+argument rests on the gap between the string rows and the non-string rows, and at 2.51/2.85/1.54
+against 2.41–3.74 the gap narrows but the pinyin row remains the smallest margin in the table.
+**§3's wording must be checked against the rewritten table before it is used** — if the string rows no
+longer sit below every non-string row, the sentence "every non-string row exceeds every string row"
+becomes false and the argument needs restating in terms of the three factors alone.
+
+## Two wrinkles
+
+**The sizes do not line up.** `HSComp` is quoted over "4,000–500,000 elements" and
+`RadixImprovements` at 500,000 and 1,000,000; JMH uses 32,000/200,000/1,000,000 for strings and
+20,000/100,000/500,000 for numerics. The tables must be re-cast at JMH's sizes; the current ranges
+cannot be reproduced.
+
+**The pinyin row gets more awkward.** At N=1,000,000 on Graviton3, System sort beats every
+pinyin-correct variant (851.3 against 955.5 for RadixHuskySort/16 — 0.89x). The paper already
+discusses this, but it becomes more prominent when Graviton3 is the sole source, and §sec:summary's
+framing should be checked against it.
+
+## The generality paragraph, lines 735–745
+
+Currently argues the finding is "checked across three machines that differ in vendor, architecture,
+and JVM build". That defence should survive without quoting figures:
+
+```latex
+The results below were all measured on the machine of Table ~
+ef{tab:SysEnvAWS},
+so that every comparison in this paper is between figures taken under one configuration.
+A natural question is whether the finding generalizes rather than being an artifact of that environment.
+It does: the same qualitative result --- HuskySort, and radix sort, beating the system sort ---
+was obtained independently on the two machines of Tables ~
+ef{tab:SysEnvOriginal} and ~
+ef{tab:SysEnvCurrent},
+which differ from it and from each other in vendor, instruction set, core design and JVM generation,
+one of them running a JVM two major releases older.
+We quote no figures from those machines, since mixing environments within a comparison would make the
+comparison meaningless, but the agreement across all three is what licenses the claim.
+```
+
+## §sec:usecase is the one gap — a possible fourth request
+
+The crossover measurements (N=4 through 10,000) are M1-only, and line 1307 says so explicitly. They
+are not in the 2026-08-17 run, whose `@Param` sizes start at 32,000. Under the rule adopted here they
+are figures from another machine.
+
+They are runnable — `StringSortBenchmarks` already has `insertionSort`, `systemSort` and
+`quickHuskySort` — with explicit sizes:
+
+```
+java -jar target/benchmarks.jar "StringSortBenchmarks.(insertionSort|systemSort|quickHuskySort|radixHuskySort16)$" -p corpus=english -p n=4,10,20,50,100,200,500,1000,2000,10000 -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff english-crossover.json
+```
+
+Either ask Yunlu for that as a fourth request, or keep §sec:usecase's figures with their existing
+caveat and state plainly that the crossover was measured on a different machine and not repeated.
+Robin's call; the first is tidier and costs Yunlu perhaps half an hour.
