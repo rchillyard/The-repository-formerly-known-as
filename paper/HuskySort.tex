@@ -492,14 +492,59 @@ radix sort for strings were both popularized by Bentley and Sedgewick's classic 
 and burstsort\cite{1064546.1180622} improves cache behaviour further by building a small trie to bucket strings before sorting.
 These string-specialized algorithms sort variable-length strings directly, character by character, without a separate fixed-width encoding step.
 RadixHuskySort's contribution is different in kind, not degree:
-it is not a string-sorting algorithm, but a general mechanism applicable to any \textit{Comparable} type with a 64-bit husky encoding (strings among them),
-at the cost of the encoding's own fixed capture window (\S~\ref{sec:radix}
-above) and a fallback cleanup pass whenever that encoding is imperfect.
-We compared RadixHuskySort directly against three-way radix quicksort (JMH, English and Chinese text, natural Unicode order so both algorithms sort under the same task):
-RadixHuskySort is faster at every size tested,
-by 1.3--1.75x on English and 2--3.1x on Chinese, non-overlapping 99.9\% confidence intervals throughout —
-a real result against a real, competitive baseline, not merely a theoretical argument.
-A direct empirical comparison against MSD radix sort and burstsort specifically remains future work.
+it is not a string-sorting algorithm, but a general mechanism applicable to any \textit{Comparable} type
+with a 64-bit husky encoding (strings among them),
+at the cost of the encoding's own fixed capture window (\S~\ref{sec:pcrit} above)
+and a fallback cleanup pass whenever that encoding is imperfect.
+
+That framing carries a consequence which Table ~\ref{tab:RadixImprovements} makes plain,
+and which we state rather than leave to be noticed:
+strings are the domain in which this mechanism is \emph{least} advantageous.
+Every non-string row of that table (2.6--4.5x) exceeds every string row (1.3--1.6x),
+and the two ranges do not overlap.
+Three factors explain the ordering, and they compose.
+The advantage grows with the cost of the type's native comparison, since that is what the encoding replaces;
+it grows with the exactness of the encoding, since an imperfect one is paid for by the cleanup pass;
+and it shrinks in the presence of algorithms specialised to the type.
+Dates are the favourable extreme on all three counts --- a provably perfect coding, no cleanup pass at all,
+and no specialised competitor --- and yield the largest margin in the table.
+Chinese personal names are the instructive middle: the native comparison is expensive,
+requiring a table lookup per character per comparison, which is exactly the cost husky encoding is meant to amortise,
+but names of two or three characters with recurring syllables collide often enough that the cleanup pass
+consumes what the encoding saves.
+
+Strings are unfavourable on the third count in a way no other type in this paper is.
+Half a century of specialised string sorting exists,
+and a general mechanism should not be expected to beat it on its own ground.
+We compared RadixHuskySort against both of the classic string sorts named above,
+under JMH, on English and Chinese text, in natural Unicode order so that every sort compared
+performs the same task.
+Both baselines are our own implementations,
+each tuned so that its fallback below the partitioning cutoff allocates nothing
+and compares from the depth the partitioning has already established.
+Against three-way radix quicksort RadixHuskySort is faster at every size tested,
+by 1.4--2.3x on English and 2--3.1x on Chinese,
+with non-overlapping 99.9\% confidence intervals throughout.
+Against MSD radix sort the result goes the other way at scale:
+on English text the two are statistically indistinguishable at $N=32{,}000$,
+and MSD is faster by 1.34x at $N=200{,}000$ and by 1.09x at $N=1{,}000{,}000$,
+with non-overlapping 99.9\% confidence intervals in both cases.
+We repeated this comparison on a second machine of different microarchitecture and obtained the same
+qualitative result --- a tie at the smallest size and MSD ahead at both larger ones ---
+but with the margin distributed differently across $N$,
+so the magnitude should be read as machine-dependent even though the direction is not.
+We give this result because it locates the boundary rather than obscuring it.
+MSD earns it on a corpus that suits it and within limits that are its own:
+our implementation indexes an alphabet of 256 characters beyond ASCII,
+which English text fits and neither Chinese corpus does,
+and it offers no pinyin ordering,
+so there is no MSD row for either Chinese corpus.
+RadixHuskySort reaches every corpus in this paper through one encoding,
+with no per-alphabet provision and no per-type implementation.
+That is the claim being made, and the English result bounds it without contradicting it.
+A direct empirical comparison against burstsort remains future work;
+it is a trie-based, cache-conscious algorithm designed to beat both baselines used here on exactly this workload,
+and we have not implemented it.
 
 Natural Unicode order is not a meaningful comparison for Chinese personal names specifically —
 it is simply the wrong order for that use case, not merely a different one —
@@ -1352,7 +1397,11 @@ This has been demonstrated such that, when sorting objects rather than primitive
 HuskySort is always faster than dual-pivot quicksort.
 It is faster than Timsort for arrays which are not partially ordered, above a few hundred elements;
 below that, Timsort's own tuned handling of small arrays wins instead.
-It is especially fast for Unicode character strings.
+It is especially fast for types whose ordering is composite or expensive to evaluate
+and whose keys encode exactly, where the encoding replaces the whole comparison and no cleanup pass is needed.
+Strings are not that case:
+they are the one domain with a mature specialised literature of its own (\S~\ref{sec:radix}),
+and they yield this mechanism's narrowest margins.
 
 In the case of RadixHuskySort, the performance improvement is even better for datasets above a few thousand in length.
 Of course, in this case, there was no linearithmic phase, so the time savings come, as explained above,

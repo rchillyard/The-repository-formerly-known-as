@@ -5,8 +5,12 @@ must change, the claims that must be added, the claims that should be softened, 
 additions, **and the claims that were checked and found unaffected** — that last section exists so
 nothing gets re-litigated later.
 
-Only one edit is already applied to `HuskySort.tex`: the appendix paragraph on unbounded recursion in
-the baselines. Everything below is pending.
+**Applied so far**: the appendix paragraph on unbounded recursion in the baselines; the whole of §3,
+the §sec:radix reframing, which absorbed edits 1.2, 1.3 and 1.4; and §2's disclosure, now trimmed to
+two lines. Sections marked DONE need no further action.
+
+Still pending: **1.1** (the conclusion's "especially fast for Unicode character strings"), **4.1**
+(softening "always"), **5** (the two optional additions) and **7** (consolidating onto Graviton3).
 
 ## The measurements everything rests on
 
@@ -58,7 +62,7 @@ they are the one domain with a mature specialised literature of its own (\S~\ref
 and they yield this mechanism's narrowest margins.
 ```
 
-## 1.2 Line 500: the multikey range
+## 1.2 Line 500: the multikey range — DONE
 
 > by 1.3--1.75x on English and 2--3.1x on Chinese
 
@@ -73,7 +77,7 @@ with the margin varying by array size rather than holding a single value.
 
 The Chinese figure (2–3.1x) is untouched — see §4.1.
 
-## 1.3 Line 501: "competitive baseline"
+## 1.3 Line 501: "competitive baseline" — DONE
 
 > a real result against a real, competitive baseline, not merely a theoretical argument.
 
@@ -84,7 +88,7 @@ of the two. Describing it as *the* competitive one invites the obvious objection
 a real result against a real baseline, not merely a theoretical argument.
 ```
 
-## 1.4 Line 502: MSD is no longer future work
+## 1.4 Line 502: MSD is no longer future work — DONE
 
 > A direct empirical comparison against MSD radix sort and burstsort specifically remains future work.
 
@@ -93,27 +97,25 @@ line.
 
 ---
 
-# 2. Must add — disclosures
+# 2. Must add — the baseline disclosure — DONE
 
-The paper already discloses that its other two baselines were modified: line 1421 ("a
-re-implementation from scratch of dual-pivot quicksort") and line 1508 ("We fixed it in our own
-implementation"). MSD needs the same, and so does multikey, whose fallback changed this week.
+**Applied, and cut down to the property rather than the history.** The original draft here recounted
+what had been wrong with the two fallbacks and what fixing each was worth. That is git's business, not
+the paper's. What a reader actually needs is that the baselines are ours and are tuned, which is now
+two lines inside §3:
 
 ```latex
-Both string-sorting baselines were repaired before measurement.
-Each allocated a sorter per small subarray and compared whole strings from their first character,
-re-examining the prefix the recursion had already established;
-comparing in place from the current depth is worth 15--18\% to three-way radix quicksort
-and about 1.3x to MSD.
-Measuring against an unrepaired baseline would have measured our own overhead in the baseline's favour.
-Our MSD implementation also indexes an alphabet of 256 characters beyond ASCII,
-which English text fits and neither Chinese corpus does (3,813 and 2,270 distinct such characters respectively),
-so there is no MSD row for Chinese text at all.
+Both baselines are our own implementations,
+each tuned so that its fallback below the partitioning cutoff allocates nothing
+and compares from the depth the partitioning has already established.
 ```
+
+The alphabet limitation that the original draft also carried here is already stated later in the same
+§3 passage, so it is not repeated.
 
 ---
 
-# 3. The §sec:radix reframing
+# 3. The §sec:radix reframing — DONE
 
 Replaces the passage from "RadixHuskySort's contribution is different in kind" through
 "...remains future work". Rests on Table `RadixImprovements`, which already separates cleanly and
