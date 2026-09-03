@@ -9,8 +9,9 @@ nothing gets re-litigated later.
 the §sec:radix reframing, which absorbed edits 1.2, 1.3 and 1.4; and §2's disclosure, now trimmed to
 two lines. Sections marked DONE need no further action.
 
-Still pending: **1.1** (the conclusion's "especially fast for Unicode character strings"), **4.1**
-(softening "always"), **5** (the two optional additions) and **7** (consolidating onto Graviton3).
+Still pending: **1.1** (the conclusion's "especially fast for Unicode character strings"), **1.5**
+(a claim already in the tex that the table rewrite will falsify — read this one), **4.1** (softening
+"always"), **5** (the two optional additions) and **7** (consolidating onto Graviton3).
 
 ## The measurements everything rests on
 
@@ -61,6 +62,39 @@ Strings are not that case:
 they are the one domain with a mature specialised literature of its own (\S~\ref{sec:radix}),
 and they yield this mechanism's narrowest margins.
 ```
+
+## 1.5 Line 503 — BLOCKING on the table rewrite, and already in the tex
+
+> Every non-string row of that table (2.6--4.5x) exceeds every string row (1.3--1.6x),
+> and the two ranges do not overlap.
+
+True of Table `RadixImprovements` as printed today, from the M1. **False once §7 rewrites that table
+from Graviton3 figures**, on the 2026-08-17 numbers:
+
+| margin over QuickHuskySort | row | kind |
+| ---: | --- | --- |
+| 1.54x | Chinese names (pinyin) | string |
+| **2.41x** | **Tuples** | **non-string** |
+| 2.51x | English words | string |
+| **2.81x** | **BigInteger** | **non-string** |
+| 2.85x | Chinese words | string |
+| 3.00–3.74x | BigDecimal, Double, Integer, Long | non-string |
+
+Strings span 1.54–2.85 and non-strings 2.41–3.74, so the ranges overlap and two non-string rows sit
+below two string rows.
+
+What survives is the three-factor argument, which is explanatory rather than evidential, and these two
+observations, both true under the old table and the projected new one:
+
+```latex
+strings are the domain in which this mechanism is least advantageous.
+The narrowest margin in that table is a string row,
+and no string row is among its widest.
+```
+
+**Do not apply this before the table is rewritten** — the present sentence is stronger and is still
+correct against the table as printed. Apply both together, and re-check the wording against the
+weekend figures rather than against the 2026-08-17 ones, since the run may reorder rows again.
 
 ## 1.2 Line 500: the multikey range — DONE
 
