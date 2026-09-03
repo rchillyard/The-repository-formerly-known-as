@@ -63,38 +63,68 @@ they are the one domain with a mature specialised literature of its own (\S~\ref
 and they yield this mechanism's narrowest margins.
 ```
 
-## 1.5 Line 503 — BLOCKING on the table rewrite, and already in the tex
+## 1.5 Line 503 — the framing collapses; rewrite needed. URGENT
 
 > Every non-string row of that table (2.6--4.5x) exceeds every string row (1.3--1.6x),
 > and the two ranges do not overlap.
 
-True of Table `RadixImprovements` as printed today, from the M1. **False once §7 rewrites that table
-from Graviton3 figures**, on the 2026-08-17 numbers:
+Table `RadixImprovements` rebuilt from Yunlu's full suite (radix over QuickHuskySort, largest size of
+each), computed from `doc/full-suite.json` rather than from a summary:
 
-| margin over QuickHuskySort | row | kind |
-| ---: | --- | --- |
-| 1.54x | Chinese names (pinyin) | string |
-| **2.41x** | **Tuples** | **non-string** |
-| 2.51x | English words | string |
-| **2.81x** | **BigInteger** | **non-string** |
-| 2.85x | Chinese words | string |
-| 3.00–3.74x | BigDecimal, Double, Integer, Long | non-string |
+| | row |
+| ---: | --- |
+| 3.58x | long (500k) |
+| 3.49x | Dates (20k) |
+| 3.42x | integer (500k) |
+| **3.26x** | **Chinese words (1M) — string** |
+| 2.97x | double (500k) |
+| 2.87x | bigDecimal (500k) |
+| 2.80x | bigInteger (500k) |
+| **2.65x** | **English words (1M) — string** |
+| 2.49x | Tuple (500k) |
+| 2.06x | Permits (198.9k) |
+| **1.52x** | **Chinese names, pinyin (1M) — string** |
 
-Strings span 1.54–2.85 and non-strings 2.41–3.74, so the ranges overlap and two non-string rows sit
-below two string rows.
+Strings 1.52–3.26, non-strings 2.06–3.58. The sentence is false, and so is the weaker replacement
+drafted earlier ("no string row is among its widest" — Chinese words ranks 4th of 11).
 
-What survives is the three-factor argument, which is explanatory rather than evidential, and these two
-observations, both true under the old table and the projected new one:
+**The whole "strings are the weakest domain" framing has to go**, because it is not true: Chinese
+words is among the table's best results. What the data actually shows is better, and still supports
+the paper's argument:
+
+**The string rows are the table's most variable, and the three factors explain why.** They span almost
+its entire range while every non-string row sits between 2.06x and 3.58x. Chinese words is favourable
+— an expensive Unicode comparison and an encoding that captures enough of it. English words is
+middling and, more to the point, is the one row with a specialised competitor that beats us. Chinese
+names by pinyin is the worst result in the paper, because the comparison is expensive but the encoding
+is poor: two or three characters with recurring syllables. That is the three factors varying *within*
+one data type, which is a stronger demonstration than a separation between types would have been.
+
+Suggested replacement for the passage from "That framing carries a consequence" to "consumes what the
+encoding saves":
 
 ```latex
-strings are the domain in which this mechanism is least advantageous.
-The narrowest margin in that table is a string row,
-and no string row is among its widest.
+That framing carries a consequence which Table ~\ref{tab:RadixImprovements} bears out,
+and which we state rather than leave to be noticed:
+the string rows of that table are its most variable by a wide margin.
+They span almost its entire range, from 3.26x down to 1.52x,
+where every other row falls between 2.06x and 3.58x.
+Three factors account for the spread, and they compose.
+The advantage grows with the cost of the type's native comparison, since that is what the encoding replaces;
+it grows with the exactness of the encoding, since an imperfect one is paid for by the cleanup pass;
+and it shrinks in the presence of algorithms specialised to the type.
+Chinese words are favourable on the first two counts --- an expensive Unicode comparison,
+captured well enough by the encoding --- and sit near the top of the table.
+Chinese personal names are unfavourable on the second: the comparison is more expensive still,
+requiring a table lookup per character, but names of two or three characters with recurring syllables
+collide often enough that the cleanup pass consumes everything the encoding saves,
+and this is the weakest result we report.
+English words are unremarkable on the first two counts and distinctive on the third,
+being the one case in this paper with a mature specialised literature ranged against it.
 ```
 
-**Do not apply this before the table is rewritten** — the present sentence is stronger and is still
-correct against the table as printed. Apply both together, and re-check the wording against the
-weekend figures rather than against the 2026-08-17 ones, since the run may reorder rows again.
+The Dates sentence that followed ("the favourable extreme on all three counts") must also go or move:
+Dates is now 3.49x, second in the table rather than first, behind long at 3.58x.
 
 ## 1.2 Line 500: the multikey range — DONE
 
