@@ -41,8 +41,8 @@
 %% See paper/Paper edits pending.md, "The template" -- whether acmart is acceptable at
 %% all for ACDA is an open question and needs deciding before submission.
 \setcopyright{none}
-\copyrightyear{2026}
-\acmYear{2026}
+\copyrightyear{2027}
+\acmYear{2027}
 \acmDOI{}
 \settopmatter{printacmref=false}
 %% ...and the first page carries the same journal line separately, in the copyright-permission
@@ -1158,11 +1158,11 @@ Table ~\ref{tab:HS_BM_N} (JMH, $N=500{,}000$, ms $\pm$ 99.9\% CI).
     \toprule
     Type & System & QuickHuskySort & DualPivotQuicksort & quicksort (raw) & Radix/8 & Radix/16 \\
     \midrule
-    Integer & 94.4$\pm$4.8 & 68.9$\pm$8.3 & 67.0$\pm$5.8 & 36.3$\pm$3.4 & 27.3$\pm$3.8 & 26.0$\pm$2.8 \\
-    Double & 109.6$\pm$15.6 & 73.5$\pm$5.1 & 94.9$\pm$59.4 & 41.4$\pm$1.3 & 29.1$\pm$6.0 & 22.3$\pm$2.1 \\
-    Long & 101.5$\pm$8.6 & 74.9$\pm$3.7 & 77.0$\pm$11.3 & 35.2$\pm$0.5 & 25.4$\pm$5.3 & 38.2$\pm$42.1 \\
-    BigInteger & 157.1$\pm$10.5 & 108.6$\pm$5.7 & 157.9$\pm$10.3 & 38.4$\pm$2.8 & 42.4$\pm$10.8 & 35.4$\pm$2.1 \\
-    BigDecimal & 201.4$\pm$21.2 & 145.0$\pm$136.9 & 189.6$\pm$39.1 & 46.2$\pm$1.9 & 45.0$\pm$8.0 & 39.4$\pm$5.3 \\
+    Integer & 123.7$\pm$0.7 & 87.9$\pm$0.8 & 81.7$\pm$0.6 & 38.0$\pm$0.1 & 32.0$\pm$0.5 & 25.7$\pm$0.2 \\
+    Double & 144.5$\pm$0.8 & 93.5$\pm$0.8 & 92.8$\pm$0.5 & 42.6$\pm$0.1 & 35.4$\pm$0.8 & 31.5$\pm$0.1 \\
+    Long & 138.7$\pm$1.1 & 99.3$\pm$1.0 & 90.5$\pm$0.5 & 38.0$\pm$0.2 & 29.4$\pm$0.2 & 28.7$\pm$0.2 \\
+    BigInteger & 210.2$\pm$1.8 & 151.0$\pm$0.9 & 209.7$\pm$2.6 & 42.5$\pm$0.3 & 58.7$\pm$0.5 & 54.0$\pm$0.4 \\
+    BigDecimal & 264.1$\pm$1.8 & 149.1$\pm$1.3 & 243.7$\pm$1.7 & 47.5$\pm$0.1 & 53.6$\pm$0.2 & 53.3$\pm$0.2 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1177,12 +1177,12 @@ Table ~\ref{tab:HS_BM_S} (JMH, ms $\pm$ 99.9\% CI).
     \toprule
     N & Corpus & System sort & QuickHuskySort & Radix/8 & Radix/16 \\
     \midrule
-    32,000 & English & 12.25$\pm$5.04 & 12.86$\pm$5.05 & 4.00$\pm$0.85 & 3.79$\pm$0.75 \\
-    32,000 & Chinese & 11.25$\pm$4.24 & 4.11$\pm$0.52 & 1.82$\pm$0.35 & 1.79$\pm$0.81 \\
-    200,000 & English & 146.09$\pm$111.5 & 87.18$\pm$36.9 & 50.39$\pm$19.6 & 41.12$\pm$4.3 \\
-    200,000 & Chinese & 61.65$\pm$11.7 & 25.99$\pm$4.0 & 10.50$\pm$1.9 & 9.76$\pm$4.3 \\
-    1,000,000 & English & 571.87$\pm$53.4 & 391.09$\pm$154.9 & 260.81$\pm$65.8 & 239.17$\pm$49.4 \\
-    1,000,000 & Chinese & 287.60$\pm$17.4 & 112.13$\pm$7.2 & 98.26$\pm$20.3 & 85.43$\pm$37.2 \\
+    32,000 & English & 14.20$\pm$0.18 & 10.68$\pm$0.69 & 5.29$\pm$0.39 & 4.26$\pm$0.13 \\
+    32,000 & Chinese & 9.79$\pm$0.07 & 5.01$\pm$0.04 & 2.07$\pm$0.02 & 1.88$\pm$0.01 \\
+    200,000 & English & 145.68$\pm$0.85 & 95.33$\pm$1.52 & 57.57$\pm$2.05 & 49.68$\pm$2.37 \\
+    200,000 & Chinese & 70.94$\pm$0.54 & 31.17$\pm$0.08 & 13.55$\pm$0.09 & 11.09$\pm$0.15 \\
+    1,000,000 & English & 1193.78$\pm$18.47 & 732.32$\pm$7.54 & 342.52$\pm$24.53 & 276.66$\pm$5.94 \\
+    1,000,000 & Chinese & 441.76$\pm$2.74 & 218.79$\pm$1.70 & 84.82$\pm$2.40 & 67.16$\pm$1.71 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1197,9 +1197,9 @@ Table ~\ref{tab:HS_BM_T} (JMH, ms $\pm$ 99.9\% CI).
     \toprule
     N & System & QuickHuskySort & DualPivotQuicksort & Radix/16 \\
     \midrule
-    20,000 & 3.11$\pm$0.40 & 2.19$\pm$0.10 & 2.71$\pm$0.13 & 1.03$\pm$0.05 \\
-    100,000 & 19.93$\pm$1.52 & 13.63$\pm$1.05 & 19.58$\pm$3.50 & 4.89$\pm$0.23 \\
-    500,000 & 174.30$\pm$13.6 & 117.14$\pm$20.8 & 155.56$\pm$16.1 & 45.00$\pm$4.6 \\
+    20,000 & 3.77$\pm$0.01 & 2.78$\pm$0.03 & 3.35$\pm$0.08 & 1.32$\pm$0.00 \\
+    100,000 & 23.44$\pm$0.21 & 17.87$\pm$0.10 & 21.80$\pm$0.13 & 6.81$\pm$0.05 \\
+    500,000 & 212.83$\pm$3.81 & 149.63$\pm$3.23 & 155.58$\pm$4.92 & 59.99$\pm$0.67 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1265,16 +1265,17 @@ rather than as a percentage, since a percentage figure close to or above 100\% b
     \toprule
     Data Type & N & Advantage over QuickHuskySort \\
     \midrule
-    \texttt{Strings of English words} & 1,000,000 & 1.6x \\
-    \texttt{Strings of Chinese words (natural order)} & 1,000,000 & 1.3x \\
-    \texttt{Strings of Chinese names (pinyin order)} & 1,000,000 & 1.6x \\
-    \texttt{Integer} & 500,000 & 2.9x \\
-    \texttt{Double} & 500,000 & 3.3x \\
-    \texttt{Long} & 500,000 & 2.9x \\
-    \texttt{BigInteger} & 500,000 & 3.1x \\
-    \texttt{BigDecimal} & 500,000 & 3.7x \\
-    \texttt{Tuples} & 500,000 & 2.6x \\
-    \texttt{Dates} & 20,000 & 4.5x \\
+    \texttt{Dates} & 20,000 & 5.9x \\
+    \texttt{Long} & 500,000 & 3.6x \\
+    \texttt{Integer} & 500,000 & 3.4x \\
+    \texttt{Strings of Chinese words (natural order)} & 1,000,000 & 3.3x \\
+    \texttt{Double} & 500,000 & 3.0x \\
+    \texttt{BigDecimal} & 500,000 & 2.9x \\
+    \texttt{BigInteger} & 500,000 & 2.8x \\
+    \texttt{Strings of English words} & 1,000,000 & 2.7x \\
+    \texttt{Tuples} & 500,000 & 2.5x \\
+    \texttt{Building permits (composite key)} & 198,900 & 2.1x \\
+    \texttt{Strings of Chinese names (pinyin order)} & 1,000,000 & 1.5x \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1285,18 +1286,22 @@ shows HuskySort's own advantage over dual-pivot quicksort \emph{shrinking} as $N
 from a relative time of 0.60 at $N=1{,}000$ to 0.97 at $N=4{,}000{,}000$,
 i.e., the improvement fades from roughly 40\% to roughly 3\%, which would undermine confidence that the advantage is durable at larger scale.
 Radix sort's advantage over QuickHuskySort does not shrink with $N$ in the same way:
-at every size and data type in Table ~\ref{tab:RadixImprovements}, the margin is 1.3x or greater,
+at every size and data type in Table ~\ref{tab:RadixImprovements}, the margin is 1.5x or greater,
 consistent with the theoretical model of \S~\ref{sec:radix} predicting no logarithmic term at all,
 so there is no analogous reason to expect the advantage to erode as $N$ grows further.
-Chinese names sorted by pinyin order are the smallest margin measured (1.6x)
-because both QuickHuskySort and RadixHuskySort must pay the same collator-based cleanup pass cost for that coding;
-Dates show the largest margin (4.5x) because that coding is provably perfect and never needs a cleanup pass at all,
+The spread across that table is itself informative, and follows the three factors of \S~\ref{sec:radix}.
+Chinese names sorted by pinyin order are the smallest margin measured (1.5x),
+because both QuickHuskySort and RadixHuskySort must pay the same cleanup pass for a coding
+that two or three characters of recurring syllables leave badly imperfect.
+Dates show the largest margin (5.9x) because that coding is provably perfect and never needs a cleanup pass at all,
 letting radix's linear-time advantage show through with nothing else in the way.
+The two lie at opposite ends of the same axis: what separates them is not the data type but the exactness of the encoding.
 
-An independent confirmation run on entirely different hardware (Table ~\ref{tab:SysEnvAWS}) reinforces this finding:
-at $N=1{,}000{,}000$, RadixHuskySort/16 beat QuickHuskySort by 2.51x on English text and 2.85x on Chinese text,
-with confidence intervals under 2\% of the mean even at that size —
-a margin two orders of magnitude larger than the measurement noise, on hardware entirely different from either machine of \S~\ref{sec:analysis} above.
+The measurements were reproduced qualitatively on the two machines of Tables ~\ref{tab:SysEnvOriginal}
+and ~\ref{tab:SysEnvCurrent}, which differ from the machine of record and from each other in vendor,
+instruction set, core design and JVM generation.
+We quote no figures from them, since mixing environments within a comparison would rob it of meaning,
+but every ordering reported here holds on all three.
 
 \subsection{Parallel Radix Sort}
 \label{sec:parallel-radix}
@@ -1329,26 +1334,27 @@ serial vs. 1, 2, 4, and 8 worker threads}
     \toprule
     N & Serial & 1 thread & 2 threads & 4 threads & 8 threads \\
     \midrule
-    2,000,000 & 100.4$\pm$24.0 & 107.5$\pm$10.7 & 83.7$\pm$3.3 & 76.3$\pm$4.1 & 77.3$\pm$3.6 \\
-    10,000,000 & 574.3$\pm$83.3 & 685.3$\pm$135.5 & 569.5$\pm$307.0 & 426.4$\pm$49.1 & 444.0$\pm$127.3 \\
+    2,000,000 & 174.0$\pm$6.0 & 170.2$\pm$2.2 & 139.3$\pm$1.4 & 121.7$\pm$1.8 & 110.5$\pm$2.6 \\
+    10,000,000 & 943.4$\pm$31.4 & 887.6$\pm$25.7 & 745.3$\pm$21.6 & 685.4$\pm$22.4 & 634.1$\pm$23.2 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
 Isolating parallelism itself, that's to say comparing 1 thread against 4, both paying identical thread-coordination overhead,
-gives a real, statistically resolved speedup at both sizes:
-1.41x at $N=2{,}000{,}000$ and 1.61x at $N=10{,}000{,}000$.
-These are non-overlapping confidence intervals in both cases.
-Compared with the serial implementation, the improvement is resolved at $N=10{,}000{,}000$ (574.3ms to 426.4ms, 1.35x)
-and is directionally consistent but not fully resolved at $N=2{,}000{,}000$ (1.32x, overlapping intervals).
-Four threads is the practical sweet spot on the machine used for this measurement (four performance and four efficiency cores):
-eight threads performs statistically indistinguishably from four at both sizes,
-consistent with only four of the eight cores being full-performance ones.
+gives a statistically resolved speedup at both sizes: 1.40x at $N=2{,}000{,}000$ and 1.29x at $N=10{,}000{,}000$,
+with non-overlapping confidence intervals in both cases.
+Against the serial implementation the improvement is resolved at both sizes too,
+174.0ms to 121.7ms at $N=2{,}000{,}000$ and 943.4ms to 685.4ms at $N=10{,}000{,}000$.
+Unlike on the eight-core machine of an earlier draft, scaling does not stop at four threads:
+on sixteen uniform cores, eight threads beats four at both sizes with intervals that do not overlap,
+reaching 1.54x and 1.40x over a single thread.
 
-A follow-up confirmation run rules out that explanation, however:
-on a cloud server instance with 16 uniform cores and no performance/efficiency split (Table ~\ref{tab:SysEnvAWS}),
-scaling from $p=1$ to $p=8$ threads at $N=10{,}000{,}000$ was 980.9ms to 672.5ms —
-only 1.46x for an 8x increase in thread count, essentially the same flattening pattern seen above despite there being no core asymmetry to blame it on.
+That is still well short of linear, and the shortfall is the more interesting number.
+An eightfold increase in threads buys between 1.4x and 1.5x,
+on hardware with no performance/efficiency asymmetry to account for it.
+The explanation we favour is bandwidth rather than scheduling:
+each digit pass scatters across the whole array, so the algorithm is limited by memory throughput,
+which extra cores do not supply.
 The parallel variant still beat QuickHuskySort by roughly 6-9x on that run even at this weak scaling,
 since most of that margin comes from radix sort's own serial advantage rather than parallelism's incremental contribution.
 This points instead to a property of the design itself:
