@@ -35,19 +35,31 @@
 %% values in them; it is your responsibility as an author to replace
 %% the commands and values with those provided to you when you
 %% complete the rights form.
-\setcopyright{acmcopyright}
-\copyrightyear{2020}
-\acmYear{2020}
-\acmDOI{10.1145/1122445.1122456}
+%% NOTE this paper is submitted to SIAM ACDA, not to an ACM venue.
+%% The acmart class is retained only as a typesetting vehicle; every field below that
+%% would assert an ACM identity is therefore suppressed rather than filled in.
+%% See paper/Paper edits pending.md, "The template" -- whether acmart is acceptable at
+%% all for ACDA is an open question and needs deciding before submission.
+\setcopyright{none}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{}
+\settopmatter{printacmref=false}
+%% ...and the first page carries the same journal line separately, in the copyright-permission
+%% footnote, which setcopyright{none} empties but does not remove.
+\renewcommand\footnotetextcopyrightpermission[1]{}
 
 
 %%
-%% These commands are for a JOURNAL article.
+%% acmart insists on a valid journal code in journal mode, so TOG is retained purely to let the
+%% class load; printacmref=false suppresses the reference block that would otherwise print it.
+%% The volume, number and article defaults (37, 4, 111) are blanked -- 111 was appearing in every
+%% running header as "111:2".
 \acmJournal{TOG}
-\acmVolume{37}
-\acmNumber{4}
-\acmArticle{111}
-\acmMonth{8}
+\acmVolume{}
+\acmNumber{}
+\acmArticle{}
+\acmMonth{9}
 \pdfoutput=1
 %%
 %% Submission ID.
@@ -215,24 +227,35 @@
 %% article.
 
 \begin{abstract}
-Most sorting algorithms in the literature optimize for the number of comparisons or exchanges;
-we argue the more appropriate yardstick is the total number of array accesses (the "work"),
-which for divide-and-conquer sorts splits into a linear, $\textbf{O}(N)$, phase and a linearithmic,
-$\textbf{O}(N \log N)$, phase.
-Moving work out of the linearithmic phase and into the linear phase reduces this total and,
-for types where comparison itself is expensive, reduces processing time as well.
-The key concept is a 64-bit code that is, as far as possible, order-preserving, and stands in as a proxy for each original element.
-We call this code a "Husky" code.
-We present two algorithms based on this idea:
-QuickHuskySort encodes each object into its husky code in a linear preamble to the sorting process,
-then it sorts on the cheap encoded keys instead of the expensive originals,
-and falls back to a cleanup pass only in those situations where the encoding is imperfect.
-RadixHuskySort replaces that sort with a linear-time radix sort on the same encoded keys,
-moving the second phase itself from linearithmic to linear.
-Both consistently outperform Java's own system sort for objects —
-Timsort — where the objects are expensive to compare, such as Strings:
-QuickHuskySort by 1.2--2.1x, RadixHuskySort by 2--6x at realistic array sizes,
-a pattern confirmed independently across three CPU architectures.
+    Most sorting algorithms in the literature optimize for the number of comparisons or exchanges;
+    we argue the more appropriate yardstick is the total number of array accesses (the "work"),
+    which for divide-and-conquer sorts splits into a linear, $\textbf{O}(N)$, phase and a linearithmic,
+    $\textbf{O}(N \log N)$, phase.
+    Moving work out of the linearithmic phase and into the linear phase reduces this total and,
+    where comparison itself is expensive, reduces processing time as well.
+    The key concept is a 64-bit code that is, as far as possible, order-preserving,
+    and stands in as a proxy for each original element;
+    we call it a "Husky" code.
+    Its effect is to extract each element's sort key once, rather than once per comparison.
+    We present two algorithms built on it.
+    QuickHuskySort encodes each object in a linear preamble,
+    sorts the cheap encoded keys in place of the expensive originals,
+    and falls back to a cleanup pass only where the encoding is imperfect.
+    RadixHuskySort replaces that sort with a linear-time radix sort on the same keys,
+    moving the second phase itself from linearithmic to linear.
+    Measured against Java's system sort for objects --- across integers, arbitrary-precision numbers,
+    dates, tuples, English and Chinese text,
+    and two hundred thousand municipal records ordered by a composite key ---
+    RadixHuskySort is faster in every case, by 3.6--6.6x;
+    QuickHuskySort, which retains a comparison sort, by 1.4--2.3x wherever comparison is genuinely costly.
+    The margin is widest when the ordering is expensive to evaluate and the encoding is exact,
+    so that no cleanup pass is needed:
+    measured on input where that pass provably has nothing to correct,
+    it nonetheless accounts for a tenth to a quarter of total running time.
+    It is narrowest where algorithms specialised to the type already exist ---
+    on English words a tuned MSD radix sort matches or overtakes us ---
+    which bounds the result rather than contradicting it,
+    since the same mechanism applies unchanged to types for which no specialised sort exists.
 \end{abstract}
 
 %%
@@ -282,6 +305,13 @@ a pattern confirmed independently across three CPU architectures.
 
 
 \maketitle
+
+%% acmart's journal page style prints "ACM Trans. Graph., Vol. , No. , Article ." in the footer of
+%% every page. With the journal fields blanked that reads as a broken ACM footer rather than a
+%% suppressed one, so the plain style replaces it with a bare page number.
+\pagestyle{plain}
+%% maketitle sets the first page's style itself, so it needs overriding separately.
+\thispagestyle{plain}
 %%
 %% This command processes the author and affiliation and title
 %% information and builds the first part of the formatted document.

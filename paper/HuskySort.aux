@@ -69,15 +69,15 @@
 \newlabel{alg:the_alg4}{{6}{6}{Why HuskySort Works}{algocf.6}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Benchmark environment used for the comparison-sort results (\S  \nonbreakingspace \ref  {sec:analysis})\relax }}{6}{table.caption.11}\protected@file@percent }
 \newlabel{tab:SysEnvOriginal}{{2}{6}{Benchmark environment used for the comparison-sort results (\S ~\ref {sec:analysis})\relax }{table.caption.11}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Implementation of Algorithm}{6}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Benchmark environment used for the radix-sort and JMH results (\S  \nonbreakingspace \ref  {sec:radix}--\S  \nonbreakingspace \ref  {sec:radix-results})\relax }}{6}{table.caption.12}\protected@file@percent }
+\newlabel{tab:SysEnvCurrent}{{3}{6}{Benchmark environment used for the radix-sort and JMH results (\S ~\ref {sec:radix}--\S ~\ref {sec:radix-results})\relax }{table.caption.12}{}}
 \citation{GOLDHAHN12.327}
 \citation{wainshine2020chinesenames}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Benchmark environment used for the radix-sort and JMH results (\S  \nonbreakingspace \ref  {sec:radix}--\S  \nonbreakingspace \ref  {sec:radix-results})\relax }}{7}{table.caption.12}\protected@file@percent }
-\newlabel{tab:SysEnvCurrent}{{3}{7}{Benchmark environment used for the radix-sort and JMH results (\S ~\ref {sec:radix}--\S ~\ref {sec:radix-results})\relax }{table.caption.12}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Benchmark environment used for the AWS Graviton3 confirmation run\relax }}{7}{table.caption.13}\protected@file@percent }
 \newlabel{tab:SysEnvAWS}{{4}{7}{Benchmark environment used for the AWS Graviton3 confirmation run\relax }{table.caption.13}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces String-encoding constants\relax }}{7}{table.caption.14}\protected@file@percent }
 \newlabel{tab:EncodingConstants}{{5}{7}{String-encoding constants\relax }{table.caption.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Implementation of Algorithm}{7}{subsection.4.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {5}Test Case and Analysis}{7}{section.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Data Source}{7}{subsection.5.1}\protected@file@percent }
 \newlabel{lst:DS}{{1}{7}{Data Source}{lstlisting.1}{}}
@@ -87,6 +87,8 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Analysis}{7}{subsection.5.2}\protected@file@percent }
 \newlabel{sec:analysis}{{5.2}{7}{Analysis}{subsection.5.2}{}}
 \citation{GOLDHAHN12.327}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Theoretical comparisons (array accesses, dimensionless counts)\relax }}{9}{table.caption.16}\protected@file@percent }
+\newlabel{tab:Comparison}{{6}{9}{Theoretical comparisons (array accesses, dimensionless counts)\relax }{table.caption.16}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Time vs Size ($N$)\relax }}{9}{figure.caption.19}\protected@file@percent }
 \newlabel{Fig:TvsN}{{4}{9}{Time vs Size ($N$)\relax }{figure.caption.19}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Results and Observations}{9}{section.6}\protected@file@percent }
@@ -95,24 +97,22 @@
 \newlabel{sec:summary}{{6.2}{9}{Summary}{subsection.6.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Radix Sort Results}{9}{subsection.6.3}\protected@file@percent }
 \newlabel{sec:radix-results}{{6.3}{9}{Radix Sort Results}{subsection.6.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort}{9}{subsection.6.4}\protected@file@percent }
-\newlabel{sec:parallel-radix}{{6.4}{9}{Parallel Radix Sort}{subsection.6.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Theoretical comparisons (array accesses, dimensionless counts)\relax }}{10}{table.caption.16}\protected@file@percent }
-\newlabel{tab:Comparison}{{6}{10}{Theoretical comparisons (array accesses, dimensionless counts)\relax }{table.caption.16}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Relative sort times for HuskySort, dual-pivot quicksort, system sort (dimensionless ratio, normalized to DP quicksort = 1.00)\relax }}{10}{table.caption.17}\protected@file@percent }
 \newlabel{tab:HSComp}{{7}{10}{Relative sort times for HuskySort, dual-pivot quicksort, system sort (dimensionless ratio, normalized to DP quicksort = 1.00)\relax }{table.caption.17}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Timsort or insertion sort as the cleanup pass (time in milliseconds)\relax }}{10}{table.caption.18}\protected@file@percent }
 \newlabel{tab:TimvsInsertion}{{8}{10}{Timsort or insertion sort as the cleanup pass (time in milliseconds)\relax }{table.caption.18}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Comparison of HuskySort with system sort (Numeric, $N=500{,}000$, ms, mean $\pm $ 99.9\% CI)\relax }}{10}{table.caption.20}\protected@file@percent }
 \newlabel{tab:HS_BM_N}{{9}{10}{Comparison of HuskySort with system sort (Numeric, $N=500{,}000$, ms, mean $\pm $ 99.9\% CI)\relax }{table.caption.20}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Comparison of HuskySort with system sort (Strings, ms, mean $\pm $ 99.9\% CI)\relax }}{11}{table.caption.21}\protected@file@percent }
-\newlabel{tab:HS_BM_S}{{10}{11}{Comparison of HuskySort with system sort (Strings, ms, mean $\pm $ 99.9\% CI)\relax }{table.caption.21}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Comparison of HuskySort with system sort (Strings, ms, mean $\pm $ 99.9\% CI)\relax }}{10}{table.caption.21}\protected@file@percent }
+\newlabel{tab:HS_BM_S}{{10}{10}{Comparison of HuskySort with system sort (Strings, ms, mean $\pm $ 99.9\% CI)\relax }{table.caption.21}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Comparison of HuskySort with system sort (Tuples, ms, mean $\pm $ 99.9\% CI)\relax }}{11}{table.caption.22}\protected@file@percent }
 \newlabel{tab:HS_BM_T}{{11}{11}{Comparison of HuskySort with system sort (Tuples, ms, mean $\pm $ 99.9\% CI)\relax }{table.caption.22}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Improvements Summary\relax }}{11}{table.caption.23}\protected@file@percent }
 \newlabel{tab:Improvements Summary}{{12}{11}{Improvements Summary\relax }{table.caption.23}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Radix sort advantage over QuickHuskySort\relax }}{11}{table.caption.24}\protected@file@percent }
 \newlabel{tab:RadixImprovements}{{13}{11}{Radix sort advantage over QuickHuskySort\relax }{table.caption.24}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort}{11}{subsection.6.4}\protected@file@percent }
+\newlabel{sec:parallel-radix}{{6.4}{11}{Parallel Radix Sort}{subsection.6.4}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {14}{\ignorespaces Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{12}{table.caption.25}\protected@file@percent }
 \newlabel{tab:ParallelRadix}{{14}{12}{Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.25}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Use-Case Guidance}{12}{subsection.6.5}\protected@file@percent }
@@ -133,16 +133,16 @@
 \bibcite{10.5555/313559.313859}{{11}{1993}{{McIlroy}}{{McIlroy}}}
 \bibcite{doi:10.1002}{{12}{1997}{{MUSSER}}{{MUSSER}}}
 \bibcite{Timsort}{{13}{2002}{{Peters}}{{Peters}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Which sort to reach for, by array size (String keys). Band edges fade across the measured crossover zones rather than showing a hard cutoff, reflecting the genuine uncertainty in exactly where each crossover falls. Not shown: if the source data defeats the husky encoding's fixed capture window, plain System sort is the safe choice at any $N$ (\S  \nonbreakingspace \ref  {sec:adversarial}); and given a large workload and spare cores, \textit  {ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still (\S  \nonbreakingspace \ref  {sec:parallel-radix}).\relax }}{13}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:usecase}{{5}{13}{Which sort to reach for, by array size (String keys). Band edges fade across the measured crossover zones rather than showing a hard cutoff, reflecting the genuine uncertainty in exactly where each crossover falls. Not shown: if the source data defeats the husky encoding's fixed capture window, plain System sort is the safe choice at any $N$ (\S ~\ref {sec:adversarial}); and given a large workload and spare cores, \textit {ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still (\S ~\ref {sec:parallel-radix}).\relax }{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {section}{Acknowledgments}{13}{section*.28}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{References}{13}{section*.30}\protected@file@percent }
 \bibcite{10.1007/3-540-61680-2_42}{{14}{1996}{{Sedgewick}}{{Sedgewick}}}
 \bibcite{1064546.1180622}{{15}{2004}{{Sinha and Zobel}}{{Sinha and Zobel}}}
 \bibcite{wainshine2020chinesenames}{{16}{2020}{{Wainshine}}{{Wainshine}}}
 \bibcite{6115063}{{17}{2011}{{{Xiang}}}{{{Xiang}}}}
 \bibcite{Dual-pivot}{{18}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
 \bibcite{sort}{{19}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Which sort to reach for, by array size (String keys). Band edges fade across the measured crossover zones rather than showing a hard cutoff, reflecting the genuine uncertainty in exactly where each crossover falls. Not shown: if the source data defeats the husky encoding's fixed capture window, plain System sort is the safe choice at any $N$ (\S  \nonbreakingspace \ref  {sec:adversarial}); and given a large workload and spare cores, \textit  {ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still (\S  \nonbreakingspace \ref  {sec:parallel-radix}).\relax }}{13}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:usecase}{{5}{13}{Which sort to reach for, by array size (String keys). Band edges fade across the measured crossover zones rather than showing a hard cutoff, reflecting the genuine uncertainty in exactly where each crossover falls. Not shown: if the source data defeats the husky encoding's fixed capture window, plain System sort is the safe choice at any $N$ (\S ~\ref {sec:adversarial}); and given a large workload and spare cores, \textit {ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still (\S ~\ref {sec:parallel-radix}).\relax }{figure.caption.26}{}}
+\@writefile{toc}{\contentsline {section}{Acknowledgments}{13}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{13}{section*.30}\protected@file@percent }
 \citation{10.1002/spe.4380231105}
 \@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{14}{appendix.A}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Discussion of coding accuracy}{14}{subsection.A.1}\protected@file@percent }

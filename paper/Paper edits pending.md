@@ -42,6 +42,55 @@ qualitatively — but no figure from it goes into the paper.
 
 ---
 
+# 0a. The template — needs your decision, not mine
+
+The paper is `\documentclass[acmtog]{acmart}` — ACM's class, in its Transactions on Graphics
+variant — and is going to **SIAM ACDA**. I have suppressed everything that asserted an ACM identity
+(see below), so the PDF no longer claims to be anything it isn't. What I have *not* done is change the
+template, because that is a decision with consequences I cannot weigh:
+
+- **SIAM normally requires `siamart`.** That class is not installed here (`kpsewhich` finds neither
+  `siamart220329.cls` nor `siamart190516.cls`). Check ACDA's call for papers: some SIAM venues accept
+  any reasonable format for review and only require `siamart` on acceptance.
+- **A template change will change the page count.** The paper is currently 15 pages in acmart's
+  two-column journal layout. `siamart` and acmart's own `manuscript` option are both single-column and
+  would run considerably longer. If ACDA has a page limit, that is the thing to check first — before
+  the 15th, not on it.
+- Retaining acmart while suppressing its identity is defensible for a review copy and indefensible for
+  a camera-ready one.
+
+## What was changed, and what it was hiding
+
+Page one previously read *"ACM Trans. Graph. 37, 4, Article 111 (August 2020)"* with the template's
+placeholder DOI `10.1145/1122445.1122456`, a 2020 ACM copyright block, and `111:2` in the running
+header of every page. All of it was unedited `sample-acmsmall` boilerplate.
+
+| change | why |
+| --- | --- |
+| `\setcopyright{none}`, `\copyrightyear{2026}`, `\acmYear{2026}` | it asserted ACM copyright, in 2020 |
+| `\acmDOI{}` | the DOI was the template's placeholder and resolved to nothing of ours |
+| `\settopmatter{printacmref=false}` | removed the "ACM Trans. Graph. …" reference block |
+| `\acmVolume{} \acmNumber{} \acmArticle{}` | 37 / 4 / 111 were invented; 111 was in every header |
+| `\acmJournal{TOG}` **kept** | acmart refuses to build without a valid journal code; it no longer prints |
+| `\renewcommand\footnotetextcopyrightpermission[1]{}` | the first page carried the journal line separately |
+| `\pagestyle{plain}` and `\thispagestyle{plain}` after `\maketitle` | the journal footer printed "Vol. , No. , Article ." with the fields blanked, which looks broken rather than suppressed; `\maketitle` sets page one's style itself, hence both |
+
+Verified: zero occurrences of any ACM identity anywhere in the built PDF, still 15 pages, and the four
+remaining instances of "2020" are genuine citations.
+
+## Two more things in the front matter that I have left alone
+
+- **`\setcopyright{none}` is right for review and wrong for camera-ready.** Whatever ACDA requires,
+  set it then.
+- **The author footnotes describe the 2020 division of labour.** They credit Yunlu with "early
+  benchmarking" and Sai Vineeth with having "wrote the paper with input from all authors". Yunlu has
+  since produced every figure in the paper on his own hardware, across six benchmark runs and some
+  twenty-five hours of machine time, and this year's rewriting is not his. Whether that changes the
+  footnotes or the author order is yours and theirs to settle, but it should be settled deliberately
+  rather than by inheritance.
+
+---
+
 # 0. The abstract — URGENT, due 2026-09-08
 
 All figures below are from `doc/full-suite.json`, keyed on class *and* every parameter: dropping either
