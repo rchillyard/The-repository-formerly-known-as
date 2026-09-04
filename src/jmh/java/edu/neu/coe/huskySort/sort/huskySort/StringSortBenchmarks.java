@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderChinesePinyin;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.radix.Alphabet;
 import edu.neu.coe.huskySort.sort.radix.MSDStringSort;
@@ -134,6 +135,23 @@ public class StringSortBenchmarks {
     public String[] systemSort(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         Arrays.sort(copy);
+        return copy;
+    }
+
+    // ---------- The system sort under the SAME ordering as the husky variants, for chinesenames.
+    // systemSort above calls Arrays.sort with no comparator, which on this corpus sorts by raw
+    // UTF-16 code point and performs no pinyin lookup at all -- a cheaper task, and the wrong one
+    // for personal names. Comparing a pinyin-correct sort against it is not a comparison. This
+    // benchmark gives the system sort the same job: NAME_ORDER, the three-level syllable/tone/
+    // code-point comparator that MultikeyQuicksort.sortByPinyin already uses as its fallback. ----------
+
+    @Benchmark
+    public String[] systemSortPinyin(final StringState state) {
+        if (!state.corpus.equals("chinesenames"))
+            throw new IllegalStateException("systemSortPinyin is meaningful only for the chinesenames"
+                    + " corpus, where pinyin order is the correct order. Use -p corpus=chinesenames.");
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        Arrays.sort(copy, HuskyCoderChinesePinyin.NAME_ORDER);
         return copy;
     }
 
