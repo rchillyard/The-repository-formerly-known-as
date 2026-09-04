@@ -279,6 +279,41 @@ confirmation (third request).
 
 ---
 
+# 5.3 §sec:usecase — the crossovers move, and gain an explanation
+
+Request 5 supplies the small-N figures on the machine of record. They differ from the M1 ones the
+paper currently gives (line 1307 says they are M1-only), so the guidance needs restating:
+
+| regime | paper says (M1) | Graviton3 |
+| --- | --- | --- |
+| system sort wins | at N=20 and N=50 | **N ≤ 20**, and thin at 20 (0.462 vs insertion's 0.489) |
+| insertion sort wins outright | roughly N=100 to 200 | **N=50 to 200** |
+| QuickHuskySort best | N=500 to ~2,000 | **N=500 to 2,000** — unchanged |
+| RadixHuskySort takes over | not stated precisely | between **2,000 and 10,000** |
+
+And one number worth having, which the paper currently gestures at rather than states. RadixHuskySort's
+curve is a flat **~166 µs floor** from n=4 to n=500 — the allocation and setup of the two
+65,536-entry counting structures — which only the O(n) growth begins to dominate past a few thousand
+elements. The present text says merely that "RadixHuskySort's own fixed digit-pass setup cost is not
+yet amortized below that point"; a measured floor is a much better answer, and explains the shape of
+the whole low-N region.
+
+# 5.4 §Implementation — the System Environment table, from fact
+
+Yunlu answered every drift question and volunteered one we had not asked:
+
+| item | value |
+| --- | --- |
+| Memory | **30 GiB** — `free -h` says `30Gi`. Our 30-vs-32 question is settled: the paper is right, and the 32 was the instance's nominal size. |
+| Kernel | **6.12.100-125.179.amzn2023.aarch64** — the AMI moved on since August's 6.12.95 and it is not reversible on that host. Record it rather than reconcile it. |
+| Maven | **3.9.16**, pinned back deliberately for these runs. |
+| JDK | **Corretto 21.0.12.8.1 (21.0.12+8-LTS)** — byte-identical to August. The system JDK auto-patched itself to 21.0.12.1+9 overnight and he caught it and pinned back, which is why the runs are comparable at all. |
+| Swap | **8 GiB zram** where August recorded 0 B. Compressed RAM rather than disk, and the heaps stayed resident, but the table should say what was true on the day. |
+
+Verbatim `lscpu`, `free -h`, `swapon --show`, `uname -r`, `java -version` and `mvn -v` are in the
+appendix of `doc/Run results from Yunlu 2026-09-02.md`, so the table can be written from those rather
+than from memory.
+
 # 6. Checked and found unaffected — do not re-open
 
 - **Line 514, the pinyin comparison (1.6–2.7x).** Verified against the diff of `7752569`: the pinyin
