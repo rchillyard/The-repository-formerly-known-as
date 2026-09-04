@@ -124,13 +124,9 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
      * @return a packed key; higher means later in pinyin order.
      */
     public static long pinyinCharacterKey(final char c) {
-        final String alt = altOf(c);
-        final int space = alt.indexOf(' ');
-        final String syllable = space >= 0 ? alt.substring(0, space) : alt;
-        final String toneText = space >= 0 ? alt.substring(space + 1) : "";
-        final int ordinal = HanyuPinyinSyllables.ordinalOf(syllable);
-        final long syllableValue = ordinal >= 0 ? ordinal + 1L : 0L;
-        final long toneValue = toneOf(toneText);
+        final long syllableAndTone = syllableAndToneOf(c);
+        final long syllableValue = syllableAndTone >>> BITS_PER_TONE;
+        final long toneValue = syllableAndTone & ((1L << BITS_PER_TONE) - 1);
         return (syllableValue << (BITS_PER_TONE + Character.SIZE)) | (toneValue << Character.SIZE) | c;
     }
 
@@ -187,17 +183,8 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     private static long encodeHanyuOrdinal(final String s) {
         long result = 0L;
         final int n = Math.min(s.length(), MAX_CHARACTERS);
-        for (int i = 0; i < n; i++) {
-            final String alt = altOf(s.charAt(i));
-            final int space = alt.indexOf(' ');
-            final String syllable = space >= 0 ? alt.substring(0, space) : alt;
-            final String toneText = space >= 0 ? alt.substring(space + 1) : "";
-            final int ordinal = HanyuPinyinSyllables.ordinalOf(syllable);
-            final long syllableValue = ordinal >= 0 ? ordinal + 1L : 0L;
-            final long toneValue = toneOf(toneText);
-            final long charValue = (syllableValue << BITS_PER_TONE) | toneValue;
-            result = (result << BITS_PER_CHARACTER) | charValue;
-        }
+        for (int i = 0; i < n; i++)
+            result = (result << BITS_PER_CHARACTER) | syllableAndToneOf(s.charAt(i));
         result <<= (long) BITS_PER_CHARACTER * (MAX_CHARACTERS - n);
         return result;
     }
@@ -235,6 +222,36 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
     private static final Map<Character, String> ALT_CACHE = new ConcurrentHashMap<>();
 
     /**
+     * Memoized syllable-and-tone value for a character: the expensive half of both
+     * {@link #encodeHanyuOrdinal} and {@link #pinyinCharacterKey}.
+     * <p>
+     * Deriving it costs two substring allocations, a string-keyed table search and a string parse.
+     * The encoder pays that for every character of every element, which is the one place this
+     * mechanism cannot afford it: paying the key extraction once per element rather than once per
+     * comparison is the whole premise, and an extraction an order of magnitude dearer than a
+     * comparison inverts the economics. {@link #altOf} is cached by the same argument, and the
+     * vocabulary bound that justifies it applies here identically.
+     *
+     * @param c a character.
+     * @return its syllable ordinal in the high bits, its tone in the low BITS_PER_TONE bits.
+     */
+    private static long syllableAndToneOf(final char c) {
+        return SYLLABLE_TONE_CACHE.computeIfAbsent(c, HuskyCoderChinesePinyin::computeSyllableAndTone);
+    }
+
+    private static long computeSyllableAndTone(final char c) {
+        final String alt = altOf(c);
+        final int space = alt.indexOf(' ');
+        final String syllable = space >= 0 ? alt.substring(0, space) : alt;
+        final String toneText = space >= 0 ? alt.substring(space + 1) : "";
+        final int ordinal = HanyuPinyinSyllables.ordinalOf(syllable);
+        final long syllableValue = ordinal >= 0 ? ordinal + 1L : 0L;
+        return (syllableValue << BITS_PER_TONE) | toneOf(toneText);
+    }
+
+    private static final Map<Character, Long> SYLLABLE_TONE_CACHE = new ConcurrentHashMap<>();
+
+    /**
      * Package-private hook for {@code PolyphoneOverrideTrainer} and tests (TODO.md item 11):
      * the alt() memoization above is static, so anything that changes what
      * {@code ChineseCharacter.alt()} returns for a character (namely, installing or clearing
@@ -243,6 +260,9 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
      */
     static void clearAltCache() {
         ALT_CACHE.clear();
+        // NOTE the syllable-and-tone cache is derived from alt(), so it is stale for exactly the
+        // same reasons and must be dropped alongside it.
+        SYLLABLE_TONE_CACHE.clear();
     }
 
     private static long encodeBoPoMoFo(final String s) {
