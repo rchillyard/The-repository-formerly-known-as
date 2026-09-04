@@ -35,12 +35,12 @@ Twenty minutes, and it revises a conclusion from your 2026-09-03 report rather t
 
 ```
 git fetch origin Revisions
-git checkout f5fb597
+git checkout 5ed60a0
 mvn -Pjmh package -DskipTests
 java -jar target/benchmarks.jar "StringSortBenchmarks.(systemSort|systemSortPinyin|quickHuskySort|radixHuskySort16|multikeyQuicksort)$" -p corpus=chinesenames -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff pinyin.json
 ```
 
-Note the **new commit**, `f5fb597` — `systemSortPinyin` does not exist at `d3c359f`.
+Note the **new commit**, `5ed60a0` — `systemSortPinyin` does not exist at `d3c359f`.
 
 ### Why — your chinesenames finding needs an asterisk
 
@@ -75,11 +75,15 @@ the suite where the key extraction is expensive enough for it to show in isolati
 expect `systemSortPinyin` to be *far* slower than everything else, and the corpus to turn from the
 paper's weakest result into its clearest demonstration.
 
-If instead `systemSortPinyin` is competitive, that is a much more interesting result and worth a
-message before we write anything: it would mean the pinyin encoding pass is costing more than the
-lookups it saves. There is some reason to wonder — `huskyEncodeOnly` on chinesenames is 408.4 ms/op at
-1M against 14.3 for the `chinese` corpus, about 400 ns per name, which seems a lot for two or three
-table lookups. Your `huskyEncodeOnly` row in this run will tell us.
+**One thing changed since you last ran this corpus, and it is why the commit moved.** Your 408.4 ms/op
+`huskyEncodeOnly` figure prompted us to look at the pinyin coder, and the key extraction turned out to
+be doing two substring allocations, a string-keyed table search and a string parse *per character, per
+element*, uncached — while the comparator's equivalent was already memoized. So the once-per-element
+path was the expensive one and the per-comparison path the cheap one, which is backwards for the whole
+premise. The per-character value is now cached, worth **5.7x** on the encoding pass in our own
+measurement (133 ns per name down to 23 ns), and verified bit-identical over all 1,145,009 names in
+the corpus. Expect `huskyEncodeOnly` to come in far below 408 ms this time; if it does not, please tell
+us, because then we have misdiagnosed it.
 
 Please keep `systemSort` in the command as well: having both, side by side at the same sizes, is what
 lets the paper state plainly what the difference between them is.
