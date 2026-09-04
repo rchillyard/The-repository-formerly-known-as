@@ -46,14 +46,20 @@ where it provably has nothing to do:
 | 100,000 | 18.553 ± 0.545 | 20.763 ± 0.474 | 11.9% |
 | 198,900 | 43.123 ± 0.794 | 50.634 ± 1.320 | **17.4%** |
 
-Non-overlapping intervals at all three sizes, and the cost **grows with n**.
+Non-overlapping intervals at all three sizes.
+
+**The apparent growth with n did not replicate.** On Yunlu's Graviton3 at the same commit the cost is
+9.8% at 32,000, **25.3%** at 100,000 and 19.0% at 198,900 — larger at every size than measured here,
+but peaking in the middle rather than rising. Monotonicity was an artefact of this machine. What
+survives, and is worth stating, is that a cleanup pass which provably has nothing to correct still
+costs between a tenth and a quarter of the running time at every size past 32,000.
 
 This is the measurement worth having. The discussion of $p_{crit}$ turns on what an imperfect encoding
 costs, and until now that cost has been argued rather than isolated: every other benchmark varies the
 encoding and the sort together. Here the encoding is held identical and only the perfection flag
-moves. A pass that finds nothing to correct still costs a sixth of the running time at 198,900, and
-more as n grows — which sharpens the case for exact encodings well beyond the dates example, and gives
-the $p_{crit}$ analysis an empirical anchor it did not have.
+moves. A pass that finds nothing to correct still costs a sixth of the running time here and a quarter of it
+on the machine the paper quotes — which sharpens the case for exact encodings well beyond the dates
+example, and gives the $p_{crit}$ analysis an empirical anchor it did not have.
 
 ## Caveats
 

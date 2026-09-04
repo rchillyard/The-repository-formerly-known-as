@@ -188,9 +188,10 @@ results in [Permit benchmark results 2026-09-01.md](Permit%20benchmark%20results
 whether the coder declares itself perfect, so one skips the cleanup pass and the other runs it and
 finds nothing to do. The gap between them is therefore the cost of the cleanup pass on input where it
 is provably unnecessary — the quantity the paper's $p_{crit}$ discussion turns on, and which has never
-been isolated, because every other benchmark varies the encoding and the sort together. We measure
-5.9% at n=32,000, 11.9% at 100,000 and **17.4% at 198,900**, growing with n, non-overlapping intervals
-throughout. This may be the most useful single number in the whole set of requests.
+been isolated, because every other benchmark varies the encoding and the sort together. We measured
+5.9% / 11.9% / 17.4%; your run gave 9.8% / 25.3% / 19.0% — larger throughout, and peaking in the
+middle rather than growing, so the monotonicity we saw was ours alone. The result stands and is more
+useful for being bounded: a tenth to a quarter of the running time, for a pass that corrects nothing.
 
 ### On trusting these numbers
 

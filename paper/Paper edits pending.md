@@ -267,8 +267,13 @@ favourable case in the paper is synthetic. Full results in
 
 The strongest new result, and it needs no reframing of anything. Two benchmarks compute identical
 codes and differ only in whether the coder declares itself perfect, so the gap is the cost of a
-cleanup pass that has nothing to correct: **5.9% at 32,000, 11.9% at 100,000, 17.4% at 198,900**,
-growing with $N$, non-overlapping intervals throughout. The $p_{crit}$ discussion has never had this
+cleanup pass that has nothing to correct. On the machine of record: **9.8% at 32,000, 25.3% at
+100,000, 19.0% at 198,900**, non-overlapping intervals throughout.
+
+**Do not write "grows with N".** That is what our own machine showed (5.9 / 11.9 / 17.4) and it did
+not replicate: Yunlu's figures are larger at every size and peak in the middle. The defensible claim
+is that the pass costs between a tenth and a quarter of the running time at every size past 32,000,
+while provably having nothing to correct. The $p_{crit}$ discussion has never had this
 isolated, because every other benchmark varies the encoding and the sort together. Awaiting Yunlu's
 confirmation (third request).
 
