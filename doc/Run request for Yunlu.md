@@ -8,6 +8,7 @@
 | 4 | The full suite at the current commit | **done** — PR #63, 20h30m unattended |
 | 5 | The small-N crossover | **done** — PR #63 |
 | 6 | chinesenames against a pinyin-*correct* system sort | **pending** — ~20 min, and it matters |
+| 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **pending** — ~40 min |
 
 **Requests 1 to 5 are all answered — thank you, that was fast.** Request 6 below is new, and it
 changes the interpretation of one of your own results.
@@ -22,7 +23,8 @@ radix-sort results on an Apple M1. Yours becomes the single source of record; th
 only as qualitative cross-checks, with no figures quoted from them. Your request-4 run is what makes
 that possible.
 
-**Only request 6 is outstanding.** Requests 3, 4 and 5 and their reasoning are in Appendix B;
+**Requests 6 and 7 are outstanding**, and they are independent — run them in either order, from one
+checkout. Requests 3, 4 and 5 and their reasoning are in Appendix B;
 nothing there needs acting on.
 
 ---
@@ -95,6 +97,55 @@ us, because then we have misdiagnosed it.
 
 Please keep `systemSort` in the command as well: having both, side by side at the same sizes, is what
 lets the paper state plainly what the difference between them is.
+
+## Request 7 — the adversarial sweep, with a baseline that no longer crashes
+
+About forty minutes: one class, no parameters.
+
+```
+java -jar target/benchmarks.jar "AdversarialSortBenchmarks" -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff adversarial.json
+```
+
+### Why — the crash was ours, not the algorithm's
+
+Your full-suite run recorded `collapsedBitsDualPivotQuicksort` dying with `StackOverflowError` on all
+five forks at three combinations. Robin's question was the right one: degrading to quadratic time on
+adversarial input is expected, but *crashing* is not.
+
+They turned out to be separate faults. Two-way partitioning around a heavily duplicated pivot goes
+maximally unbalanced, which costs quadratic time — that is the appendix's actual point and it stands.
+But the implementation also recursed on both partitions with no bound, so the depth reached order *N*
+and the stack was exhausted. Three-way partitioning cures the first; bounding the depth cures the
+second. A sort with the second and not the first goes quadratic and survives.
+
+Two things about that baseline had never been disclosed, and both matter:
+
+- **The JDK never applies dual-pivot quicksort to objects.** `Arrays.sort(Object[])` dispatches to
+  `ComparableTimSort`; the JDK's `DualPivotQuicksort` mentions neither `Comparable` nor `Object[]`.
+  Our class is the primitive algorithm hand-adapted to objects.
+- **Later JDKs added this exact guard.** JDK 21's version carries `MAX_RECURSION_DEPTH = 64 * DELTA`
+  with a `heapSort` fallback. Ours was a copy of the 2011 code, which predates it. So the baseline
+  failed where the algorithm it copies would now merely slow down — a straw man in the one place the
+  paper leans on it hardest.
+
+`PureDualPivotQuicksort` now carries a sixty-four-level guard with a heapsort fallback, matching the
+JDK's effective limit. Well-balanced input needs about twenty levels at *N* = 1,000,000, so nothing
+below the limit changes: the `fixedHighBits` 0 through 56 rows should reproduce your previous numbers
+within noise. **The rows to look at are 60 and 63**, which should now be timings rather than blank.
+
+### Checked before asking
+
+On identical data with a deliberately small 1MB stack: two `StackOverflowError`s at 60 and 63 without
+the guard, zero with it, across 3,024 trials covering the adversarial shapes, duplicate-heavy random
+input, all-equal, sorted, reversed, and the sizes either side of both internal thresholds.
+`PureDualPivotQuicksortDepthTest` pins all of it; `mvn test` is now **396** tests.
+
+### What we expect
+
+The 21x degradation at 56 fixed bits (7097.7ms against 335.7 at fhb=0) is the finding and should be
+unchanged — it is a property of the partitioning, not of the crash. At 60 and 63 expect the baseline
+to be slow but finite. If instead it is *fast* there, tell us: that would mean the heapsort fallback
+is being entered far earlier than intended, and the guard needs re-tuning rather than celebrating.
 
 ## A note on the Chinese corpora
 
