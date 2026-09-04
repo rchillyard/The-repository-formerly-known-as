@@ -1371,26 +1371,26 @@ For the remaining case — arrays of objects with no expectation of partial orde
 which sorter to reach for still depends on $N$.
 
 For String keys we measured every crossover directly (JMH, English corpus, $N=4$ through $10{,}000$).
-System sort is the fastest of the group at $N=20$ and $N=50$ (non-overlapping 99.9\% confidence intervals against QuickHuskySort),
-essentially tied with QuickHuskySort by $N=100$--$200$, and clearly overtaken by QuickHuskySort from $N=500$ on.
-A plain, binary-search-based insertion sort is statistically indistinguishable from System sort at $N \le 20$,
-but wins outright over both System sort and QuickHuskySort from roughly $N=100$ through $N=200$
-(non-overlapping confidence intervals both ways) — the one regime in this paper where plain insertion sort,
+System sort is the fastest of the group up to $N=20$, though only narrowly there
+(0.462$\mu$s against insertion sort's 0.489$\mu$s).
+A plain, binary-search-based insertion sort wins outright from $N=50$ through $N=200$ —
+the one regime in this paper where plain insertion sort,
 not either HuskySort variant, is the best available choice.
-QuickHuskySort pulls back ahead of insertion sort by $N=500$, and remains the best choice up to roughly $N=2{,}000$,
-since RadixHuskySort's own fixed digit-pass setup cost is not yet amortized below that point.
-Only somewhere between $N=2{,}000$ and $N=5{,}000$ does RadixHuskySort take over;
+QuickHuskySort takes over between $N=200$ and $N=500$, and remains the best choice up to roughly $N=2{,}000$,
+since RadixHuskySort's own fixed setup cost is not yet amortized below that point.
+That cost can be read directly off the measurements: RadixHuskySort's time is a near-constant
+166$\mu$s floor from $N=4$ to $N=500$, the allocation and initialisation of its counting structures,
+which only the linear term begins to dominate past a few thousand elements.
+Somewhere between $N=2{,}000$ and $N=10{,}000$ it takes over;
 its advantage then grows and holds at every larger size tested (Table~\ref{tab:RadixImprovements}).
 Every one of these crossovers shares the same shape:
 each successive algorithm carries a larger fixed setup cost that only pays for itself once there is enough work to amortize it against —
 the same fixed-vs-variable-cost story \S~\ref{sec:parallel-radix} found one level further down,
 where a parallel radix sort's own thread/barrier setup only pays off once there is enough work to divide across threads.
-These crossover points were measured only for String keys, and only on the machine of Table ~\ref{tab:SysEnvCurrent}.
+These crossover points were measured only for String keys.
 The fixed costs involved are architectural rather than type-specific,
 so other key types plausibly show similarly-shaped curves at similar sizes,
-but neither that nor the exact thresholds on different hardware has been separately confirmed —
-the AWS run of \S~\ref{sec:radix-results}--\S~\ref{sec:parallel-radix} only tested $N \ge 32{,}000$,
-outside the range where these crossovers occur.
+though that has not been separately confirmed.
 
 Two further caveats from elsewhere in this paper complete the picture.
 If the source data defeats the husky encoding's fixed capture window entirely —
@@ -1514,12 +1514,12 @@ Table ~\ref{tab:AdversarialBits} reports timings (milliseconds) at $N = 1{,}000{
     \toprule
     Fixed high bits & System sort & QuickHuskySort & Raw quicksort & Radix/16 \\
     \midrule
-    0  & 287.9 & 180.6 & 174.9 & 61.5 \\
-    32 & 232.0 & 193.4 & 180.2 & 53.5 \\
-    48 & 205.5 & 159.5 & 163.4 & 51.3 \\
-    56 & 107.4 & 82.6  & 3220.5 & 52.2 \\
-    60 & 71.5  & 75.6  & \textit{crashed} & 40.9 \\
-    63 & 27.1  & 13.1  & \textit{crashed} & 34.5 \\
+    0  & 480.0 & 405.9 & 335.7 & 76.9 \\
+    32 & 508.2 & 439.7 & 340.9 & 70.4 \\
+    48 & 499.8 & 364.0 & 354.6 & 67.9 \\
+    56 & 175.7 & 186.6 & 7097.7 & 60.8 \\
+    60 & 115.3 & 67.7  & \textit{crashed} & 44.4 \\
+    63 & 43.3  & 15.5  & \textit{crashed} & 35.0 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1538,7 +1538,12 @@ QuickHuskySort (with its depth-limited heapsort fallback)
 neither crashes nor slows down anywhere in this sweep — if anything it gets faster as duplication increases,
 the same pattern System sort shows,
 consistent with Timsort's adaptive run-detection treating long runs of nearly equal keys as already sorted.
-Radix sort is more robust still, because its immunity to this pattern is structural rather than incidental to a fallback mechanism.
+Indeed both overtake radix sort at the extreme of the sweep,
+where 63 fixed bits leave almost nothing to sort and an adaptive algorithm has almost nothing to do,
+while radix still pays for its fixed number of passes.
+Radix sort's robustness is of a different kind, and the more useful one:
+its cost is flat because it does not depend on the distribution at all,
+so it is the only algorithm here whose worst case can be read off its best.
 
 \textbf{Shared string prefixes.}
 We took real corpus words and prepended a fixed-length prefix of repeated characters,
@@ -1552,10 +1557,10 @@ Table ~\ref{tab:AdversarialPrefix} reports timings at $N = 1{,}000{,}000$.
     \toprule
     Prefix length & System sort & QuickHuskySort & Radix/16 \\
     \midrule
-    0  & 627.0 & 292.1 & 180.2 \\
-    10 & 452.9 & 484.9 & 519.9 \\
-    20 & 439.7 & 475.7 & 568.1 \\
-    40 & 516.7 & 556.7 & 582.3 \\
+    0  & 1328.2 & 664.8 & 235.7 \\
+    10 & 860.0 & 925.3 & 904.2 \\
+    20 & 887.7 & 914.2 & 892.6 \\
+    40 & 927.1 & 942.7 & 952.8 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1563,7 +1568,8 @@ Table ~\ref{tab:AdversarialPrefix} reports timings at $N = 1{,}000{,}000$.
 This is a genuinely different failure mode, and a less flattering one.
 Once the shared prefix reaches the coder's nine-character window, every element's husky code becomes bit-for-bit identical —
 the encoding provides zero disambiguation — and \emph{every} Husky-based approach,
-radix included, ends up slower than plain System sort, not merely no-longer-faster.
+radix included, loses its advantage completely,
+finishing level with plain System sort or a little behind it rather than ahead.
 The mechanism has nothing to do with which algorithm sorts the codes in step 2:
 once the encoding carries no information at all,
 the entire ordering burden falls on the mandatory cleanup pass (step 3) doing real string comparisons —
