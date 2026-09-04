@@ -35,12 +35,20 @@ Twenty minutes, and it revises a conclusion from your 2026-09-03 report rather t
 
 ```
 git fetch origin Revisions
-git checkout 5ed60a0
+git checkout origin/Revisions
 mvn -Pjmh package -DskipTests
 java -jar target/benchmarks.jar "StringSortBenchmarks.(systemSort|systemSortPinyin|quickHuskySort|radixHuskySort16|multikeyQuicksort)$" -p corpus=chinesenames -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff pinyin.json
 ```
 
-Note the **new commit**, `5ed60a0` — `systemSortPinyin` does not exist at `d3c359f`.
+**Use the branch tip, not a named commit.** The code freeze for this run is `5ed60a0` — the last commit
+that touched anything under `src/`, and the one to record in the paper — but everything after it is
+documentation, including your own merged results and the corrections below. Checking out `5ed60a0`
+itself would give you a copy of *this file* that still names the previous hash, which is more confusing
+than helpful. Any commit from `5ed60a0` onwards compiles and measures identical code; the tip is
+simply the tidiest of them.
+
+Do **not** use `d3c359f`, the commit for requests 3 to 5: `systemSortPinyin` does not exist there, and
+neither does the encoder fix described below.
 
 ### Why — your chinesenames finding needs an asterisk
 
