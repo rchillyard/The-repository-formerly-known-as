@@ -10,10 +10,17 @@
 %% Band edges come from the small-N crossover run (English corpus, JMH, 5 forks x 10 iterations)
 %% reported in doc/Run results from Yunlu 2026-09-02.md:
 %%
-%%   N <= 20      System sort         (thin at 20: 0.462us against insertion sort's 0.489us)
-%%   50 .. 200    insertion sort      wins outright
-%%   500 .. 2000  QuickHuskySort
-%%   >= ~10,000   RadixHuskySort      (its ~166us setup floor dominates below a few thousand)
+%%   N <= 20            System sort      (thin at 20: 0.462us against insertion sort's 0.489us)
+%%   50 .. 200          insertion sort   wins outright
+%%   500 .. 2000        QuickHuskySort
+%%   10,000 .. 200,000  RadixHuskySort   (its ~166us setup floor dominates below a few thousand)
+%%   >= 200,000         MSD radix sort   44.53+/-1.12 against radix/16's 49.68+/-2.37 at 200,000,
+%%                                       intervals separated; still ahead at 1,000,000 though
+%%                                       overlapping there (264.40 against 276.66).
+%%
+%% MSD was not in the small-N crossover run, so its band starts at 32,000, the smallest size at
+%% which it was measured -- level with radix/16 there.  It is an extended-ASCII implementation
+%% and cannot sort either Chinese corpus at all, so this chart is English text only.
 %%
 %% Solid where an algorithm wins outright; faded across the interval where the crossover falls,
 %% since the measurements bracket each crossover rather than locating it exactly.
@@ -29,57 +36,62 @@
 \definecolor{cInsert}{HTML}{E2622A}
 \definecolor{cQuick}{HTML}{2CA089}
 \definecolor{cRadix}{HTML}{E8A317}
+\definecolor{cMSD}{HTML}{7B5EA7}
 
 %% x is log10(N); one decade per \xunit
 \newcommand{\xunit}{1.62cm}
 
 \begin{document}
-\begin{tikzpicture}[x=\xunit, y=1cm]
+\begin{tikzpicture}[x=\xunit, y=0.78cm]
 
   %% ---- backdrop
-  \fill[bgpaper] (-0.35,-1.25) rectangle (7.35,4.35);
+  \fill[bgpaper] (-0.35,-1.25) rectangle (7.35,5.20);
 
   %% ---- vertical guides at the crossover decades
-  \foreach \x in {1.301, 2.301, 2.699, 3.301, 4}
-    \draw[gray!30, line width=0.4pt] (\x,-0.45) -- (\x,4.15);
+  \foreach \x in {1.301, 2.301, 2.699, 3.301, 4, 5.301}
+    \draw[gray!30, line width=0.4pt] (\x,-0.45) -- (\x,5.05);
 
   %% ---- bands.  #1 y-centre  #2 colour  #3 solid-from  #4 solid-to
   %%      fades are drawn as separate shaded rectangles either side.
   \newcommand{\band}[6]{%
-    \fill[#2] (#3,#1-0.32) rectangle (#4,#1+0.32);
+    \fill[#2] (#3,#1-0.30) rectangle (#4,#1+0.30);
     \ifdim#5pt>0pt\relax
-      \shade[left color=bgpaper, right color=#2] (#5,#1-0.32) rectangle (#3,#1+0.32);
+      \shade[left color=bgpaper, right color=#2] (#5,#1-0.30) rectangle (#3,#1+0.30);
     \fi
     \ifdim#6pt>0pt\relax
-      \shade[left color=#2, right color=bgpaper] (#4,#1-0.32) rectangle (#6,#1+0.32);
+      \shade[left color=#2, right color=bgpaper] (#4,#1-0.30) rectangle (#6,#1+0.30);
     \fi
   }
 
   %% System sort: outright to N=20, fading out across 20..50
-  \band{3.5}{cSystem}{0}{1.301}{0}{1.699}
-  \node[anchor=west, text=white, font=\bfseries\small] at (0.12,3.5) {System sort};
+  \band{4.5}{cSystem}{0}{1.301}{0}{1.699}
+  \node[anchor=west, text=white, font=\bfseries\small] at (0.12,4.5) {System sort};
 
   %% insertion sort: fading in across 20..50, outright 50..200, fading out across 200..500
-  \band{2.5}{cInsert}{1.699}{2.301}{1.301}{2.699}
-  \node[anchor=east, font=\small] at (1.66,2.5) {InsertionSort};
+  \band{3.5}{cInsert}{1.699}{2.301}{1.301}{2.699}
+  \node[anchor=east, font=\small] at (1.66,3.5) {InsertionSort};
 
   %% QuickHuskySort: fading in across 200..500, outright 500..2000, fading out across 2000..10000
-  \band{1.5}{cQuick}{2.699}{3.301}{2.301}{4}
-  \node[anchor=east, font=\small] at (2.66,1.5) {QuickHuskySort};
+  \band{2.5}{cQuick}{2.699}{3.301}{2.301}{4}
+  \node[anchor=east, font=\small] at (2.66,2.5) {QuickHuskySort};
 
-  %% RadixHuskySort: fading in across 2000..10000, outright thereafter, open at the right
-  \band{0.5}{cRadix}{4}{7.02}{3.301}{0}
-  \node[anchor=east, font=\small] at (6.9,0.5) {RadixHuskySort};
-  \fill[cRadix] (7.02,0.5-0.32) -- (7.02,0.5+0.32) -- (7.20,0.5) -- cycle;
+  %% RadixHuskySort: fading in across 2000..10000, outright 10,000..200,000, handing over to MSD
+  \band{1.5}{cRadix}{4}{5.301}{3.301}{6}
+  \node[anchor=east, font=\small] at (3.96,1.5) {RadixHuskySort};
+
+  %% MSD radix sort: no data below 32,000; level with radix there, ahead from 200,000
+  \band{0.5}{cMSD}{5.301}{7.02}{4.505}{0}
+  \node[anchor=east, text=white, font=\bfseries\small] at (6.9,0.5) {MSD radix sort};
+  \fill[cMSD] (7.02,0.5-0.30) -- (7.02,0.5+0.30) -- (7.20,0.5) -- cycle;
 
   %% ---- axis
   \draw[gray!60, line width=0.6pt] (-0.15,-0.45) -- (7.25,-0.45);
   \foreach \x/\lab in {0/1, 1/10, 2/100, 3/1{,}000, 4/10{,}000,
                        5/100{,}000, 6/1{,}000{,}000, 7/10{,}000{,}000} {
     \draw[gray!60] (\x,-0.45) -- (\x,-0.58);
-    \node[anchor=north, font=\scriptsize, text=black!70] at (\x,-0.60) {\lab};
+    \node[anchor=north, font=\scriptsize, text=black!70] at (\x,-0.62) {\lab};
   }
-  \node[anchor=north, font=\small] at (3.5,-1.02) {$N$ (array size, log scale)};
+  \node[anchor=north, font=\small] at (3.5,-1.12) {$N$ (array size, log scale)};
 
 \end{tikzpicture}
 \end{document}

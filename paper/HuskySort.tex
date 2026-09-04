@@ -1391,12 +1391,14 @@ Size enters only once those are settled, and then only near the bottom of the ra
       & RadixHuskySort still, allowing for the cleanup pass
       & that pass costs 10--25\% even when it has nothing to correct (\S~\ref{sec:radix-results}) \\
     A sort specialised to your type already exists
-      & use it & on English words a tuned MSD radix sort beats us (\S~\ref{sec:radix}) \\
+      & use it, if it covers your data
+      & on English words a tuned MSD radix sort beats us, though ours indexes extended ASCII only
+        and cannot sort either Chinese corpus (\S~\ref{sec:radix}) \\
     The data defeats the encoding's capture window --- long shared prefixes, or keys wider than
     the coder can see
       & System sort & every husky variant loses its advantage (\S~\ref{sec:adversarial}) \\
-    Fewer than a few thousand elements
-      & see Figure ~\ref{fig:usecase} & fixed setup costs dominate below that \\
+    None of the above settles it, or the keys are strings
+      & see Figure ~\ref{fig:usecase} & where each fixed setup cost is repaid, for English text \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1439,11 +1441,13 @@ Figure~\ref{fig:usecase} summarizes the String-key guidance above graphically.
 \begin{figure*}
   \centering
   \includegraphics[width=0.85\textwidth]{UseCaseGuidance.pdf}
-  \caption{Where the fixed setup costs put the early crossovers, for String keys.
-This answers the last row of Table ~\ref{tab:Guidance} only:
-it compares the system sort with the husky family, and does not include a sort specialised to strings.
-At $N \ge 200{,}000$ on English text a tuned MSD radix sort outperforms every algorithm shown
-(\S~\ref{sec:radix}), which is the fourth row of that table rather than this one.
+  \caption{Which sort to reach for on English text, by array size.
+Band edges fade across the interval each crossover is bracketed within.
+MSD radix sort appears because from $N=200{,}000$ it outperforms every husky variant
+(\S~\ref{sec:radix}); it was not in the small-$N$ run, so its band begins at $N=32{,}000$,
+where it is level with RadixHuskySort.
+If instead the data defeats the encoding's capture window,
+System sort is the right choice at any $N$ (\S~\ref{sec:adversarial}).
 Band edges fade across the
     measured crossover zones rather than showing a hard cutoff, reflecting the genuine
     uncertainty in exactly where each crossover falls.
@@ -1454,10 +1458,10 @@ if the source data defeats the
     \textit{ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still
     (\S~\ref{sec:parallel-radix}).}
   \Description{A horizontal strip chart with a logarithmic N axis from 1 to 10,000,000.
-Four
+Five
     colored bands, one per algorithm, show the recommended range for System sort, insertion
-    sort, QuickHuskySort, and RadixHuskySort in that order, with soft fades between adjacent
-    bands at the uncertain crossover points.}
+    sort, QuickHuskySort, RadixHuskySort and MSD radix sort in that order, with soft fades
+    between adjacent bands at the uncertain crossover points.}
   \label{fig:usecase}
 \end{figure*}
 
