@@ -42,6 +42,40 @@ qualitatively — but no figure from it goes into the paper.
 
 ---
 
+# 0b. The arXiv preprint and the prior rejection — check before submitting
+
+The paper is **arXiv:2012.00866**, and that same version was **SIAM ACDA21 Submission 60, rejected**
+(reviews verbatim in `paper/SIAM_ACDA21_Reviews.md`). So the preprint and the prior submission are the
+same document, and this is a resubmission to the same conference series.
+
+**The preprint is almost certainly not an obstacle.** arXiv is not a publication venue: no peer review,
+no imprimatur, and SIAM's policies permit preprints. "Previously published" normally answers *no*.
+
+**Two things to check in the call for papers, neither of which can be settled from here:**
+
+1. **Is review anonymous?** A preprint under the same title with the same three authors defeats
+   anonymity. Venues vary from "fine" to "disqualifying".
+2. **How the submission form words it.** Some ask about preprints specifically rather than about
+   publication, and some ask whether the work has been submitted to that venue before.
+
+**The disclosure that matters more is the prior rejection**, and it has an unusually good answer.
+ACDA21's Reviewer 3 asked *why not use radix sort*. RadixHuskySort is that answer and is now the
+paper's strongest result. Reviewer 1 called the literature review "somewhat limited"; the paper now
+compares empirically against three-way radix quicksort and MSD radix sort, and concedes where MSD wins.
+If ACDA permits a cover letter or a response to previous reviewers, this should be made explicitly
+rather than left to be noticed.
+
+**One thing that is a real defect either way.** `HuskySort.tex` does not cite the preprint. `arXiv`
+appears in `README.md` and two documents under `doc/`, and nowhere in the paper. A reader who finds
+arXiv:2012.00866 sees the same title and authors attached to a 2020 paper with no radix sort and
+different figures, with nothing connecting the two. Either cite it as the earlier version, or post an
+updated v2 once the submission is settled. Doing neither invites exactly the wrong inference.
+
+Not acted on: whether to cite the preprint depends on the anonymity answer above, which decides whether
+a self-citation is required disclosure or a breach.
+
+---
+
 # 0a. The template — needs your decision, not mine
 
 The paper is `\documentclass[acmtog]{acmart}` — ACM's class, in its Transactions on Graphics
