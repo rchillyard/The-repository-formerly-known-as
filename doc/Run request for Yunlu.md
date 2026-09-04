@@ -6,7 +6,11 @@
 | 2 | The same over wholly distinct words | **done** — PR #63 |
 | 3 | Real data: San Francisco building permits | **pending** — ~40 min |
 | 4 | The full suite at the current commit | **pending** — ~4–5 hours, unattended |
-| 5 | The small-N crossover | **pending** — ~30 min |
+| 5 | The small-N crossover | **done** — PR #63 |
+| 6 | chinesenames against a pinyin-*correct* system sort | **pending** — ~20 min, and it matters |
+
+**Requests 1 to 5 are all answered — thank you, that was fast.** Request 6 below is new, and it
+changes the interpretation of one of your own results.
 
 **Requests 1 and 2 are answered — please do not re-run them.** Their results are merged as
 `doc/Run results from Yunlu 2026-09-01.md` and were exactly what was needed. Their background, and
@@ -182,6 +186,61 @@ are the one set of figures request 4 will not produce, because the suite's own p
 Expect very small absolute numbers at the low end. That is fine: the crossover points are what matter.
 
 ---
+
+## Request 6 — chinesenames against a pinyin-*correct* system sort
+
+Twenty minutes, and it revises a conclusion from your 2026-09-03 report rather than adding to it.
+
+```
+git fetch origin Revisions
+git checkout f5fb597
+mvn -Pjmh package -DskipTests
+java -jar target/benchmarks.jar "StringSortBenchmarks.(systemSort|systemSortPinyin|quickHuskySort|radixHuskySort16|multikeyQuicksort)$" -p corpus=chinesenames -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff pinyin.json
+```
+
+Note the **new commit**, `f5fb597` — `systemSortPinyin` does not exist at `d3c359f`.
+
+### Why — your chinesenames finding needs an asterisk
+
+You reported that on chinesenames the system sort beats every Husky variant, at 823.8 ms/op against
+radix/16's 960.2 at 1M, and concluded the corpus is adverse to the mechanism. The measurement is right
+but the comparison is not what it appears.
+
+`systemSort` calls `Arrays.sort(copy)` **with no comparator**. On this corpus that sorts by raw UTF-16
+code point and performs **no pinyin lookup at all**. The Husky variants sort by pinyin, because that is
+the correct order for personal names. So the two sides are not doing the same work: one is solving a
+cheaper and, for this data, wrong problem. The same objection applies to the August run's chinesenames
+row, and to a remark in the paper itself.
+
+We had already made `multikeyQuicksort` pinyin-aware for exactly this reason. The system sort was
+never given the same treatment, so the suite has had no fair pinyin baseline.
+
+`systemSortPinyin` is `Arrays.sort(copy, HuskyCoderChinesePinyin.NAME_ORDER)` — the same three-level
+syllable/tone/code-point comparator `MultikeyQuicksort.sortByPinyin` already uses as its fallback.
+
+### It is exactly comparable, and this was checked
+
+On 200,000 names, `Arrays.sort(NAME_ORDER)`, `radixHuskySort/16` and `quickHuskySort` with the pinyin
+coder produce **byte-identical output** — zero positions differing, zero inversions under
+`NAME_ORDER`. Whatever the timings say, the three are performing the same task.
+
+### What to expect, and what would surprise us
+
+At n = 1,000,000 the system sort performs roughly 20 million pinyin comparisons where the Husky
+variants perform one million encodings. That is the mechanism's entire premise — pay the expensive key
+extraction once per element rather than once per comparison — and chinesenames is the only corpus in
+the suite where the key extraction is expensive enough for it to show in isolation. We therefore
+expect `systemSortPinyin` to be *far* slower than everything else, and the corpus to turn from the
+paper's weakest result into its clearest demonstration.
+
+If instead `systemSortPinyin` is competitive, that is a much more interesting result and worth a
+message before we write anything: it would mean the pinyin encoding pass is costing more than the
+lookups it saves. There is some reason to wonder — `huskyEncodeOnly` on chinesenames is 408.4 ms/op at
+1M against 14.3 for the `chinese` corpus, about 400 ns per name, which seems a lot for two or three
+table lookups. Your `huskyEncodeOnly` row in this run will tell us.
+
+Please keep `systemSort` in the command as well: having both, side by side at the same sizes, is what
+lets the paper state plainly what the difference between them is.
 
 ## A note on the Chinese corpora
 
