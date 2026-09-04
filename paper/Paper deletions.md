@@ -73,6 +73,8 @@ Seven references, of which the first two need real prose rather than a pointer s
 - **Table `Improvements Summary`** ("advantage over Timsort", quoted as ranges over size bands such as
   "4,000--500,000 elements") has the same problem in weaker form: JMH's three sizes per type cannot
   reproduce a range stated over a continuous band. Not rebuilt, not yet resolved.
-- **Figure `usecase`** (`UseCaseGuidance.pdf`) draws the crossover bands, and two edges have moved:
-  System sort now yields at N=20 rather than 50, and insertion sort takes over at 50 rather than 100.
-  The figure is a PDF with no generator in the repository, so it needs regenerating by whoever made it.
+- **Figure `usecase`** (`UseCaseGuidance.pdf`) — **resolved.** Two band edges had moved (System sort
+  now yields at N=20 rather than 50; insertion sort takes over at 50 rather than 100), and the
+  matplotlib script that drew it had not been kept. Redrawn in TikZ as `paper/UseCaseGuidance.tex`,
+  which compiles to the same filename with `pdflatex`. The figure is now source rather than an
+  artefact, so the next time a crossover moves it can simply be edited.
