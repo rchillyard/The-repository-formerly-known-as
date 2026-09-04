@@ -4,54 +4,146 @@
 | --- | --- | --- |
 | 1 | English string baselines, with replacement | **done** — PR #63, thank you |
 | 2 | The same over wholly distinct words | **done** — PR #63 |
-| 3 | Real data: San Francisco building permits | **pending** — ~40 min |
-| 4 | The full suite at the current commit | **pending** — ~4–5 hours, unattended |
+| 3 | Real data: San Francisco building permits | **done** — PR #63 |
+| 4 | The full suite at the current commit | **done** — PR #63, 20h30m unattended |
 | 5 | The small-N crossover | **done** — PR #63 |
 | 6 | chinesenames against a pinyin-*correct* system sort | **pending** — ~20 min, and it matters |
 
 **Requests 1 to 5 are all answered — thank you, that was fast.** Request 6 below is new, and it
 changes the interpretation of one of your own results.
 
-**Requests 1 and 2 are answered — please do not re-run them.** Their results are merged as
-`doc/Run results from Yunlu 2026-09-01.md` and were exactly what was needed. Their background, and
-what they settled, is in the appendix at the end of this document; nothing there needs acting on.
+Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, `...2026-09-02.md` and
+`...2026-09-03.md`. What requests 1 and 2 settled is summarised in Appendix A.
 
 **What has changed since.** Robin has decided that every figure quoted in the paper should come from
 one machine, and that machine should be yours. The paper currently mixes three: its original
 comparison-sort results were measured on a 2017 Intel MacBook Pro running **Java 1.8.0_152**, and its
 radix-sort results on an Apple M1. Yours becomes the single source of record; the other two survive
-only as qualitative cross-checks, with no figures quoted from them.
+only as qualitative cross-checks, with no figures quoted from them. Your request-4 run is what makes
+that possible.
 
-Your full run of 2026-08-17 already covers most of what that needs, but at a commit predating this
-week's repairs to two string-sort baselines. **Request 4 repeats it at the current commit, so that one
-machine and one commit account for every number in the paper.**
-
-Requests 3, 4 and 5 share one checkout and can be run in any order. Request 3 is the one Robin most
-wants; request 4 is the one that makes the paper internally consistent.
+**Only request 6 is outstanding.** Requests 3, 4 and 5 and their reasoning are in Appendix B;
+nothing there needs acting on.
 
 ---
 
-## The checkout — common to requests 3, 4 and 5
+## Request 6 — chinesenames against a pinyin-*correct* system sort
 
-Commit **`d3c359f`** on the **`Revisions`** branch — not `master`, which is `2c31d20` and predates all
-of this. Nothing under `src/` has changed since `d3c359f`, so the branch tip behaves identically; the
-commit is named so the paper can record one.
+The checkout differs from the earlier requests: `systemSortPinyin` is new, so the commit is new too.
+
+Twenty minutes, and it revises a conclusion from your 2026-09-03 report rather than adding to it.
 
 ```
 git fetch origin Revisions
-git checkout d3c359f
+git checkout f5fb597
 mvn -Pjmh package -DskipTests
+java -jar target/benchmarks.jar "StringSortBenchmarks.(systemSort|systemSortPinyin|quickHuskySort|radixHuskySort16|multikeyQuicksort)$" -p corpus=chinesenames -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff pinyin.json
 ```
 
-`mvn test` at this commit should be clean: **392 tests**, no failures. That is more than the 378 you
-saw for requests 1 and 2 — the permit corpus of request 3 arrived with fourteen tests of its own.
-Anything red is worth a message before you start, since it would mean the freeze is not what we think
-it is.
+Note the **new commit**, `f5fb597` — `systemSortPinyin` does not exist at `d3c359f`.
 
-Every command below wants five forks and ten iterations, which is more than the suite's own defaults,
-because several of the comparisons are close enough to need tight intervals.
+### Why — your chinesenames finding needs an asterisk
+
+You reported that on chinesenames the system sort beats every Husky variant, at 823.8 ms/op against
+radix/16's 960.2 at 1M, and concluded the corpus is adverse to the mechanism. The measurement is right
+but the comparison is not what it appears.
+
+`systemSort` calls `Arrays.sort(copy)` **with no comparator**. On this corpus that sorts by raw UTF-16
+code point and performs **no pinyin lookup at all**. The Husky variants sort by pinyin, because that is
+the correct order for personal names. So the two sides are not doing the same work: one is solving a
+cheaper and, for this data, wrong problem. The same objection applies to the August run's chinesenames
+row, and to a remark in the paper itself.
+
+We had already made `multikeyQuicksort` pinyin-aware for exactly this reason. The system sort was
+never given the same treatment, so the suite has had no fair pinyin baseline.
+
+`systemSortPinyin` is `Arrays.sort(copy, HuskyCoderChinesePinyin.NAME_ORDER)` — the same three-level
+syllable/tone/code-point comparator `MultikeyQuicksort.sortByPinyin` already uses as its fallback.
+
+### It is exactly comparable, and this was checked
+
+On 200,000 names, `Arrays.sort(NAME_ORDER)`, `radixHuskySort/16` and `quickHuskySort` with the pinyin
+coder produce **byte-identical output** — zero positions differing, zero inversions under
+`NAME_ORDER`. Whatever the timings say, the three are performing the same task.
+
+### What to expect, and what would surprise us
+
+At n = 1,000,000 the system sort performs roughly 20 million pinyin comparisons where the Husky
+variants perform one million encodings. That is the mechanism's entire premise — pay the expensive key
+extraction once per element rather than once per comparison — and chinesenames is the only corpus in
+the suite where the key extraction is expensive enough for it to show in isolation. We therefore
+expect `systemSortPinyin` to be *far* slower than everything else, and the corpus to turn from the
+paper's weakest result into its clearest demonstration.
+
+If instead `systemSortPinyin` is competitive, that is a much more interesting result and worth a
+message before we write anything: it would mean the pinyin encoding pass is costing more than the
+lookups it saves. There is some reason to wonder — `huskyEncodeOnly` on chinesenames is 408.4 ms/op at
+1M against 14.3 for the `chinese` corpus, about 400 ns per name, which seems a lot for two or three
+table lookups. Your `huskyEncodeOnly` row in this run will tell us.
+
+Please keep `systemSort` in the command as well: having both, side by side at the same sizes, is what
+lets the paper state plainly what the difference between them is.
+
+## A note on the Chinese corpora
+
+`msdStringSort` cannot run on them at all — its alphabet holds 256 characters beyond ASCII and the
+Chinese corpora hold 3,813 and 2,270 — and the two string baselines we repaired are not used for
+pinyin ordering. So requests 1, 2 and 5 are English-only and take `-p corpus=english`.
+
+**Request 4 is the exception**: it runs every corpus, because Table `RadixImprovements` has Chinese
+rows and those figures now need to come from your machine too. It selects corpora itself; pass no
+flags.
 
 ---
+
+# Appendix A — requests 1 and 2, answered 2026-09-01
+
+Kept for the record. **Nothing here needs running.**
+
+## What prompted them
+
+Two things had changed in the string-sort comparison and both needed measuring on hardware we trust:
+
+1. **MSD radix sort was added as a second baseline**, after three correctness defects were fixed that
+   had prevented it being benchmarked at all. On our workstation it was *beating* RadixHuskySort at the
+   larger sizes.
+2. **Both baselines' small-range fallbacks were handicapped** in the same way and both were repaired.
+   Multikey quicksort's fallback alone cost it 15–18%, so the paper's published margin over multikey
+   was partly measuring our own overhead.
+
+Our own measurements came from a shared MacBook that spent the day fighting Spotlight, an IT
+monitoring agent and, at one point, a closed lid: intervals from 1% to 23%, and one benchmark
+returning 232, 259 and 330 ms on three occasions.
+
+## What they settled
+
+- **MSD does beat RadixHuskySort at 200,000 and 1,000,000**, with non-overlapping intervals, on a
+  second architecture. But the margin's shape is machine-dependent: 1.34x at 200,000 and 1.09x at
+  1,000,000 on Graviton3, against roughly 1.10x and 1.38x on the M1.
+- **The tie at 32,000 is real** and not an M1 cache artefact — it reproduces on a server-class ARM core
+  with an entirely different cache hierarchy.
+- **The margin over the repaired multikey is 1.66x / 1.39x / 2.26x**, so the paper's stated 1.3–1.75x
+  breaks at the top end on Graviton3 — the opposite end from the M1, which broke it at the bottom.
+- **Duplicate density does not explain MSD's advantage.** Drawing without replacement leaves the
+  200,000 margin at 1.31x against 1.34x with replacement.
+
+## Why request 2 could not simply use a larger array
+
+Past 1,000,000 the English corpus stops being able to supply distinct words — it holds 275,333 — and
+the benchmark becomes a test of duplicate handling. Average copies of each word run 1.06 at 32,000,
+1.41 at 200,000 and 3.73 at 1,000,000. The codebase already makes this objection about the
+`commonwords` corpus, whose ~3,000 words sampled into a 200,000-element array it calls "artificial
+duplicate-heavy skew"; at 1,000,000 the English corpus approaches the same problem from the same
+direction. Drawing without replacement bounds n by the corpus size, which is why request 2 stopped at
+250,000.
+
+
+---
+
+# Appendix B — requests 3, 4 and 5, answered 2026-09-02 and 09-03
+
+Kept for the record. **Nothing here needs running.** The shared checkout they used was `d3c359f`;
+request 6 above uses a later commit.
 
 ## Request 3 — real data: San Francisco building permits
 
@@ -186,111 +278,3 @@ are the one set of figures request 4 will not produce, because the suite's own p
 Expect very small absolute numbers at the low end. That is fine: the crossover points are what matter.
 
 ---
-
-## Request 6 — chinesenames against a pinyin-*correct* system sort
-
-Twenty minutes, and it revises a conclusion from your 2026-09-03 report rather than adding to it.
-
-```
-git fetch origin Revisions
-git checkout f5fb597
-mvn -Pjmh package -DskipTests
-java -jar target/benchmarks.jar "StringSortBenchmarks.(systemSort|systemSortPinyin|quickHuskySort|radixHuskySort16|multikeyQuicksort)$" -p corpus=chinesenames -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff pinyin.json
-```
-
-Note the **new commit**, `f5fb597` — `systemSortPinyin` does not exist at `d3c359f`.
-
-### Why — your chinesenames finding needs an asterisk
-
-You reported that on chinesenames the system sort beats every Husky variant, at 823.8 ms/op against
-radix/16's 960.2 at 1M, and concluded the corpus is adverse to the mechanism. The measurement is right
-but the comparison is not what it appears.
-
-`systemSort` calls `Arrays.sort(copy)` **with no comparator**. On this corpus that sorts by raw UTF-16
-code point and performs **no pinyin lookup at all**. The Husky variants sort by pinyin, because that is
-the correct order for personal names. So the two sides are not doing the same work: one is solving a
-cheaper and, for this data, wrong problem. The same objection applies to the August run's chinesenames
-row, and to a remark in the paper itself.
-
-We had already made `multikeyQuicksort` pinyin-aware for exactly this reason. The system sort was
-never given the same treatment, so the suite has had no fair pinyin baseline.
-
-`systemSortPinyin` is `Arrays.sort(copy, HuskyCoderChinesePinyin.NAME_ORDER)` — the same three-level
-syllable/tone/code-point comparator `MultikeyQuicksort.sortByPinyin` already uses as its fallback.
-
-### It is exactly comparable, and this was checked
-
-On 200,000 names, `Arrays.sort(NAME_ORDER)`, `radixHuskySort/16` and `quickHuskySort` with the pinyin
-coder produce **byte-identical output** — zero positions differing, zero inversions under
-`NAME_ORDER`. Whatever the timings say, the three are performing the same task.
-
-### What to expect, and what would surprise us
-
-At n = 1,000,000 the system sort performs roughly 20 million pinyin comparisons where the Husky
-variants perform one million encodings. That is the mechanism's entire premise — pay the expensive key
-extraction once per element rather than once per comparison — and chinesenames is the only corpus in
-the suite where the key extraction is expensive enough for it to show in isolation. We therefore
-expect `systemSortPinyin` to be *far* slower than everything else, and the corpus to turn from the
-paper's weakest result into its clearest demonstration.
-
-If instead `systemSortPinyin` is competitive, that is a much more interesting result and worth a
-message before we write anything: it would mean the pinyin encoding pass is costing more than the
-lookups it saves. There is some reason to wonder — `huskyEncodeOnly` on chinesenames is 408.4 ms/op at
-1M against 14.3 for the `chinese` corpus, about 400 ns per name, which seems a lot for two or three
-table lookups. Your `huskyEncodeOnly` row in this run will tell us.
-
-Please keep `systemSort` in the command as well: having both, side by side at the same sizes, is what
-lets the paper state plainly what the difference between them is.
-
-## A note on the Chinese corpora
-
-`msdStringSort` cannot run on them at all — its alphabet holds 256 characters beyond ASCII and the
-Chinese corpora hold 3,813 and 2,270 — and the two string baselines we repaired are not used for
-pinyin ordering. So requests 1, 2 and 5 are English-only and take `-p corpus=english`.
-
-**Request 4 is the exception**: it runs every corpus, because Table `RadixImprovements` has Chinese
-rows and those figures now need to come from your machine too. It selects corpora itself; pass no
-flags.
-
----
-
-# Appendix — requests 1 and 2, answered 2026-09-01
-
-Kept for the record. **Nothing here needs running.**
-
-## What prompted them
-
-Two things had changed in the string-sort comparison and both needed measuring on hardware we trust:
-
-1. **MSD radix sort was added as a second baseline**, after three correctness defects were fixed that
-   had prevented it being benchmarked at all. On our workstation it was *beating* RadixHuskySort at the
-   larger sizes.
-2. **Both baselines' small-range fallbacks were handicapped** in the same way and both were repaired.
-   Multikey quicksort's fallback alone cost it 15–18%, so the paper's published margin over multikey
-   was partly measuring our own overhead.
-
-Our own measurements came from a shared MacBook that spent the day fighting Spotlight, an IT
-monitoring agent and, at one point, a closed lid: intervals from 1% to 23%, and one benchmark
-returning 232, 259 and 330 ms on three occasions.
-
-## What they settled
-
-- **MSD does beat RadixHuskySort at 200,000 and 1,000,000**, with non-overlapping intervals, on a
-  second architecture. But the margin's shape is machine-dependent: 1.34x at 200,000 and 1.09x at
-  1,000,000 on Graviton3, against roughly 1.10x and 1.38x on the M1.
-- **The tie at 32,000 is real** and not an M1 cache artefact — it reproduces on a server-class ARM core
-  with an entirely different cache hierarchy.
-- **The margin over the repaired multikey is 1.66x / 1.39x / 2.26x**, so the paper's stated 1.3–1.75x
-  breaks at the top end on Graviton3 — the opposite end from the M1, which broke it at the bottom.
-- **Duplicate density does not explain MSD's advantage.** Drawing without replacement leaves the
-  200,000 margin at 1.31x against 1.34x with replacement.
-
-## Why request 2 could not simply use a larger array
-
-Past 1,000,000 the English corpus stops being able to supply distinct words — it holds 275,333 — and
-the benchmark becomes a test of duplicate handling. Average copies of each word run 1.06 at 32,000,
-1.41 at 200,000 and 3.73 at 1,000,000. The codebase already makes this objection about the
-`commonwords` corpus, whose ~3,000 words sampled into a 200,000-element array it calls "artificial
-duplicate-heavy skew"; at 1,000,000 the English corpus approaches the same problem from the same
-direction. Drawing without replacement bounds n by the corpus size, which is why request 2 stopped at
-250,000.
