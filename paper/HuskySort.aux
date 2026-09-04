@@ -120,6 +120,10 @@
 \@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{12}{section.7}\protected@file@percent }
 \bibstyle{ACM-Reference-Format}
 \bibdata{sample-base}
+\@writefile{lot}{\contentsline {table}{\numberline {15}{\ignorespaces Which sort to reach for. The questions are ordered by how much they decide: the cost of the comparison, the exactness of the encoding, and the existence of a sort specialised to the type. Array size settles nothing until all three are answered.\relax }}{13}{table.caption.26}\protected@file@percent }
+\newlabel{tab:Guidance}{{15}{13}{Which sort to reach for. The questions are ordered by how much they decide: the cost of the comparison, the exactness of the encoding, and the existence of a sort specialised to the type. Array size settles nothing until all three are answered.\relax }{table.caption.26}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Where the fixed setup costs put the early crossovers, for String keys. This answers the last row of Table \nonbreakingspace \ref  {tab:Guidance} only: it compares the system sort with the husky family, and does not include a sort specialised to strings. At $N \ge 200{,}000$ on English text a tuned MSD radix sort outperforms every algorithm shown (\S  \nonbreakingspace \ref  {sec:radix}), which is the fourth row of that table rather than this one. Band edges fade across the measured crossover zones rather than showing a hard cutoff, reflecting the genuine uncertainty in exactly where each crossover falls. Not shown: if the source data defeats the husky encoding's fixed capture window, plain System sort is the safe choice at any $N$ (\S  \nonbreakingspace \ref  {sec:adversarial}); and given a large workload and spare cores, \textit  {ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still (\S  \nonbreakingspace \ref  {sec:parallel-radix}).\relax }}{13}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:usecase}{{5}{13}{Where the fixed setup costs put the early crossovers, for String keys. This answers the last row of Table ~\ref {tab:Guidance} only: it compares the system sort with the husky family, and does not include a sort specialised to strings. At $N \ge 200{,}000$ on English text a tuned MSD radix sort outperforms every algorithm shown (\S ~\ref {sec:radix}), which is the fourth row of that table rather than this one. Band edges fade across the measured crossover zones rather than showing a hard cutoff, reflecting the genuine uncertainty in exactly where each crossover falls. Not shown: if the source data defeats the husky encoding's fixed capture window, plain System sort is the safe choice at any $N$ (\S ~\ref {sec:adversarial}); and given a large workload and spare cores, \textit {ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still (\S ~\ref {sec:parallel-radix}).\relax }{figure.caption.27}{}}
 \bibcite{10.1145/48529.48535}{{1}{1988}{{Aggarwal and Vitter}}{{Aggarwal and Vitter}}}
 \bibcite{DBLP:journals/corr/abs-1805-08612}{{2}{2018}{{Auger et~al\mbox  {.}}}{{Auger, Jug{\'{e}}, Nicaud, and Pivoteau}}}
 \bibcite{10.1002/spe.4380231105}{{3}{1993}{{Bentley and McIlroy}}{{Bentley and McIlroy}}}
@@ -138,12 +142,10 @@
 \bibcite{wainshine2020chinesenames}{{16}{2020}{{Wainshine}}{{Wainshine}}}
 \bibcite{6115063}{{17}{2011}{{{Xiang}}}{{{Xiang}}}}
 \bibcite{Dual-pivot}{{18}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Which sort to reach for, by array size (String keys). Band edges fade across the measured crossover zones rather than showing a hard cutoff, reflecting the genuine uncertainty in exactly where each crossover falls. Not shown: if the source data defeats the husky encoding's fixed capture window, plain System sort is the safe choice at any $N$ (\S  \nonbreakingspace \ref  {sec:adversarial}); and given a large workload and spare cores, \textit  {ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still (\S  \nonbreakingspace \ref  {sec:parallel-radix}).\relax }}{13}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:usecase}{{5}{13}{Which sort to reach for, by array size (String keys). Band edges fade across the measured crossover zones rather than showing a hard cutoff, reflecting the genuine uncertainty in exactly where each crossover falls. Not shown: if the source data defeats the husky encoding's fixed capture window, plain System sort is the safe choice at any $N$ (\S ~\ref {sec:adversarial}); and given a large workload and spare cores, \textit {ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still (\S ~\ref {sec:parallel-radix}).\relax }{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {section}{Acknowledgments}{13}{section*.28}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{References}{13}{section*.30}\protected@file@percent }
 \bibcite{sort}{{19}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
 \citation{10.1002/spe.4380231105}
+\@writefile{toc}{\contentsline {section}{Acknowledgments}{14}{section*.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{14}{section*.31}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{14}{appendix.A}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Discussion of coding accuracy}{14}{subsection.A.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Adversarial inputs}{14}{subsection.A.2}\protected@file@percent }
@@ -153,9 +155,9 @@
 \newlabel{tocindent1}{6.25499pt}
 \newlabel{tocindent2}{12.41998pt}
 \newlabel{tocindent3}{0pt}
-\@writefile{lot}{\contentsline {table}{\numberline {15}{\ignorespaces Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$\relax }}{15}{table.caption.31}\protected@file@percent }
-\newlabel{tab:AdversarialBits}{{15}{15}{Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$\relax }{table.caption.31}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$\relax }}{15}{table.caption.32}\protected@file@percent }
-\newlabel{tab:AdversarialPrefix}{{16}{15}{Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$\relax }{table.caption.32}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$\relax }}{15}{table.caption.32}\protected@file@percent }
+\newlabel{tab:AdversarialBits}{{16}{15}{Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$\relax }{table.caption.32}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$\relax }}{15}{table.caption.33}\protected@file@percent }
+\newlabel{tab:AdversarialPrefix}{{17}{15}{Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$\relax }{table.caption.33}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Handling of partially-sorted arrays}{15}{subsection.A.3}\protected@file@percent }
 \newlabel{TotPages}{{15}{15}{}{page.15}{}}
