@@ -42,6 +42,101 @@ qualitatively — but no figure from it goes into the paper.
 
 ---
 
+# 0. The abstract — URGENT, due 2026-09-08
+
+All figures below are from `doc/full-suite.json`, keyed on class *and* every parameter: dropping either
+collides 32 rows and silently reports the wrong number.
+
+| case | system | QuickHuskySort | best radix | QHS ÷ sys | radix ÷ sys |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| integer (500k) | 123.68 | 87.92 | 25.69 | 1.41x | 4.81x |
+| long (500k) | 138.71 | 99.26 | 27.74 | 1.40x | 5.00x |
+| double (500k) | 144.54 | 93.50 | 31.47 | 1.55x | 4.59x |
+| bigInteger (500k) | 210.23 | 151.03 | 54.01 | 1.39x | 3.89x |
+| bigDecimal (500k) | 264.08 | 149.11 | 51.91 | 1.77x | 5.09x |
+| Tuple (500k) | 212.83 | 149.63 | 59.99 | 1.42x | 3.55x |
+| Permits (198.9k) | 161.96 | 69.98 | 33.95 | 2.31x | 4.77x |
+| English (1M) | 1193.78 | 732.32 | 276.66 | 1.63x | 4.31x |
+| Chinese (1M) | 441.76 | 218.79 | 67.16 | 2.02x | 6.58x |
+| Dates (20k) | 3.83 | 4.35 | 0.73 | **0.88x** | 5.23x |
+
+**RadixHuskySort: 3.6--6.6x over the system sort**, every case. Stronger and tighter than the abstract's
+current "2--6x".
+
+**QuickHuskySort: 1.4--2.3x — except Dates, where it is 0.88x and loses.** The husky variant there is
+DutchHuskySort, and the encoding is not repaid for a type as cheap to compare as a timestamp; radix
+still wins because its second phase is linear regardless. The current abstract's "1.2--2.1x" has no
+such exception and cannot stand. The draft below scopes the claim to types whose comparison is
+expensive, which is true and is also the paper's actual criterion.
+
+## Proposed replacement
+
+```latex
+\begin{abstract}
+Most sorting algorithms in the literature optimize for the number of comparisons or exchanges;
+we argue the more appropriate yardstick is the total number of array accesses (the "work"),
+which for divide-and-conquer sorts splits into a linear, $\textbf{O}(N)$, phase and a linearithmic,
+$\textbf{O}(N \log N)$, phase.
+Moving work out of the linearithmic phase and into the linear phase reduces this total and,
+where comparison itself is expensive, reduces processing time as well.
+The key concept is a 64-bit code that is, as far as possible, order-preserving,
+and stands in as a proxy for each original element;
+we call it a "Husky" code.
+Its effect is to extract each element's sort key once, rather than once per comparison.
+We present two algorithms built on it.
+QuickHuskySort encodes each object in a linear preamble,
+sorts the cheap encoded keys in place of the expensive originals,
+and falls back to a cleanup pass only where the encoding is imperfect.
+RadixHuskySort replaces that sort with a linear-time radix sort on the same keys,
+moving the second phase itself from linearithmic to linear.
+Measured against Java's system sort for objects --- across integers, arbitrary-precision numbers,
+dates, tuples, English and Chinese text,
+and two hundred thousand municipal records ordered by a composite key ---
+RadixHuskySort is faster in every case, by 3.6--6.6x;
+QuickHuskySort, which retains a comparison sort, by 1.4--2.3x wherever comparison is genuinely costly.
+The margin is widest when the ordering is expensive to evaluate and the encoding is exact,
+so that no cleanup pass is needed:
+measured on input where that pass provably has nothing to correct,
+it nonetheless accounts for a tenth to a quarter of total running time.
+It is narrowest where algorithms specialised to the type already exist ---
+on English words a tuned MSD radix sort matches or overtakes us ---
+which bounds the result rather than contradicting it,
+since the same mechanism applies unchanged to types for which no specialised sort exists.
+\end{abstract}
+```
+
+## What changed and why
+
+- **"such as Strings" is gone.** Strings were the exemplar and are the *least* favourable domain: the
+  three string rows of Table `RadixImprovements` span nearly its whole range, and MSD beats us on
+  English. The criterion that replaces it --- expensive or composite ordering, exact encoding, no
+  specialised competitor --- is what the evidence actually supports.
+- **The MSD result is stated in the abstract, not buried.** A referee who knows string sorting will
+  look for it; conceding it in one clause, immediately bounded, is far stronger than being caught.
+- **The cleanup-pass measurement is new evidence and belongs here.** It is the only direct measurement
+  of what an imperfect encoding costs, and it anchors $p_{crit}$.
+- **"confirmed independently across three CPU architectures" is dropped**, since §7 consolidates every
+  figure onto one machine. If you want the generality claim back, add: *"Figures are from a single
+  machine; the qualitative result was reproduced on two others of different architecture."*
+- **Two hundred thousand municipal records** replaces nothing --- it is new, and it is the paper's only
+  favourable case on real rather than generated data.
+
+## If request 6 comes out as expected
+
+Chinese personal names ordered by pinyin is the most expensive comparison in the paper --- a table
+lookup per character --- and against a pinyin-correct system sort it should be the mechanism's clearest
+demonstration. If so, add to the list of types and append one clause:
+
+```latex
+The effect is starkest for Chinese personal names in pinyin order,
+where extracting the key is costly enough that doing it once per element rather than once per comparison
+is the whole of the difference.
+```
+
+Do not add this before the numbers arrive.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 Line 1356, in the Conclusion: "especially fast for Unicode character strings"
