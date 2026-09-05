@@ -102,6 +102,12 @@ lets the paper state plainly what the difference between them is.
 
 About forty minutes: one class, no parameters.
 
+**Use the branch tip, as for request 6** — but note that the two requests do *not* have the same
+earliest usable commit. Request 6 says any commit from `5ed60a0` onwards measures identical code, and
+that is true of `systemSortPinyin`. It is not true here: the depth guard landed later, in `e92610f`.
+Run request 7 on `e92610f` or later, or it will simply crash again exactly as before. The tip is at or
+past that point, so one checkout at the tip serves both requests.
+
 ```
 java -jar target/benchmarks.jar "AdversarialSortBenchmarks" -f 5 -wi 5 -i 10 -r 2s -w 2s -rf json -rff adversarial.json
 ```
