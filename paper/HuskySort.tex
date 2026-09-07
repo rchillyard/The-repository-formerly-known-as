@@ -61,6 +61,24 @@
 \acmArticle{}
 \acmMonth{9}
 \pdfoutput=1
+
+%%
+%% ---- Draft revision stamp -------------------------------------------------------------
+%% Prints the build date and time in the page footer of every page, so that any printout or
+%% emailed PDF can be identified without guessing which draft it is.
+%%
+%% Zero cost in page count: it goes in the footer, which acmart already reserves for the page
+%% number, so it displaces nothing and cannot push a float onto a later page.
+%%
+%% \draftstampfalse before submitting. The stamp must not appear on the camera-ready copy,
+%% and under double-blind review a build timestamp is the kind of incidental metadata that is
+%% better absent than explained.
+\newif\ifdraftstamp
+\draftstamptrue
+%% \time is TeX's minutes-since-midnight; these two turn it into HH:MM, zero-padded.
+\newcommand{\stamphour}{\ifnum\number\numexpr\time/60\relax<10 0\fi\number\numexpr\time/60\relax}
+\newcommand{\stampminute}{\ifnum\number\numexpr\time-(\time/60)*60\relax<10 0\fi\number\numexpr\time-(\time/60)*60\relax}
+\newcommand{\revisionstamp}{\the\year-\ifnum\the\month<10 0\fi\the\month-\ifnum\the\day<10 0\fi\the\day\ \stamphour:\stampminute}
 %%
 %% Submission ID.
 %% Use this when submitting an article to a sponsored event. You'll
@@ -312,6 +330,25 @@
 \pagestyle{plain}
 %% maketitle sets the first page's style itself, so it needs overriding separately.
 \thispagestyle{plain}
+
+%% The draft revision stamp declared in the preamble, added to that bare page number.
+%% NOTE the whole page style has to be redefined, not just the footer: both pagestyle and
+%% thispagestyle re-execute \ps@plain when the page is shipped out, which would overwrite a
+%% bare \@oddfoot patch made here. Hence the redefinition, then re-applying it.
+%% The phantom on the right keeps the page number centred rather than nudged off-centre.
+\ifdraftstamp
+  \makeatletter
+  \def\ps@plain{%
+    \let\@mkboth\@gobbletwo
+    \let\@oddhead\@empty
+    \let\@evenhead\@empty
+    \def\@oddfoot{\reset@font\footnotesize
+      draft \revisionstamp\hfil\thepage\hfil\phantom{draft \revisionstamp}}%
+    \let\@evenfoot\@oddfoot}
+  \makeatother
+  \pagestyle{plain}
+  \thispagestyle{plain}
+\fi
 %%
 %% This command processes the author and affiliation and title
 %% information and builds the first part of the formatted document.
@@ -1400,21 +1437,16 @@ Figure~\ref{fig:usecase} summarizes the String-key guidance above graphically.
   \centering
   \includegraphics[width=0.85\textwidth]{UseCaseGuidance.pdf}
   \caption{Which sort to reach for on English text, by array size.
-Band edges fade across the interval each crossover is bracketed within.
+Band edges fade across the interval within which each crossover is bracketed,
+rather than showing a hard cutoff.
 MSD radix sort appears because from $N=200{,}000$ it outperforms every husky variant
 (\S~\ref{sec:radix}); it was not in the small-$N$ run, so its band begins at $N=32{,}000$,
 where it is level with RadixHuskySort.
-If instead the data defeats the encoding's capture window,
-System sort is the right choice at any $N$ (\S~\ref{sec:adversarial}).
-Band edges fade across the
-    measured crossover zones rather than showing a hard cutoff, reflecting the genuine
-    uncertainty in exactly where each crossover falls.
-Not shown:
-if the source data defeats the
-    husky encoding's fixed capture window, plain System sort is the safe choice at any $N$
-    (\S~\ref{sec:adversarial}); and given a large workload and spare cores,
-    \textit{ParallelRadixHuskySort} extends RadixHuskySort's own advantage further still
-    (\S~\ref{sec:parallel-radix}).}
+Not shown: if the data defeats the encoding's capture window,
+System sort is the right choice at any $N$ (\S~\ref{sec:adversarial});
+and given a large workload and spare cores,
+\textit{ParallelRadixHuskySort} extends RadixHuskySort's advantage further still
+(\S~\ref{sec:parallel-radix}).}
   \Description{A horizontal strip chart with a logarithmic N axis from 1 to 10,000,000.
 Five
     colored bands, one per algorithm, show the recommended range for System sort, insertion

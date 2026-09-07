@@ -1,11 +1,11 @@
-# Every edit this week's work implies — complete list, 2026-09-02, audited 2026-09-05
+# Every edit this week's work implies — started 2026-09-02, last updated 2026-09-07
 
 Supersedes `MSD baseline draft text.md`. This is intended to be exhaustive: it lists the claims that
 must change, the claims that must be added, the claims that should be softened, the optional
 additions, **and the claims that were checked and found unaffected** — that last section exists so
 nothing gets re-litigated later.
 
-## Status as of 2026-09-05, checked line by line against `HuskySort.tex`
+## Status as of 2026-09-07, checked line by line against `HuskySort.tex`
 
 **Applied**: §2's baseline disclosure (tex 552–554); §3's reframing, which absorbed 1.2, 1.3 and 1.4
 (tex 524–577); §1.1's replacement in the conclusion (tex 1477–1481); §5.3's crossovers and the 166 µs
@@ -107,21 +107,50 @@ applies to them.
 > experimental results. The appendix will be read by the program committee members at their discretion
 > and will not be included in the proceedings.
 
-**Measured after the removals of 2026-09-07: 15 pages total, body pages 1–12.** Acknowledgments and
-references begin on page 13; the appendix runs 13–15. So the counted content is **12 pages, exactly the
-limit** — down from 13 before `HSComp` and `Improvements Summary` came out.
+**Measured 2026-09-07 after the removals: 15 pages total, and the counted content is about 12.4 pages —
+still over the limit.**
 
-**Exactly at the limit is not the same as within it.** Two things still to note:
+> **Correction.** An earlier version of this section said "12 pages, exactly the limit". That was
+> wrong, and Robin caught it from his own rendering, which he put at 12.5. The error was in the method,
+> not the arithmetic: it located the end of the body by finding the page where `REFERENCES` begins,
+> which misses body content that *floats past* it. Figure 5 is a full-width `figure*` declared at the
+> end of §6.5 with no top slot free on page 12, so it lands at the top of page 13 — ahead of the
+> acknowledgments, which begin 42% down that page (measured with `pdftotext -bbox`: y=333pt of 792).
+> **Body content therefore ends 42% into page 13, not at the end of page 12.** The right measurement is
+> where the last body float sits, not where the references start.
 
-1. **This measurement does not survive the template change.** SIAM's double-column proceedings macro
-   will reflow everything, and the page count under it is unknown until we build it. Since we are at
-   the limit rather than under it, the reflow could put us over with no slack to absorb it. Measure
-   again as the first thing after the class switch.
-2. **The appendix being free is now the main lever.** Anything the 12 pages cannot hold that is detail
-   rather than argument — §5.1's permits provenance, §5.2's cleanup-pass table — can go there rather
-   than be cut, provided the main part still carries the argument. The page is explicit that it must:
-   "The main part of the submission should therefore contain a clear technical presentation of the
-   merits of the paper".
+| region | pages | counts against a 12-page limit? |
+| --- | ---: | --- |
+| title through end of Conclusion, plus Figure 5 floating forward | 1–13 (to 42% of 13) | **yes — about 12.4** |
+| Acknowledgments + references | 13 onward | no, "excluding references" |
+| Appendix A.1 and A.2 | 13–15 | no, appendices are not in the proceedings |
+
+Down from 13.0 before `HSComp` and `Improvements Summary` came out, so those two bought roughly
+six-tenths of a page. **About four-tenths still to find**, and Figure 5 with its caption is almost
+exactly that much.
+
+Two further notes:
+
+1. **None of this survives the template change.** SIAM's double-column proceedings macro will reflow
+   everything, and the page count under it is unknown until we build it. Re-measure as the first thing
+   after the class switch — and measure it the right way, by finding the last body float rather than
+   the first reference.
+2. **The appendix being free is the main lever.** Anything the 12 pages cannot hold that is detail
+   rather than argument — §5.1's permits provenance, §5.2's cleanup-pass table, and possibly Figure 5
+   itself — can go there rather than be cut, provided the main part still carries the argument. The
+   page is explicit that it must: "The main part of the submission should therefore contain a clear
+   technical presentation of the merits of the paper".
+
+## What has been done toward the limit, and what is left
+
+- Figure 5's caption said two things twice over, an accretion from the figure's two reworkings: band
+  edges fading was stated at both the start and end, and "if the data defeats the encoding's capture
+  window, System sort is the right choice" appeared twice, once as itself and once under "Not shown".
+  Deduplicated on 2026-09-07 — lossless, and it shortened the caption by about a third. It did **not**
+  move the figure off page 13; page 12 already carries Tables `ParallelRadix` and `Guidance`, so there
+  is no top slot for a third full-width float.
+- **Still needed: about four-tenths of a page.** Awaiting Robin's decision on which of Figure 5, §6.5's
+  prose, or a move to the appendix should give it up.
 
 ## The template — action required, and it needs a download
 
