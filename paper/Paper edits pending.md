@@ -409,6 +409,56 @@ Do not add this before the numbers arrive.
 
 ---
 
+# 0d. Table `Guidance` — wording, after Robin's pass of 2026-09-07
+
+Robin rewrote four cells and then asked what "consider array size, below" was supposed to mean. It was
+mine, and it was bad twice over.
+
+**What it was for.** It replaced "see Figure~\ref{fig:usecase}" when that figure was dropped, and it was
+meant to send the reader to the crossover measurements in the prose that follows the table.
+
+**Why it failed.** "Below" is a *positional* reference from inside a float. `table*` floats to the top of
+whatever page has room, so it can end up above, beside, or a page away from the prose it points at —
+the very thing that had just happened to Figure 5, which is what made the figure unaffordable. A float
+cannot say "below" about anything.
+
+Replaced with `by array size (\S~\ref{sec:usecase})`, which is resolvable wherever the table lands. The
+mild oddity of a table citing the section it sits in is the right trade: if it drifts, the number still
+finds the prose.
+
+**One other cell of mine was wrong, not just vague.** The specialised-sort row read "a tuned MSD radix
+sort beats us, though **ours** indexes extended ASCII only". "Us" means HuskySort and "ours" means our
+MSD — the referent flips mid-sentence, and the reading a reviewer would reach first is that HuskySort is
+the extended-ASCII-only one, which inverts the concession. Now "though **our MSD** indexes extended
+ASCII only".
+
+## Still open in that table — all yours, none urgent
+
+| where | issue |
+| --- | --- |
+| caption | says "The questions are ordered by how much they decide", but the first column is headed "Your situation" and its rows are situations, not questions. One of the two words should change |
+| column head | "Your situation" is the only second-person address in the paper, which otherwise says "we" throughout. Defensible in a guidance table, but it is a deliberate register change and reads as one |
+| the cleanup-pass row | its `\S~\ref{sec:radix-results}` is the **dangling reference of 5.2** — that section does not contain the 10--25\% figure. Fixing 5.2 fixes this cell; nothing to do here separately |
+| last row, Evidence | "each sort's fixed setup cost is repaid at a different $N$" is a *reason*, where every other row in that column gives a measured *fact*. The honest fact is "crossovers measured on English text, $N=4$ to $10{,}000$", which is four characters too long to fit — see the note on the page budget below |
+
+## The page budget is now binding to about a line
+
+Every wording change in this table has to be paid for. Measured today, in order:
+
+| version of the last two rows | body |
+| --- | ---: |
+| before this pass | 12.00 |
+| naming all four crossovers in the row | 12.20, and 15 pages total |
+| naming the one $N\approx2{,}000$ threshold | 12.12 |
+| `(\S~\ref{sec:usecase})`, with "the implementation we tested" | 12.05 |
+| `(\S~\ref{sec:usecase})`, with "our MSD" | **12.00** |
+
+Twenty-four characters in the MSD cell was worth 0.05 of a page, because it wrapped that cell to a
+further line. **Re-measure after any edit to this table**, by the method in 0c: last body float, then
+check the acknowledgments start at the top text margin of the next page.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE

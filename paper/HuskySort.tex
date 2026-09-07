@@ -1375,25 +1375,26 @@ Size enters only once those are settled, and then only near the bottom of the ra
   \label{tab:Guidance}
   \begin{tabular}{p{0.42\textwidth}p{0.24\textwidth}p{0.26\textwidth}}
     \toprule
-    Your situation & Reach for & Evidence \\
+Your situation & Reach for & Evidence \\
     \midrule
     The ordering is already cheap to evaluate --- primitives, or a single numeric field
-      & dual-pivot quicksort & the encoding cannot repay itself (\S~\ref{sec:summary}) \\
+      & dual-pivot quicksort & cost of encoding cannot be recouped (\S~\ref{sec:summary}) \\
     The ordering is composite or expensive, \emph{and} the key packs exactly into 64 bits
-      & RadixHuskySort; no cleanup pass runs at all
+      & RadixHuskySort; no cleanup pass is required
       & the largest margins we measure: dates 5.9x, building permits 2.1x over QuickHuskySort \\
     The ordering is composite or expensive, but the encoding is imperfect
-      & RadixHuskySort still, allowing for the cleanup pass
+      & RadixHuskySort, even allowing for the cleanup pass
       & that pass costs 10--25\% even when it has nothing to correct (\S~\ref{sec:radix-results}) \\
     A sort specialised to your type already exists
       & use it, if it covers your data
-      & on English words a tuned MSD radix sort beats us, though ours indexes extended ASCII only
-        and cannot sort either Chinese corpus (\S~\ref{sec:radix}) \\
+      & on English words a tuned MSD radix sort beats us, though our MSD indexes extended
+        ASCII only and cannot sort either Chinese corpus (\S~\ref{sec:radix}) \\
     The data defeats the encoding's capture window --- long shared prefixes, or keys wider than
     the coder can see
       & System sort & every husky variant loses its advantage (\S~\ref{sec:adversarial}) \\
     None of the above settles it, or the keys are strings
-      & consider array size, below & where each fixed setup cost is repaid, for English text \\
+      & by array size (\S~\ref{sec:usecase})
+      & each sort's fixed setup cost is repaid at a different $N$ \\
     \bottomrule
   \end{tabular}
 \end{table*}
