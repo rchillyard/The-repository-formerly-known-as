@@ -17,14 +17,18 @@ paragraph on unbounded recursion in the baselines (tex 1633–1651).
 
 **Still pending, in order of how much they cost if missed:**
 
+**Line numbers below are as of 2026-09-07, after `HSComp` and `Improvements Summary` were removed.**
+That removal shifted everything past line 650 by about fifty-five lines, so any tex line number quoted
+in an older revision of this document is wrong by roughly that much.
+
 | | what | where |
 | --- | --- | --- |
-| **8** | the DPQS guard (HS-13) falsifies the appendix's crash result and one sentence of its prose | tex 1562–1563, 1571–1573, 1648–1649 |
-| **5.2** | **the abstract and Table `Guidance` both cite a measurement the body does not contain** | tex 251–254, 1392 |
-| **1.5** | "every non-string row exceeds every string row" — false against the rebuilt table | tex 533–534 |
-| **4.1** | "HuskySort is always faster than dual-pivot quicksort" | tex 1474 |
-| **5.1** | the permits row is in the table; the case study is nowhere in the prose | tex 1277 |
-| **7** | three tables are still from the 2017 Intel/Java 8 machine | tex 1082, 1111, 1234 |
+| **4.1** | **"HuskySort is always faster than dual-pivot quicksort" is contradicted by Table `HS_BM_N`** — promoted from "should soften" | tex 1432 |
+| **8** | the DPQS guard (HS-13) falsifies the appendix's crash result and one sentence of its prose | tex 1520–1521, 1529–1531, 1606–1607 |
+| **5.2** | **the abstract and Table `Guidance` both cite a measurement the body does not contain** | tex 251–254, 1350 |
+| **1.5** | "every non-string row exceeds every string row" — false against the rebuilt table | tex 532–534 |
+| **5.1** | the permits row is in the table; the case study is nowhere in the prose | tex 1234 |
+| ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
 | **0c** | **the SIAM proceedings template is required at submission, not on acceptance** — and no SIAM class is installed | tex 43–58 |
 | **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 173–210, **736** |
 | **0c** | **12 pages excluding references** — one over under acmart, unknown after the reflow | tex 1082, 1234 |
@@ -103,21 +107,20 @@ applies to them.
 > experimental results. The appendix will be read by the program committee members at their discretion
 > and will not be included in the proceedings.
 
-Measured against the current build: **15 pages total.** Body runs pages 1–13; acknowledgments and
-references begin on page 14; the appendix occupies 14–15. So under acmart we are **one page over**, and
-the appendix costs nothing.
+**Measured after the removals of 2026-09-07: 15 pages total, body pages 1–12.** Acknowledgments and
+references begin on page 13; the appendix runs 13–15. So the counted content is **12 pages, exactly the
+limit** — down from 13 before `HSComp` and `Improvements Summary` came out.
 
-**That measurement does not survive the template change.** SIAM's double-column proceedings macro will
-reflow everything, and the page count under it is unknown until we build it. Two consequences:
+**Exactly at the limit is not the same as within it.** Two things still to note:
 
-1. Deleting Table `HSComp` (Table 7, page 10) and Table `Improvements Summary` (Table 12, page 11) is
-   now the first thing to do, not a nicety. Both are full-width `table*` floats in the counted region,
-   and both were already proposed for deletion in `Paper deletions.md` on grounds unrelated to page
-   count. Doing it before the reflow means measuring once.
-2. The appendix being free is worth exploiting deliberately. Anything the 12 pages cannot hold that is
-   detail rather than argument — §5.1's permits provenance, §5.2's cleanup-pass table — can go there
-   rather than be cut, provided the main part still carries the argument. The page is explicit that it
-   must: "The main part of the submission should therefore contain a clear technical presentation of the
+1. **This measurement does not survive the template change.** SIAM's double-column proceedings macro
+   will reflow everything, and the page count under it is unknown until we build it. Since we are at
+   the limit rather than under it, the reflow could put us over with no slack to absorb it. Measure
+   again as the first thing after the class switch.
+2. **The appendix being free is now the main lever.** Anything the 12 pages cannot hold that is detail
+   rather than argument — §5.1's permits provenance, §5.2's cleanup-pass table — can go there rather
+   than be cut, provided the main part still carries the argument. The page is explicit that it must:
+   "The main part of the submission should therefore contain a clear technical presentation of the
    merits of the paper".
 
 ## The template — action required, and it needs a download
@@ -609,15 +612,45 @@ and we have not implemented it.
 
 # 4. Should soften — not wrong, but overstated
 
-## 4.1 Line 1352: "always"
+## 4.1 Tex 1432: "always" — **PROMOTED TO MUST-FIX. It is contradicted by Table `HS_BM_N`**
 
 > HuskySort is always faster than dual-pivot quicksort.
 
-Unqualified, in a conclusion that four lines later says the advantage "is specific to a particular
-kind of workload, not universal", and in a paper whose §sec:usecase identifies two regimes where other
-sorts win outright. There is also no measurement against dual-pivot at small $N$ — the crossover work
-compares against System sort and insertion sort. Suggest "faster than dual-pivot quicksort at every
-size we measured" or similar.
+This was logged as an overstatement. It is worse than that. Table `HS_BM_N`, on the machine of record,
+at $N=500{,}000$, QuickHuskySort against the dual-pivot baseline:
+
+| type | QuickHuskySort | DualPivotQuicksort | |
+| --- | ---: | ---: | --- |
+| Integer | 87.9 | **81.7** | dual-pivot wins |
+| Double | 93.5 | **92.8** | dual-pivot wins |
+| Long | 99.3 | **90.5** | dual-pivot wins |
+| BigInteger | **151.0** | 209.7 | HuskySort wins |
+| BigDecimal | **149.1** | 243.7 | HuskySort wins |
+
+**Three of five numeric types go the other way**, and the pattern is not noise — it is exactly what the
+paper's own argument predicts. Husky encoding pays for itself when comparison is expensive; `Integer`,
+`Double` and `Long` are the cases where it is cheapest, so there is nothing for the encoding to amortise.
+`BigInteger` and `BigDecimal`, where comparison is genuinely costly, go the paper's way by a wide margin.
+
+So the sentence is not just unqualified — it asserts something two tables away is refuted by, and the
+refutation is a positive illustration of the paper's thesis rather than an embarrassment. It was found
+by following the pointer that tex 1138 now carries, which sends the reader to `HS_BM_N` for precisely
+this comparison.
+
+Suggested replacement:
+
+```latex
+HuskySort is faster than dual-pivot quicksort wherever the ordering is expensive to evaluate,
+by 1.4x on \textit{BigInteger} and 1.6x on \textit{BigDecimal} (Table ~\ref{tab:HS_BM_N});
+on \textit{Integer}, \textit{Double} and \textit{Long}, where a comparison costs almost nothing,
+the encoding has nothing to amortise and dual-pivot quicksort is slightly ahead.
+This is the same criterion that governs everything else in this paper, applied to a single data type.
+```
+
+The two further caveats originally recorded here still stand: the claim sat in a conclusion that four
+lines later says the advantage "is specific to a particular kind of workload, not universal", and there
+is no measurement against dual-pivot at small $N$, the crossover work comparing against System sort and
+insertion sort only.
 
 ---
 
@@ -788,32 +821,30 @@ Radix over QuickHuskySort, as Table `RadixImprovements` now reads (tex 1268–12
 
 The string rows improved most, which is what broke §3's framing. See 1.5.
 
-## What is still on the old machine — the remaining half of this decision
+## What was still on the old machine — **CLOSED 2026-09-07**
 
-Three tables in §sec:analysis were never rebuilt. Tex 806 and 1078 say so in as many words for one of
-them; the other two are simply undated. All are from Table `SysEnvOriginal`, a 2017 quad-core Intel i7
-running **Java 1.8.0_152**.
+Three tables in §sec:analysis were never rebuilt, all from Table `SysEnvOriginal`, a 2017 quad-core
+Intel i7 running **Java 1.8.0_152**. Robin's instruction of 2026-09-07 settled all three:
 
-| table | tex | why it was not rebuilt |
-| --- | ---: | --- |
-| `HSComp` | 1080–1103 | cannot be rebuilt — thirteen sizes JMH does not run. Proposed for deletion; see `Paper deletions.md` |
-| `TimvsInsertion` | 1109–1132 | same thirteen sizes, same machine, but it never says so. Worth keeping — it is the only evidence for choosing Timsort in step 3 — so it needs a sentence naming its machine rather than a rebuild |
-| `Improvements Summary` | 1232–1249 | cannot be rebuilt — quoted over continuous size bands ("4,000—500,000 elements") that JMH's three sizes per type cannot reproduce, and it too is unattributed |
+| table | outcome |
+| --- | --- |
+| `HSComp` | **removed.** Could not be rebuilt — thirteen sizes JMH does not run. All seven inbound references resolved; see `Paper deletions.md` |
+| `Improvements Summary` | **removed.** Could not be rebuilt — continuous size bands that JMH's three sizes per type cannot reproduce. Its ranges were also simply wrong on the new machine: Chinese was 1.4–2.1x and is 2.0–2.3x |
+| `TimvsInsertion` | **kept, and attributed.** It is the only evidence for choosing Timsort in step 3, and 2,424 ms against 11,018 ms at N=4,000,000 does not become wrong on a newer JVM. Tex 806 was repointed from `HSComp` to it, so §Implementation now names it as what `SysEnvOriginal` measured |
 
-Table `Comparison` (tex 1059–1073) looks like a fourth but is not one: it counts array accesses from the
-model of §sec:radix and never touched a benchmark.
+Table `Comparison` looked like a fourth but was not one: it counts array accesses from the model of
+§sec:radix and never touched a benchmark.
 
-**This is the gap between the decision as stated and the paper as it stands.** The opening claim of
-this section — "no results table quotes figures from any other" machine — is not yet true, and a
-referee reading tex 806 will see it stated plainly. Either finish the consolidation or narrow the
-claim to the radix results, which is where it actually holds.
+**So this section's opening claim is now true.** Every results table in the paper quotes the machine of
+record except `TimvsInsertion`, which is not a results table — it is a design justification for step 3 —
+and which now says which machine it came from. The 12-page limit and this decision turned out to want
+the same two deletions.
 
-## Two wrinkles, both still live
+## The one wrinkle that remains
 
-**The sizes do not line up.** `HSComp` is quoted over "4,000–500,000 elements" and `Improvements
-Summary` over similar bands; JMH uses 32,000/200,000/1,000,000 for strings and 20,000/100,000/500,000
-for numerics. Those two tables must be re-cast at JMH's sizes or dropped; the current ranges cannot be
-reproduced.
+**The sizes did not line up, and that is why both tables went rather than being re-cast.** JMH uses
+32,000/200,000/1,000,000 for strings and 20,000/100,000/500,000 for numerics; neither deleted table's
+sizes were reproducible. Nothing in the paper now quotes a size band that cannot be reproduced.
 
 **The pinyin row is awkward.** At N=1,000,000 on Graviton3, the natural-order system sort beats every
 pinyin-correct variant (851.3 against 955.5 for RadixHuskySort/16 — 0.89x). Request 6 exists precisely
