@@ -31,7 +31,8 @@ then.
 | | what | where |
 | --- | --- | --- |
 | ~~**4.1**~~ | ~~"HuskySort is always faster than dual-pivot quicksort"~~ — **APPLIED 2026-09-07**, tex 1441–1447 |
-| **8** | the DPQS guard (HS-13) falsifies the appendix's crash result and one sentence of its prose | tex 1528–1529, 1537–1539, 1614–1615 |
+| **8** | the appendix's crash result — **PR #64 answers it; see 0h.** Both columns already measured, no further run needed | tex 1528–1529, 1537–1539, 1614–1615 |
+| **0h** | **PR #64**: tables to rebuild, MSD now level at 1M, cleanup pass back to a quarter, chinesenames transformed | throughout |
 | ~~**5.2**~~ | ~~a measurement the body does not contain~~ — **APPLIED 2026-09-07**, tex 729–758. But see the new item below about the abstract's range |
 | **0e** | **the abstract's "a tenth to a quarter" is not what the body now says** — and the abstract is submitted tomorrow | tex 251–254 |
 | ~~**1.5**~~ | ~~"every non-string row exceeds every string row"~~ — **APPLIED 2026-09-07**, tex 567–588 |
@@ -679,6 +680,119 @@ clearest statement of what adopting it would take.
 
 **Not applied — Robin's call.** The alternative is to write the combinator and describe it instead,
 which is a better paper but is new code and new tests eight days out.
+
+---
+
+# 0h. PR #64 — both blockers answered, and one of them against us
+
+Yunlu reran **all seven requests at one checkout** (tip `6dd4ef9`), 31.4 h, every JMH row Cnt=50, with
+an external correctness harness (37/37) run before any timing was trusted. Results doc:
+`doc/Run results from Yunlu 2026-09-06.md`. **Not yet merged.**
+
+He also corrects the request doc: the last `src/`-touching commit is `e92610f` (HS-13), not `5ed60a0`.
+`e92610f` is what the paper should record.
+
+## Request 6 — the chinesenames corpus is transformed
+
+Against `systemSortPinyin`, the baseline doing the same job, radix/16 wins **3.03x / 3.62x / 4.05x** at
+32k / 200k / 1M (3119.9 ms against 770.3 at 1M), and **the margin grows with $n$**, which is exactly
+the premise: extract the key once per element rather than $\log n$ times per element in comparisons.
+With HS-12 the encoder is cheap enough that radix/16 at 1M (770.3) now beats even the *unfair*
+code-point `systemSort` (799.8).
+
+Byte-identical output was verified across `systemSortPinyin`, `quickHuskySort`, `radixHuskySort16` and
+pinyin multikey; plain `systemSort` differs at **200,000 of 200,000 positions**, which settles the
+"different and cheaper problem" claim with a number.
+
+**The corpus flips from the paper's weakest result to its clearest demonstration.** Note that the
+`RadixImprovements` row is separately still the table's smallest margin (1.63x, now a legitimate
+same-task figure), so §1.5's framing survives intact — the two facts are about different comparisons
+and both belong.
+
+One flag from Yunlu, correctly raised against the falsifier in the request: `huskyEncodeOnly` at 1M
+went 408.4 to 211.1 ms, about half, not the 5.7x measured per character. That is expected — the
+benchmark includes array traversal and allocation, which HS-12 does not touch — but it should be
+stated as ~2x end-to-end rather than 5.7x anywhere the paper quotes it.
+
+## Request 7 — the pre-registered falsifier fired. The guard is right; the appendix is wrong
+
+| fixedHighBits | guarded (09-06) | unguarded (d3c359f) |
+| ---: | ---: | --- |
+| 0 | 335.9 | 335.7 |
+| 48 | 333.3 | 354.6 |
+| 56 | **717.2** | **7097.7** |
+| 60 | 805.5 | StackOverflowError |
+| 63 | **186.9** | StackOverflowError |
+
+124/124 combinations, zero crashes. But the 21x degradation at 56 became 2.1x, and at 63 the baseline
+is *faster than its own fhb=0 case*. Yunlu concluded the guard engages too early and needs re-tuning.
+
+**It does not. Two things were checked:**
+
+**1. The guard matches the JDK exactly.** JDK 21 has `DELTA = 3 << 1` (6) and
+`MAX_RECURSION_DEPTH = 64 * DELTA` (384), and its recursion does `bits += DELTA` — so its effective
+limit is 384/6 = **64 levels**, which is what `PureDualPivotQuicksort` now uses. Verified against
+`src.zip`, not from memory.
+
+**2. The guard is nevertheless the whole cause**, and the pathology behind it is far worse than the
+paper ever claimed. Timing the same generator and seed locally at $n=10^6$, varying only the depth
+limit (single-shot, no JMH, so read the ratios and not the absolutes):
+
+| fixedHighBits | d=64 | d=384 | d=4096 | d=100,000 |
+| ---: | ---: | ---: | ---: | ---: |
+| 0 | 606 ms | 581 | 485 | 402 |
+| 48 | 203 | 149 | 253 | 153 |
+| 56 | 464 | 1651 | 4480 | 4172 |
+| 60 | 617 | 3718 | 32261 | **98129** |
+| 63 | 294 | 1762 | 17314 | — |
+
+At 60 fixed bits an unbounded run takes **98 seconds against 0.4 s at fhb=0 — a 240x degradation** —
+where the 64-level guard finishes in 0.6 s. The quadratic behaviour is real, severe, and entirely
+masked by the guard, which converts it into heapsort almost immediately on duplicate-heavy partitions.
+
+## What this means for the appendix — a better story, not a lost one
+
+The old text said a naive baseline degrades by an order of magnitude and then crashes. That was true of
+*our* unguarded copy of 2011 code, and a referee could fairly call it a straw man. The three findings
+now available are stronger, and all three are measured:
+
+1. **The pathology is real and severe.** Unguarded, 56 fixed bits costs 21x and 60 or 63 exhausts the
+   stack outright; locally, with depth unbounded, 60 costs 240x.
+2. **A JDK-equivalent guard removes it — by abandoning quicksort.** 64 levels is what the JDK ships,
+   and on this input it means heapsort does most of the work: 2.1x rather than 21x, and no crash. What
+   you get is not a dual-pivot quicksort that copes; it is a sort that detects it cannot cope and
+   changes algorithm.
+3. **Radix needs no such provision.** Its cost is flat across the whole sweep because it does not
+   depend on the distribution at all, which is the only one of the three properties that is a property
+   of the algorithm rather than of a safety net bolted to it.
+
+**No further run is needed.** Both columns of the table above are already measured on the machine of
+record — the unguarded numbers from the d3c359f run merged in PR #63, the guarded ones from PR #64 —
+so the appendix can show the pathology and its mitigation side by side without asking Yunlu for
+anything.
+
+## What else PR #64 changes, and it is not small
+
+- **All five results tables must be rebuilt again.** `full-suite.json` is refreshed (415 rows) and
+  supersedes the version every current table was built from. Rows shared with the dedicated runs agree
+  within ~2%, so nothing will move much, but the paper must not quote two suites.
+- **MSD at 1M is now a dead heat.** 271.9 against 271.5, i.e. **1.00x**, after 1.09x and 1.05x. The
+  paper says "MSD is faster by 1.34x at 200,000 and by 1.09x at 1,000,000"; the honest statement is now
+  MSD ahead by 1.17x at 200,000 and level at 1M, with the 1M margin spanning 1.00-1.09x across three
+  runs. **This strengthens the paper** and the concession should be rescoped, not deleted.
+- **The cleanup pass moved again, and my correction of an hour ago over-corrected.** This run gives
+  8.7% / 25.1% / 15.7% as a share of total (9.5 / 33.6 / 18.6 as overhead added). The maximum share of
+  the total across all four runs is now **25.1%**, so the abstract's **"as much as a quarter" was right
+  after all** and should go back; "as much as a fifth" is now too weak. Table `Guidance` should read a
+  sixth to a quarter. The mid-peaking shape reproduced, which is now two runs for the peak and two for
+  monotone growth — the paper's "no reproducible shape" wording holds and is if anything better
+  supported.
+- **Permits improved**: 4.83x over system sort and 2.32x over QuickHuskySort at the full corpus, from
+  4.77x and 2.06x.
+- **Crossovers unchanged**: the ladder and the ~167 µs radix setup floor both reproduce exactly.
+- **Environment drift**: kernel now 6.12.103 after a 09-03 reboot; swap now 8 GiB zram plus a 32 GiB
+  file, 0 B used during runs. Table `SysEnvAWS` carries neither field, so nothing needs changing, but
+  §5.4's note should record it.
 
 ---
 
