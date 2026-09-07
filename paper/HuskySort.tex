@@ -75,10 +75,21 @@
 %% better absent than explained.
 \newif\ifdraftstamp
 \draftstamptrue
-%% \time is TeX's minutes-since-midnight; these two turn it into HH:MM, zero-padded.
-\newcommand{\stamphour}{\ifnum\number\numexpr\time/60\relax<10 0\fi\number\numexpr\time/60\relax}
-\newcommand{\stampminute}{\ifnum\number\numexpr\time-(\time/60)*60\relax<10 0\fi\number\numexpr\time-(\time/60)*60\relax}
-\newcommand{\revisionstamp}{\the\year-\ifnum\the\month<10 0\fi\the\month-\ifnum\the\day<10 0\fi\the\day\ \stamphour:\stampminute}
+%% \time is TeX's minutes since midnight, in local time -- verified against the system clock,
+%% timezone and DST offset all agreeing.
+%%
+%% NOTE the division must be done with \divide, not \numexpr. \numexpr ROUNDS rather than
+%% truncating, so \numexpr\time/60 gives the *next* hour from half past onwards, and the paired
+%% minute expression then goes negative: a 08:35 build stamped itself "09:0-25". Hence counters.
+%% Plain names, not hs@ ones: @ is not a letter in a document preamble, so \hs@stamphr would
+%% tokenize as two control sequences and the definition below would fail.
+\newcount\hsstamphr \newcount\hsstampmin \newcount\hsstamptmp
+\newcommand{\revisionstamp}{%
+  \hsstamphr=\time \divide\hsstamphr by 60
+  \hsstamptmp=\hsstamphr \multiply\hsstamptmp by 60
+  \hsstampmin=\time \advance\hsstampmin by -\hsstamptmp
+  \the\year-\ifnum\month<10 0\fi\the\month-\ifnum\day<10 0\fi\the\day\space
+  \ifnum\hsstamphr<10 0\fi\the\hsstamphr:\ifnum\hsstampmin<10 0\fi\the\hsstampmin}
 %%
 %% Submission ID.
 %% Use this when submitting an article to a sponsored event. You'll
@@ -342,8 +353,10 @@
     \let\@mkboth\@gobbletwo
     \let\@oddhead\@empty
     \let\@evenhead\@empty
-    \def\@oddfoot{\reset@font\footnotesize
-      draft \revisionstamp\hfil\thepage\hfil\phantom{draft \revisionstamp}}%
+    %% The page number keeps the whole width to centre itself in; the stamp is then lapped
+    %% leftward from the right margin, so it cannot shift the number off-centre.
+    \def\@oddfoot{\reset@font\hfil\thepage\hfil
+      \llap{\footnotesize\itshape draft \revisionstamp}}%
     \let\@evenfoot\@oddfoot}
   \makeatother
   \pagestyle{plain}
@@ -726,6 +739,37 @@ The actual values of $p_{crit}$ are very much dependent on the machine running t
 We have not calculated a typical value for $p_{crit}$ but, even for the worst-case:
 Chinese characters using UTF8 encoding, we still find very significant gains, reported later in Table ~\ref{tab:HS_BM_S}.
 
+Of the three terms, $T_3$ is the one we can measure in isolation,
+and doing so puts a floor under what an imperfect encoding costs.
+Two benchmarks over the same two hundred thousand municipal records (\S~\ref{sec:radix-results})
+differ in one respect only: which coder they are given.
+Both obtain their codes from the same method, so the codes are identical;
+one coder declares itself perfect and the sort therefore skips step 3,
+while the other leaves that declaration at its default of false and the pass runs.
+Since the encoding for this data is exact,
+the pass that does run provably has nothing to correct,
+and the difference between the two benchmarks is $T_3$ evaluated at $p = 0$ --- overhead and nothing else.
+It is not small.
+On the machine of record it accounts for 9.8\% of total running time at $N = 32{,}000$,
+25.3\% at $N = 100{,}000$ and 19.0\% at $N = 198{,}900$,
+with non-overlapping 99.9\% confidence intervals at every size.
+A second, independent run on the same machine gave 6.2\%, 22.8\% and 24.2\%.
+
+We therefore draw only the conclusion both runs support:
+that this pass costs under a tenth of total running time at the smallest size measured
+and between a fifth and a quarter at the two larger ones,
+while doing no useful work at all.
+We specifically do not claim a trend in $N$.
+The two runs disagree about the direction beyond $N = 100{,}000$ --- one rises, the other falls ---
+and a third run on different hardware produced a third shape again,
+so the magnitude of this cost replicates and its shape does not.
+This is also, to our knowledge, the only direct measurement of the quantity,
+every other benchmark in this paper varying the encoding and the sort together.
+
+It is what makes $p_{crit}$ worth establishing rather than merely bounding.
+An encoding that can be declared perfect avoids this cost outright;
+one that cannot must first repay it, before a single genuine inversion has been corrected.
+
 \subsection{Why HuskySort Works}
 
 So, why does this work? Well, first of all, we observe that 64-bit word length in today’s computers is the norm.
@@ -938,8 +982,15 @@ Table ~\ref{tab:EncodingConstants} lists the constants each wrapper uses.
 \section{Test Case and Analysis}
 
 \subsection{Data Source}
+\label{sec:data-source}
 The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection\cite{GOLDHAHN12.327}.
 Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus\cite{wainshine2020chinesenames}.
+Every other dataset in this paper is generated: pseudo-random numbers, dates and tuples.
+One is not.
+The building-permit records of \S~\ref{sec:radix-results} are 198,900 rows of a public municipal dataset,
+each ordered by a composite key of three fields --- assessor's block, assessor's lot, and filing date ---
+and they are included precisely because they are real,
+with whatever distribution of block sizes, lot numbering and filing dates the city happens to have.
 
 In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in Listing~\ref{lst:DS}.
 
@@ -1298,6 +1349,21 @@ Dates show the largest margin (5.9x) because that coding is provably perfect and
 letting radix's linear-time advantage show through with nothing else in the way.
 The two lie at opposite ends of the same axis: what separates them is not the data type but the exactness of the encoding.
 
+One row of that table deserves separating from the rest, because it is the only one not measured on data we generated.
+The building permits are 198,900 real municipal records ordered by a composite key of three fields
+(\S~\ref{sec:data-source}), and they are the case this mechanism is designed for:
+the ordering is expensive, since a comparison may have to examine all three fields in turn,
+and the key nevertheless packs exactly into 60 bits, so no cleanup pass is required at all.
+Against the system sort, RadixHuskySort is faster by 5.25x, 4.53x and 4.77x
+at $N = 32{,}000$, $100{,}000$ and $198{,}900$;
+against QuickHuskySort, which Table ~\ref{tab:RadixImprovements} reports, by 2.56x, 2.17x and 2.06x.
+At 2.1x the permits row is tenth of eleven, and that is the point worth making about it.
+It is not our largest margin --- a composite key of three fields is more expensive to compare
+than a single \textit{Long} but a good deal cheaper than a pinyin lookup per character ---
+but it is our largest margin on data whose distribution we did not choose,
+and it falls squarely inside the range predicted for it by the three factors.
+A mechanism that only worked on synthetic inputs would not be worth reporting.
+
 The measurements were reproduced qualitatively on the two machines of Tables ~\ref{tab:SysEnvOriginal}
 and ~\ref{tab:SysEnvCurrent}, which differ from the machine of record and from each other in vendor,
 instruction set, core design and JVM generation.
@@ -1390,7 +1456,8 @@ Your situation & Reach for & Evidence \\
       & the largest margins we measure: dates 5.9x, building permits 2.1x over QuickHuskySort \\
     The ordering is composite or expensive, but the encoding is imperfect
       & RadixHuskySort, even allowing for the cleanup pass
-      & that pass costs 10--25\% even when it has nothing to correct (\S~\ref{sec:radix-results}) \\
+      & that pass costs a fifth to a quarter past $N=100{,}000$, even with nothing to correct
+        (\S~\ref{sec:pcrit}) \\
     A sort specialised to your type already exists
       & use it, if it covers your data
       & on English words a tuned MSD radix sort beats us, though our MSD indexes extended

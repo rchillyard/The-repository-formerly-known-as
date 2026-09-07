@@ -32,9 +32,10 @@ then.
 | --- | --- | --- |
 | ~~**4.1**~~ | ~~"HuskySort is always faster than dual-pivot quicksort"~~ — **APPLIED 2026-09-07**, tex 1441–1447 |
 | **8** | the DPQS guard (HS-13) falsifies the appendix's crash result and one sentence of its prose | tex 1528–1529, 1537–1539, 1614–1615 |
-| **5.2** | **the abstract and Table `Guidance` both cite a measurement the body does not contain** | tex 251–254, 1387 |
+| ~~**5.2**~~ | ~~a measurement the body does not contain~~ — **APPLIED 2026-09-07**, tex 729–758. But see the new item below about the abstract's range |
+| **0e** | **the abstract's "a tenth to a quarter" is not what the body now says** — and the abstract is submitted tomorrow | tex 251–254 |
 | ~~**1.5**~~ | ~~"every non-string row exceeds every string row"~~ — **APPLIED 2026-09-07**, tex 567–588 |
-| **5.1** | the permits row is in the table; the case study is nowhere in the prose | tex 1271 |
+| ~~**5.1**~~ | ~~the permits case study is nowhere in the prose~~ — **APPLIED 2026-09-07**, tex 899–905 and 1352–1365 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
 | **0c** | **the SIAM proceedings template is required at submission, not on acceptance** — and no SIAM class is installed | tex 43–58 |
 | **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 191–228, **775** |
@@ -467,6 +468,34 @@ the acknowledgments start at the top text margin of the next page.
 
 ---
 
+# 0e. The abstract's cleanup-pass range — needs your call, and the abstract goes in tomorrow
+
+The abstract (tex 251–254) says:
+
+> measured on input where that pass provably has nothing to correct,
+> it nonetheless accounts for **a tenth to a quarter** of total running time.
+
+That is exactly right for `permits.json`, whose figures are 9.8% and 25.3% at the ends. It is **not
+supported by the second run**, where the smallest size gives 6.2% — a sixteenth, not a tenth. The body
+as now written takes the conservative reading and says "under a tenth of total running time at the
+smallest size measured and between a fifth and a quarter at the two larger ones".
+
+**So the abstract and the body no longer say quite the same thing**, and a referee who checks the one
+against the other will see it. Three ways out:
+
+1. **"as much as a quarter"** — true under both runs, keeps the force of the claim, one-line change.
+   This is what I would do.
+2. **"a fifth to a quarter at the sizes where it matters"** — more precise, slightly more hedged, and
+   matches the body's own wording and Table `Guidance`'s.
+3. **Leave it.** Defensible: the abstract quotes the dedicated permits run, which is the measurement
+   designed for this, and the body discloses the second run honestly. But it means the paper's most
+   distinctive claim is stated at its most flattering.
+
+I have **not** changed it. Sai Vineeth submits tomorrow and the text is presumably already with him;
+a silent edit the night before is how versions diverge.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE
@@ -747,7 +776,18 @@ insertion sort only.
 
 # 5. Additions — new evidence, not corrections. **No longer optional: the abstract already cites both.**
 
-## 5.1 The permits case study (§sec:radix-results) — HALF APPLIED
+## 5.1 The permits case study — **APPLIED 2026-09-07**
+
+Two additions. §Data Source (tex 899–905), which also gained the `\label{sec:data-source}` it had
+always lacked, now says that every other dataset in the paper is generated and this one is not. And
+§sec:radix-results (tex 1352–1365) separates the permits row from the rest of Table
+`RadixImprovements`: 5.25x, 4.53x and 4.77x over the system sort, 2.56x, 2.17x and 2.06x over
+QuickHuskySort, all from `full-suite.json` so that they match the table's own 2.1x.
+
+The framing is that tenth-of-eleven is the point rather than an embarrassment — it is the best result
+on data whose distribution we did not choose, and it lands where the three factors predict.
+
+### The original note follows
 
 The **row is in** Table `RadixImprovements` (tex 1277, 2.1x) and in Table `Guidance` (tex 1389). The
 **prose is nowhere.** §sec:radix-results runs from 1251 to 1304 and never mentions permits; the reader
@@ -765,7 +805,38 @@ enters that table tenth of eleven, below Tuples (2.49x). It is not the best numb
 the best number on real data. Full results in
 [Permit benchmark results 2026-09-01.md](../doc/Permit%20benchmark%20results%202026-09-01.md).
 
-## 5.2 The cleanup pass, measured directly (§sec:pcrit) — **NOT APPLIED, AND TWICE CITED. URGENT**
+## 5.2 The cleanup pass, measured directly — **APPLIED 2026-09-07**, at tex 729–758
+
+Written into §sec:pcrit, immediately after the $T_1$/$T_2$/$T_3$ decomposition, which is the discussion
+it anchors. Table `Guidance`'s dangling pointer went with it: that cell cited §sec:radix-results, which
+never held the figure, and now cites §sec:pcrit and reads "a fifth to a quarter past $N=100{,}000$".
+
+**Checked in the source before writing, rather than taken from this document.** `Permit.huskyCode()`
+delegates to `PermitCoder.INSTANCE.huskyEncode`, and `HuskyCoderFactory.createGenericCoder()` is
+`HuskySortable::huskyCode`, so the two benchmarks genuinely do compute identical codes and differ only
+in `perfect()`. The paper says so, and it is true.
+
+### The figures, and a new finding
+
+Two Graviton3 runs measured this, and **they disagree about the shape:**
+
+| n | `permits.json` (request 3) | `full-suite.json` (request 4) |
+| ---: | ---: | ---: |
+| 32,000 | 9.8% | 6.2% |
+| 100,000 | 25.3% | 22.8% |
+| 198,900 | **19.0%** | **24.2%** |
+
+Intervals are non-overlapping within each run at every size, so neither is noise at the level of the
+individual measurement — yet one peaks in the middle and the other rises throughout. With the M1's
+5.9 / 11.9 / 17.4, that is **three runs and three shapes.**
+
+So the earlier instruction here — "do not write grows with N, Yunlu's figures peak in the middle" — was
+half right for the wrong reason. It is not that the true shape is a mid-range peak; it is that there is
+no reproducible shape at all. The paper now says exactly that: the magnitude replicates and the shape
+does not, and it draws only the conclusion both runs support — under a tenth at 32,000, a fifth to a
+quarter at the two larger sizes.
+
+### The original note follows
 
 **This is the most serious inconsistency in the paper as it stands.** The measurement is not in the
 body anywhere — `grep` finds none of 9.8, 25.3 or 19.0 in `HuskySort.tex` — yet two places already
