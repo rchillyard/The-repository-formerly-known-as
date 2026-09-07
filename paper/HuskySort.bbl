@@ -1,0 +1,318 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{18}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[\protect\citeauthoryear{Aggarwal and Vitter}{Aggarwal and
+  Vitter}{1988}]%
+        {10.1145/48529.48535}
+\bibfield{author}{\bibinfo{person}{Alok Aggarwal} {and}
+  \bibinfo{person}{Jeffrey~Scott Vitter}.} \bibinfo{year}{1988}\natexlab{}.
+\newblock \showarticletitle{The Input/Output Complexity of Sorting and
+  Related Problems}.
+\newblock \bibinfo{journal}{\emph{Commun. ACM}} \bibinfo{volume}{31},
+  \bibinfo{number}{9} (\bibinfo{date}{Sept.} \bibinfo{year}{1988}),
+  \bibinfo{pages}{1116--1127}.
+\newblock
+\showISSN{0001-0782}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/48529.48535}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Auger, Jug{\'{e}}, Nicaud, and Pivoteau}{Auger
+  et~al\mbox{.}}{2018}]%
+        {DBLP:journals/corr/abs-1805-08612}
+\bibfield{author}{\bibinfo{person}{Nicolas Auger}, \bibinfo{person}{Vincent
+  Jug{\'{e}}}, \bibinfo{person}{Cyril Nicaud}, {and} \bibinfo{person}{Carine
+  Pivoteau}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{On the Worst-Case Complexity of TimSort}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/1805.08612}
+  (\bibinfo{year}{2018}).
+\newblock
+\showeprint[arxiv]{1805.08612}
+\urldef\tempurl%
+\url{http://arxiv.org/abs/1805.08612}
+\showURL{%
+\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Bentley and McIlroy}{Bentley and
+  McIlroy}{1993}]%
+        {10.1002/spe.4380231105}
+\bibfield{author}{\bibinfo{person}{Jon~L. Bentley} {and}
+  \bibinfo{person}{M.~Douglas McIlroy}.} \bibinfo{year}{1993}\natexlab{}.
+\newblock \showarticletitle{Engineering a sort function}.
+\newblock \bibinfo{journal}{\emph{Software: Practice and Experience}}
+  \bibinfo{volume}{23}, \bibinfo{number}{11} (\bibinfo{year}{1993}),
+  \bibinfo{pages}{1249--1265}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1002/spe.4380231105}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Bentley and Sedgewick}{Bentley and
+  Sedgewick}{1997}]%
+        {314161.314321}
+\bibfield{author}{\bibinfo{person}{Jon~L. Bentley} {and}
+  \bibinfo{person}{Robert Sedgewick}.} \bibinfo{year}{1997}\natexlab{}.
+\newblock \showarticletitle{Fast Algorithms for Sorting and Searching
+  Strings}. In \bibinfo{booktitle}{\emph{Proceedings of the Eighth Annual
+  ACM-SIAM Symposium on Discrete Algorithms}} \emph{(\bibinfo{series}{SODA
+  '97})}. \bibinfo{publisher}{Society for Industrial and Applied
+  Mathematics}, \bibinfo{address}{USA}, \bibinfo{pages}{360--369}.
+\newblock
+\showISBNx{0898713900}
+
+
+\bibitem[\protect\citeauthoryear{Frigo, Leiserson, Prokop, and
+  Ramachandran}{Frigo et~al\mbox{.}}{1999}]%
+        {814600}
+\bibfield{author}{\bibinfo{person}{M. Frigo}, \bibinfo{person}{C.~E.
+  Leiserson}, \bibinfo{person}{H. Prokop}, {and}
+  \bibinfo{person}{S. Ramachandran}.} \bibinfo{year}{1999}\natexlab{}.
+\newblock \showarticletitle{Cache-oblivious algorithms}. In
+  \bibinfo{booktitle}{\emph{40th Annual Symposium on Foundations of Computer
+  Science (Cat. No.99CB37039)}}. \bibinfo{pages}{285--297}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/SFFCS.1999.814600}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Gilreath}{Gilreath}{2004}]%
+        {DBLP:journals/corr/cs-DS-0408040}
+\bibfield{author}{\bibinfo{person}{William~F. Gilreath}.}
+  \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Hash sort: {A} linear time complexity
+  multiple-dimensional sort algorithm}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{cs.DS/0408040}
+  (\bibinfo{year}{2004}).
+\newblock
+\urldef\tempurl%
+\url{http://arxiv.org/abs/cs.DS/0408040}
+\showURL{%
+\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Goldhahn, Eckart, and Quasthoff}{Goldhahn
+  et~al\mbox{.}}{2012}]%
+        {GOLDHAHN12.327}
+\bibfield{author}{\bibinfo{person}{Dirk Goldhahn}, \bibinfo{person}{Thomas
+  Eckart}, {and} \bibinfo{person}{Uwe Quasthoff}.}
+  \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{Building Large Monolingual Dictionaries at the
+  Leipzig Corpora Collection: From 100 to 200 Languages}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the Eight International Conference
+  on Language Resources and Evaluation (LREC'12)}} (23-25),
+  \bibfield{editor}{\bibinfo{person}{Nicoletta Calzolari~(Conference Chair)},
+  \bibinfo{person}{Khalid Choukri}, \bibinfo{person}{Thierry Declerck},
+  \bibinfo{person}{Mehmet~Uğur Doğan}, \bibinfo{person}{Bente Maegaard},
+  \bibinfo{person}{Joseph Mariani}, \bibinfo{person}{Asuncion Moreno},
+  \bibinfo{person}{Jan Odijk}, {and} \bibinfo{person}{Stelios Piperidis}}
+  (Eds.). \bibinfo{publisher}{European Language Resources Association (ELRA)},
+  \bibinfo{address}{Istanbul, Turkey}.
+\newblock
+\showISBNx{978-2-9517408-7-7}
+
+
+\bibitem[\protect\citeauthoryear{Hoare}{Hoare}{1961}]%
+        {10.1145/366622.366644}
+\bibfield{author}{\bibinfo{person}{C.~A.~R. Hoare}.}
+  \bibinfo{year}{1961}\natexlab{}.
+\newblock \showarticletitle{Algorithm 64: Quicksort}.
+\newblock \bibinfo{journal}{\emph{Commun. ACM}} \bibinfo{volume}{4},
+  \bibinfo{number}{7} (\bibinfo{date}{July} \bibinfo{year}{1961}),
+  \bibinfo{pages}{321}.
+\newblock
+\showISSN{0001-0782}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/366622.366644}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Jugé}{Jugé}{[n.d.]}]%
+        {doi:10.1137/1.9781611975994.101}
+\bibfield{author}{\bibinfo{person}{Vincent Jugé}.}
+  \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Adaptive Shivers Sort: An Alternative
+  Sorting Algorithm}}.
+\newblock \bibinfo{pages}{1639--1654}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1137/1.9781611975994.101}
+\showDOI{\tempurl}
+\showeprint{https://epubs.siam.org/doi/pdf/10.1137/1.9781611975994.101}
+
+
+\bibitem[\protect\citeauthoryear{LaMarca and Ladner}{LaMarca and
+  Ladner}{1999}]%
+        {LAMARCA199966}
+\bibfield{author}{\bibinfo{person}{Anthony LaMarca} {and}
+  \bibinfo{person}{Richard~E. Ladner}.} \bibinfo{year}{1999}\natexlab{}.
+\newblock \showarticletitle{The Influence of Caches on the Performance of
+  Sorting}.
+\newblock \bibinfo{journal}{\emph{Journal of Algorithms}} \bibinfo{volume}{31},
+  \bibinfo{number}{1} (\bibinfo{year}{1999}), \bibinfo{pages}{66--104}.
+\newblock
+\urldef\tempurl%
+\url{https://www.sciencedirect.com/science/article/pii/S0196677498909853}
+\showURL{%
+\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{McIlroy}{McIlroy}{1993}]%
+        {10.5555/313559.313859}
+\bibfield{author}{\bibinfo{person}{Peter McIlroy}.}
+  \bibinfo{year}{1993}\natexlab{}.
+\newblock \showarticletitle{Optimistic Sorting and Information Theoretic
+  Complexity}. In \bibinfo{booktitle}{\emph{Proceedings of the Fourth Annual
+  ACM-SIAM Symposium on Discrete Algorithms}} (Austin, Texas, USA)
+  \emph{(\bibinfo{series}{SODA '93})}. \bibinfo{publisher}{Society for
+  Industrial and Applied Mathematics}, \bibinfo{address}{USA},
+  \bibinfo{pages}{467–474}.
+\newblock
+\showISBNx{0898713137}
+
+
+\bibitem[\protect\citeauthoryear{MUSSER}{MUSSER}{1997}]%
+        {doi:10.1002}
+\bibfield{author}{\bibinfo{person}{DAVID~R. MUSSER}.}
+  \bibinfo{year}{1997}\natexlab{}.
+\newblock \showarticletitle{Introspective Sorting and Selection Algorithms}.
+\newblock \bibinfo{journal}{\emph{Software: Practice and Experience}}
+  \bibinfo{volume}{27}, \bibinfo{number}{8} (\bibinfo{year}{1997}),
+  \bibinfo{pages}{983--993}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1002/(SICI)1097-024X(199708)27:8<983::AID-SPE117>3.0.CO;2-\#}
+\showDOI{\tempurl}
+\showeprint{https://onlinelibrary.wiley.com/doi/pdf/10.1002/}
+
+
+\bibitem[\protect\citeauthoryear{Peters}{Peters}{2002}]%
+        {Timsort}
+\bibfield{author}{\bibinfo{person}{T Peters}.} \bibinfo{year}{2002}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Timsort - Python}}.
+\newblock
+\urldef\tempurl%
+\url{https://svn.python.org/projects/python/trunk/Objects/listsort.txt}
+\showURL{%
+Retrieved November 3, 2020 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Sedgewick}{Sedgewick}{1996}]%
+        {10.1007/3-540-61680-2_42}
+\bibfield{author}{\bibinfo{person}{Robert Sedgewick}.}
+  \bibinfo{year}{1996}\natexlab{}.
+\newblock \showarticletitle{Analysis of Shellsort and related algorithms}. In
+  \bibinfo{booktitle}{\emph{Algorithms --- ESA '96}},
+  \bibfield{editor}{\bibinfo{person}{Josep Diaz} {and} \bibinfo{person}{Maria
+  Serna}} (Eds.). \bibinfo{publisher}{Springer Berlin Heidelberg},
+  \bibinfo{address}{Berlin, Heidelberg}, \bibinfo{pages}{1--11}.
+\newblock
+\showISBNx{978-3-540-70667-0}
+
+
+\bibitem[\protect\citeauthoryear{Sinha and Zobel}{Sinha and
+  Zobel}{2004}]%
+        {1064546.1180622}
+\bibfield{author}{\bibinfo{person}{Ranjan Sinha} {and}
+  \bibinfo{person}{Justin Zobel}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Cache-Conscious Sorting of Large Sets of Strings
+  with Dynamic Tries}.
+\newblock \bibinfo{journal}{\emph{ACM J. Exp. Algorithmics}}
+  \bibinfo{volume}{9} (\bibinfo{year}{2004}), \bibinfo{articleno}{1.5}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/1064546.1180622}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Wainshine}{Wainshine}{2020}]%
+        {wainshine2020chinesenames}
+\bibfield{author}{\bibinfo{person}{Wainshine}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Chinese-Names-Corpus}.
+\newblock \bibinfo{howpublished}{GitHub repository, commit
+  \texttt{95b1a18}}.
+\newblock
+\urldef\tempurl%
+\url{https://github.com/wainshine/Chinese-Names-Corpus}
+\showURL{%
+\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{{Xiang}}{{Xiang}}{2011}]%
+        {6115063}
+\bibfield{author}{\bibinfo{person}{W. {Xiang}}.}
+  \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Analysis of the Time Complexity of Quick Sort
+  Algorithm}. In \bibinfo{booktitle}{\emph{2011 International Conference on
+  Information Management, Innovation Management and Industrial Engineering}},
+  Vol.~\bibinfo{volume}{1}. \bibinfo{pages}{408--410}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/ICIII.2011.104}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Yaroslavskiy}{Yaroslavskiy}{2009}]%
+        {Dual-pivot}
+\bibfield{author}{\bibinfo{person}{Vladimir Yaroslavskiy}.}
+  \bibinfo{year}{2009}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Dual Pivot Quicksort}}.
+\newblock
+\urldef\tempurl%
+\url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}
+\showURL{%
+Retrieved November 3, 2020 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Zhang, Meng, and Liang}{Zhang
+  et~al\mbox{.}}{2016}]%
+        {sort}
+\bibfield{author}{\bibinfo{person}{Hantao Zhang}, \bibinfo{person}{Baoluo
+  Meng}, {and} \bibinfo{person}{Yiwen Liang}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \bibinfo{title}{Sort Race}.
+\newblock
+\newblock
+\showeprint[arxi]{1609.04471}
+
+
+\end{thebibliography}

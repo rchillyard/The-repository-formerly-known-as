@@ -1,103 +1,241 @@
-/*
-  (c) Copyright 2018, 2019 Phasmid Software
- */
 package edu.neu.coe.huskySort.sort.huskySort;
 
+import edu.neu.coe.huskySort.sort.huskySortUtils.Coding;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
-import edu.neu.coe.huskySort.util.Config;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
+import edu.neu.coe.huskySort.sort.simple.InsertionSort;
+import edu.neu.coe.huskySort.util.LazyLogger;
 
+import java.text.Collator;
 import java.util.Arrays;
-import java.util.function.Consumer;
+import java.util.Collections;
+
+import static java.util.Arrays.binarySearch;
 
 /**
- * Class to define HuskySort which uses basic quick sort, i.e., partitioning is the standard partitioning scheme.
+ * This class represents the purest form of Husky Sort based on IntroSort for pass 1 and the System sort for pass 2.
+ * This class does not use Helper functions, nor does it extends Sort[X] in order that it is as fast as possible.
+ * <p>
+ * CONSIDER redefining all of the "to" parameters to be consistent with our other Sort utilities.
  *
- * @param <X> the underlying type of element to be sorted.
+ * @param <X> the type of the elements to be sorted.
  */
-public final class QuickHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X> {
+public class QuickHuskySort<X extends Comparable<X>> {
 
-    /**
-     * Primary constructor to create an implementation of HuskySort which primarily uses Quicksort.
-     *
-     * @param name       the name of the sorter (used for the helper).
-     * @param n          the number of elements to be sorted (may be 0 if unknown).
-     * @param huskyCoder the Husky coder.
-     * @param postSorter the post-sorter (i.e. the sort method which will fix any remaining inversions).
-     * @param config     the configuration.
-     */
-    public QuickHuskySort(final String name, final int n, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config) {
-        super(name, n, huskyCoder, postSorter, config);
+    public static void main(final String[] args) {
+
+        final int N = 50000;
+        final int m = 10000;
+        logger.info("QuickHuskySort.main: sorting " + N + " random alphabetic ASCII words " + m + " times");
+        // Just for test purpose: this should take about 3 minutes
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
+        for (int i = 0; i < m; i++) {
+            final String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
+            sorter.sort(alphaBetaArray);
+        }
+        logger.info("QuickHuskySort.main: finished");
     }
 
     /**
-     * Secondary constructor to create an implementation of HuskySort which primarily uses Quicksort.
-     * The number of elements to be sorted is unknown.
+     * The main sort method.
      *
-     * @param name       the name of the sorter (used for the helper).
-     * @param huskyCoder the Husky coder.
-     * @param postSorter the post-sorter (i.e. the sort method which will fix any remaining inversions).
-     * @param config     the configuration.
+     * @param xs the array to be sorted.
      */
-    public QuickHuskySort(final String name, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config) {
-        this(name, 0, huskyCoder, postSorter, config);
+    public void sort(final X[] xs) {
+        // NOTE: we start with a random shuffle
+        // This is necessary if we might be sorting a pre-sorted array. Otherwise, we usually don't need it.
+        if (mayBeSorted) Collections.shuffle(Arrays.asList(xs));
+        // NOTE: First pass where we code to longs and sort according to those.
+        final Coding coding = huskyCoder.huskyEncode(xs);
+        final long[] longs = coding.longs;
+        introSort(xs, longs, 0, longs.length, 2 * floor_lg(xs.length));
+
+        // NOTE: Second pass (if required) to fix any remaining inversions.
+        if (coding.perfect)
+            return;
+        if (useInsertionSort)
+            new InsertionSort<X>().mutatingSort(xs);
+        else {
+            final Collator collator = huskyCoder.getCollator();
+            if (collator == null) Arrays.sort(xs);
+            else Arrays.sort(xs, collator);
+        }
     }
 
     /**
-     * Secondary constructor to create an implementation of HuskySort which primarily uses Quicksort.
-     * The name will be QuickHuskySort/System.
-     * The post-sorter will be the System sort.
+     * Primary constructor.
      *
-     * @param huskyCoder the Husky coder.
-     * @param config     the configuration.
+     * @param huskyCoder       the Husky coder to be used for the encoding into longs.
+     * @param mayBeSorted      if this is true, then we should perform a random shuffle to prevent an O(N*N) performance.
+     *                                                                         NOTE: that even though we are using IntroSort, the random shuffle precaution is necessary when
+     * @param useInsertionSort if true, then insertion sort will be used to mop up remaining inversions instead of system sort.
      */
-    public QuickHuskySort(final HuskyCoder<X> huskyCoder, final Config config) {
-        this("QuickHuskySort/System", huskyCoder, Arrays::sort, config);
+    public QuickHuskySort(final HuskyCoder<X> huskyCoder, final boolean mayBeSorted, final boolean useInsertionSort) {
+        this.huskyCoder = huskyCoder;
+        this.mayBeSorted = mayBeSorted;
+        this.useInsertionSort = useInsertionSort;
     }
 
-    /**
-     * Primary sort method, defined in Sort.
-     *
-     * @param xs   sort the array xs from "from" to "to".
-     * @param from the index of the first element to sort.
-     * @param to   the index of the first element not to sort.
-     */
-    public void sort(final X[] xs, final int from, final int to) {
-        quickSort(xs, getHelper().getLongs(), from, to - 1);
+    // CONSIDER invoke method in IntroSort
+    private static int floor_lg(final int a) {
+        return (int) (Math.floor(Math.log(a) / Math.log(2)));
     }
 
-    // CONSIDER inlining this private method
-    // CONSIDER redefining to to be one higher.
+    private static final int sizeThreshold = 16;
+
+    // TEST
     @SuppressWarnings({"UnnecessaryLocalVariable"})
-    private void quickSort(final X[] objects, final long[] longs, final int from, final int to) {
-        final int lo = from;
-        final int hi = to;
-        if (hi <= lo) return;
-        final Partition partition = partition(objects, longs, lo, hi);
-        quickSort(objects, longs, lo, partition.lt - 1);
-        quickSort(objects, longs, partition.gt + 1, hi);
-    }
+    private void introSort(final X[] objects, final long[] longs, final int from, final int to, final int depthThreshold) {
+        // CONSIDER merge with IntroHuskySort
+        if (to - from <= sizeThreshold + 1) {
+            insertionSort(objects, longs, from, to);
+            return;
+        }
+        if (depthThreshold == 0) {
+            heapSort(objects, longs, from, to);
+            return;
+        }
 
-    private Partition partition(final X[] objects, final long[] longs, final int lo, final int hi) {
-        // CONSIDER creating a method less in order to avoid having direct access to the longs.
-        int lt = lo, gt = hi;
-        if (longs[lo] > longs[hi]) swap(objects, lo, hi);
-        final long v = longs[lo];
+        final int lo = from;
+        final int hi = to - 1;
+
+        if (longs[hi] < longs[lo]) swap(objects, longs, lo, hi);
+
+        int lt = lo + 1, gt = hi - 1;
         int i = lo + 1;
         while (i <= gt) {
-            if (longs[i] < v) swap(objects, lt++, i++);
-            else if (longs[i] > v) swap(objects, i, gt--);
+            if (longs[i] < longs[lo]) swap(objects, longs, lt++, i++);
+            else if (longs[hi] < longs[i]) swap(objects, longs, i, gt--);
             else i++;
         }
-        return new Partition(lt, gt);
+        swap(objects, longs, lo, --lt);
+        swap(objects, longs, hi, ++gt);
+        introSort(objects, longs, lo, lt, depthThreshold - 1);
+        if (longs[lt] < longs[gt]) introSort(objects, longs, lt + 1, gt, depthThreshold - 1);
+        introSort(objects, longs, gt + 1, hi + 1, depthThreshold - 1);
     }
 
-    private static class Partition {
-        final int lt;
-        final int gt;
-
-        Partition(final int lt, final int gt) {
-            this.lt = lt;
-            this.gt = gt;
+    // TEST
+    private static <T extends Comparable<T>> void heapSort(final T[] objects, final long[] longs, final int from, final int to) {
+        // CONSIDER removing these size checks. They haven't really been tested.
+        if (to - from <= sizeThreshold + 1) {
+            insertionSort(objects, longs, from, to);
+            return;
+        }
+        final int n = to - from;
+        for (int i = n / 2; i >= 1; i = i - 1) {
+            downHeap(objects, longs, i, n, from);
+        }
+        for (int i = n; i > 1; i = i - 1) {
+            swap(objects, longs, from, from + i - 1);
+            downHeap(objects, longs, 1, i - 1, from);
         }
     }
+
+    // TEST
+    private static <T extends Comparable<T>> void downHeap(final T[] objects, final long[] longs, int i, final int n, final int lo) {
+        final long d = longs[lo + i - 1];
+        final T od = objects[lo + i - 1];
+        int child;
+        while (i <= n / 2) {
+            child = 2 * i;
+            if (child < n && longs[lo + child - 1] < longs[lo + child]) child++;
+            if (d >= longs[lo + child - 1]) break;
+            longs[lo + i - 1] = longs[lo + child - 1];
+            objects[lo + i - 1] = objects[lo + child - 1];
+            i = child;
+        }
+        longs[lo + i - 1] = d;
+        objects[lo + i - 1] = od;
+    }
+
+    static <T extends Comparable<T>> void insertionSort(final T[] objects, final long[] longs, final int from, final int to) {
+        for (int i = from + 1; i < to; i++)
+            if (OPTIMIZED)
+                swapIntoSorted(objects, longs, from, i);
+            else
+                for (int j = i; j > from && longs[j] < longs[j - 1]; j--)
+                    swap(objects, longs, j, j - 1);
+    }
+
+    /**
+     * Regular swap of elements at indexes i and j, not necessarily adjacent.
+     * However, for insertion sort, they will always be adjacent.
+     *
+     * @param xs    the X array.
+     * @param longs the long array.
+     * @param i     the index of one element to be swapped.
+     * @param j     the index of the other element to be swapped.
+     */
+    private static <T extends Comparable<T>> void swap(final T[] xs, final long[] longs, final int i, final int j) {
+        // Swap longs
+        final long temp1 = longs[i];
+        longs[i] = longs[j];
+        longs[j] = temp1;
+        // Swap xs
+        final T temp2 = xs[i];
+        xs[i] = xs[j];
+        xs[j] = temp2;
+    }
+
+    /**
+     * Swap method for insertion sort which takes advantage of the known fact that the elements of the array
+     * at indices from thru i-1 are in order.
+     *
+     * @param xs    the X array.
+     * @param longs the long array.
+     * @param from  the first index of the sorted partition into which we want to insert the element at index i.
+     * @param i     the index of the element to be moved.
+     */
+    private static <T extends Comparable<T>> void swapIntoSorted(final T[] xs, final long[] longs, final int from, final int i) {
+        int j = binarySearch(longs, from, i, longs[i]);
+        if (j < 0) j = -j - 1;
+        // NOTE: an exact match found by binarySearch may land anywhere within a run of indices
+        // sharing the same long code, not necessarily at the end of that run. Scan past any ties
+        // so that elements with equal codes are never shifted past each other (preserving
+        // stability) -- same fix as ComparisonSortHelper.swapIntoSorted (commit 408011c), which
+        // only ever reached this class's own separate copy of the method, not this one.
+        else while (j < i && longs[j] == longs[i]) j++;
+        if (j < i) swapInto(xs, longs, j, i);
+    }
+
+    /**
+     * Swap method which uses half-swaps.
+     *
+     * @param xs    the X array.
+     * @param longs the long array.
+     * @param i     the index of the element to be moved.
+     * @param j     the index of the destination of that element.
+     */
+    static <T extends Comparable<T>> void swapInto(final T[] xs, final long[] longs, final int i, final int j) {
+        if (j > i) {
+            final T x = xs[j];
+            System.arraycopy(xs, i, xs, i + 1, j - i);
+            xs[i] = x;
+            final long l = longs[j];
+            System.arraycopy(longs, i, longs, i + 1, j - i);
+            longs[i] = l;
+        }
+    }
+
+    private HuskyCoder<X> getHuskyCoder() {
+        return huskyCoder;
+    }
+
+    // 2026-08-14: swapIntoSorted's own tie-handling bug (see the fix above) is now corrected, so
+    // this path is safe to enable, but a JMH check (StringSortBenchmarks.quickHuskySort, English,
+    // N=1,000,000) found no measurable improvement over the linear-scan branch -- consistent with
+    // this method only ever running on subarrays of at most sizeThreshold+1 (17) elements, the
+    // same size regime where the standalone binary-search InsertionSort was itself found to be
+    // statistically indistinguishable from a plain scan (see TODO.md item 25). Left false; revisit
+    // if a cleaner machine (this run had real background contention -- see TODO.md) suggests
+    // otherwise.
+    private static final boolean OPTIMIZED = false;
+
+    private final HuskyCoder<X> huskyCoder;
+    private final boolean mayBeSorted;
+    private final boolean useInsertionSort;
+
+    private final static LazyLogger logger = new LazyLogger(QuickHuskySort.class);
 }

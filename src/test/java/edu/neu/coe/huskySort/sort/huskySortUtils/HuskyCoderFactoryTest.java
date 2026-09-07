@@ -362,10 +362,17 @@ public class HuskyCoderFactoryTest {
 
     @Test
     public void testChineseEncoderPinyin1() {
+        // NOTE: this magic number reflects HuskyCoderChinesePinyin's per-syllable-plus-tone
+        // encoding (liu=181 tone2, chi=37 tone2, ping=253 tone2 in HanyuPinyinSyllables, each
+        // syllable ordinal biased by 1 and packed as (ordinal<<3)|tone, 12 bits/character, MSD
+        // first) -- updated 2026-08-05 when HanyuPinyinSyllables gained 18 previously-missing
+        // bare "-a" final syllables (a, ba, ca, ..., zha), shifting every later ordinal; before
+        // that, updated 2026-07-24 when tone was added to the encoding (previously
+        // syllable-only, 9 bits/character; before that, spelled-out ASCII text).
         final String 刘持平 = "刘持平";
         final HuskyCoder<String> chineseEncoderPinyin = HuskyCoderFactory.chineseEncoderPinyin;
         final long l刘持平 = chineseEncoderPinyin.huskyEncode(刘持平);
-        assertEquals(0xB2DA6DD6DCA3A2DL, l刘持平);
+        assertEquals(0x5B21327F2000000L, l刘持平);
     }
 
     public static <X> void compareEncodings(final X x1, final X x2, final Function<X, Long> encoder, final Comparator<X> comparator) {

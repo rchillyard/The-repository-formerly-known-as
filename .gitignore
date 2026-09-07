@@ -27,6 +27,7 @@ hs_err_pid*
 target/
 /HuskySort.iml
 temp/
+/dependency-reduced-pom.xml
 
 logs/
 
@@ -36,3 +37,5 @@ ExtendedHelper/
 shuffledChinese.txt
 
 src/main/resources/Chinese_Names_Corpus.txt
+
+paper/HuskySort.synctex.gz

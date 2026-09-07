@@ -3,11 +3,17 @@
  */
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
+import java.util.Arrays;
+
 /**
  * Class to count inversions for an array of Xs.
- * NOTE: invoking getInversions will mutate the array passed in.
+ * <p>
+ * NOTE getInversions used to mutate the array passed in -- it counts by merge
+ * sorting, and sorted what it was given. It works on a copy now, so the caller's
+ * array comes back as it went in.
  */
 @SuppressWarnings("rawtypes")
+
 public class InversionCounter {
     private final Comparable[] arr;
 
@@ -16,7 +22,17 @@ public class InversionCounter {
     }
 
     public long getInversions() {
-        return _inversionsRecursive(arr, new Comparable[arr.length], 0, arr.length - 1);
+        // NOTE the copy. _inversionsRecursive is a merge sort which counts as it
+        // merges, so it SORTS what it is given -- and this class is called
+        // InversionCounter, so a caller has every reason to expect its array back
+        // untouched. The trap that would set is a quiet one: a benchmark which
+        // counted the inversions in an array and then timed a sort on it would be
+        // timing already-sorted data, and the result would look wonderful.
+        //
+        // The copy costs nothing that matters: the algorithm already allocates a
+        // temporary of the same length on the next line.
+        final Comparable[] copy = Arrays.copyOf(arr, arr.length);
+        return _inversionsRecursive(copy, new Comparable[arr.length], 0, arr.length - 1);
     }
 
     /* An auxiliary recursive method that sorts the input array and
