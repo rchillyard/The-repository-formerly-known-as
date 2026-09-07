@@ -7,31 +7,32 @@ nothing gets re-litigated later.
 
 ## Status as of 2026-09-07, checked line by line against `HuskySort.tex`
 
-**Applied**: §2's baseline disclosure (tex 552–554); §3's reframing, which absorbed 1.2, 1.3 and 1.4
-(tex 524–577); §1.1's replacement in the conclusion (tex 1477–1481); §5.3's crossovers and the 166 µs
-floor (tex 1406–1428); §5.4's environment table (tex 851–864); §7's table rebuild — five results
-tables now come from `doc/full-suite.json` (tex 1261–1281, 1332, and §sec:analysis's three benchmark
-tables). Also new since this document was written and **not recorded anywhere below until now**:
-Table `Guidance` (tex 1376–1404), the two adversarial tables (tex 1551, 1594), and the appendix's
-paragraph on unbounded recursion in the baselines (tex 1633–1651).
+**Line numbers throughout this document were re-derived on 2026-09-07 after the day's three changes:
+the removal of `HSComp` and `Improvements Summary`, the draft revision stamp, and Figure 5's caption
+cut. Anything quoted in an older revision is off by up to forty lines.** They are worth re-deriving
+again after the SIAM template switch, which will not move them but will renumber every table.
+
+**Applied**: §2's baseline disclosure (tex 589–591); §3's reframing, which absorbed 1.2, 1.3 and 1.4
+(tex 561–614); §1.1's replacement in the conclusion (tex 1467–1471); §5.3's crossovers and the 166 µs
+floor (tex 1401–1423); §5.4's environment table (tex 890–903); §7's table rebuild — five results
+tables now come from `doc/full-suite.json` (tex 1255–1275 and §sec:analysis's three benchmark tables).
+Also new since this document was written and **not recorded anywhere below until now**: Table
+`Guidance` (tex 1371–1399), the two adversarial tables (tex 1543, 1586), and the appendix's paragraph
+on unbounded recursion in the baselines (tex 1623–1641).
 
 **Still pending, in order of how much they cost if missed:**
 
-**Line numbers below are as of 2026-09-07, after `HSComp` and `Improvements Summary` were removed.**
-That removal shifted everything past line 650 by about fifty-five lines, so any tex line number quoted
-in an older revision of this document is wrong by roughly that much.
-
 | | what | where |
 | --- | --- | --- |
-| **4.1** | **"HuskySort is always faster than dual-pivot quicksort" is contradicted by Table `HS_BM_N`** — promoted from "should soften" | tex 1432 |
-| **8** | the DPQS guard (HS-13) falsifies the appendix's crash result and one sentence of its prose | tex 1520–1521, 1529–1531, 1606–1607 |
-| **5.2** | **the abstract and Table `Guidance` both cite a measurement the body does not contain** | tex 251–254, 1350 |
-| **1.5** | "every non-string row exceeds every string row" — false against the rebuilt table | tex 532–534 |
-| **5.1** | the permits row is in the table; the case study is nowhere in the prose | tex 1234 |
+| **4.1** | **"HuskySort is always faster than dual-pivot quicksort" is contradicted by Table `HS_BM_N`** — promoted from "should soften" | tex 1464 |
+| **8** | the DPQS guard (HS-13) falsifies the appendix's crash result and one sentence of its prose | tex 1552–1553, 1561–1563, 1638–1639 |
+| **5.2** | **the abstract and Table `Guidance` both cite a measurement the body does not contain** | tex 251–254, 1387 |
+| **1.5** | "every non-string row exceeds every string row" — false against the rebuilt table | tex 569–571 |
+| **5.1** | the permits row is in the table; the case study is nowhere in the prose | tex 1271 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
 | **0c** | **the SIAM proceedings template is required at submission, not on acceptance** — and no SIAM class is installed | tex 43–58 |
-| **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 173–210, **736** |
-| **0c** | **12 pages excluding references** — one over under acmart, unknown after the reflow | tex 1082, 1234 |
+| **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 191–228, **775** |
+| **0c** | **12 pages excluding references** — about 0.4 over under acmart, unknown after the reflow | Figure 5, tex 1436 |
 | **0b** | **resolved: cite arXiv:2012.00866**, third-person. Omitting important references for anonymity is explicitly discouraged | front matter |
 | **0a** | **superseded by 0c.** The template question is answered; only the author footnotes remain, and they come out for review anyway | tex 43–58 |
 
