@@ -273,14 +273,22 @@
     RadixHuskySort replaces that sort with a linear-time radix sort on the same keys,
     moving the second phase itself from linearithmic to linear.
     Measured against Java's system sort for objects --- across integers, arbitrary-precision numbers,
-    dates, tuples, English and Chinese text,
+    dates, tuples, English and Chinese text, Chinese personal names in pinyin order,
     and two hundred thousand municipal records ordered by a composite key ---
-    RadixHuskySort is faster in every case, by 3.6--6.6x;
-    QuickHuskySort, which retains a comparison sort, by 1.4--2.3x wherever comparison is genuinely costly.
-    The margin is widest when the ordering is expensive to evaluate and the encoding is exact,
+    RadixHuskySort is faster in every case, by 3.6--6.8x;
+    QuickHuskySort, which retains a comparison sort, by 1.4--2.5x wherever comparison is genuinely costly.
+    The clearest demonstration is the pinyin ordering,
+    where obtaining a single character's sort key requires a table lookup.
+    Compared against a system sort performing that same ordering ---
+    rather than the default one, which sorts by code point and so answers a different and much cheaper question ---
+    RadixHuskySort is faster by 4.1x at one million names and QuickHuskySort by 2.5x,
+    and the margin widens as the array grows.
+    That widening is the premise made visible:
+    what is saved is one key extraction per element in place of one per comparison.
+    The margin is widest of all when the ordering is expensive to evaluate and the encoding is also exact,
     so that no cleanup pass is needed:
     measured on input where that pass provably has nothing to correct,
-    it nonetheless accounts for as much as a fifth of total running time.
+    it nonetheless accounts for as much as a quarter of total running time.
     It is narrowest where algorithms specialised to the type already exist ---
     on English words a tuned MSD radix sort matches or overtakes us ---
     which bounds the result rather than contradicting it,
@@ -590,7 +598,7 @@ and a fallback cleanup pass whenever that encoding is imperfect.
 That framing carries a consequence which Table ~\ref{tab:RadixImprovements} bears out,
 and which we state rather than leave to be noticed:
 the string rows of that table are its most variable by a wide margin.
-They span from 3.3x down to 1.5x, nearly the whole of its range below dates,
+They span from 3.4x down to 1.6x, nearly the whole of its range below dates,
 where every other row falls between 2.1x and 3.6x.
 Three factors account for the spread, and they compose.
 The advantage grows with the cost of the type's native comparison, since that is what the encoding replaces;
@@ -619,16 +627,15 @@ Both baselines are our own implementations,
 each tuned so that its fallback below the partitioning cutoff allocates nothing
 and compares from the depth the partitioning has already established.
 Against three-way radix quicksort RadixHuskySort is faster at every size tested,
-by 1.4--2.3x on English and 2--3.1x on Chinese,
+by 1.3--2.4x on English and 3.1--4.0x on Chinese,
 with non-overlapping 99.9\% confidence intervals throughout.
-Against MSD radix sort the result goes the other way at scale:
-on English text the two are statistically indistinguishable at $N=32{,}000$,
-and MSD is faster by 1.34x at $N=200{,}000$ and by 1.09x at $N=1{,}000{,}000$,
-with non-overlapping 99.9\% confidence intervals in both cases.
-We repeated this comparison on a second machine of different microarchitecture and obtained the same
-qualitative result --- a tie at the smallest size and MSD ahead at both larger ones ---
-but with the margin distributed differently across $N$,
-so the magnitude should be read as machine-dependent even though the direction is not.
+Against MSD radix sort the result goes the other way at scale, though not by much:
+on English text the two are indistinguishable at $N=32{,}000$,
+and MSD is faster by 1.20x at $N=200{,}000$ and by 1.06x at $N=1{,}000{,}000$.
+The advantage at $N=200{,}000$ is the robust one.
+At $N=1{,}000{,}000$ three runs on the machine of record give 1.00x, 1.05x and 1.06x,
+so at the largest size we measure the two algorithms are level to within the spread between runs,
+and the direction should be read from the middle size rather than the largest.
 We give this result because it locates the boundary rather than obscuring it.
 MSD earns it on a corpus that suits it and within limits that are its own:
 our implementation indexes an alphabet of 256 characters beyond ASCII,
@@ -765,17 +772,18 @@ which is precisely the comparison the husky encoding was introduced to avoid.
 The cleanup pass reintroduces one full composite comparison per element,
 having just removed it from all $\textbf{O}(N \log N)$ of them.
 
-That comparison costs 12.7\,ns at $N = 32{,}000$, 68.2\,ns at $N = 100{,}000$ and 85.1\,ns at
-$N = 198{,}900$ --- 5.8\%, 18.6\% and 19.5\% of the running time of the sort that contains it ---
+That comparison costs 16.1\,ns at $N = 32{,}000$, 60.3\,ns at $N = 100{,}000$ and 74.2\,ns at
+$N = 198{,}900$ --- 7.3\%, 17.2\% and 17.3\% of the running time of the sort that contains it ---
 with non-overlapping 99.9\% confidence intervals throughout.
-Two further runs, one on different hardware, agree on the shape at different levels
-(20.0/74.1/68.7 and 8.0/22.1/37.8\,ns).
+Three further runs, one of them on different hardware, agree on the shape at different levels;
+across all four the pass costs between a sixteenth and a quarter of the total,
+and between a sixth and a quarter at the two larger sizes.
 The percentages are the less stable figures, being ratios of two quantities that both move.
-The shape is a threshold rather than a trend --- a rise by a factor of roughly three to five between the first two sizes,
+The shape is a threshold rather than a trend --- a rise by a factor of roughly three to four between the first two sizes,
 then a levelling off --- and it falls where the records stop fitting in cache.
 That last reading is inference, but the magnitudes support it:
-the system sort compares these same records some 3.5 million times in 162\,ms, or 46\,ns each,
-so the cleanup pass at 85\,ns costs nearly twice as much per comparison using the same comparator.
+the system sort compares these same records some 3.5 million times in 151\,ms, or 43\,ns each,
+so the cleanup pass at 74\,ns costs nearly twice as much per comparison using the same comparator.
 Step 2 permutes references without moving the records,
 so a scan sequential in the array is close to random in the heap.
 
@@ -783,19 +791,19 @@ One objection to these figures should be met head on:
 the pass is linear where the sort containing it is linearithmic,
 so its share of the total is bound to fall as $1/\log N$, and the shares above instead rise.
 Both are true, because $k_3$ is not settled over this range.
-It grows almost sevenfold between the smallest and largest sizes here while $\ln N$ grows by a fifth,
+It grows more than fourfold between the smallest and largest sizes here while $\ln N$ grows by a fifth,
 so the cache effect swamps the logarithm completely.
 Holding $k_3$ at the value it reaches once the records no longer fit in cache,
-and growing the rest as $\ln N$, puts the share at some 18\% at $N = 10^{6}$ and 15\% at $N = 10^{7}$:
+and growing the rest as $\ln N$, puts the share at some 16\% at $N = 10^{6}$ and 14\% at $N = 10^{7}$:
 the decline is real but logarithmic, and the pass does not become negligible at any size we expect to meet.
 That last calculation is a model rather than a measurement.
 The sort's own per-element cost also grows faster than $\ln N$ across these three sizes,
 and the corpus holds 198,900 records, so the measurement cannot be extended on real data.
 
 Two conclusions follow.
-First, $k_3$ is not a constant: it varies almost sevenfold across three sizes on one machine,
+First, $k_3$ is not a constant: it varies more than fourfold across three sizes on one machine,
 so no single $p_{crit}$ can be quoted even for one type on one machine.
-Second, an encoding which can be declared perfect avoids a cost of up to a fifth of total running
+Second, an encoding which can be declared perfect avoids a cost of up to a quarter of total running
 time, where one which cannot must repay it before correcting a single genuine inversion.
 
 \subsection{Why HuskySort Works}
@@ -1253,11 +1261,11 @@ Table ~\ref{tab:HS_BM_N} (JMH, $N=500{,}000$, ms $\pm$ 99.9\% CI).
     \toprule
     Type & System & QuickHuskySort & DualPivotQuicksort & quicksort (raw) & Radix/8 & Radix/16 \\
     \midrule
-    Integer & 123.7$\pm$0.7 & 87.9$\pm$0.8 & 81.7$\pm$0.6 & 38.0$\pm$0.1 & 32.0$\pm$0.5 & 25.7$\pm$0.2 \\
-    Double & 144.5$\pm$0.8 & 93.5$\pm$0.8 & 92.8$\pm$0.5 & 42.6$\pm$0.1 & 35.4$\pm$0.8 & 31.5$\pm$0.1 \\
-    Long & 138.7$\pm$1.1 & 99.3$\pm$1.0 & 90.5$\pm$0.5 & 38.0$\pm$0.2 & 29.4$\pm$0.2 & 28.7$\pm$0.2 \\
-    BigInteger & 210.2$\pm$1.8 & 151.0$\pm$0.9 & 209.7$\pm$2.6 & 42.5$\pm$0.3 & 58.7$\pm$0.5 & 54.0$\pm$0.4 \\
-    BigDecimal & 264.1$\pm$1.8 & 149.1$\pm$1.3 & 243.7$\pm$1.7 & 47.5$\pm$0.1 & 53.6$\pm$0.2 & 53.3$\pm$0.2 \\
+    Integer & 121.2$\pm$0.6 & 89.7$\pm$3.5 & 82.5$\pm$0.2 & 38.1$\pm$0.1 & 31.2$\pm$0.5 & 25.2$\pm$0.2 \\
+    Double & 141.7$\pm$1.3 & 97.8$\pm$3.6 & 89.6$\pm$0.5 & 42.6$\pm$0.2 & 34.0$\pm$0.5 & 31.0$\pm$0.3 \\
+    Long & 135.8$\pm$1.2 & 97.7$\pm$1.0 & 89.2$\pm$0.6 & 38.2$\pm$0.3 & 30.2$\pm$0.2 & 28.6$\pm$0.3 \\
+    BigInteger & 208.4$\pm$1.7 & 152.3$\pm$1.7 & 209.9$\pm$2.0 & 42.2$\pm$0.1 & 56.9$\pm$0.3 & 54.1$\pm$0.2 \\
+    BigDecimal & 262.2$\pm$1.6 & 144.1$\pm$2.1 & 246.2$\pm$3.7 & 47.6$\pm$0.0 & 54.1$\pm$0.3 & 52.5$\pm$0.3 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1272,12 +1280,12 @@ Table ~\ref{tab:HS_BM_S} (JMH, ms $\pm$ 99.9\% CI).
     \toprule
     N & Corpus & System sort & QuickHuskySort & Radix/8 & Radix/16 \\
     \midrule
-    32,000 & English & 14.20$\pm$0.18 & 10.68$\pm$0.69 & 5.29$\pm$0.39 & 4.26$\pm$0.13 \\
-    32,000 & Chinese & 9.79$\pm$0.07 & 5.01$\pm$0.04 & 2.07$\pm$0.02 & 1.88$\pm$0.01 \\
-    200,000 & English & 145.68$\pm$0.85 & 95.33$\pm$1.52 & 57.57$\pm$2.05 & 49.68$\pm$2.37 \\
-    200,000 & Chinese & 70.94$\pm$0.54 & 31.17$\pm$0.08 & 13.55$\pm$0.09 & 11.09$\pm$0.15 \\
-    1,000,000 & English & 1193.78$\pm$18.47 & 732.32$\pm$7.54 & 342.52$\pm$24.53 & 276.66$\pm$5.94 \\
-    1,000,000 & Chinese & 441.76$\pm$2.74 & 218.79$\pm$1.70 & 84.82$\pm$2.40 & 67.16$\pm$1.71 \\
+    32,000 & English & 13.69$\pm$0.19 & 9.72$\pm$0.12 & 4.63$\pm$0.16 & 4.18$\pm$0.16 \\
+    32,000 & Chinese & 9.78$\pm$0.08 & 5.00$\pm$0.04 & 2.10$\pm$0.03 & 1.89$\pm$0.02 \\
+    200,000 & English & 141.39$\pm$2.59 & 94.74$\pm$2.44 & 55.01$\pm$2.20 & 50.27$\pm$2.51 \\
+    200,000 & Chinese & 71.34$\pm$0.63 & 30.90$\pm$0.13 & 13.49$\pm$0.15 & 10.85$\pm$0.10 \\
+    1,000,000 & English & 1120.87$\pm$14.43 & 697.88$\pm$16.15 & 355.26$\pm$24.71 & 272.74$\pm$6.46 \\
+    1,000,000 & Chinese & 447.12$\pm$2.28 & 219.80$\pm$1.99 & 83.25$\pm$2.31 & 65.46$\pm$1.47 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1292,9 +1300,9 @@ Table ~\ref{tab:HS_BM_T} (JMH, ms $\pm$ 99.9\% CI).
     \toprule
     N & System & QuickHuskySort & DualPivotQuicksort & Radix/16 \\
     \midrule
-    20,000 & 3.77$\pm$0.01 & 2.78$\pm$0.03 & 3.35$\pm$0.08 & 1.32$\pm$0.00 \\
-    100,000 & 23.44$\pm$0.21 & 17.87$\pm$0.10 & 21.80$\pm$0.13 & 6.81$\pm$0.05 \\
-    500,000 & 212.83$\pm$3.81 & 149.63$\pm$3.23 & 155.58$\pm$4.92 & 59.99$\pm$0.67 \\
+    20,000 & 3.72$\pm$0.01 & 2.79$\pm$0.02 & 3.41$\pm$0.09 & 1.30$\pm$0.01 \\
+    100,000 & 23.24$\pm$0.19 & 17.65$\pm$0.16 & 21.36$\pm$0.48 & 6.82$\pm$0.05 \\
+    500,000 & 209.53$\pm$7.98 & 142.61$\pm$1.83 & 142.70$\pm$4.98 & 57.98$\pm$0.76 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1321,11 +1329,11 @@ Typical improvements over Timsort can be read directly off Tables ~\ref{tab:HS_B
 and ~\ref{tab:HS_BM_T} above, which give absolute times with 99.9\% confidence intervals rather than
 summary ranges:
 1.4--1.8x across the five numeric types at $N=500{,}000$,
-1.3--1.6x on English words,
+1.4--1.6x on English words,
 2.0--2.3x on Chinese words,
-and 1.3--1.4x on tuples.
+and 1.3--1.5x on tuples.
 Note that the English margin \emph{widens} with array size rather than decaying,
-from 1.33x at $N=32{,}000$ to 1.63x at $N=1{,}000{,}000$.
+from 1.41x at $N=32{,}000$ to 1.61x at $N=1{,}000{,}000$.
 
 \subsection{Radix Sort Results}
 \label{sec:radix-results}
@@ -1346,15 +1354,15 @@ rather than as a percentage, since a percentage figure close to or above 100\% b
     \midrule
     \texttt{Dates} & 20,000 & 5.9x \\
     \texttt{Long} & 500,000 & 3.6x \\
-    \texttt{Integer} & 500,000 & 3.4x \\
-    \texttt{Strings of Chinese words (natural order)} & 1,000,000 & 3.3x \\
-    \texttt{Double} & 500,000 & 3.0x \\
-    \texttt{BigDecimal} & 500,000 & 2.9x \\
+    \texttt{Integer} & 500,000 & 3.6x \\
+    \texttt{Strings of Chinese words (natural order)} & 1,000,000 & 3.4x \\
+    \texttt{Double} & 500,000 & 3.2x \\
     \texttt{BigInteger} & 500,000 & 2.8x \\
-    \texttt{Strings of English words} & 1,000,000 & 2.7x \\
+    \texttt{BigDecimal} & 500,000 & 2.8x \\
+    \texttt{Strings of English words} & 1,000,000 & 2.6x \\
     \texttt{Tuples} & 500,000 & 2.5x \\
     \texttt{Building permits (composite key)} & 198,900 & 2.1x \\
-    \texttt{Strings of Chinese names (pinyin order)} & 1,000,000 & 1.5x \\
+    \texttt{Strings of Chinese names (pinyin order)} & 1,000,000 & 1.6x \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1363,14 +1371,14 @@ This is worth confronting directly, since a reader might reasonably ask whether 
 as $N$ grows: a constant-factor saving on a linearithmic sort could be swamped at scale.
 Neither does.
 QuickHuskySort's margin over the system sort on English text \emph{widens} with size,
-from 1.33x at $N=32{,}000$ to 1.53x and then 1.63x (Table ~\ref{tab:HS_BM_S}),
+from 1.41x at $N=32{,}000$ to 1.49x and then 1.61x (Table ~\ref{tab:HS_BM_S}),
 and holds roughly constant on Chinese.
 Radix sort's advantage over QuickHuskySort likewise does not shrink with $N$:
 at every size and data type in Table ~\ref{tab:RadixImprovements}, the margin is 1.5x or greater,
 consistent with the theoretical model of \S~\ref{sec:radix} predicting no logarithmic term at all,
 so there is no analogous reason to expect the advantage to erode as $N$ grows further.
 The spread across that table is itself informative, and follows the three factors of \S~\ref{sec:radix}.
-Chinese names sorted by pinyin order are the smallest margin measured (1.5x),
+Chinese names sorted by pinyin order are the smallest margin measured (1.6x),
 because both QuickHuskySort and RadixHuskySort must pay the same cleanup pass for a coding
 that two or three characters of recurring syllables leave badly imperfect.
 Dates show the largest margin (5.9x) because that coding is provably perfect and never needs a cleanup pass at all,
@@ -1382,9 +1390,9 @@ The building permits are 198,900 real municipal records ordered by a composite k
 (\S~\ref{sec:data-source}), and they are the case this mechanism is designed for:
 the ordering is expensive, since a comparison may have to examine all three fields in turn,
 and the key nevertheless packs exactly into 60 bits, so no cleanup pass is required at all.
-Against the system sort, RadixHuskySort is faster by 5.25x, 4.53x and 4.77x
+Against the system sort, RadixHuskySort is faster by 5.17x, 4.26x and 4.53x
 at $N = 32{,}000$, $100{,}000$ and $198{,}900$;
-against QuickHuskySort, which Table ~\ref{tab:RadixImprovements} reports, by 2.56x, 2.17x and 2.06x.
+against QuickHuskySort, which Table ~\ref{tab:RadixImprovements} reports, by 2.52x, 2.06x and 2.12x.
 At 2.1x the permits row is tenth of eleven, and that is the point worth making about it.
 It is not our largest margin --- a composite key of three fields is more expensive to compare
 than a single \textit{Long} but a good deal cheaper than a pinyin lookup per character ---
@@ -1429,20 +1437,20 @@ serial vs. 1, 2, 4, and 8 worker threads}
     \toprule
     N & Serial & 1 thread & 2 threads & 4 threads & 8 threads \\
     \midrule
-    2,000,000 & 174.0$\pm$6.0 & 170.2$\pm$2.2 & 139.3$\pm$1.4 & 121.7$\pm$1.8 & 110.5$\pm$2.6 \\
-    10,000,000 & 943.4$\pm$31.4 & 887.6$\pm$25.7 & 745.3$\pm$21.6 & 685.4$\pm$22.4 & 634.1$\pm$23.2 \\
+    2,000,000 & 172.0$\pm$5.7 & 165.2$\pm$2.2 & 140.3$\pm$2.0 & 118.5$\pm$2.4 & 109.3$\pm$1.8 \\
+    10,000,000 & 935.2$\pm$36.9 & 884.5$\pm$21.6 & 731.6$\pm$19.9 & 687.9$\pm$22.1 & 645.3$\pm$20.9 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
 Isolating parallelism itself, that's to say comparing 1 thread against 4, both paying identical thread-coordination overhead,
-gives a statistically resolved speedup at both sizes: 1.40x at $N=2{,}000{,}000$ and 1.29x at $N=10{,}000{,}000$,
+gives a statistically resolved speedup at both sizes: 1.39x at $N=2{,}000{,}000$ and 1.29x at $N=10{,}000{,}000$,
 with non-overlapping confidence intervals in both cases.
 Against the serial implementation the improvement is resolved at both sizes too,
-174.0ms to 121.7ms at $N=2{,}000{,}000$ and 943.4ms to 685.4ms at $N=10{,}000{,}000$.
+172.0ms to 118.5ms at $N=2{,}000{,}000$ and 935.2ms to 687.9ms at $N=10{,}000{,}000$.
 Unlike on the eight-core machine of an earlier draft, scaling does not stop at four threads:
 on sixteen uniform cores, eight threads beats four at both sizes with intervals that do not overlap,
-reaching 1.54x and 1.40x over a single thread.
+reaching 1.51x and 1.37x over a single thread.
 
 That is still well short of linear, and the shortfall is the more interesting number.
 An eightfold increase in threads buys between 1.4x and 1.5x,
@@ -1450,7 +1458,7 @@ on hardware with no performance/efficiency asymmetry to account for it.
 The explanation we favour is bandwidth rather than scheduling:
 each digit pass scatters across the whole array, so the algorithm is limited by memory throughput,
 which extra cores do not supply.
-The parallel variant still beat QuickHuskySort by roughly 6-9x on that run even at this weak scaling,
+The parallel variant still beat QuickHuskySort by roughly 9x on that run even at this weak scaling,
 since most of that margin comes from radix sort's own serial advantage rather than parallelism's incremental contribution.
 This points instead to a property of the design itself:
 each pass's sequential histogram-combine step runs once per synchronization point regardless of thread count,
@@ -1484,7 +1492,7 @@ Your situation & Reach for & Evidence \\
       & the largest margins we measure: dates 5.9x, building permits 2.1x over QuickHuskySort \\
     The ordering is composite or expensive, but the encoding is imperfect
       & RadixHuskySort, even allowing for the cleanup pass
-      & that pass costs a sixth to a fifth past $N=100{,}000$, even with nothing to correct
+      & that pass costs a sixth to a quarter past $N=100{,}000$, even with nothing to correct
         (\S~\ref{sec:pcrit}) \\
     A sort specialised to your type already exists
       & use it, if it covers your data
@@ -1540,7 +1548,7 @@ was to shift work from the linearithmic phase of sorting to the linear phase (bo
 and effect an overall reduction in array accesses and thus processing time.
 This has been demonstrated such that, when sorting objects rather than primitives,
 HuskySort is faster than dual-pivot quicksort wherever the ordering is expensive to evaluate ---
-by 1.4x on \textit{BigInteger} and 1.6x on \textit{BigDecimal} (Table ~\ref{tab:HS_BM_N}).
+by 1.4x on \textit{BigInteger} and 1.7x on \textit{BigDecimal} (Table ~\ref{tab:HS_BM_N}).
 On \textit{Integer}, \textit{Double} and \textit{Long}, where a comparison costs almost nothing,
 the encoding has nothing to amortise and dual-pivot quicksort is ahead instead, by up to a tenth.
 That is the same criterion which governs every other result in this paper,
@@ -1618,23 +1626,29 @@ We constructed two such inputs deliberately, to see how the two variants (QuickH
 
 \textbf{Collapsed high-order bits.} We generated arrays of \textit{Long} values with a swept number of high-order bits held identical across every element (the rest random) —
 0 fixed bits is the random baseline, 63 leaves only the sign bit free —
-and compared against a re-implementation from scratch of dual-pivot quicksort (the same baseline used for the numeric comparisons above,
-without any three-way/equal-key handling).
-Table ~\ref{tab:AdversarialBits} reports timings (milliseconds) at $N = 1{,}000{,}000$.
+and compared against a re-implementation from scratch of dual-pivot quicksort
+(the same baseline used for the numeric comparisons above, without any three-way or equal-key handling).
+That baseline is reported twice, and the pair is the most informative thing in this section.
+Java's own \textit{DualPivotQuicksort} bounds its recursion at 64 levels and falls back to heapsort beyond it;
+our transcription of the algorithm originally did not.
+Table ~\ref{tab:AdversarialBits} reports both, at $N = 1{,}000{,}000$.
 
 \begin{table*}
-  \caption{Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$}
+  \caption{Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$.
+    The dual-pivot baseline is shown both without a recursion-depth bound and with the one the JDK
+    itself applies.}
   \label{tab:AdversarialBits}
-  \begin{tabular}{ccccc}
+  \begin{tabular}{cccccc}
     \toprule
-    Fixed high bits & System sort & QuickHuskySort & Raw quicksort & Radix/16 \\
+    Fixed high bits & System sort & QuickHuskySort & \multicolumn{2}{c}{Dual-pivot quicksort} & Radix/16 \\
+     & & & unguarded & guarded & \\
     \midrule
-    0  & 480.0 & 405.9 & 335.7 & 76.9 \\
-    32 & 508.2 & 439.7 & 340.9 & 70.4 \\
-    48 & 499.8 & 364.0 & 354.6 & 67.9 \\
-    56 & 175.7 & 186.6 & 7097.7 & 60.8 \\
-    60 & 115.3 & 67.7  & \textit{crashed} & 44.4 \\
-    63 & 43.3  & 15.5  & \textit{crashed} & 35.0 \\
+    0  & 477.6 & 420.0 & 335.7 & 335.9 & 74.8 \\
+    32 & 493.8 & 420.8 & 340.9 & 331.2 & 69.6 \\
+    48 & 485.1 & 357.9 & 354.6 & 333.3 & 66.8 \\
+    56 & 174.3 & 197.8 & \textbf{7097.7} & 717.2 & 58.9 \\
+    60 & 115.9 & 69.8  & \textit{stack overflow} & 805.5 & 42.6 \\
+    63 & 42.6  & 15.4  & \textit{stack overflow} & 186.9 & 34.9 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1642,23 +1656,41 @@ Table ~\ref{tab:AdversarialBits} reports timings (milliseconds) at $N = 1{,}000{
 Radix sort's timings stay essentially flat across the entire sweep, exactly as the model of \S~\ref{sec:radix} predicts:
 each digit pass does the same fixed amount of work regardless of how the keys are distributed,
 so a pass over collapsed digits (everything lands in one bucket) costs no more than any other pass.
-The from-scratch quicksort baseline degrades by more than an order of magnitude and then fails outright with a stack overflow —
-a concrete instance of exactly the kind of adversarial input this concern anticipates,
-though notably it is the \emph{baseline} implementation that fails, not QuickHuskySort itself.
-This is a well-known failure mode for a quicksort implementation that partitions naïvely around a heavily-duplicated pivot value:
+
+The unguarded baseline degrades by more than an order of magnitude at 56 fixed bits and then fails
+outright, exhausting the stack at 60 and 63.
+This is a well-known failure mode for a quicksort that partitions naïvely around a heavily-duplicated pivot value:
 Bentley and McIlroy's classic treatment of engineering a practical quicksort\cite{10.1002/spe.4380231105}
 specifically addresses this case (a solution to Dijkstra's Dutch National Flag problem, partitioning into three regions — less than, equal to,
 and greater than the pivot — rather than two), precisely to avoid the pathological recursion depth this baseline exhibits.
-QuickHuskySort (with its depth-limited heapsort fallback)
-neither crashes nor slows down anywhere in this sweep — if anything it gets faster as duplication increases,
+The degradation is far worse than the crash makes it look, because the crash truncates it.
+Removing the stack limit rather than the recursion, and timing the same input at $N=1{,}000{,}000$ with the
+depth bound raised until it never fires, gives 363 seconds at 63 fixed bits against 0.4 seconds at none —
+a factor of nine hundred, on data of identical size.
+
+The guarded column is the same algorithm with the bound the JDK ships, and it is a different story
+entirely: nothing crashes, and the 21x degradation at 56 fixed bits becomes 2.1x.
+What that column is measuring, however, is largely \emph{not} quicksort.
+On these inputs the partitions go unbalanced immediately, the bound is reached within the first few dozen
+levels, and heapsort finishes the work.
+The clearest evidence is the direction of the sweep: unguarded, the worst case is 63 fixed bits, the most
+degenerate input, which is what the partitioning pathology predicts; guarded, 63 is the \emph{fastest}
+cell in the row.
+The guard has not made dual-pivot quicksort robust here.
+It has detected that dual-pivot quicksort cannot cope and changed algorithm, which is what a
+production sort should do and is worth stating plainly, since a reader may otherwise take the guarded
+column for evidence that the pathology is mild.
+
+QuickHuskySort neither crashes nor slows down anywhere in this sweep — if anything it gets faster as duplication increases,
 the same pattern System sort shows,
 consistent with Timsort's adaptive run-detection treating long runs of nearly equal keys as already sorted.
 Indeed both overtake radix sort at the extreme of the sweep,
 where 63 fixed bits leave almost nothing to sort and an adaptive algorithm has almost nothing to do,
 while radix still pays for its fixed number of passes.
-Radix sort's robustness is of a different kind, and the more useful one:
-its cost is flat because it does not depend on the distribution at all,
-so it is the only algorithm here whose worst case can be read off its best.
+Radix sort's robustness is of a third kind, and the most useful of the three:
+it needs neither an adaptive algorithm's luck with the input nor a fallback to a different algorithm,
+because its cost does not depend on the distribution at all.
+It is the only sort here whose worst case can be read off its best.
 
 \textbf{Shared string prefixes.}
 We took real corpus words and prepended a fixed-length prefix of repeated characters,
@@ -1672,10 +1704,10 @@ Table ~\ref{tab:AdversarialPrefix} reports timings at $N = 1{,}000{,}000$.
     \toprule
     Prefix length & System sort & QuickHuskySort & Radix/16 \\
     \midrule
-    0  & 1328.2 & 664.8 & 235.7 \\
-    10 & 860.0 & 925.3 & 904.2 \\
-    20 & 887.7 & 914.2 & 892.6 \\
-    40 & 927.1 & 942.7 & 952.8 \\
+    0  & 1351.6 & 583.4 & 234.4 \\
+    10 & 862.1 & 867.0 & 873.0 \\
+    20 & 861.7 & 912.7 & 904.1 \\
+    40 & 887.6 & 944.0 & 967.4 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -1696,8 +1728,9 @@ since its fixed per-pass cost (a strength above) becomes pure overhead once ther
 
 Taken together, these two experiments answer the question posed above with two distinct results.
 When keys collide in their high-order bits but the encoding itself is still informative,
-radix sort is effectively immune, and a naively-implemented quicksort baseline is not —
-it can degrade by orders of magnitude or fail outright.
+radix sort is effectively immune, and a comparison sort is not:
+unguarded it degrades by orders of magnitude or fails outright,
+and guarded it survives only by abandoning the algorithm one asked for.
 But when the source data overwhelms the encoding's fixed capture window entirely, no choice of sort algorithm for the encoded longs helps at all;
 this is a limitation of the fixed-width encoding scheme itself, not of HuskySort's algorithmic strategy,
 and it is already implicit in the $p_{crit}$ discussion of \S~\ref{sec:pcrit}:
@@ -1719,8 +1752,10 @@ A run of equal strings occupies a single bucket at every depth beyond their leng
 so recursion into that bucket reduces neither the range nor the work outstanding.
 The cutoff to insertion sort conceals this below its own threshold,
 and a corpus sampled with replacement exceeds that threshold at scale.
-All three of the comparison baselines discussed here therefore carry an unbounded-recursion failure mode:
-we repaired two of them, and the third is reported above as a result in its own right.
+All three of the comparison baselines discussed here therefore carried an unbounded-recursion failure mode,
+and all three have now been repaired: the multikey recursion converted to a loop, the MSD cutoff corrected,
+and the dual-pivot baseline given the depth bound the JDK applies.
+Only the third of those changes what the sweep reports, which is why it is shown both ways.
 RadixHuskySort was never at risk of any of them in the first place,
 since LSD radix sort has no recursion to begin with.
 
