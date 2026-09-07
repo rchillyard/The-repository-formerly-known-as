@@ -409,6 +409,16 @@ It turned out to be a pretty good idea,
 and we decided to test the efficacy of combining quicksort with Timsort for object types that are costly to compare.
 Such types include \emph{String, LocalDateTime, BigInteger, BigDecimal}, and many user-defined types of this kind.
 
+This paper builds on the work of Hillyard et al.\cite{huskysort2020},
+which introduced the husky code and the QuickHuskySort algorithm that sorts by it.
+The contributions here are RadixHuskySort (\S~\ref{sec:radix}),
+which replaces that algorithm's comparison sort with a linear-time radix sort on the same codes,
+and a parallel variant of it (\S~\ref{sec:parallel-radix});
+an empirical comparison against the classic string sorts rather than a theoretical one (\S~\ref{sec:radix});
+a direct measurement of the cost of the cleanup pass (\S~\ref{sec:pcrit});
+and a case study on real rather than generated data (\S~\ref{sec:radix-results}).
+All results reported here were measured anew.
+
 We review existing methods of sorting in Section 2 and go through the HuskySort algorithm in Section 3.
 Implementation options and their likely impact are explored in Section 4.
 We describe our Test Cases in Section 5 and present results in Section 6, with outcomes summarized in Section 7.
@@ -739,36 +749,40 @@ The actual values of $p_{crit}$ are very much dependent on the machine running t
 We have not calculated a typical value for $p_{crit}$ but, even for the worst-case:
 Chinese characters using UTF8 encoding, we still find very significant gains, reported later in Table ~\ref{tab:HS_BM_S}.
 
-Of the three terms, $T_3$ is the one we can measure in isolation,
-and doing so puts a floor under what an imperfect encoding costs.
+Of the three terms, $T_3$ can be isolated experimentally.
 Two benchmarks over the same two hundred thousand municipal records (\S~\ref{sec:radix-results})
-differ in one respect only: which coder they are given.
-Both obtain their codes from the same method, so the codes are identical;
-one coder declares itself perfect and the sort therefore skips step 3,
-while the other leaves that declaration at its default of false and the pass runs.
-Since the encoding for this data is exact,
-the pass that does run provably has nothing to correct,
-and the difference between the two benchmarks is $T_3$ evaluated at $p = 0$ --- overhead and nothing else.
-It is not small.
-On the machine of record it accounts for 9.8\% of total running time at $N = 32{,}000$,
-25.3\% at $N = 100{,}000$ and 19.0\% at $N = 198{,}900$,
-with non-overlapping 99.9\% confidence intervals at every size.
-A second, independent run on the same machine gave 6.2\%, 22.8\% and 24.2\%.
+differ only in which coder they are given.
+Both compute identical codes; one coder declares itself perfect, so the sort skips step 3,
+while the other leaves that declaration at its default and the pass runs.
+The encoding for these records is exact, so the pass that runs has provably nothing to correct.
 
-We therefore draw only the conclusion both runs support:
-that this pass costs under a tenth of total running time at the smallest size measured
-and between a fifth and a quarter at the two larger ones,
-while doing no useful work at all.
-We specifically do not claim a trend in $N$.
-The two runs disagree about the direction beyond $N = 100{,}000$ --- one rises, the other falls ---
-and a third run on different hardware produced a third shape again,
-so the magnitude of this cost replicates and its shape does not.
-This is also, to our knowledge, the only direct measurement of the quantity,
-every other benchmark in this paper varying the encoding and the sort together.
+Its cost is predictable in advance.
+Timsort over a fully ascending array detects a single run and stops,
+performing $N-1$ comparisons and no moves,
+so $T_3$ at $p = 0$ is exactly $N-1$ invocations of the element's own comparator ---
+here assessor's block, then lot, then filing date,
+which is precisely the comparison the husky encoding was introduced to avoid.
+The cleanup pass reintroduces one full composite comparison per element,
+having just removed it from all $\textbf{O}(N \log N)$ of them.
 
-It is what makes $p_{crit}$ worth establishing rather than merely bounding.
-An encoding that can be declared perfect avoids this cost outright;
-one that cannot must first repay it, before a single genuine inversion has been corrected.
+That comparison costs 12.7\,ns at $N = 32{,}000$, 68.2\,ns at $N = 100{,}000$ and 85.1\,ns at
+$N = 198{,}900$: 6.2\%, 22.8\% and 24.2\% of total running time, intervals non-overlapping throughout.
+Two further runs, one on different hardware, agree on the shape at different levels
+(20.0/74.1/68.7 and 8.0/22.1/37.8\,ns).
+The percentages are the less stable figures, being ratios of two quantities that both move.
+The shape is a threshold rather than a trend --- a three- to fivefold rise between the first two sizes,
+then a levelling off --- and it falls where the records stop fitting in cache.
+That last reading is inference, but the magnitudes support it:
+the system sort compares these same records some 3.5 million times in 162\,ms, or 46\,ns each,
+so the cleanup pass at 85\,ns costs nearly twice as much per comparison using the same comparator.
+Step 2 permutes references without moving the records,
+so a scan sequential in the array is close to random in the heap.
+
+Two conclusions follow.
+First, $k_3$ is not a constant: it varies fivefold across three sizes on one machine,
+so no single $p_{crit}$ can be quoted even for one type on one machine.
+Second, an encoding which can be declared perfect avoids a cost of up to a quarter of total running
+time, where one which cannot must repay it before correcting a single genuine inversion.
 
 \subsection{Why HuskySort Works}
 

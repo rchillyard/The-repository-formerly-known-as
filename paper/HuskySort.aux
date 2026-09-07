@@ -26,6 +26,7 @@
 \providecommand \oddpage@label [2]{}
 \@writefile{toc}{\contentsline {section}{Abstract}{1}{section*.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\citation{huskysort2020}
 \citation{doi:10.1002}
 \citation{DBLP:journals/corr/abs-1805-08612}
 \citation{doi:10.1002}
@@ -57,8 +58,6 @@
 \citation{LAMARCA199966}
 \citation{Dual-pivot}
 \citation{DBLP:journals/corr/cs-DS-0408040}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation}{6}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}System Environment}{6}{subsection.4.1}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces HuskySort.sort\relax }}{6}{algocf.3}\protected@file@percent }
 \newlabel{alg:the_alg}{{3}{6}{Why HuskySort Works}{algocf.3}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces huskyEncode\relax }}{6}{algocf.4}\protected@file@percent }
@@ -75,6 +74,8 @@
 \newlabel{tab:SysEnvCurrent}{{3}{7}{Benchmark environment used for the radix-sort and JMH results (\S ~\ref {sec:radix}--\S ~\ref {sec:radix-results})\relax }{table.caption.12}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Benchmark environment used for the AWS Graviton3 confirmation run\relax }}{7}{table.caption.13}\protected@file@percent }
 \newlabel{tab:SysEnvAWS}{{4}{7}{Benchmark environment used for the AWS Graviton3 confirmation run\relax }{table.caption.13}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation}{7}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}System Environment}{7}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Implementation of Algorithm}{7}{subsection.4.2}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces String-encoding constants\relax }}{7}{table.caption.14}\protected@file@percent }
 \newlabel{tab:EncodingConstants}{{5}{7}{String-encoding constants\relax }{table.caption.14}{}}
@@ -87,10 +88,10 @@
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Data Source}{7}{lstlisting.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Analysis}{8}{subsection.5.2}\protected@file@percent }
 \newlabel{sec:analysis}{{5.2}{8}{Analysis}{subsection.5.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Results and Observations}{9}{section.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Benchmarks}{9}{subsection.6.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Time vs Size ($N$)\relax }}{9}{figure.caption.18}\protected@file@percent }
 \newlabel{Fig:TvsN}{{4}{9}{Time vs Size ($N$)\relax }{figure.caption.18}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Results and Observations}{9}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Benchmarks}{9}{subsection.6.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Summary}{9}{subsection.6.2}\protected@file@percent }
 \newlabel{sec:summary}{{6.2}{9}{Summary}{subsection.6.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Radix Sort Results}{9}{subsection.6.3}\protected@file@percent }
@@ -105,15 +106,16 @@
 \newlabel{tab:HS_BM_S}{{9}{10}{Comparison of HuskySort with system sort (Strings, ms, mean $\pm $ 99.9\% CI)\relax }{table.caption.20}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Comparison of HuskySort with system sort (Tuples, ms, mean $\pm $ 99.9\% CI)\relax }}{10}{table.caption.21}\protected@file@percent }
 \newlabel{tab:HS_BM_T}{{10}{10}{Comparison of HuskySort with system sort (Tuples, ms, mean $\pm $ 99.9\% CI)\relax }{table.caption.21}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Radix sort advantage over QuickHuskySort\relax }}{11}{table.caption.22}\protected@file@percent }
-\newlabel{tab:RadixImprovements}{{11}{11}{Radix sort advantage over QuickHuskySort\relax }{table.caption.22}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort}{11}{subsection.6.4}\protected@file@percent }
 \newlabel{sec:parallel-radix}{{6.4}{11}{Parallel Radix Sort}{subsection.6.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Use-Case Guidance}{11}{subsection.6.5}\protected@file@percent }
+\newlabel{sec:usecase}{{6.5}{11}{Use-Case Guidance}{subsection.6.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Radix sort advantage over QuickHuskySort\relax }}{12}{table.caption.22}\protected@file@percent }
+\newlabel{tab:RadixImprovements}{{11}{12}{Radix sort advantage over QuickHuskySort\relax }{table.caption.22}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{12}{table.caption.23}\protected@file@percent }
 \newlabel{tab:ParallelRadix}{{12}{12}{Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.23}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Use-Case Guidance}{12}{subsection.6.5}\protected@file@percent }
-\newlabel{sec:usecase}{{6.5}{12}{Use-Case Guidance}{subsection.6.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{12}{section.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Which sort to reach for. The questions are ordered by how much they decide: the cost of the comparison, the exactness of the encoding, and the existence of a sort specialised to the type. Array size settles nothing until all three are answered.\relax }}{12}{table.caption.24}\protected@file@percent }
+\newlabel{tab:Guidance}{{13}{12}{Which sort to reach for. The questions are ordered by how much they decide: the cost of the comparison, the exactness of the encoding, and the existence of a sort specialised to the type. Array size settles nothing until all three are answered.\relax }{table.caption.24}{}}
 \bibstyle{ACM-Reference-Format}
 \bibdata{sample-base}
 \bibcite{10.1145/48529.48535}{{1}{1988}{{Aggarwal and Vitter}}{{Aggarwal and Vitter}}}
@@ -123,22 +125,22 @@
 \bibcite{814600}{{5}{1999}{{Frigo et~al\mbox  {.}}}{{Frigo, Leiserson, Prokop, and Ramachandran}}}
 \bibcite{DBLP:journals/corr/cs-DS-0408040}{{6}{2004}{{Gilreath}}{{Gilreath}}}
 \bibcite{GOLDHAHN12.327}{{7}{2012}{{Goldhahn et~al\mbox  {.}}}{{Goldhahn, Eckart, and Quasthoff}}}
-\bibcite{10.1145/366622.366644}{{8}{1961}{{Hoare}}{{Hoare}}}
-\bibcite{doi:10.1137/1.9781611975994.101}{{9}{[n.d.]}{{Jugé}}{{Jugé}}}
-\bibcite{LAMARCA199966}{{10}{1999}{{LaMarca and Ladner}}{{LaMarca and Ladner}}}
-\bibcite{10.5555/313559.313859}{{11}{1993}{{McIlroy}}{{McIlroy}}}
-\bibcite{doi:10.1002}{{12}{1997}{{MUSSER}}{{MUSSER}}}
-\bibcite{Timsort}{{13}{2002}{{Peters}}{{Peters}}}
-\bibcite{10.1007/3-540-61680-2_42}{{14}{1996}{{Sedgewick}}{{Sedgewick}}}
-\bibcite{1064546.1180622}{{15}{2004}{{Sinha and Zobel}}{{Sinha and Zobel}}}
-\bibcite{wainshine2020chinesenames}{{16}{2020}{{Wainshine}}{{Wainshine}}}
-\bibcite{6115063}{{17}{2011}{{{Xiang}}}{{{Xiang}}}}
-\bibcite{Dual-pivot}{{18}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
-\bibcite{sort}{{19}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
-\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Which sort to reach for. The questions are ordered by how much they decide: the cost of the comparison, the exactness of the encoding, and the existence of a sort specialised to the type. Array size settles nothing until all three are answered.\relax }}{13}{table.caption.24}\protected@file@percent }
-\newlabel{tab:Guidance}{{13}{13}{Which sort to reach for. The questions are ordered by how much they decide: the cost of the comparison, the exactness of the encoding, and the existence of a sort specialised to the type. Array size settles nothing until all three are answered.\relax }{table.caption.24}{}}
+\bibcite{huskysort2020}{{8}{2020}{{Hillyard et~al\mbox  {.}}}{{Hillyard, Liaozheng, and K~R}}}
+\bibcite{10.1145/366622.366644}{{9}{1961}{{Hoare}}{{Hoare}}}
+\bibcite{doi:10.1137/1.9781611975994.101}{{10}{[n.d.]}{{Jugé}}{{Jugé}}}
+\bibcite{LAMARCA199966}{{11}{1999}{{LaMarca and Ladner}}{{LaMarca and Ladner}}}
+\bibcite{10.5555/313559.313859}{{12}{1993}{{McIlroy}}{{McIlroy}}}
+\bibcite{doi:10.1002}{{13}{1997}{{MUSSER}}{{MUSSER}}}
+\bibcite{Timsort}{{14}{2002}{{Peters}}{{Peters}}}
+\bibcite{10.1007/3-540-61680-2_42}{{15}{1996}{{Sedgewick}}{{Sedgewick}}}
+\bibcite{1064546.1180622}{{16}{2004}{{Sinha and Zobel}}{{Sinha and Zobel}}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{13}{section.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{Acknowledgments}{13}{section*.26}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{References}{13}{section*.28}\protected@file@percent }
+\bibcite{wainshine2020chinesenames}{{17}{2020}{{Wainshine}}{{Wainshine}}}
+\bibcite{6115063}{{18}{2011}{{{Xiang}}}{{{Xiang}}}}
+\bibcite{Dual-pivot}{{19}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
+\bibcite{sort}{{20}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
 \citation{10.1002/spe.4380231105}
 \@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{14}{appendix.A}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Discussion of coding accuracy}{14}{subsection.A.1}\protected@file@percent }

@@ -151,6 +151,24 @@
 \showISBNx{978-2-9517408-7-7}
 
 
+\bibitem[\protect\citeauthoryear{Hillyard, Liaozheng, and K~R}{Hillyard
+  et~al\mbox{.}}{2020}]%
+        {huskysort2020}
+\bibfield{author}{\bibinfo{person}{Robin~C. Hillyard},
+  \bibinfo{person}{Yunlu Liaozheng}, {and} \bibinfo{person}{Sai~Vineeth K~R}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{HuskySort}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2012.00866}
+  (\bibinfo{year}{2020}).
+\newblock
+\showeprint[arxiv]{2012.00866}
+\urldef\tempurl%
+\url{https://arxiv.org/abs/2012.00866}
+\showURL{%
+\tempurl}
+
+
+
 \bibitem[\protect\citeauthoryear{Hoare}{Hoare}{1961}]%
         {10.1145/366622.366644}
 \bibfield{author}{\bibinfo{person}{C.~A.~R. Hoare}.}

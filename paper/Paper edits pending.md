@@ -40,7 +40,9 @@ then.
 | **0c** | **the SIAM proceedings template is required at submission, not on acceptance** — and no SIAM class is installed | tex 43–58 |
 | **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 191–228, **775** |
 | ~~**0c**~~ | ~~12 pages excluding references~~ — **CLOSED**: 12.0 under acmart. Must be re-measured after the SIAM reflow | — |
-| **0b** | **resolved: cite arXiv:2012.00866**, third-person. Omitting important references for anonymity is explicitly discouraged | front matter |
+| ~~**0b**~~ | ~~cite arXiv:2012.00866~~ — **APPLIED 2026-09-07**, Introduction + `HuskySort.bbl` |
+| **0f** | **`sample-base.bib` is missing from the repository.** The bibliography exists only as a committed `.bbl`, and running BibTeX would destroy it | `paper/` |
+| **0g** | no general composite-key coder exists — Robin's framing: not essential for the paper, but needed for adoption. Draft future-work paragraph ready | tex 566–577 |
 | **0a** | **superseded by 0c.** The template question is answered; only the author footnotes remain, and they come out for review anyway | tex 43–58 |
 
 Sections marked DONE need no further action.
@@ -493,6 +495,180 @@ against the other will see it. Three ways out:
 
 I have **not** changed it. Sai Vineeth submits tomorrow and the text is presumably already with him;
 a silent edit the night before is how versions diverge.
+
+---
+
+# 0f. `sample-base.bib` is missing — the bibliography cannot be rebuilt
+
+Found while adding the self-citation, and it is a submission risk rather than a tidiness problem.
+
+`HuskySort.tex` line 1572 says `\bibliography{sample-base}`. **There is no `sample-base.bib`** —
+not in `paper/`, not anywhere in the repository, and not in the TeX tree. `HuskySort.blg` records the
+last BibTeX run failing outright:
+
+> I couldn't open database file sample-base.bib ... I found no database files
+
+What the paper builds from is `HuskySort.bbl`, a generated artefact that is **committed to git** and is
+now the only copy of the bibliography in existence. It holds 19 entries; all 19 citations resolve; the
+PDF's references are correct. Nothing is broken *today*.
+
+**But it is one command away from being unrecoverable.** Anyone who runs `bibtex HuskySort` — or a
+`make` target, or an IDE build, or Overleaf's default pipeline — overwrites the `.bbl` with an empty
+bibliography and the references vanish. There is no `.bib` to regenerate them from.
+
+This lands directly on the critical path, because **the SIAM template switch (0c) requires a rebuild**,
+and the natural way to do that is latex/bibtex/latex/latex.
+
+**What to do, in order of preference:**
+
+1. **Reconstruct `sample-base.bib` from the `.bbl`.** All 19 entries carry author, year, title, journal,
+   volume, pages, DOI and eprint fields in `\bibfield`/`\bibinfo` form, so this is transcription rather
+   than research. An hour, and it makes the bibliography a source again.
+2. Failing that, **add a comment at the head of `HuskySort.bbl`** saying it is hand-maintained and must
+   not be regenerated, and stop running BibTeX. Fragile, but honest about the fragility.
+
+The self-citation added on 2026-09-07 was inserted into the `.bbl` **by hand**, in its correct
+alphabetical position between Goldhahn and Hoare, because there was no other way to add it. That is
+worth knowing before anyone tries to "fix" the bibliography by rebuilding it.
+
+---
+
+# 0g. There is no general composite-key coder — and the paper implies there is one
+
+Robin asked on 2026-09-07 whether the code has a method to husky-encode a general tuple: a set of
+values from an element's primary key, as with the permit records. **It does not.** The inventory:
+
+| what exists | where |
+| --- | --- |
+| `PermitCoder` — block/lot/date packed into 60 bits, and the only place that gets all three order-preserving properties right and names them | `huskySortUtils/PermitCoder.java` |
+| `HuskySortBenchmark.Tuple.huskyCode()` — birthYear/zip/name, hand-rolled with literal shifts `17` and `38` and a hand-written mask that silently truncates the name's code | `huskySort/HuskySortBenchmark.java:614` |
+| `HuskyCoderFactory.createGenericCoder()` — **an adapter, not a composer.** It is `HuskySortable::huskyCode`; it lifts a hand-written code into a `HuskyCoder` and does no composition at all | `huskySortUtils/HuskyCoderFactory.java:52` |
+
+Everything else in `HuskyCoderFactory` is single-valued. `HuskyCoder` has no combinator — no `andThen`,
+`compose` or `withBits`. `HuskySortable` is two methods, and composition is left entirely to the
+implementor. There is no bit-width allocator: nothing takes a list of field widths and derives shifts
+and masks, and **nothing checks that the total fits in 64 bits.** `Tuple`'s 8 + 17 + 38 = 63 fits by
+hand-checked luck. `PermitCoder`'s 60-bit budget is verified by prose arithmetic in a class comment
+plus a corpus test, not by code.
+
+The one reusable-shaped primitive is `PermitCoder.encodeString(String, int width, int bits, String
+alphabet)`, which is `private static`, holds no permit-specific state, and would need only a visibility
+change and a home. Its companion `codeOf` implements the property that matters — an out-of-alphabet
+character collapses to the largest symbol at or below it, so the ordering *weakens* rather than
+inverting.
+
+## Why this is a paper problem and not only a code one
+
+Table `Guidance`'s second row tells a practitioner to reach for RadixHuskySort when "the ordering is
+composite or expensive, \emph{and} the key packs exactly into 64 bits". The paper does not say how one
+would obtain such a packing, and the honest answer is: by hand, with shifts and masks, getting three
+non-obvious properties right — fields packed most-significant-first in the same order as `compareTo`;
+codes running from 1 up with 0 reserved so that a short field right-pads and sorts low; and
+out-of-range symbols collapsing downward rather than wrapping. `PermitCoder` documents all three
+because getting any of them wrong silently produces a coder that inverts instead of weakening.
+
+## Robin's framing, 2026-09-07, which is the one to write up
+
+> it's not essential for the paper, but if the method ever got taken up (by Python or Java, etc.) we'd
+> need to provide something to make it easy/automatic to encode.
+
+That is the right way round, and it makes this a **future-work** item rather than a limitation to
+apologise for. The claim the paper makes is about a mechanism; the claim this would support is about
+adoption, and adoption is what a library vendor would have to be persuaded of. Worth separating the two
+words, because they are different pieces of work:
+
+**Easy** is a combinator, and it is small. A field abstraction (`X -> long` plus a declared bit width),
+an ordered-alphabet string field promoted out of `PermitCoder` (its `encodeString`/`codeOf` need only a
+visibility change), an MSB-first fold accumulating shifts, a 64-bit budget check that fails fast instead
+of truncating silently, and a `perfect()` that is true only when every constituent field is exact and
+the total fits. `PermitCoder` has already solved every hard part; this is packaging.
+
+**Automatic** is the interesting one, and it is where the argument for adoption actually lives. The
+whole difficulty of hand-writing a coder is keeping two declarations in agreement: the packing order
+must match `compareTo`, and nothing checks that it does.
+
+> **A correction, since it bears directly on the API.** Robin's reading on 2026-09-07 was that field
+> order does not matter when the encoding is perfect, and matters when it is imperfect. **It is the
+> other way round.**
+>
+> `perfect()` is documented as "true if the resulting longs are perfect for ANY value of X" — which is
+> a claim of order preservation *with respect to that type's own `compareTo`*, not a claim of
+> losslessness. Pack `Permit` as date/block/lot rather than block/lot/date and every record still gets
+> a distinct code; nothing is lost and all three fields could be decoded back. But those codes are
+> monotone in date-major order while `compareTo` is block-major, so sorting by them yields the wrong
+> order, `perfect()` returns true, **step 3 is skipped, and the sort silently returns wrong output.**
+>
+> Make the same mistake with an imperfect coder and the cleanup pass runs, Timsort re-sorts by the real
+> `compareTo`, and the answer is **correct** — merely slow, because $p$ is now enormous and step 2 did
+> no useful work. The array reaching step 3 is badly permuted rather than nearly sorted, so $T_3$ goes
+> from the $N-1$ comparisons measured in §sec:pcrit to something approaching a full Timsort.
+>
+> So: **imperfect encoding, wrong field order costs time; perfect encoding, it costs correctness**, and
+> nothing downstream can catch it. `PermitCoder`'s class comment states this as the first of its three
+> properties, and `PermitCoderTest` pins it with "a later block outranks any lot" and "a later lot
+> outranks any date" — those tests exist because the property is not self-enforcing.
+>
+> Robin's intuition is right about **cost**: when the encoding is perfect, field order does not affect
+> performance at all. Any packing is a 64-bit long, radix runs the same fixed passes, no cleanup runs.
+> Order-independence holds for time and fails for correctness.
+>
+> **This is the strongest argument for declaring the key with the tuple.** Today
+> `PermitCoder.perfect()` returns a hardcoded `true`, and what makes that trustworthy is a test
+> sweeping all 198,900 records. If field order and widths came from the same declaration as the
+> comparison, `perfect()` could be **computed** — true exactly when every field encoder is exact and
+> the widths fit — rather than asserted and separately verified. That converts the mechanism's central
+> safety property from a promise into a derivation. But in both languages named, the comparison is
+very often *already* derived from field declaration order — Java records and `Comparator.comparing(...)
+.thenComparing(...)`, Python dataclasses with `order=True`. Where that holds, the encoding can be
+derived from the same declaration as the comparison, and **the correctness obligation is discharged by
+construction rather than by hand.** That is a materially stronger statement than "we provide a helper".
+
+Two honest obstacles, both worth naming rather than glossing:
+
+- **Automation needs each field's range, not its type.** An `int` field needs 32 bits unless the domain
+  is known to be narrower, and it is the narrowness that makes composite keys fit at all: permits works
+  because block is 5 characters of a 31-symbol alphabet, not because it is a `String`. So either fields
+  carry declared ranges (an annotation, a dataclass field argument) or the range is inferred from the
+  data. **There is precedent for the latter in this repository**: `Alphabet.prepare(String[])` derives
+  its alphabet by sweeping the corpus and assigning code points in order, which is exactly the shape of
+  the inference required.
+- **64 bits runs out fast.** Three fields fit; six probably do not. This is where the paper's existing
+  passage on key widths (tex 566--577) stops being a throwaway remark and becomes load-bearing: radix
+  sort takes a $k$-bit key in $k/b$ passes with no change to the algorithm, so a 128-bit code costs
+  twice the passes and nothing else. A comparison-based husky sort has no equivalent escape. **An
+  automatic encoder is therefore a better argument for RadixHuskySort specifically than for
+  QuickHuskySort**, which is a point the paper is currently in a position to make and does not.
+
+### Suggested treatment: a short future-work paragraph, not new code
+
+Draft, to sit at the end of §sec:radix where the key-width discussion already is:
+
+```latex
+One practical obstacle stands between this mechanism and a library implementation of it.
+Each composite encoding in this paper was written by hand,
+and a hand-written coder must satisfy three properties that nothing checks:
+fields packed most-significant-first in the same order as the type's own comparison,
+symbol codes assigned from one upwards so that a short field pads with zero and sorts low,
+and out-of-range symbols collapsing downward, so that an unexpected value weakens the ordering rather than inverting it.
+Getting any of these wrong produces a coder that is silently incorrect rather than merely imprecise.
+We expect that most of this can be automated rather than merely assisted.
+Where a type's ordering is already derived from its field declarations ---
+as with Java records, or Python dataclasses declared with an ordering ---
+the encoding can be derived from the same declaration,
+which removes by construction the possibility that packing order and comparison order disagree.
+What such a derivation additionally requires is each field's range rather than its type,
+since it is the narrowness of the fields that lets a composite key fit at all;
+that is either declared or inferred from the data.
+We note that this argues specifically for the radix variant:
+when the fields do not fit in 64 bits, a wider code costs RadixHuskySort proportionally more passes and nothing else,
+where a comparison-based husky sort has no comparable escape.
+```
+
+Cost: about fifteen lines, no new code, and it converts the weakest thing about the mechanism into the
+clearest statement of what adopting it would take.
+
+**Not applied — Robin's call.** The alternative is to write the combinator and describe it instead,
+which is a better paper but is new code and new tests eight days out.
 
 ---
 
