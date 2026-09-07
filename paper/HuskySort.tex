@@ -564,21 +564,27 @@ with a 64-bit husky encoding (strings among them),
 at the cost of the encoding's own fixed capture window (\S~\ref{sec:pcrit} above)
 and a fallback cleanup pass whenever that encoding is imperfect.
 
-That framing carries a consequence which Table ~\ref{tab:RadixImprovements} makes plain,
+That framing carries a consequence which Table ~\ref{tab:RadixImprovements} bears out,
 and which we state rather than leave to be noticed:
-strings are the domain in which this mechanism is \emph{least} advantageous.
-Every non-string row of that table (2.6--4.5x) exceeds every string row (1.3--1.6x),
-and the two ranges do not overlap.
-Three factors explain the ordering, and they compose.
+the string rows of that table are its most variable by a wide margin.
+They span from 3.3x down to 1.5x, nearly the whole of its range below dates,
+where every other row falls between 2.1x and 3.6x.
+Three factors account for the spread, and they compose.
 The advantage grows with the cost of the type's native comparison, since that is what the encoding replaces;
 it grows with the exactness of the encoding, since an imperfect one is paid for by the cleanup pass;
 and it shrinks in the presence of algorithms specialised to the type.
 Dates are the favourable extreme on all three counts --- a provably perfect coding, no cleanup pass at all,
-and no specialised competitor --- and yield the largest margin in the table.
-Chinese personal names are the instructive middle: the native comparison is expensive,
+and no specialised competitor --- and yield the largest margin in the table at 5.9x.
+The string rows show those same three factors varying \emph{within} a single data type,
+which is the more instructive demonstration.
+Chinese words are favourable on the first two counts --- an expensive Unicode comparison,
+captured well enough by the encoding --- and sit fourth of eleven, above all but three of the non-string rows.
+Chinese personal names are unfavourable on the second: the native comparison is more expensive still,
 requiring a table lookup per character per comparison, which is exactly the cost husky encoding is meant to amortise,
 but names of two or three characters with recurring syllables collide often enough that the cleanup pass
-consumes what the encoding saves.
+consumes what the encoding saves, and this is the weakest result we report.
+English words are unremarkable on the first two counts and distinctive on the third,
+being the one case in this paper with a mature specialised literature ranged against it.
 
 Strings are unfavourable on the third count in a way no other type in this paper is.
 Half a century of specialised string sorting exists,
@@ -1438,14 +1444,20 @@ The original idea behind HuskySort, that's to say QuickHuskySort,
 was to shift work from the linearithmic phase of sorting to the linear phase (both the prelude and the postlude)
 and effect an overall reduction in array accesses and thus processing time.
 This has been demonstrated such that, when sorting objects rather than primitives,
-HuskySort is always faster than dual-pivot quicksort.
+HuskySort is faster than dual-pivot quicksort wherever the ordering is expensive to evaluate ---
+by 1.4x on \textit{BigInteger} and 1.6x on \textit{BigDecimal} (Table ~\ref{tab:HS_BM_N}).
+On \textit{Integer}, \textit{Double} and \textit{Long}, where a comparison costs almost nothing,
+the encoding has nothing to amortise and dual-pivot quicksort is ahead instead, by up to a tenth.
+That is the same criterion which governs every other result in this paper,
+here separating one group of numeric types from another.
 It is faster than Timsort for arrays which are not partially ordered, above a few hundred elements;
 below that, Timsort's own tuned handling of small arrays wins instead.
 It is especially fast for types whose ordering is composite or expensive to evaluate
 and whose keys encode exactly, where the encoding replaces the whole comparison and no cleanup pass is needed.
-Strings are not that case:
+Strings are not reliably that case:
 they are the one domain with a mature specialised literature of its own (\S~\ref{sec:radix}),
-and they yield this mechanism's narrowest margins.
+and they are also the most variable, spanning nearly the whole range of our results ---
+including the narrowest margin we report, for Chinese personal names in pinyin order.
 
 In the case of RadixHuskySort, the performance improvement is even better for datasets above a few thousand in length.
 Of course, in this case, there was no linearithmic phase, so the time savings come, as explained above,

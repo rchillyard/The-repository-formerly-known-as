@@ -20,14 +20,20 @@ Also new since this document was written and **not recorded anywhere below until
 `Guidance` (tex 1371–1399), the two adversarial tables (tex 1519, 1562), and the appendix's paragraph
 on unbounded recursion in the baselines (tex 1599–1617).
 
+**Sequencing, decided by Robin on 2026-09-07:** fix the substantive issues first, then see what has to
+be done to squeeze the result into 12 pages. So the page-budget arithmetic recorded in 0c and 0d is
+still accurate and still worth having, but it is **not a constraint on the edits below** — do not trade
+away a correction to save a line. The squeeze is a separate, later pass over whatever the paper says by
+then.
+
 **Still pending, in order of how much they cost if missed:**
 
 | | what | where |
 | --- | --- | --- |
-| **4.1** | **"HuskySort is always faster than dual-pivot quicksort" is contradicted by Table `HS_BM_N`** — promoted from "should soften" | tex 1440 |
+| ~~**4.1**~~ | ~~"HuskySort is always faster than dual-pivot quicksort"~~ — **APPLIED 2026-09-07**, tex 1441–1447 |
 | **8** | the DPQS guard (HS-13) falsifies the appendix's crash result and one sentence of its prose | tex 1528–1529, 1537–1539, 1614–1615 |
 | **5.2** | **the abstract and Table `Guidance` both cite a measurement the body does not contain** | tex 251–254, 1387 |
-| **1.5** | "every non-string row exceeds every string row" — false against the rebuilt table | tex 569–571 (unmoved) |
+| ~~**1.5**~~ | ~~"every non-string row exceeds every string row"~~ — **APPLIED 2026-09-07**, tex 567–588 |
 | **5.1** | the permits row is in the table; the case study is nowhere in the prose | tex 1271 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
 | **0c** | **the SIAM proceedings template is required at submission, not on acceptance** — and no SIAM class is installed | tex 43–58 |
@@ -441,9 +447,11 @@ ASCII only".
 | the cleanup-pass row | its `\S~\ref{sec:radix-results}` is the **dangling reference of 5.2** — that section does not contain the 10--25\% figure. Fixing 5.2 fixes this cell; nothing to do here separately |
 | last row, Evidence | "each sort's fixed setup cost is repaid at a different $N$" is a *reason*, where every other row in that column gives a measured *fact*. The honest fact is "crossovers measured on English text, $N=4$ to $10{,}000$", which is four characters too long to fit — see the note on the page budget below |
 
-## The page budget is now binding to about a line
+## What the page budget cost this table — kept as a record, no longer a constraint
 
-Every wording change in this table has to be paid for. Measured today, in order:
+Robin's decision later the same day was to fix content first and squeeze afterwards, so none of the
+below should stop an edit that makes the table clearer. It is worth keeping only because it shows how
+little slack there is, and therefore how much the eventual squeeze will have to find. Measured in order:
 
 | version of the last two rows | body |
 | --- | ---: |
@@ -454,8 +462,8 @@ Every wording change in this table has to be paid for. Measured today, in order:
 | `(\S~\ref{sec:usecase})`, with "our MSD" | **12.00** |
 
 Twenty-four characters in the MSD cell was worth 0.05 of a page, because it wrapped that cell to a
-further line. **Re-measure after any edit to this table**, by the method in 0c: last body float, then
-check the acknowledgments start at the top text margin of the next page.
+further line. When the squeeze does come, measure it by the method in 0c: last body float, then check
+the acknowledgments start at the top text margin of the next page.
 
 ---
 
@@ -487,7 +495,7 @@ they are the one domain with a mature specialised literature of its own (\S~\ref
 and they yield this mechanism's narrowest margins.
 ```
 
-## 1.5 Tex 532–534 — the framing collapses; rewrite needed. URGENT
+## 1.5 The framing collapses — **APPLIED 2026-09-07**, at tex 567–588
 
 The table around it has been rebuilt; **this sentence was not**, and it now contradicts the table two
 pages away from it:
@@ -695,7 +703,7 @@ and we have not implemented it.
 
 # 4. Should soften — not wrong, but overstated
 
-## 4.1 Tex 1432: "always" — **PROMOTED TO MUST-FIX. It is contradicted by Table `HS_BM_N`**
+## 4.1 "always" — **APPLIED 2026-09-07**, at tex 1441–1447
 
 > HuskySort is always faster than dual-pivot quicksort.
 
