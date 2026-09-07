@@ -25,9 +25,11 @@ paragraph on unbounded recursion in the baselines (tex 1633–1651).
 | **4.1** | "HuskySort is always faster than dual-pivot quicksort" | tex 1474 |
 | **5.1** | the permits row is in the table; the case study is nowhere in the prose | tex 1277 |
 | **7** | three tables are still from the 2017 Intel/Java 8 machine | tex 1082, 1111, 1234 |
-| **0c** | **anonymisation, and one page over the limit** — if ACDA27 keeps ACDA25's rules | tex 173–210, **736** |
-| **0b** | whether to cite arXiv:2012.00866 — ACDA25 permitted preprints outright, so this is now only a question of third-person phrasing | front matter |
-| **0a** | template and author footnotes — needs your decision | tex 43–58 |
+| **0c** | **the SIAM proceedings template is required at submission, not on acceptance** — and no SIAM class is installed | tex 43–58 |
+| **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 173–210, **736** |
+| **0c** | **12 pages excluding references** — one over under acmart, unknown after the reflow | tex 1082, 1234 |
+| **0b** | **resolved: cite arXiv:2012.00866**, third-person. Omitting important references for anonymity is explicitly discouraged | front matter |
+| **0a** | **superseded by 0c.** The template question is answered; only the author footnotes remain, and they come out for review anyway | tex 43–58 |
 
 Sections marked DONE need no further action.
 
@@ -60,69 +62,129 @@ qualitatively — but no figure from it goes into the paper.
 
 ---
 
-# 0c. The venue's actual rules — ACDA25's, as a stand-in. Verify against the ACDA27 page
+# 0c. The venue's rules — CONFIRMED from the ACDA27 submissions page
 
-**Robin was referred to <https://www.siam.org/conferences-events/siam-conferences/acda27/submissions/>
-by the first-listed chair on 2026-09-07, with other questions to be directed to one of the other
-chairs.** That page is behind a bot-detection interstitial and I did not attempt to get past it, so
-**nothing in this section is confirmed for ACDA27.** The ACDA27 submissions page is also not in any
-search index; the EasyChair CFP mirror is the stale pre-Spring-2026 one, saying only "the paper
-submission deadline will be in mid-September 2026".
+Source: `paper/ACDA27 Submissions | SIAM.pdf`, saved by Robin on 2026-09-07, together with
+`paper/SIAM Conference on Applied and Computational Discrete Algorithms (ACDA27) | SIAM.pdf`. These
+supersede the ACDA25 wording this section previously carried as a stand-in.
 
-What follows is **ACDA25's** wording, recovered from the search index of
-<https://www.siam.org/conferences-events/siam-conferences/acda25/submissions/>. The prior edition of
-the same conference series is a strong prior but not authority. **Robin: reading that one page settles
-all four open questions, and three of them change what we do.**
+**One inference in that stand-in was wrong, and it was the consequential one.** From ACDA25's "All
+accepted proceedings papers must use the double-column LaTeX macro" I inferred that acmart would
+probably pass for review. ACDA27 says, of submissions rather than accepted papers:
 
-| question | ACDA25's answer | consequence if it carries over |
-| --- | --- | --- |
-| anonymous review? | "ACDA will employ a lightweight double-blind reviewing process for proceedings papers"; submissions "should not reveal the identity of the authors in any way" | **the front matter must come out, and one line of body prose with it — see below** |
-| page limit? | "up to 12 pages in length, excluding references" | **we are one page over.** See the budget below |
-| appendix? | permitted, "read by the program committee members at their discretion and will not be included in the proceedings" | **the adversarial appendix is free of the page count.** Keep it |
-| template? | "All accepted proceedings papers must use the double-column LaTeX macro" from SIAM's proceedings page | reads as a requirement on *accepted* papers, so acmart is probably fine for review — which is 0a's question, and the only one where ACDA25 does not clearly help |
-| arXiv? | "authors may post drafts of their papers on the web, submit them to arXiv, and give talks on their research ideas" | **0b's main worry dissolves.** The preprint is explicitly permitted |
-| prior rejection? | must be "original research that is not published or submitted elsewhere" | a paper rejected from ACDA21 is neither published nor currently submitted elsewhere, so this is not an obstacle. No disclosure requirement found |
+> Submissions should use the LaTeX macros at the web page: https://www.siam.org/publications/proceedings/
 
-## The page budget, measured
+So **the template has to change before the 15th.** 0a is no longer a judgement call.
 
-From `HuskySort.aux` and the built PDF: **15 pages total.** Acknowledgments and references begin on
-page 14; the appendix begins on page 14 and runs to 15.
+## Deadlines, as published
 
-| region | pages | counts against a 12-page limit? |
-| --- | ---: | --- |
-| title through end of Conclusion | 1–13 | **yes — 13 pages** |
-| Acknowledgments + references | 14 | no, "excluding references" |
-| Appendix A.1 and A.2 | 14–15 | no, appendices are not in the proceedings |
+| date | what |
+| --- | --- |
+| **September 8, 2026** | short abstract **and submission registration** |
+| **September 15, 2026** | archival proceedings paper |
+| November 2, 2026 | author notification |
+| November 23, 2026 | camera-ready |
+| Feb 22–24, 2027 | conference, Pittsburgh, co-located with CSE27 |
 
-**So we are one page over, not three.** And the page to lose is already identified: Table `HSComp`
-(Table 7, page 10) and Table `Improvements Summary` (Table 12, page 11) are both full-width `table*`
-floats, thirteen and eight rows, both in the counted region, and both already proposed for deletion in
-`Paper deletions.md` for reasons that have nothing to do with page count. Removing them should recover
-the page with room to spare. **The two arguments now point the same way, which makes that decision much
-easier than it was.**
+Submission is via EasyChair, <https://easychair.org/conferences/?conf=acda27>. There is a rebuttal
+phase: "The submissions will be refereed and authors will be provided an opportunity to respond to the
+reviews."
 
-## Double-blind: what actually has to come out
+We are submitting in the **archival proceedings papers** category. The other two — non-archival
+extended abstracts and posters — are 2-page, non-archival, and **not** double-blind. Nothing below
+applies to them.
 
-If review is anonymous, the front matter is the obvious part and not the risky part.
+## Page limit — confirmed, and the budget
 
-| tex | what | why it matters |
+> Submissions may be up to 12 pages in length, excluding references, and must present original research
+> that is not published or submitted elsewhere.
+
+> Authors may, at their option, include an appendix containing proofs, details, or additional
+> experimental results. The appendix will be read by the program committee members at their discretion
+> and will not be included in the proceedings.
+
+Measured against the current build: **15 pages total.** Body runs pages 1–13; acknowledgments and
+references begin on page 14; the appendix occupies 14–15. So under acmart we are **one page over**, and
+the appendix costs nothing.
+
+**That measurement does not survive the template change.** SIAM's double-column proceedings macro will
+reflow everything, and the page count under it is unknown until we build it. Two consequences:
+
+1. Deleting Table `HSComp` (Table 7, page 10) and Table `Improvements Summary` (Table 12, page 11) is
+   now the first thing to do, not a nicety. Both are full-width `table*` floats in the counted region,
+   and both were already proposed for deletion in `Paper deletions.md` on grounds unrelated to page
+   count. Doing it before the reflow means measuring once.
+2. The appendix being free is worth exploiting deliberately. Anything the 12 pages cannot hold that is
+   detail rather than argument — §5.1's permits provenance, §5.2's cleanup-pass table — can go there
+   rather than be cut, provided the main part still carries the argument. The page is explicit that it
+   must: "The main part of the submission should therefore contain a clear technical presentation of the
+   merits of the paper".
+
+## The template — action required, and it needs a download
+
+No SIAM class is installed on this machine: `kpsewhich` finds none of `soda2e.cls`, `siamproc.cls`,
+`siamltex.cls`, `siamart0216.cls`, `siamart190516.cls`, `siamart220329.cls`, and
+`/usr/local/texlive/2020/texmf-dist/tex/latex/siam*` does not exist.
+
+**Getting the macros means downloading them from <https://www.siam.org/publications/proceedings/>, which
+is Robin's call to make — I have not done it.** Note that the required class is the *proceedings*
+double-column macro, which is a different thing from `siamart`, the journal class 0a went looking for
+and failed to find. That is why 0a's conclusion ("not installed here") was true but aimed at the wrong
+file.
+
+## Double-blind — confirmed, with two provisions that change what we do
+
+> ACDA will employ a lightweight double-blind reviewing process for proceedings papers ... Proceedings
+> submissions should not reveal the identity of the authors in any way. In particular, authors' names,
+> affiliations, and email addresses should not appear at the beginning or in the body of the submission.
+> Authors should ensure that any references to their own related work is in the third person.
+
+But it is explicitly *lightweight*, and the page bounds it in both directions:
+
+> The purpose of the double-blind reviewing is to help PC members and external reviewers come to an
+> initial judgment about the paper without bias, not to make it impossible for them to discover the
+> authors if they were to try. **Nothing should be done in the name of anonymity that weakens the
+> submission or makes the job of reviewing the paper more difficult. In particular, important references
+> should not be omitted or anonymized.**
+
+**This settles 0b in the opposite direction from caution: cite arXiv:2012.00866.** It is an important
+reference — it is the paper's own earlier version — and omitting it in the name of anonymity is what
+the page tells us not to do. Cite it in the third person, as prior work by others would be cited.
+
+And on the repository link:
+
+> We strongly encourage also making code and data available; please keep in mind the double-blind nature
+> of the review process. We recommend including a link to an anonymized version ... (e.g., using
+> Anonymous Github or an anonymous Dropbox/Google Drive folder).
+
+**So the GitHub URL should be replaced rather than deleted.** An anonymised mirror is encouraged, and for
+a paper whose entire contribution is an implementation with 396 tests behind it, dropping the code link
+would weaken the submission — exactly what the paragraph above forbids.
+
+### What has to change in the tex
+
+| tex | what | treatment |
 | ---: | --- | --- |
-| 173–210 | three `\author` blocks: names, `@northeastern.edu` emails, ORCID, institution, street address | the obvious part; acmart has no anonymous mode configured here, so this needs doing by hand or by switching class options |
-| 177 | `\url{https://github.com/rchillyard/HuskySort}` inside an `\authornote` | deanonymises completely — the repository is named for its owner |
-| **736** | "We chose the name Husky Sort instead, after the husky, **Northeastern University's mascot, where this work was developed.**" | **this is the one that would survive a front-matter-only anonymisation pass.** It is in the middle of a paragraph explaining the algorithm's name, nine pages from the author block, and it names the institution outright |
+| 173–210 | three `\author` blocks: names, `@northeastern.edu` emails, ORCID, institution, street address | remove for the review copy. Note this is the **PDF only** — EasyChair still collects real author metadata, and anonymising *that* would be a mistake |
+| 177 | `\url{https://github.com/rchillyard/HuskySort}` in an `\authornote` | replace with an Anonymous GitHub link, per the recommendation above |
+| 173–210 | the `\authornote`s describing the 2020 division of labour | out for the review copy regardless, which defers the question 0a raises about whether they still describe the work accurately |
+| **736** | "We chose the name Husky Sort instead, after the husky, **Northeastern University's mascot, where this work was developed.**" | **the one that survives a front-matter-only pass.** Nine pages from any author block, mid-paragraph, and it names the institution outright |
+| — | the name "HuskySort" throughout, plus the arXiv preprint | leave alone. The page permits preprints outright and disclaims any attempt at unbreakable anonymity. Renaming the algorithm would weaken the submission for no gain |
 
-The `\authornote`s describing the 2020 division of labour have to come out for the review copy
-regardless, which defers rather than resolves the question raised in 0a about whether they still
-describe the work accurately.
+## Who to ask about what is left
 
-Not a hazard by policy: the title "HuskySort" together with arXiv:2012.00866 makes the authors findable
-in one search, but ACDA25 explicitly permitted arXiv preprints, so that is a risk the venue has already
-accepted on our behalf. It does mean that if we cite the preprint at all (0b), it must be in the third
-person — "the work of ..." and not "our earlier work".
+The organizing committee co-chairs are **Paul Hovland** (Argonne) and **Henning Meyerhenke** (KIT). The
+**program committee** co-chairs are **Gonzalo Navarro** (University of Chile) and **Yihan Sun** (UC
+Riverside) — and the page directs double-blind questions specifically to them: "Authors with further
+questions on double-blind reviewing are encouraged to contact the PC chairs." That is consistent with
+the organizing chair's advice to Robin to direct further questions to one of the other names.
+
+Nothing in this section now needs asking, though: the page answers all four questions that were open.
 
 ---
 
-# 0b. The arXiv preprint and the prior rejection — check before submitting
+
+# 0b. The arXiv preprint and the prior rejection — RESOLVED by 0c; cite the preprint
 
 The paper is **arXiv:2012.00866**, and that same version was **SIAM ACDA21 Submission 60, rejected**
 (reviews verbatim in `paper/SIAM_ACDA21_Reviews.md`). So the preprint and the prior submission are the
@@ -159,7 +221,7 @@ a self-citation is required disclosure or a breach.
 
 ---
 
-# 0a. The template — needs your decision, not mine
+# 0a. The template — SUPERSEDED by 0c. Retained for what it records about the front matter
 
 The paper is `\documentclass[acmtog]{acmart}` — ACM's class, in its Transactions on Graphics
 variant — and is going to **SIAM ACDA**. I have suppressed everything that asserted an ACM identity
