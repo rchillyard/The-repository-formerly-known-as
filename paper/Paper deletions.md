@@ -3,19 +3,21 @@
 Material removed from `HuskySort.tex`, kept here so that it can be consulted or restored without
 digging through git. Each entry says what it was, why it went, and what replaced it.
 
-**`HSComp` and `Improvements Summary` were both removed on 2026-09-07.** Line numbers in their entries
-are as they stood *before* the removal, since that is what makes the entries readable against the
-verbatim copies kept here; the tex has since shifted by about fifty-five lines. `TimvsInsertion` and
-`usecase` are still in the paper.
+**Three things were removed on 2026-09-07**, all to get within ACDA27's 12-page limit: Tables `HSComp`
+and `Improvements Summary`, and Figure `usecase`. Together they took the body from 13.0 pages to
+**12.0**, which is within the limit. Line numbers in each entry are as they stood *before* that entry's
+removal, since that is what makes them readable against the verbatim copies kept here.
+
+`TimvsInsertion` is the only old-machine table still in the paper, and it is kept deliberately.
 
 ---
 
 ## Table `HSComp` — relative sort times, HuskySort / dual-pivot quicksort / system sort
 
 **Status: REMOVED 2026-09-07**, on Robin's instruction, together with `Improvements Summary`. All
-seven inbound references were resolved; see the table below for what each became. The build is clean —
-no undefined references — and the body came down from 13 pages to **12**, which is exactly ACDA27's
-limit.
+seven inbound references were resolved; see the table below for what each became. The build is clean,
+with no undefined references. Between them the two tables bought about six-tenths of a page; Figure
+`usecase` was removed afterwards for the remaining four-tenths.
 
 ### Why it should go
 
@@ -164,7 +166,61 @@ table as what `SysEnvOriginal` measured.
 With `HSComp` and `Improvements Summary` gone and this one attributed, §7 of
 `Paper edits pending.md` is closed.
 
-### Figure `usecase` (`UseCaseGuidance.pdf`, tex 1441–1466) — **RESOLVED**
+### Figure `usecase` (`UseCaseGuidance.pdf`) — **REMOVED 2026-09-07**
+
+Removed on Robin's decision, to recover the last four-tenths of a page against ACDA27's 12-page limit.
+Of the four options weighed — move it to the appendix, drop it, shrink it to one column, or trim §6.5's
+prose instead — dropping it was chosen, and it is the one with the best independent argument behind it.
+
+**Why dropping beats relocating.** Robin's question of 2026-09-06 was whether the figure was justifiable
+at all, given that "all we seem to have are sizes". Table `Guidance` was written in answer to that: the
+three factors decide the choice of sort, and array size settles nothing until all three are answered. A
+figure organised entirely along the size axis therefore argues for a way of choosing that the paper had
+already stopped recommending. It was redundant against the table, not merely relocatable.
+
+**Two inbound references, both resolved:**
+
+| line | what it did | what it became |
+| ---: | --- | --- |
+| 1396 | Table `Guidance`'s last row: "None of the above settles it, or the keys are strings & see Figure ~\ref{fig:usecase}" | points at the crossover measurements in the prose that follows the table, which is where those figures actually live |
+| 1434 | "Figure~\ref{fig:usecase} summarizes the String-key guidance above graphically." | deleted with the figure |
+
+References to `\S~\ref{sec:usecase}` at tex 624 and 1490 are to the *section*, not the figure, and are
+unaffected.
+
+**`paper/UseCaseGuidance.tex` is kept, not deleted.** It no longer participates in the build — nothing
+includes `UseCaseGuidance.pdf` now — but it is a working TikZ generator with the band edges documented
+in its header, and a journal version of this paper under a looser page limit would plausibly want it
+back. Deleting it would throw away the only reason the figure was recoverable in the first place. Robin
+may of course prefer it gone.
+
+### The figure, verbatim
+
+```latex
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.85\textwidth]{UseCaseGuidance.pdf}
+  \caption{Which sort to reach for on English text, by array size.
+Band edges fade across the interval within which each crossover is bracketed,
+rather than showing a hard cutoff.
+MSD radix sort appears because from $N=200{,}000$ it outperforms every husky variant
+(\S~\ref{sec:radix}); it was not in the small-$N$ run, so its band begins at $N=32{,}000$,
+where it is level with RadixHuskySort.
+Not shown: if the data defeats the encoding's capture window,
+System sort is the right choice at any $N$ (\S~\ref{sec:adversarial});
+and given a large workload and spare cores,
+\textit{ParallelRadixHuskySort} extends RadixHuskySort's advantage further still
+(\S~\ref{sec:parallel-radix}).}
+  \Description{A horizontal strip chart with a logarithmic N axis from 1 to 10,000,000.
+Five
+    colored bands, one per algorithm, show the recommended range for System sort, insertion
+    sort, QuickHuskySort, RadixHuskySort and MSD radix sort in that order, with soft fades
+    between adjacent bands at the uncertain crossover points.}
+  \label{fig:usecase}
+\end{figure*}
+```
+
+### Its earlier history, kept for the record
 
 Two band edges had moved (System sort now yields at N=20 rather than 50; insertion sort takes over at 50
 rather than 100), and the matplotlib script that drew it had not been kept. Redrawn in TikZ as
