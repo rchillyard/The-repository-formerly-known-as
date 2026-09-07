@@ -60,7 +60,7 @@ then.
 | **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 191–228, **775** |
 | ~~**0c**~~ | ~~12 pages excluding references~~ — **CLOSED**: 12.0 under acmart. Must be re-measured after the SIAM reflow | — |
 | ~~**0b**~~ | ~~cite arXiv:2012.00866~~ — **APPLIED 2026-09-07**, Introduction + `HuskySort.bbl` |
-| **0f** | **`sample-base.bib` is missing from the repository.** The bibliography exists only as a committed `.bbl`, and running BibTeX would destroy it | `paper/` |
+| ~~**0f**~~ | ~~`sample-base.bib` is missing~~ — **RECONSTRUCTED 2026-09-07** from the `.bbl`; BibTeX now runs clean and all 19 citations resolve |
 | **0g** | no general composite-key coder exists — Robin's framing: not essential for the paper, but needed for adoption. Draft future-work paragraph ready | tex 566–577 |
 | **0a** | **superseded by 0c.** The template question is answered; only the author footnotes remain, and they come out for review anyway | tex 43–58 |
 
@@ -527,7 +527,7 @@ corpus caps at 198,900 records.
 
 ---
 
-# 0f. `sample-base.bib` is missing — the bibliography cannot be rebuilt
+# 0f. `sample-base.bib` — **RECONSTRUCTED 2026-09-07**, and it was blocking the template switch
 
 Found while adding the self-citation, and it is a submission risk rather than a tidiness problem.
 
@@ -548,17 +548,28 @@ bibliography and the references vanish. There is no `.bib` to regenerate them fr
 This lands directly on the critical path, because **the SIAM template switch (0c) requires a rebuild**,
 and the natural way to do that is latex/bibtex/latex/latex.
 
-**What to do, in order of preference:**
+## Done, and it turned out to be a hard prerequisite rather than hygiene
 
-1. **Reconstruct `sample-base.bib` from the `.bbl`.** All 19 entries carry author, year, title, journal,
-   volume, pages, DOI and eprint fields in `\bibfield`/`\bibinfo` form, so this is transcription rather
-   than research. An hour, and it makes the bibliography a source again.
-2. Failing that, **add a comment at the head of `HuskySort.bbl`** saying it is hand-maintained and must
-   not be regenerated, and stop running BibTeX. Fragile, but honest about the fragility.
+Reconstructed by transcription from the `.bbl`; BibTeX now runs, regenerates all 19 entries, and every
+citation resolves. Keys before and after are identical, so nothing was lost or invented.
 
-The self-citation added on 2026-09-07 was inserted into the `.bbl` **by hand**, in its correct
-alphabetical position between Goldhahn and Hoare, because there was no other way to add it. That is
-worth knowing before anyone tries to "fix" the bibliography by rebuilding it.
+**It was blocking the SIAM template switch, which was not obvious until tested.** The `.bbl` produced by
+`ACM-Reference-Format.bst` self-guards nine `\show*` macros but *not* `\bibfield`, `\bibinfo`,
+`\natexlab`, `\showeprint` or `\urldef` — those come from acmart itself. Compiling that `.bbl` under
+`\documentclass{article}` gives twelve undefined control sequences. So changing document class required
+regenerating the bibliography, which required a `.bib`, which did not exist. The two items in 0c and 0f
+were one item.
+
+**Two entries came back thinner than the others**, and both are marked `INCOMPLETE` in the file, because
+the `.bbl` never carried the fields and guessing them would be worse than flagging them:
+
+- `doi:10.1137/1.9781611975994.101` — Jugé, *Adaptive Shivers Sort*. No year, host booktitle or
+  publisher. It is SODA 2020.
+- `sort` — Zhang, Meng and Liang, *Sort Race*. Title and eprint only, and the eprint type was misspelled
+  `arxi` in the `.bbl`, which is why it renders without an arXiv label. Corrected to `arxiv` in the
+  `.bib`, so that entry now displays properly.
+
+Both should be completed before submission; neither blocks anything.
 
 ---
 

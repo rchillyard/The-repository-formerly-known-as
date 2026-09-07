@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{18}
+\begin{thebibliography}{20}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -42,8 +42,8 @@
         {10.1145/48529.48535}
 \bibfield{author}{\bibinfo{person}{Alok Aggarwal} {and}
   \bibinfo{person}{Jeffrey~Scott Vitter}.} \bibinfo{year}{1988}\natexlab{}.
-\newblock \showarticletitle{The Input/Output Complexity of Sorting and
-  Related Problems}.
+\newblock \showarticletitle{The Input/Output Complexity of Sorting and Related
+  Problems}.
 \newblock \bibinfo{journal}{\emph{Commun. ACM}} \bibinfo{volume}{31},
   \bibinfo{number}{9} (\bibinfo{date}{Sept.} \bibinfo{year}{1988}),
   \bibinfo{pages}{1116--1127}.
@@ -91,11 +91,11 @@
         {314161.314321}
 \bibfield{author}{\bibinfo{person}{Jon~L. Bentley} {and}
   \bibinfo{person}{Robert Sedgewick}.} \bibinfo{year}{1997}\natexlab{}.
-\newblock \showarticletitle{Fast Algorithms for Sorting and Searching
-  Strings}. In \bibinfo{booktitle}{\emph{Proceedings of the Eighth Annual
-  ACM-SIAM Symposium on Discrete Algorithms}} \emph{(\bibinfo{series}{SODA
-  '97})}. \bibinfo{publisher}{Society for Industrial and Applied
-  Mathematics}, \bibinfo{address}{USA}, \bibinfo{pages}{360--369}.
+\newblock \showarticletitle{Fast Algorithms for Sorting and Searching Strings}.
+  In \bibinfo{booktitle}{\emph{Proceedings of the Eighth Annual ACM-SIAM
+  Symposium on Discrete Algorithms}} \emph{(\bibinfo{series}{SODA '97})}.
+  \bibinfo{publisher}{Society for Industrial and Applied Mathematics},
+  \bibinfo{address}{USA}, \bibinfo{pages}{360--369}.
 \newblock
 \showISBNx{0898713900}
 
@@ -104,8 +104,8 @@
   Ramachandran}{Frigo et~al\mbox{.}}{1999}]%
         {814600}
 \bibfield{author}{\bibinfo{person}{M. Frigo}, \bibinfo{person}{C.~E.
-  Leiserson}, \bibinfo{person}{H. Prokop}, {and}
-  \bibinfo{person}{S. Ramachandran}.} \bibinfo{year}{1999}\natexlab{}.
+  Leiserson}, \bibinfo{person}{H. Prokop}, {and} \bibinfo{person}{S.
+  Ramachandran}.} \bibinfo{year}{1999}\natexlab{}.
 \newblock \showarticletitle{Cache-oblivious algorithms}. In
   \bibinfo{booktitle}{\emph{40th Annual Symposium on Foundations of Computer
   Science (Cat. No.99CB37039)}}. \bibinfo{pages}{285--297}.
@@ -139,23 +139,25 @@
 \newblock \showarticletitle{Building Large Monolingual Dictionaries at the
   Leipzig Corpora Collection: From 100 to 200 Languages}. In
   \bibinfo{booktitle}{\emph{Proceedings of the Eight International Conference
-  on Language Resources and Evaluation (LREC'12)}} (23-25),
+  on Language Resources and Evaluation (LREC'12)}},
   \bibfield{editor}{\bibinfo{person}{Nicoletta Calzolari~(Conference Chair)},
   \bibinfo{person}{Khalid Choukri}, \bibinfo{person}{Thierry Declerck},
-  \bibinfo{person}{Mehmet~Uğur Doğan}, \bibinfo{person}{Bente Maegaard},
-  \bibinfo{person}{Joseph Mariani}, \bibinfo{person}{Asuncion Moreno},
-  \bibinfo{person}{Jan Odijk}, {and} \bibinfo{person}{Stelios Piperidis}}
-  (Eds.). \bibinfo{publisher}{European Language Resources Association (ELRA)},
-  \bibinfo{address}{Istanbul, Turkey}.
+  \bibinfo{person}{Mehmet~U{\u{g}}ur Do{\u{g}}an}, \bibinfo{person}{Bente
+  Maegaard}, \bibinfo{person}{Joseph Mariani}, \bibinfo{person}{Asuncion
+  Moreno}, \bibinfo{person}{Jan Odijk}, {and} \bibinfo{person}{Stelios
+  Piperidis}} (Eds.). \bibinfo{publisher}{European Language Resources
+  Association (ELRA)}, \bibinfo{address}{Istanbul, Turkey}.
 \newblock
 \showISBNx{978-2-9517408-7-7}
+\newblock
+\shownote{23-25.}
 
 
 \bibitem[\protect\citeauthoryear{Hillyard, Liaozheng, and K~R}{Hillyard
   et~al\mbox{.}}{2020}]%
         {huskysort2020}
-\bibfield{author}{\bibinfo{person}{Robin~C. Hillyard},
-  \bibinfo{person}{Yunlu Liaozheng}, {and} \bibinfo{person}{Sai~Vineeth K~R}.}
+\bibfield{author}{\bibinfo{person}{Robin~C. Hillyard}, \bibinfo{person}{Yunlu
+  Liaozheng}, {and} \bibinfo{person}{Sai~Vineeth K~R}.}
   \bibinfo{year}{2020}\natexlab{}.
 \newblock \showarticletitle{HuskySort}.
 \newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2012.00866}
@@ -166,7 +168,6 @@
 \url{https://arxiv.org/abs/2012.00866}
 \showURL{%
 \tempurl}
-
 
 
 \bibitem[\protect\citeauthoryear{Hoare}{Hoare}{1961}]%
@@ -184,13 +185,12 @@
 \showDOI{\tempurl}
 
 
-\bibitem[\protect\citeauthoryear{Jugé}{Jugé}{[n.d.]}]%
+\bibitem[\protect\citeauthoryear{Jug{\'e}}{Jug{\'e}}{[n.d.]}]%
         {doi:10.1137/1.9781611975994.101}
-\bibfield{author}{\bibinfo{person}{Vincent Jugé}.}
+\bibfield{author}{\bibinfo{person}{Vincent Jug{\'e}}.}
   \bibinfo{year}{[n.d.]}\natexlab{}.
-\newblock \bibinfo{booktitle}{\emph{Adaptive Shivers Sort: An Alternative
-  Sorting Algorithm}}.
-\newblock \bibinfo{pages}{1639--1654}.
+\newblock \showarticletitle{Adaptive Shivers Sort: An Alternative Sorting
+  Algorithm}. \bibinfo{pages}{1639--1654}.
 \newblock
 \urldef\tempurl%
 \url{https://doi.org/10.1137/1.9781611975994.101}
@@ -223,14 +223,14 @@
   ACM-SIAM Symposium on Discrete Algorithms}} (Austin, Texas, USA)
   \emph{(\bibinfo{series}{SODA '93})}. \bibinfo{publisher}{Society for
   Industrial and Applied Mathematics}, \bibinfo{address}{USA},
-  \bibinfo{pages}{467–474}.
+  \bibinfo{pages}{467--474}.
 \newblock
 \showISBNx{0898713137}
 
 
-\bibitem[\protect\citeauthoryear{MUSSER}{MUSSER}{1997}]%
+\bibitem[\protect\citeauthoryear{Musser}{Musser}{1997}]%
         {doi:10.1002}
-\bibfield{author}{\bibinfo{person}{DAVID~R. MUSSER}.}
+\bibfield{author}{\bibinfo{person}{David~R. Musser}.}
   \bibinfo{year}{1997}\natexlab{}.
 \newblock \showarticletitle{Introspective Sorting and Selection Algorithms}.
 \newblock \bibinfo{journal}{\emph{Software: Practice and Experience}}
@@ -251,7 +251,9 @@
 \urldef\tempurl%
 \url{https://svn.python.org/projects/python/trunk/Objects/listsort.txt}
 \showURL{%
-Retrieved November 3, 2020 from \tempurl}
+\tempurl}
+\newblock
+\shownote{Retrieved November 3, 2020.}
 
 
 \bibitem[\protect\citeauthoryear{Sedgewick}{Sedgewick}{1996}]%
@@ -267,15 +269,14 @@ Retrieved November 3, 2020 from \tempurl}
 \showISBNx{978-3-540-70667-0}
 
 
-\bibitem[\protect\citeauthoryear{Sinha and Zobel}{Sinha and
-  Zobel}{2004}]%
+\bibitem[\protect\citeauthoryear{Sinha and Zobel}{Sinha and Zobel}{2004}]%
         {1064546.1180622}
-\bibfield{author}{\bibinfo{person}{Ranjan Sinha} {and}
-  \bibinfo{person}{Justin Zobel}.} \bibinfo{year}{2004}\natexlab{}.
+\bibfield{author}{\bibinfo{person}{Ranjan Sinha} {and} \bibinfo{person}{Justin
+  Zobel}.} \bibinfo{year}{2004}\natexlab{}.
 \newblock \showarticletitle{Cache-Conscious Sorting of Large Sets of Strings
   with Dynamic Tries}.
 \newblock \bibinfo{journal}{\emph{ACM J. Exp. Algorithmics}}
-  \bibinfo{volume}{9} (\bibinfo{year}{2004}), \bibinfo{articleno}{1.5}.
+  \bibinfo{volume}{9}, Article \bibinfo{articleno}{1.5} (\bibinfo{year}{2004}).
 \newblock
 \urldef\tempurl%
 \url{https://doi.org/10.1145/1064546.1180622}
@@ -286,9 +287,8 @@ Retrieved November 3, 2020 from \tempurl}
         {wainshine2020chinesenames}
 \bibfield{author}{\bibinfo{person}{Wainshine}.}
   \bibinfo{year}{2020}\natexlab{}.
-\newblock \showarticletitle{Chinese-Names-Corpus}.
-\newblock \bibinfo{howpublished}{GitHub repository, commit
-  \texttt{95b1a18}}.
+\newblock \bibinfo{title}{Chinese-Names-Corpus}.
+\newblock \bibinfo{howpublished}{GitHub repository, commit \texttt{95b1a18}}.
 \newblock
 \urldef\tempurl%
 \url{https://github.com/wainshine/Chinese-Names-Corpus}
@@ -319,7 +319,9 @@ Retrieved November 3, 2020 from \tempurl}
 \urldef\tempurl%
 \url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}
 \showURL{%
-Retrieved November 3, 2020 from \tempurl}
+\tempurl}
+\newblock
+\shownote{Retrieved November 3, 2020.}
 
 
 \bibitem[\protect\citeauthoryear{Zhang, Meng, and Liang}{Zhang
@@ -327,10 +329,11 @@ Retrieved November 3, 2020 from \tempurl}
         {sort}
 \bibfield{author}{\bibinfo{person}{Hantao Zhang}, \bibinfo{person}{Baoluo
   Meng}, {and} \bibinfo{person}{Yiwen Liang}.} \bibinfo{year}{2016}\natexlab{}.
-\newblock \bibinfo{title}{Sort Race}.
+\newblock \showarticletitle{Sort Race}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/1609.04471}
+  (\bibinfo{year}{2016}).
 \newblock
-\newblock
-\showeprint[arxi]{1609.04471}
+\showeprint[arxiv]{1609.04471}
 
 
 \end{thebibliography}
