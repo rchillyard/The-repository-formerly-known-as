@@ -23,7 +23,22 @@ on unbounded recursion in the baselines (tex 1599–1617).
 **Sequencing, decided by Robin on 2026-09-07:** fix the substantive issues first, then see what has to
 be done to squeeze the result into 12 pages. **The first phase is now complete** — every table is
 rebuilt from the merged PR #64 data and the appendix is rewritten — so the squeeze is the remaining
-work. Body measured at **13.0 pages** after the rebuild, so **one full page has to come out.** So the page-budget arithmetic recorded in 0c and 0d is
+work. Body measured at 13.0 pages after the rebuild. Moving §sec:pcrit's scaling caveat and the permits case
+study into the appendix (Robin's instruction, 2026-09-07) bought about half a page, leaving the body at
+**12.46 pages** — roughly **half a page still to find**.
+
+Candidates for the rest, cheapest first:
+
+| where | what | rough |
+| --- | --- | ---: |
+| §sec:usecase | the crossover prose partly restates Table `Guidance` in sentences | 0.2--0.3 |
+| §Data Source | the permits paragraph can shrink now that §A.3 carries the case study | 0.1 |
+| §sec:parallel-radix | the Amdahl's-law discussion is three sentences where one would do | 0.1--0.2 |
+| Conclusion | the three-bullet list restates §sec:summary's own elimination of non-use-cases | 0.15 |
+
+None of these costs an argument, which is the test worth applying: everything moved so far was detail
+rather than claim, and the appendix is free precisely because the program committee reads it at its
+discretion. So the page-budget arithmetic recorded in 0c and 0d is
 still accurate and still worth having, but it is **not a constraint on the edits below** — do not trade
 away a correction to save a line. The squeeze is a separate, later pass over whatever the paper says by
 then.
@@ -35,7 +50,7 @@ then.
 | ~~**4.1**~~ | ~~"HuskySort is always faster than dual-pivot quicksort"~~ — **APPLIED 2026-09-07**, tex 1441–1447 |
 | ~~**8**~~ | ~~the appendix's crash result~~ — **APPLIED 2026-09-07**: both columns now shown, prose rewritten |
 | ~~**0h**~~ | ~~PR #64 rebuild~~ — **APPLIED 2026-09-07**: five tables, every derived figure, the appendix, the abstract |
-| **9** | **the squeeze**: body is 13.0 pages against a limit of 12 | throughout |
+| **9** | **the squeeze**: body is 12.46 pages against a limit of 12 — about half a page still to find | throughout |
 | ~~**5.2**~~ | ~~a measurement the body does not contain~~ — **APPLIED 2026-09-07**, tex 729–758. But see the new item below about the abstract's range |
 | **0e** | **the abstract's "a tenth to a quarter" is not what the body now says** — and the abstract is submitted tomorrow | tex 251–254 |
 | ~~**1.5**~~ | ~~"every non-string row exceeds every string row"~~ — **APPLIED 2026-09-07**, tex 567–588 |

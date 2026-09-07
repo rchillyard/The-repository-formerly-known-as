@@ -787,18 +787,8 @@ so the cleanup pass at 74\,ns costs nearly twice as much per comparison using th
 Step 2 permutes references without moving the records,
 so a scan sequential in the array is close to random in the heap.
 
-One objection to these figures should be met head on:
-the pass is linear where the sort containing it is linearithmic,
-so its share of the total is bound to fall as $1/\log N$, and the shares above instead rise.
-Both are true, because $k_3$ is not settled over this range.
-It grows more than fourfold between the smallest and largest sizes here while $\ln N$ grows by a fifth,
-so the cache effect swamps the logarithm completely.
-Holding $k_3$ at the value it reaches once the records no longer fit in cache,
-and growing the rest as $\ln N$, puts the share at some 16\% at $N = 10^{6}$ and 14\% at $N = 10^{7}$:
-the decline is real but logarithmic, and the pass does not become negligible at any size we expect to meet.
-That last calculation is a model rather than a measurement.
-The sort's own per-element cost also grows faster than $\ln N$ across these three sizes,
-and the corpus holds 198,900 records, so the measurement cannot be extended on real data.
+Whether this share must shrink as $N$ grows --- the pass being linear where the sort containing it is
+linearithmic --- is a fair question, and \S~\ref{sec:cleanup-scaling} answers it.
 
 Two conclusions follow.
 First, $k_3$ is not a constant: it varies more than fourfold across three sizes on one machine,
@@ -1385,20 +1375,11 @@ Dates show the largest margin (5.9x) because that coding is provably perfect and
 letting radix's linear-time advantage show through with nothing else in the way.
 The two lie at opposite ends of the same axis: what separates them is not the data type but the exactness of the encoding.
 
-One row of that table deserves separating from the rest, because it is the only one not measured on data we generated.
-The building permits are 198,900 real municipal records ordered by a composite key of three fields
-(\S~\ref{sec:data-source}), and they are the case this mechanism is designed for:
-the ordering is expensive, since a comparison may have to examine all three fields in turn,
-and the key nevertheless packs exactly into 60 bits, so no cleanup pass is required at all.
-Against the system sort, RadixHuskySort is faster by 5.17x, 4.26x and 4.53x
-at $N = 32{,}000$, $100{,}000$ and $198{,}900$;
-against QuickHuskySort, which Table ~\ref{tab:RadixImprovements} reports, by 2.52x, 2.06x and 2.12x.
-At 2.1x the permits row is tenth of eleven, and that is the point worth making about it.
-It is not our largest margin --- a composite key of three fields is more expensive to compare
-than a single \textit{Long} but a good deal cheaper than a pinyin lookup per character ---
-but it is our largest margin on data whose distribution we did not choose,
-and it falls squarely inside the range predicted for it by the three factors.
-A mechanism that only worked on synthetic inputs would not be worth reporting.
+The building permits row is the only one in that table not measured on data we generated:
+198,900 real municipal records ordered by a composite key of three fields (\S~\ref{sec:data-source}).
+At 2.1x it is tenth of eleven, which is the point worth making about it --- it is not our largest
+margin, but it is our largest on data whose distribution we did not choose.
+\S~\ref{sec:permits} gives the case study.
 
 The measurements were reproduced qualitatively on the two machines of Tables ~\ref{tab:SysEnvOriginal}
 and ~\ref{tab:SysEnvCurrent}, which differ from the machine of record and from each other in vendor,
@@ -1615,6 +1596,46 @@ The inference that we can take from this is that it is not critical that encodin
 We can be confident that we are still saving time up to about one in four errors.
 
 These deliberate errors were tested for Bytes and Integers but not the other generic types.
+
+\subsection{The cleanup pass as \texorpdfstring{$N$}{N} grows}
+\label{sec:cleanup-scaling}
+
+\S~\ref{sec:pcrit} measures the cleanup pass at $p = 0$ and reports a share of total running time that
+\emph{rises} with $N$, from 7.3\% to 17.3\%.
+One objection should be met head on: the pass is linear where the sort containing it is linearithmic,
+so its share is bound to fall as $1/\log N$.
+
+Both are true, because $k_3$ is not settled over this range.
+It grows more than fourfold between the smallest and largest sizes measured while $\ln N$ grows by a
+fifth, so the cache effect swamps the logarithm completely.
+Holding $k_3$ at the value it reaches once the records no longer fit in cache, and growing the rest as
+$\ln N$, puts the share at some 16\% at $N = 10^{6}$ and 14\% at $N = 10^{7}$:
+the decline is real but logarithmic, and the pass does not become negligible at any size we expect to meet.
+
+That last calculation is a model rather than a measurement.
+The sort's own per-element cost also grows faster than $\ln N$ across these three sizes,
+and the corpus holds 198,900 records, so the measurement cannot be extended on real data.
+
+\subsection{Building permits: the case study in full}
+\label{sec:permits}
+
+The permits row of Table ~\ref{tab:RadixImprovements} is the case this mechanism is designed for.
+The ordering is expensive, since a comparison may have to examine all three fields of the key in turn,
+and the key nevertheless packs exactly into 60 bits, so no cleanup pass is required at all.
+Against the system sort, RadixHuskySort is faster by 5.17x, 4.26x and 4.53x at $N = 32{,}000$,
+$100{,}000$ and $198{,}900$; against QuickHuskySort, by 2.52x, 2.06x and 2.12x.
+
+At 2.1x over QuickHuskySort the row is tenth of eleven.
+A composite key of three fields is more expensive to compare than a single \textit{Long} but a good
+deal cheaper than a pinyin lookup per character, so the margin falls squarely inside the range the
+three factors of \S~\ref{sec:radix} predict for it.
+That is the point worth making about it: it is not our largest margin, but it is our largest on data
+whose distribution we did not choose, and a mechanism that only worked on synthetic inputs would not be
+worth reporting.
+
+The same records also supply the cleanup-pass measurement of \S~\ref{sec:pcrit},
+because the encoding for them is exact and can be declared so ---
+which is what allows the pass to be switched on and off over identical codes.
 
 \subsection{Adversarial inputs}
 \label{sec:adversarial}
