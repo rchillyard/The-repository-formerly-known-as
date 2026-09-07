@@ -744,11 +744,18 @@ limit (single-shot, no JMH, so read the ratios and not the absolutes):
 | 48 | 203 | 149 | 253 | 153 |
 | 56 | 464 | 1651 | 4480 | 4172 |
 | 60 | 617 | 3718 | 32261 | **98129** |
-| 63 | 294 | 1762 | 17314 | — |
+| 63 | 294 | 1762 | 17314 | **363411** |
 
-At 60 fixed bits an unbounded run takes **98 seconds against 0.4 s at fhb=0 — a 240x degradation** —
-where the 64-level guard finishes in 0.6 s. The quadratic behaviour is real, severe, and entirely
-masked by the guard, which converts it into heapsort almost immediately on duplicate-heavy partitions.
+The sweep completed after this was first written, and the last cell is the most extreme of the lot: at
+**63 fixed bits an unbounded run takes 363 seconds against 294 ms guarded — a factor of 1236** — and
+against its own fhb=0 baseline at the same depth limit (402 ms), a **904x degradation**. At 60 fixed
+bits the figures are 98 seconds against 0.6 s.
+
+The quadratic behaviour is therefore real, catastrophic, and entirely masked by the guard, which
+converts it into heapsort almost immediately on duplicate-heavy partitions. Note the direction: the
+*worst* case is 63, the most degenerate input, which is what one would expect and which the guarded
+column inverts completely — 186.9 ms, the fastest cell in Yunlu's table. That inversion is the clearest
+single piece of evidence that what the guarded column measures is heapsort, not quicksort.
 
 ## What this means for the appendix — a better story, not a lost one
 
@@ -756,8 +763,8 @@ The old text said a naive baseline degrades by an order of magnitude and then cr
 *our* unguarded copy of 2011 code, and a referee could fairly call it a straw man. The three findings
 now available are stronger, and all three are measured:
 
-1. **The pathology is real and severe.** Unguarded, 56 fixed bits costs 21x and 60 or 63 exhausts the
-   stack outright; locally, with depth unbounded, 60 costs 240x.
+1. **The pathology is real and catastrophic.** Unguarded, 56 fixed bits costs 21x and 60 or 63
+   exhausts the stack outright; locally, with depth unbounded, 63 costs 904x.
 2. **A JDK-equivalent guard removes it — by abandoning quicksort.** 64 levels is what the JDK ships,
    and on this input it means heapsort does most of the work: 2.1x rather than 21x, and no crash. What
    you get is not a dual-pivot quicksort that copes; it is a sort that detects it cannot cope and
