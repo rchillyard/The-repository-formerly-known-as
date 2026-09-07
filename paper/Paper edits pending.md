@@ -470,7 +470,7 @@ the acknowledgments start at the top text margin of the next page.
 
 ---
 
-# 0e. The abstract's cleanup-pass range — needs your call, and the abstract goes in tomorrow
+# 0e. The abstract's cleanup-pass range — RESOLVED 2026-09-07, twice over
 
 The abstract (tex 251–254) says:
 
@@ -493,8 +493,18 @@ against the other will see it. Three ways out:
    designed for this, and the body discloses the second run honestly. But it means the paper's most
    distinctive claim is stated at its most flattering.
 
-I have **not** changed it. Sai Vineeth submits tomorrow and the text is presumably already with him;
-a silent edit the night before is how versions diverge.
+**Both changes were made.** Sai Vineeth takes the abstract from the branch tip, so it had to be right
+here rather than negotiated separately. First "a tenth to a quarter" became "as much as a quarter", to
+scope it to what both runs support. Then Robin's question about the denominator showed a quarter was
+itself the wrong reading, and it became **"as much as a fifth"** — see the denominator note in 5.2.
+
+Robin also asked whether the share should not *diminish* with $N$, the pass being linear where the sort
+is linearithmic. It should, and §sec:pcrit now says so and explains why the measured range does not show
+it: $k_3$ grows almost sevenfold over these three sizes while $\ln N$ grows by a fifth, so the cache
+effect swamps the logarithm. The extrapolation, with $k_3$ held at its settled value, gives some 18% at
+$N=10^6$ and 15% at $N=10^7$ — a real but logarithmic decline. Flagged in the paper as a model rather
+than a measurement, since the sort's own per-element cost also grows faster than $\ln N$ here and the
+corpus caps at 198,900 records.
 
 ---
 
@@ -991,6 +1001,22 @@ never held the figure, and now cites §sec:pcrit and reads "a fifth to a quarter
 delegates to `PermitCoder.INSTANCE.huskyEncode`, and `HuskyCoderFactory.createGenericCoder()` is
 `HuskySortable::huskyCode`, so the two benchmarks genuinely do compute identical codes and differ only
 in `perfect()`. The paper says so, and it is true.
+
+### A denominator error, caught by Robin on 2026-09-07
+
+The first version of this passage said "6.2\%, 22.8\% and 24.2\% **of total running time**". Those are
+$\Delta/(T_1+T_2)$ — the overhead *added* relative to the cleanup-free sort — not the pass's share of
+the total. The share of the total is $\Delta/(T_1+T_2+T_3)$:
+
+| n | as overhead added | **as share of total** |
+| ---: | ---: | ---: |
+| 32,000 | 6.2% | **5.8%** |
+| 100,000 | 22.8% | **18.6%** |
+| 198,900 | 24.2% | **19.5%** |
+
+Across all three runs the maximum share of the total is **20.2%**, not 25.3%. So the abstract's "as
+much as a quarter" overstated it and is now **"as much as a fifth"**; Table `Guidance` now reads "a
+sixth to a fifth past $N=100{,}000$" (the range at $N \geq 100{,}000$ being 15.9--20.2%).
 
 ### The figures, and a new finding
 

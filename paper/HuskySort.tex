@@ -280,7 +280,7 @@
     The margin is widest when the ordering is expensive to evaluate and the encoding is exact,
     so that no cleanup pass is needed:
     measured on input where that pass provably has nothing to correct,
-    it nonetheless accounts for as much as a quarter of total running time.
+    it nonetheless accounts for as much as a fifth of total running time.
     It is narrowest where algorithms specialised to the type already exist ---
     on English words a tuned MSD radix sort matches or overtakes us ---
     which bounds the result rather than contradicting it,
@@ -766,11 +766,12 @@ The cleanup pass reintroduces one full composite comparison per element,
 having just removed it from all $\textbf{O}(N \log N)$ of them.
 
 That comparison costs 12.7\,ns at $N = 32{,}000$, 68.2\,ns at $N = 100{,}000$ and 85.1\,ns at
-$N = 198{,}900$: 6.2\%, 22.8\% and 24.2\% of total running time, intervals non-overlapping throughout.
+$N = 198{,}900$ --- 5.8\%, 18.6\% and 19.5\% of the running time of the sort that contains it ---
+with non-overlapping 99.9\% confidence intervals throughout.
 Two further runs, one on different hardware, agree on the shape at different levels
 (20.0/74.1/68.7 and 8.0/22.1/37.8\,ns).
 The percentages are the less stable figures, being ratios of two quantities that both move.
-The shape is a threshold rather than a trend --- a three- to fivefold rise between the first two sizes,
+The shape is a threshold rather than a trend --- a rise by a factor of roughly three to five between the first two sizes,
 then a levelling off --- and it falls where the records stop fitting in cache.
 That last reading is inference, but the magnitudes support it:
 the system sort compares these same records some 3.5 million times in 162\,ms, or 46\,ns each,
@@ -778,10 +779,23 @@ so the cleanup pass at 85\,ns costs nearly twice as much per comparison using th
 Step 2 permutes references without moving the records,
 so a scan sequential in the array is close to random in the heap.
 
+One objection to these figures should be met head on:
+the pass is linear where the sort containing it is linearithmic,
+so its share of the total is bound to fall as $1/\log N$, and the shares above instead rise.
+Both are true, because $k_3$ is not settled over this range.
+It grows almost sevenfold between the smallest and largest sizes here while $\ln N$ grows by a fifth,
+so the cache effect swamps the logarithm completely.
+Holding $k_3$ at the value it reaches once the records no longer fit in cache,
+and growing the rest as $\ln N$, puts the share at some 18\% at $N = 10^{6}$ and 15\% at $N = 10^{7}$:
+the decline is real but logarithmic, and the pass does not become negligible at any size we expect to meet.
+That last calculation is a model rather than a measurement.
+The sort's own per-element cost also grows faster than $\ln N$ across these three sizes,
+and the corpus holds 198,900 records, so the measurement cannot be extended on real data.
+
 Two conclusions follow.
-First, $k_3$ is not a constant: it varies fivefold across three sizes on one machine,
+First, $k_3$ is not a constant: it varies almost sevenfold across three sizes on one machine,
 so no single $p_{crit}$ can be quoted even for one type on one machine.
-Second, an encoding which can be declared perfect avoids a cost of up to a quarter of total running
+Second, an encoding which can be declared perfect avoids a cost of up to a fifth of total running
 time, where one which cannot must repay it before correcting a single genuine inversion.
 
 \subsection{Why HuskySort Works}
@@ -1470,7 +1484,7 @@ Your situation & Reach for & Evidence \\
       & the largest margins we measure: dates 5.9x, building permits 2.1x over QuickHuskySort \\
     The ordering is composite or expensive, but the encoding is imperfect
       & RadixHuskySort, even allowing for the cleanup pass
-      & that pass costs a fifth to a quarter past $N=100{,}000$, even with nothing to correct
+      & that pass costs a sixth to a fifth past $N=100{,}000$, even with nothing to correct
         (\S~\ref{sec:pcrit}) \\
     A sort specialised to your type already exists
       & use it, if it covers your data
