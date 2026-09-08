@@ -1071,8 +1071,9 @@ into `paper/` when the switch is made, or put the package directory on `TEXINPUT
 Copying two files up is the simpler answer and keeps the package folder intact as the pristine
 download.
 
-`paper/ltexpprt.all` is the superseded package and is no longer referenced by anything. It can go
-whenever Robin wants; it is left in place for now since it cost something to find.
+`paper/ltexpprt.all`, the superseded package, was deleted on 2026-09-08. It was referenced by nothing
+and contained only `ltexpprt.tex` and `ltexpprt.sty` concatenated — no `.bst`, which is what sent us
+looking further in the first place.
 
 ## SIAM's own preamble, which the trial now uses verbatim
 
@@ -1117,8 +1118,9 @@ So `sample-base.bib` ships with the submission. Another reason yesterday's recon
 
 ## The original trial write-up follows, 2026-09-08
 
-Robin downloaded `siamproceedings.sty` and `ltexpprt.all` into `paper/`. I converted the paper in the
-scratchpad, leaving `paper/HuskySort.tex` untouched. The working trial is kept as
+Robin downloaded `siamproceedings.sty` into `paper/`, along with `ltexpprt.all`, the superseded
+package, since deleted. I converted the paper in the scratchpad, leaving `paper/HuskySort.tex`
+untouched. The working trial is kept as
 `doc/HuskySort-siam-trial.tex` — it is **not** the paper, it is a proof that the conversion works and a
 record of what it took.
 
