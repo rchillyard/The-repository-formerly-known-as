@@ -919,7 +919,10 @@ The tex change at line 206 is one line once the URL exists.
 
 **The package rename is a separate, optional task 3** — Robin's view being that there is no good reason
 to carry that much identifying information in package names regardless of anonymity. Scope measured:
-164 Java files plus one `pom.xml` line, with nothing in resources or config. To be done only if tasks 1
+164 Java files for `package edu.neu.coe.huskySort`, plus `<groupId>edu.neu.coe.seis</groupId>` at
+`pom.xml:10`, with nothing in resources or config. **The two are separate identifiers** — the groupId
+ends `.seis`, not `.huskySort` — so an IDE package refactor, or a find-and-replace on the package name,
+will miss it. To be done only if tasks 1
 and 2 are complete and the paper is otherwise ready, and never in the same commit as anything else.
 
 ---

@@ -139,24 +139,31 @@ anyway when the document class changes.
 
 ---
 
-# 3. Optional, if there is time before the 15th: rename the package
+# 3. Optional, if there is time before the 15th: rename the package **and the Maven groupId**
 
 Robin's view, 2026-09-07: there is no good reason to carry that much identifying information in the
 package names, quite apart from the anonymity question. Worth doing on its own merits, but only if
 task 1 and task 2 are done and the paper is otherwise ready.
 
-**Scope, measured rather than estimated:**
+**There are two identifiers to change, not one.** An IDE's "rename package" refactor will handle the
+first and silently leave the second, which is why it is called out separately here:
 
-| what | how many |
-| --- | ---: |
-| Java files under `src/**/edu/neu/coe/` | 164 |
-| `pom.xml` `<groupId>edu.neu.coe.seis</groupId>` | 1 |
-| resource or config files referencing the package | **none** |
+| identifier | where | how many |
+| --- | --- | ---: |
+| `package edu.neu.coe.huskySort` | `src/**/edu/neu/coe/` | **164 Java files**, plus the directory tree and every import |
+| `<groupId>edu.neu.coe.seis</groupId>` | `pom.xml` line 10 | **1 line** |
 
-So it is a package rename plus one line of `pom.xml`, with nothing hiding in properties files or
-resources to catch anyone out. Every other reference found was under `target/`, which is regenerated.
-An IDE refactor does it in one operation; the risk is not the rename but forgetting to rerun the suite,
-which should stay at 396 passing.
+`neu` is Northeastern and `coe` its College of Engineering, so both say the same thing; renaming the
+package while leaving the `groupId` would achieve nothing. Note the `groupId` is not even the same
+string as the package — it ends `.seis`, not `.huskySort` — so a global find-and-replace of the package
+name will miss it. It also propagates into build output (`target/maven-archiver/pom.properties`) and
+would appear in any published artefact coordinates.
+
+Nothing else references either: no properties files, no resources, no configuration. Every other
+occurrence found was under `target/`, which is regenerated.
+
+The risk is not the rename but forgetting to rerun the suite afterwards, which should stay at **396
+passing**.
 
 **Do not do this on the same commit as anything else**, and do not do it after the SIAM template switch
 has been made but before the paper builds cleanly — an unrelated 164-file diff in that window would
