@@ -1052,7 +1052,59 @@ The SIAM package has no equivalent option, so under it this is manual.
 
 ---
 
-# 0l. The SIAM conversion — it builds, and the paper is four pages over. Trial, 2026-09-08
+# 0l. The SIAM conversion — it builds, and the paper is four and a half pages over
+
+**Updated 2026-09-08 with the complete macro package**, which Robin found and downloaded to
+`paper/siamproceedingsmacros_022425/`. That supplied the three things the loose `.sty` had not:
+`siamplain.bst`, `example_doublecolumn.tex`, and `example_doublecolumn.pdf`. The trial was rebuilt
+against SIAM's own preamble and bibliography style; the figures below are from that build, and they
+match the first attempt, so the number is solid.
+
+The two copies of `siamproceedings.sty` now in `paper/` are **identical apart from line endings** — the
+package copy has CRLF, the loose one LF. No version discrepancy; one of them can be deleted.
+
+## SIAM's own preamble, which the trial now uses verbatim
+
+```latex
+\documentclass[twoside,leqno,twocolumn]{article}
+\usepackage[letterpaper]{geometry}
+\usepackage{siamproceedings}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{enumitem}
+```
+
+`twoside` and `leqno` were missing from my first guess of `[twocolumn]`.
+
+## The style restrictions, verbatim, and two of them bind on us
+
+From `example_doublecolumn.tex`:
+
+> 2. **Do not change the margins or page size! Do not change from the default text font or the default
+> text size of 10pt!**
+
+**That closes off the only remaining hope.** There is no denser configuration to reach for; the layout
+is the layout, and 16.5 pages is what the paper is.
+
+> 5. No running heads are to be used.
+>
+> 8. Page numbering is not included in this macro since pagination will be set by the program committee.
+
+The second of those affects the draft revision stamp, which lives in the page footer alongside
+`\thepage`. Under this package there is no page number and no footer to join. Setting
+`\draftstampfalse` before submission was already the plan (0k), so this only means the stamp cannot be
+carried into the SIAM build at all rather than merely being switched off.
+
+> 3. We recommend that you use BibTeX and siamplain.bst … If you do use BibTeX, please supply your bib
+> or bbl file with the manuscript file.
+
+So `sample-base.bib` ships with the submission. Another reason yesterday's reconstruction mattered.
+
+---
+
+## The original trial write-up follows, 2026-09-08
 
 Robin downloaded `siamproceedings.sty` and `ltexpprt.all` into `paper/`. I converted the paper in the
 scratchpad, leaving `paper/HuskySort.tex` untouched. The working trial is kept as
@@ -1074,16 +1126,18 @@ changes were needed, and the first is the one nobody would guess.
 | 6 | drop `\Description{...}` from figures | acmart's accessibility macro |
 | 7 | `\begin{acks}` → `\section*{Acknowledgments}` | acmart environment |
 | 8 | remove the ORCID icon machinery | it uses tikz's `\foreach`, which nothing else loads. **And it was already inside `\begin{comment}`** — see the correction to 0k below |
-| 9 | `\bibliographystyle{plain}` as a stopgap | `siamplain.bst` was not among the downloaded files |
+| 9 | `\bibliographystyle{siamplain}` | **resolved** — `siamplain.bst` came with the full package |
 
 ## The bad news: 16.5 pages of body against a limit of 12
 
 | | acmart | siamproceedings |
 | --- | ---: | ---: |
 | body | ~13 pages | **~16.5** |
-| total | 16 | 20 |
+| total | 16 | 21 |
 | references start | p13 | p17 |
-| appendix | 13–16 | 18–20 |
+| appendix | 13–16 | 18–21 |
+
+Section starts under SIAM: §1 p2, §2 and §3 p3, §4 p8, §5 p10, §6 p12, §7 p16, appendix p18.
 
 The Conclusion runs onto page 17, interleaved with the start of the references. **So the SIAM layout
 costs about three and a half pages relative to acmart**, and the squeeze is a four-and-a-half page
@@ -1144,8 +1198,8 @@ None of that is mine to take.
 ## Two caveats on the measurement
 
 The trial has **no front matter at all** — no title block, no author block — so the real thing will be
-slightly longer, not shorter. And it uses `plain` rather than `siamplain.bst`, which will change the
-length of the reference list but not of the body.
+slightly longer, not shorter. The bibliography style caveat is now resolved: the rebuild uses
+`siamplain.bst`.
 
 ## A correction to 0k
 

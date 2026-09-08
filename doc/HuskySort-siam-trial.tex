@@ -22,16 +22,20 @@
 %% in the same archive or directory.)
 %%https://www.overleaf.com/project/5f87ef5d6466e50001466e9c
 %% The first command in your LaTeX source must be the \documentclass command.
-\documentclass[twocolumn]{article}
-%% SHIM: siamproceedings.sty (Jan 2025) calls \AddToHook, which arrived in the LaTeX kernel of
-%% 2020-10-01. This machine has TeX Live 2020, kernel 2020-02-02, so it is undefined here. All ten
-%% uses in that file are \crefalias declarations for theorem-like environments (lemma, corollary,
-%% proposition, definition, claim, fact) which this paper does not use, so discarding them costs
-%% nothing. Remove this shim when building on a current TeX distribution.
+%% Preamble per SIAM's own example_doublecolumn.tex (022425 package).
+\documentclass[twoside,leqno,twocolumn]{article}
+\usepackage[letterpaper]{geometry}
+%% SHIM: siamproceedings.sty calls \AddToHook, added to the LaTeX kernel in 2020-10-01. This machine
+%% runs TeX Live 2020, kernel 2020-02-02. All ten uses are \crefalias declarations for theorem
+%% environments this paper does not contain. Remove when building on a current distribution.
 \makeatletter
 \@ifundefined{AddToHook}{\newcommand{\AddToHook}[2]{}}{}
 \makeatother
 \usepackage{siamproceedings}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts}
+\usepackage{epstopdf}
+\usepackage{enumitem}
 
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
@@ -1483,7 +1487,7 @@ To Darshan Dedhia, Akshay Bhusare, Kartik Kumar for their help with this project
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
-\bibliographystyle{plain}
+\bibliographystyle{siamplain}
 \bibliography{sample-base}
 
 %%
