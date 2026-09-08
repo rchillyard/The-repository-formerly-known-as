@@ -1378,6 +1378,56 @@ and measure again after writing it.
 
 ---
 
+# 0o. RHSort naming, and two explanations Robin asked for, 2026-09-08
+
+## The naming problem was real
+
+The paper used bare "radix sort" **26 times to mean RadixHuskySort**, while also discussing MSD radix
+sort, LSD radix sort and generic fixed-width-key radix sort. A reader could not always tell which was
+meant.
+
+Robin's first suggestion was `rhs`, which I pushed back on: at a SIAM venue with equations throughout,
+`RHS` reads as *right-hand side* first. He settled on **`RHSort`**, now defined at first mention in
+§1 ("RadixHuskySort, or RHSort") and used at the sixteen sites where the bare form was ambiguous,
+including the table column headers, which become `RHSort/8` and `RHSort/16`.
+
+**Twenty-one bare uses survive and all are correct**: MSD radix sort (4), LSD radix sort's counting
+structure, the generic $\textbf{O}(N \cdot k/b)$ result, radix sort applied directly to strings,
+LaMarca and Ladner's naive radix sort, and the two places that describe RHSort as *using* a radix sort,
+which is true and not a name.
+
+## The two explanations, and what they cost
+
+**Why Chinese words beat Chinese names.** Both are Chinese text; the difference is entirely in how the
+two coders spend their 64 bits. The Unicode coder gives each character sixteen bits drawn from
+thousands of code points, so a word of one to four characters is often captured whole. The pinyin coder
+gives each character nine bits for a syllable out of a few hundred, plus a tone out of five — and names
+are two or three characters whose surnames come from a smaller pool again. Few distinct codes, frequent
+ties, and a cleanup pass that does real work. **The more expensive comparison is paired with the weaker
+encoding**, which is why the two Chinese rows sit at nearly opposite ends of the table.
+
+**Why pinyin applies to the names and not the words.** A directory of people has one conventional
+ordering and it is by pinyin; a word list has several — by radical, stroke count, pinyin or frequency,
+according to purpose — so code-point order there is one collation among many rather than the wrong one,
+and it keeps the Chinese word row comparable with the English one. The paper had asserted the first
+half and never addressed the second, which is the obvious referee question.
+
+**Page cost: about 0.8, and tightening does not recover it.** The first draft took the body from 14.55
+to 15.29; a tighter rewrite gave **15.38** — worse. Float reflow again, exactly as §0j found. So this is
+a content-versus-pages trade rather than a writing problem, and it needs a decision:
+
+1. **Keep both in the body**, accept 15.38, and find 3.38 pages elsewhere.
+2. **Move the alphabet-size mechanism to the appendix** and keep the pinyin-scope justification in the
+   body. By the CFP's own test this is the right split: the *claim* — names are the weakest result
+   because the encoding is poor — is argument and stays; the *mechanism* — nine bits over a few hundred
+   syllables against sixteen over thousands of code points — is supporting detail. Recovers perhaps 0.5.
+3. Move both.
+
+My recommendation is 2. The pinyin-scope sentence pre-empts a question a referee will actually ask and
+costs little; the alphabet arithmetic rewards a reader who wants it but does not carry the argument.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE
