@@ -1093,11 +1093,53 @@ The cause is straightforward: `siamproceedings` sets `\textwidth` to 41pc and `\
 and forces 10pt via `\renewcommand\@ptsize{}`, where acmart's `acmtog` uses a smaller body font and
 tighter leading. There is no size option to turn — the package overrides `\@ptsize` itself.
 
-**This changes the nature of the remaining work**, and it is Robin's call which way to go. Trimming
-four and a half pages of prose is not a tidying exercise; it is a rewrite of the paper at a different
-length. The alternatives worth weighing are moving substantially more into the appendix, which is free
-and which the program committee reads at its discretion; or checking whether ACDA27's twelve pages are
-counted in *their* template, in which case the figure that matters may not be 16.5 at all.
+**This changes the nature of the remaining work.** Trimming four and a half pages of prose is not a
+tidying exercise.
+
+## Checked 2026-09-08: the twelve pages are counted in this layout
+
+The submissions page states the limit and the required format in adjacent sentences of the same
+paragraph:
+
+> Submissions may be up to 12 pages in length, excluding references, and must present original research
+> that is not published or submitted elsewhere. […] **Submissions should use the LaTeX macros at the web
+> page**: https://www.siam.org/publications/proceedings/
+
+So there is no reading under which the limit was written for a denser layout. Twelve pages means twelve
+pages of `siamproceedings`, which is what the trial measures. References are excluded, and so in effect
+is the appendix, which "will not be included in the proceedings".
+
+**But the same paragraph also constrains what may be moved there**, and this is the sentence to plan
+against:
+
+> The main part of the submission should therefore contain a clear technical presentation of the merits
+> of the paper, including a discussion of the paper's significance within the context of prior work and
+> a description of the key technical and conceptual ideas used to achieve its main claims.
+
+Merits, significance against prior work, and the key technical ideas stay in the main part. Supporting
+detail may go. That is a workable test and it is the venue's own.
+
+## Where the sixteen pages actually go
+
+From the trial's own table of contents. Spans are approximate, being start-page differences:
+
+| pages | section | |
+| ---: | --- | --- |
+| 1–2 | title, abstract, Introduction | |
+| 3–5 | §3 Algorithm, of which §3.2 RadixHuskySort is **3 pages** | the mechanism; not movable |
+| 6–7 | §3.3–3.5 encoding, $p_{crit}$, why it works | |
+| 8–9 | §4 Implementation | §4.1 System Environment is three tables of machine specs — **a candidate** |
+| 10–11 | §5 Test Case and Analysis, §5.2 Analysis **2 pages** | the array-access model |
+| 12–13 | §6.1–6.3 Benchmarks, Summary, Radix Sort Results | five results tables sit here |
+| 14 | §6.4 Parallel Radix Sort | **a candidate**: one table, and the prose quotes every figure in it |
+| 15 | §6.5 Use-Case Guidance | **a candidate**: guidance rather than results, and §0j already lists it |
+| 16–17 | §7 Conclusion | |
+
+The three candidates already flagged — §6.5, §6.4 and the environment tables — come to roughly three
+pages between them, which is most but not all of what is needed. The remainder would have to come from
+prose density across §3 and §5, or from a fourth structural decision.
+
+None of that is mine to take.
 
 ## Two caveats on the measurement
 
