@@ -85,9 +85,10 @@ to make it impossible for them to discover the authors if they were to try". See
 
 ## Then
 
-Send the URL, and the one-line change at `paper/HuskySort.tex:206` can be made — it currently reads
-`\url{https://github.com/rchillyard/HuskySort}` inside an `\authornote`, which is going to be rewritten
-anyway when the document class changes.
+Send the URL and it is a one-line change. The link now sits as a sentence at the head of
+§Implementation — "The implementation is available at ..." — having been moved there on 2026-09-08 when
+the author footnotes were deleted. It carries a comment marking it for anonymisation, because in the
+body it will not be caught by a sweep of the front matter.
 
 ---
 

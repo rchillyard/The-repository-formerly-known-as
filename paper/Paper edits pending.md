@@ -328,12 +328,15 @@ remaining instances of "2020" are genuine citations.
 
 - **`\setcopyright{none}` is right for review and wrong for camera-ready.** Whatever ACDA requires,
   set it then.
-- **The author footnotes describe the 2020 division of labour.** They credit Yunlu with "early
-  benchmarking" and Sai Vineeth with having "wrote the paper with input from all authors". Yunlu has
-  since produced every figure in the paper on his own hardware, across six benchmark runs and some
-  twenty-five hours of machine time, and this year's rewriting is not his. Whether that changes the
-  footnotes or the author order is yours and theirs to settle, but it should be settled deliberately
-  rather than by inheritance.
+- ~~**The author footnotes describe the 2020 division of labour.**~~ **DELETED 2026-09-08** on Robin's
+  instruction — they added nothing to the narrative, and they had become inaccurate: they credited
+  Yunlu with "early benchmarking" when he has since produced every figure in the paper across six runs
+  and some twenty-five hours of machine time, and credited Sai Vineeth with having "wrote the paper"
+  when this year's rewriting is not his. Deleting them settles the question rather than answering it,
+  which is the right outcome for a review copy that carries no author block at all. **Author order is
+  still worth settling deliberately rather than by inheritance**, and that is untouched.
+  No page effect: the SIAM conversion was already stripping `\authornote`, so they had never appeared
+  in the measured build.
 
 ---
 

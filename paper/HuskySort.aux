@@ -31,10 +31,10 @@
 \citation{DBLP:journals/corr/abs-1805-08612}
 \citation{doi:10.1002}
 \@writefile{toc}{\contentsline {section}{\numberline {2}BACKGROUND}{2}{section.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces HuskySort Flow\relax }}{2}{figure.caption.3}\protected@file@percent }
-\newlabel{Fig:HS}{{1}{2}{HuskySort Flow\relax }{figure.caption.3}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}ALGORITHM}{2}{section.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Overview}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces HuskySort Flow\relax }}{2}{figure.caption.3}\protected@file@percent }
+\newlabel{Fig:HS}{{1}{2}{HuskySort Flow\relax }{figure.caption.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}RadixHuskySort}{2}{subsection.3.2}\protected@file@percent }
 \newlabel{sec:radix}{{3.2}{2}{RadixHuskySort}{subsection.3.2}{}}
 \citation{314161.314321}
@@ -56,6 +56,7 @@
 \citation{LAMARCA199966}
 \citation{Dual-pivot}
 \citation{DBLP:journals/corr/cs-DS-0408040}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation}{6}{section.4}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces HuskySort.sort\relax }}{6}{algocf.3}\protected@file@percent }
 \newlabel{alg:the_alg}{{3}{6}{Why HuskySort Works}{algocf.3}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces huskyEncode\relax }}{6}{algocf.4}\protected@file@percent }
@@ -66,7 +67,6 @@
 \newlabel{alg:the_alg4}{{6}{6}{Why HuskySort Works}{algocf.6}{}}
 \citation{GOLDHAHN12.327}
 \citation{wainshine2020chinesenames}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation}{7}{section.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}System Environment}{7}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Implementation of Algorithm}{7}{subsection.4.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {5}Test Case and Analysis}{7}{section.5}\protected@file@percent }
@@ -86,14 +86,16 @@
 \newlabel{sec:summary}{{6.2}{9}{Summary}{subsection.6.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Radix Sort Results}{9}{subsection.6.3}\protected@file@percent }
 \newlabel{sec:radix-results}{{6.3}{9}{Radix Sort Results}{subsection.6.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort}{9}{subsection.6.4}\protected@file@percent }
+\newlabel{sec:parallel-radix}{{6.4}{9}{Parallel Radix Sort}{subsection.6.4}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Theoretical comparisons (array accesses, dimensionless counts)\relax }}{10}{table.caption.12}\protected@file@percent }
 \newlabel{tab:Comparison}{{4}{10}{Theoretical comparisons (array accesses, dimensionless counts)\relax }{table.caption.12}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Sort times by data type (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$.\relax }}{10}{table.caption.13}\protected@file@percent }
 \newlabel{tab:HS_BM}{{5}{10}{Sort times by data type (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$.\relax }{table.caption.13}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Radix sort advantage over QuickHuskySort\relax }}{10}{table.caption.14}\protected@file@percent }
 \newlabel{tab:RadixImprovements}{{6}{10}{Radix sort advantage over QuickHuskySort\relax }{table.caption.14}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort}{10}{subsection.6.4}\protected@file@percent }
-\newlabel{sec:parallel-radix}{{6.4}{10}{Parallel Radix Sort}{subsection.6.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{11}{table.caption.15}\protected@file@percent }
+\newlabel{tab:ParallelRadix}{{7}{11}{Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.15}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Use-Case Guidance}{11}{subsection.6.5}\protected@file@percent }
 \newlabel{sec:usecase}{{6.5}{11}{Use-Case Guidance}{subsection.6.5}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{11}{section.7}\protected@file@percent }
@@ -115,15 +117,13 @@
 \bibcite{doi:10.1002}{{13}{1997}{{Musser}}{{Musser}}}
 \bibcite{Timsort}{{14}{2002}{{Peters}}{{Peters}}}
 \bibcite{10.1007/3-540-61680-2_42}{{15}{1996}{{Sedgewick}}{{Sedgewick}}}
-\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{12}{table.caption.15}\protected@file@percent }
-\newlabel{tab:ParallelRadix}{{7}{12}{Parallel radix sort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.15}{}}
+\bibcite{1064546.1180622}{{16}{2004}{{Sinha and Zobel}}{{Sinha and Zobel}}}
+\bibcite{wainshine2020chinesenames}{{17}{2020}{{Wainshine}}{{Wainshine}}}
+\bibcite{6115063}{{18}{2011}{{{Xiang}}}{{{Xiang}}}}
 \@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.\relax }}{12}{table.caption.16}\protected@file@percent }
 \newlabel{tab:Guidance}{{8}{12}{Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.\relax }{table.caption.16}{}}
 \@writefile{toc}{\contentsline {section}{Acknowledgments}{12}{section*.18}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{References}{12}{section*.20}\protected@file@percent }
-\bibcite{1064546.1180622}{{16}{2004}{{Sinha and Zobel}}{{Sinha and Zobel}}}
-\bibcite{wainshine2020chinesenames}{{17}{2020}{{Wainshine}}{{Wainshine}}}
-\bibcite{6115063}{{18}{2011}{{{Xiang}}}{{{Xiang}}}}
 \bibcite{Dual-pivot}{{19}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
 \bibcite{sort}{{20}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
 \@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{13}{appendix.A}\protected@file@percent }
