@@ -120,9 +120,13 @@ So **the template has to change before the 15th.** 0a is no longer a judgement c
 | November 23, 2026 | camera-ready |
 | Feb 22–24, 2027 | conference, Pittsburgh, co-located with CSE27 |
 
-Submission is via EasyChair, <https://easychair.org/conferences/?conf=acda27>. **We are submission 47**,
-registered by Robin himself on 2026-09-08 after his EasyChair account showed no paper under his name;
-the 2026-09-15 PDF is uploaded against that same submission, not as a new one. There is a rebuttal
+Submission is via EasyChair, <https://easychair.org/conferences/?conf=acda27>. There are **two submissions,
+46 and 47**, both made on 2026-09-08 within about half a minute of each other: Sai Vineeth's, which did
+not carry Robin's email and so was invisible under his account, and Robin's, made because of that
+apparent absence. **One must be withdrawn, and it has to happen before the 15th** — the paper PDF is
+uploaded against the surviving submission, so uploading first and withdrawing after would discard the
+paper along with the duplicate. Whichever survives should list all three authors with correct emails,
+which is what made 46 invisible in the first place. There is a rebuttal
 phase: "The submissions will be refereed and authors will be provided an opportunity to respond to the
 reviews."
 
