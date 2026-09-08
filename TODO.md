@@ -864,3 +864,57 @@ ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
     so presenting a System-sort number there would wrongly suggest it as a viable competitor.
     Waiting for a confirmed-clean machine before trusting any chinesenames-pinyin timing
     comparison.
+
+## Post-submission (deferred until after 2026-09-15)
+
+Items below were found during the ACDA27 preparation and deliberately not acted on, because they
+touch code whose output appears in the paper's tables and the submission deadline is close. None
+is a defect; all are hardening or generalisation.
+
+29. **Give `Tuple.huskyCode` a field-width budget check, and name its widths.** Found 2026-09-07
+    while answering Robin's question about packing order. `HuskySortBenchmark.Tuple.huskyCode()`
+    packs `birthYear - 1850` in 8 bits, `zip` in 17, and a masked English code of `name` in 38.
+
+    **It is correct, and was verified rather than assumed.** As generated, `birthYear - 1850`
+    ranges 0–170 against 255 available, `zip` maxes at 99,999 against 131,071, and 8 + 17 + 38 =
+    63, so the sign bit stays clear and the worst-case code is 6.15e18 against a `Long.MAX_VALUE`
+    of 9.22e18. Nothing to fix.
+
+    **What is missing is anything that would catch a change.** The total is 63 of 63 bits, so
+    widening *any* field by one bit overflows into the sign bit, the codes go negative, and the
+    ordering inverts rather than degrading — the failure mode `PermitCoder.codeOf` was written
+    specifically to avoid. The widths are literals (`17`, `38`) inside a shift expression rather
+    than named constants, so there is nothing to assert against.
+
+    Worth noting the contrast, because it is the point that generalises. The class *does*
+    document the property that is hard to get right — "the fields must be coded in the same order
+    of priority as the comparison", written 2020-08-16 — and leaves undocumented the one that is
+    merely arithmetic. That is the right way round for a human writing it once and the wrong way
+    round for a library: the ordering obligation is what a derivation can discharge automatically,
+    and the budget is what a check can catch. See appendix A.4 of the paper.
+
+    Deferred rather than done because `Tuple` supplies the Tuples row of Tables `HS_BM_T` and
+    `RadixImprovements`; changing the class would mean re-running to prove the numbers had not
+    moved.
+
+30. **Promote `PermitCoder.encodeString` and `codeOf` into a reusable field encoder.** Both are
+    `private static`, hold no permit-specific state, and are the only order-preserving
+    ordered-alphabet string packer in the codebase — `HuskyCoderFactory`'s `stringToLong` masks
+    raw char values instead, which does not give the padding and out-of-range properties a
+    composite key field needs. A visibility change and a home, plausibly `HuskyCoderFactory`.
+    Prerequisite for item 31.
+
+31. **A composite-key coder: combinator first, derivation second.** The paper's appendix A.4
+    argues this is what adoption would require, and Robin's framing on 2026-09-07 was that it is
+    not essential for the paper but would be for anyone taking the method up. Two stages, and the
+    second is the one that matters: a builder that folds N field encodings most-significant-first
+    while accumulating shifts and failing fast on the 64-bit budget; and, where a type's ordering
+    is already derived from its field declarations (Java records, Python dataclasses with an
+    ordering), deriving the encoding from that same declaration — which removes by construction
+    the possibility that packing order and comparison order disagree, and lets `perfect()` be
+    computed rather than asserted and separately verified by a corpus test.
+
+32. **Complete the two thin bibliography entries' provenance note.** Both were completed on
+    2026-09-07 and neither blocks anything; recorded only so the reconstruction of
+    `paper/sample-base.bib` from `HuskySort.bbl` is not mistaken later for the original file. The
+    original `.bib` was never committed and BibTeX had been failing silently for some time.
