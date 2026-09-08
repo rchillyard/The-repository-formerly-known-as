@@ -926,9 +926,9 @@ The sources for the Strings (English and  Chinese) are retrieved from Leipzig Co
 Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus\cite{wainshine2020chinesenames}.
 Every other dataset in this paper is generated: pseudo-random numbers, dates and tuples.
 The building-permit records of \S~\ref{sec:radix-results} are not.
-They are 198,900 rows of San Francisco's published building-permit record, obtained from a public
-redistribution of it\cite{sf-building-permits}, ordered by a composite key of assessor's block, lot and
-filing date, and included because their distribution is the city's rather than ours.
+They are 198,900 permits filed between January 2013 and February 2018, taken from San Francisco's published
+record\cite{sf-building-permits} and ordered by a composite key of assessor's block, lot and filing
+date; they are included because their distribution is the city's rather than ours.
 Only those three columns are retained, and the data is used under the Open Data Commons Database
 Contents License.
 
@@ -1579,6 +1579,10 @@ The permits row of Table ~\ref{tab:RadixImprovements} is the case this mechanism
 The ordering is expensive, since a comparison may have to examine all three fields of the key in turn,
 and the key nevertheless packs exactly into 60 bits, so no cleanup pass is required at all.
 Algorithm ~\ref{alg:permitcoder} gives the coder.
+The date field is the one that depends on the corpus rather than on the schema: eleven bits admit 2,048
+consecutive days and the extract spans 1,878, so the coder checks each date against that window and
+refuses one outside it rather than encoding it wrongly ---
+which is what makes \textit{perfect()} a verified property here rather than an assumption.
 Against the system sort, RadixHuskySort is faster by 5.17x, 4.26x and 4.53x at $N = 32{,}000$,
 $100{,}000$ and $198{,}900$; against QuickHuskySort, by 2.52x, 2.06x and 2.12x.
 

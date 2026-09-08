@@ -1525,10 +1525,28 @@ DataSF, and carries the licence. §Data Source says the rows are "San Francisco'
 building-permit record, obtained from a public redistribution of it".
 
 **I had also written `year = {2026}`, which was a guess and is removed.** No year or access date is
-recorded anywhere in the repository, so the entry renders as "[n.d.]" — which is the honest rendering
-of an undated web resource, and the same treatment the Jugé entry got until its DOI supplied a year.
-Robin should supply the year and an access date before submission; BibTeX flags it as an empty year so
-it will not be forgotten.
+recorded anywhere in the repository, so the entry renders as "[n.d.]" — the honest rendering of an
+undated web resource, and the same treatment the Jugé entry got until its DOI supplied a year.
+**One small question for Robin: use 2018, the end of coverage, or the download year?** Either removes
+the "[n.d.]". BibTeX reports the empty year on every run so it will not be forgotten.
+
+## A third message, and a consistency check it invited
+
+Robin then supplied the primary source — DataSF dataset `i98e-djp9` — and the coverage period, 2013 to
+2018. The citation now names the canonical dataset with the redistribution and its licence in the note:
+primary source for the reader, honest chain of custody for us.
+
+The coverage period prompted a check, because `PermitCoder` allocates **eleven bits to the date**, and
+eleven bits admit 2,048 consecutive days where 2013 to 2018 is over 2,100. **It holds.** The extract
+runs 2013-01-02 to 2018-02-23 — a span of **1,878 days** — and `PermitCoder`'s own class comment
+records exactly that figure, with a guard that throws for any date outside the window rather than
+encoding it wrongly.
+
+Two things followed. The prose said "between 2013 and 2018", which overstates: February 2018 is where
+the data stops, and 2018 contributes 5,953 of the 198,900 rows against 35,000--41,000 for each full
+year. It now reads "between January 2013 and February 2018". And §A.5 gained the reason eleven bits
+suffice — that the field depends on the corpus rather than the schema, and that the window is checked
+rather than assumed, which is what makes `perfect()` a verified property here.
 
 ---
 

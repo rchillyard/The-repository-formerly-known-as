@@ -12,6 +12,7 @@ Reallocated global_strs (elt_size=200001) to 20 items from 10.
 Reallocated glb_str_end (elt_size=4) to 20 items from 10.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Warning--page numbers missing in both pages and numpages fields in DBLP:journals/corr/abs-1805-08612
+Warning--empty year in sf-building-permits
 Warning--empty publisher in 814600
 Warning--empty address in 814600
 Warning--page numbers missing in both pages and numpages fields in DBLP:journals/corr/cs-DS-0408040
@@ -19,7 +20,6 @@ Warning--page numbers missing in both pages and numpages fields in GOLDHAHN12.32
 Warning--page numbers missing in both pages and numpages fields in huskysort2020
 Warning--empty publisher in Timsort
 Warning--empty address in Timsort
-Warning--empty year in sf-building-permits
 Warning--articleno or eid field, but no numpages field, in 1064546.1180622
 Warning--page numbers missing in both pages and numpages fields in 1064546.1180622
 Warning--articleno or eid, but no pages or numpages field in 1064546.1180622
@@ -30,7 +30,7 @@ Warning--empty address in Dual-pivot
 Warning--page numbers missing in both pages and numpages fields in sort
 You've used 21 entries,
             5901 wiz_defined-function locations,
-            1468 strings with 18842 characters,
+            1468 strings with 18956 characters,
 and the built_in function-call counts, 23490 in all, are:
 = -- 3111
 > -- 674
