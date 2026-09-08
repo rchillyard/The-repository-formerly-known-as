@@ -382,7 +382,7 @@ rather than with the comparison cost of individual elements that do fit.
 Separately, radix sort's independent per-digit counting-sort passes are well suited to parallelization across CPU threads,
 a property that is already established for radix sort generally;
 \S~\ref{sec:parallel-radix} describes and benchmarks a parallel variant of RadixHuskySort (\S~\ref{sec:radix}).
-We do not make an equivalent claim for HuskySort's own comparison-based steps:
+We do not make an equivalent claim for QuickHuskySort's own comparison-based steps:
 Introsort's partitioning and Timsort's adaptive run-detection are both substantially more data-dependent (less independent) and sequential
 in character than radix sort's fixed per-digit passes,
 so parallelizing them well is a separate, harder problem that this paper does not address.
@@ -698,7 +698,7 @@ In any event, assuming that the huskyCode is as accurate as required, then there
 This implies that the second sort can be performed in very close to linear time.
 The results have been very satisfactory.
 For example, taking an array of 1,000,000 English words drawn randomly from a corpus of 275,333\cite{GOLDHAHN12.327},
-HuskySort sorts in 732 ms against the system sort's 1,194 ms, a factor of 1.63
+QuickHuskySort sorts in 698 ms against the system sort's 1,121 ms, a factor of 1.61
 (for the full data, please refer to table ~\ref{tab:HS_BM}).
 
 
@@ -877,7 +877,7 @@ It is ARM-based like machine B but differs from it in core design, vendor, core 
 
 Reporting all three lets a reader check directly whether the qualitative finding generalizes across
 machines and JVM versions rather than being an artifact of one environment.
-It does: HuskySort, and now RHSort, beat the system sort on all three,
+It does: QuickHuskySort, and now RHSort, beat the system sort on all three,
 which differ in vendor, instruction set, core design and JVM generation.
 
 
@@ -963,19 +963,16 @@ static String[] getWords(final String resource, final Function<String, List<Stri
 
 \subsection{Analysis}
 \label{sec:analysis}
-Let’s try to do an analysis of HuskySort's performance.
+Let’s try to do an analysis of QuickHuskySort's performance.
 This expands on the $T_1$/$T_2$/$T_3$ decomposition introduced in \S~\ref{sec:pcrit} above,
 replacing its abstract time constants with concrete array-access counts,
 and extending it to cover RHSort (\S~\ref{sec:radix}) as an alternative to quicksort for the $T_2$ step.
-The first thing to note is that, like merge sort, HuskySort requires $\textbf{O}(N)$ extra space.
+The first thing to note is that, like merge sort, QuickHuskySort requires $\textbf{O}(N)$ extra space.
 This is because, in addition to the array of object references, we must have an equal-length array of longs (the huskyCode values).
 
-Secondly, HuskySort is not stable unless using the merge sort variation.
-The derivation of that comparison is a counting argument rather than a measurement, and it rests on
-one coefficient we estimated rather than measured; it is set out in \S~\ref{sec:qhs-analysis}.
-Its conclusion is that QuickHuskySort's linear phase is relatively costly at small $N$ and is soon
-swamped by the comparisons saved in the linearithmic phase, with a break-even against merge sort at
-$N = 4$ and a widening advantage thereafter.
+Secondly, QuickHuskySort is not stable unless using the merge sort variation.
+The derivation of the two comparison figures is a counting argument rather than a measurement, and it
+rests on one coefficient we estimated rather than measured; it is set out in \S~\ref{sec:qhs-analysis}.
 
 Encoding's cost has not simply been assumed:
 we timed the encoding phase in isolation,
@@ -992,10 +989,10 @@ whatever cost remains in the encoding phase necessarily becomes a proportionally
 which suggests encoding cost (particularly for pinyin)
 is the more promising target for further optimization now that the sort phase itself is no longer the dominant cost.
 The consequence of this is that, as expected,
-the linear phase of HuskySort is relatively high for small $N$ but that is soon swamped by the saving of comparisons in the linearithmic phase.
+the linear phase of QuickHuskySort is relatively high for small $N$ but that is soon swamped by the saving of comparisons in the linearithmic phase.
 The break-even point is actually a very small value of $N$:
 four.
-As $N$ increases, we expect the advantage of HuskySort to increase further.
+As $N$ increases, we expect the advantage of QuickHuskySort to increase further.
 This is generally borne out by the benchmarks.
 Please refer to table ~\ref{tab:Comparison}.
 
@@ -1003,7 +1000,7 @@ The same style of analysis extends naturally to RadixHuskySort (\S~\ref{sec:radi
 Each of its $\frac{64}{b}$ digit passes touches every element a small constant number of times,
 $c$, to bucket it and to record its new position in the (deferred) index array —
 with no partitioning or pivot-comparison overhead, and critically, no logarithmic term at all.
-Taking $c = 4$ (the same per-exchange cost used for HuskySort's swaps above),
+Taking $c = 4$ (the same per-exchange cost used for QuickHuskySort's swaps above),
 adding the final $\textbf{O}(N)$ pass that applies the resulting permutation to the object array (2 array accesses per element),
 and the same encoding cost ($(k+1)N$) and cleanup-pass cost ($(2 + j + 4)pN$,
 unaffected by which algorithm sorts the codes in step 2), the total array accesses for RadixHuskySort ($A_r$) come to:
@@ -1018,7 +1015,7 @@ a predicted advantage of roughly 3.7x over QuickHuskySort,
 consistent with the 2-4x speedups actually measured (\S~\ref{sec:radix-results}).
 The model does predict one caveat:
 equating $A_r$ and $A_h$ gives a theoretical break-even around $N \approx 17$,
-somewhat higher than HuskySort's own break-even against merge sort ($N = 4$,
+somewhat higher than QuickHuskySort's own break-even against merge sort ($N = 4$,
 above) — because RHSort's per-pass cost has no logarithmic term to shrink relative to at very small $N$.
 This crossover is far below every array size actually tested, so it has no practical effect on the results reported here,
 but it is worth stating rather than leaving the model looking like radix wins unconditionally at every $N$.
@@ -1117,7 +1114,7 @@ e.g., \textbf{2.9x} means radix took roughly a third as long —
 rather than as a percentage, since a percentage figure close to or above 100\% becomes ambiguous about exactly which quantity it is a percentage \emph{of}.
 
 \begin{table*}
-  \caption{Radix sort advantage over QuickHuskySort}
+  \caption{RHSort's advantage over QuickHuskySort, as a direct multiplier}
   \label{tab:RadixImprovements}
   \begin{tabular}{cll}
     \toprule
@@ -1380,7 +1377,7 @@ factor --- $4 \cdot 64/b$ digit passes is a count, not an estimate. The comparis
 order-of-magnitude argument, which is all the paper asks of it; the measurements of
 \S~\ref{sec:radix-results} are what carry the result.
 
-How many comparisons and swaps does HuskySort require, on average?
+How many comparisons and swaps does QuickHuskySort require, on average?
 Wild and Nebel's average-case analysis of dual-pivot quicksort\cite{WildNebel12} gives, approximately:
 \begin{itemize}
     \item Comparisons: $1.9 N ln N$;
@@ -1395,10 +1392,10 @@ That is to say, the coefficient of $N ln N$ is approximately 4.
 The analysis represented by the table is for dual-pivot quicksort.
 \footnote{Note that, since dual-pivot quicksort is not actually implemented in the Java library for Comparable objects,
     we re-implemented the class for objects.}
-However, in HuskySort, each swap also must swap the object references.
+However, in QuickHuskySort, each swap also must swap the object references.
 These will not, in general, have been pre-fetched and so the effective total normalized array accesses ($A$) is approximately:
 \[A = 4 + 0.6 * 4 = 6.4\]
-Additionally, HuskySort requires $N$ huskyCode constructions.
+Additionally, QuickHuskySort requires $N$ huskyCode constructions.
 Each of these requires $k+1$ array accesses where $k$ is proportional to the number of fields contributing to the huskyCode.
 For a string,
 that will be the number of characters in the string (except that this is limited to a relatively small number according to the encoding).
@@ -1408,7 +1405,7 @@ For Unicode strings, it is four.
 However, keep in mind that this is linear and, while it can’t be completely ignored,
 it doesn't contribute to the overall growth of the complexity.
 
-Once the HuskySort is complete, we will assume that there are $p N$ remaining inversions,
+Once the sort of the codes is complete, we will assume that there are $p N$ remaining inversions,
 where $p$ is the probability of an idiogenic (self-inflicted) inversion.
 Again, while we should not ignore it completely, it is linear.
 The number of array access for the comparisons/swaps to fix these will be $(2 + j + 4) p N$,
@@ -1436,7 +1433,7 @@ $j = 4$ corresponding to the comparison of two strings that start with the same 
 
 $k = 7$ and $p = 0.1$; then
 
-the totals ($A_m$ for merge sort and $A_h$ for HuskySort) come to:
+the totals ($A_m$ for merge sort and $A_h$ for QuickHuskySort) come to:
  \[A_m = 11.5 N ln N + 2 N\]
  \[A_h = 6.4 N ln N + 9 N\]
 
@@ -1514,7 +1511,7 @@ rather than a result.
   \label{tab:TimvsInsertion}
   \begin{tabular}{ccc}
     \toprule
-    N & Husky with Tim (ms) & Husky with Insertion (ms)\\
+    N & QuickHuskySort, Timsort cleanup & QuickHuskySort, insertion-sort cleanup \\
     \midrule
     \ 1000&0.14&0.14 \\
 \ 2000&0.31&0.30 \\
@@ -1538,15 +1535,21 @@ rather than a result.
 \label{sec:comparison-baselines}
 
 Table ~\ref{tab:HS_BM} omits two baselines that were measured alongside the others: dual-pivot
-quicksort adapted to objects, and a from-scratch quicksort with no equal-key handling.
+quicksort adapted to objects, and the JDK's own primitive-array sort applied to unboxed values.
 Both bear on QuickHuskySort rather than on RHSort, which is why they are here rather than in the
 body.
 The comparison they support is the one drawn in \S~\ref{sec:conclusion-dp}: husky encoding repays
 itself when the ordering is expensive, and not otherwise.
 
 \begin{table*}
-  \caption{Comparison-sort baselines (JMH, ms, mean $\pm$ 99.9\% CI). Numeric types at
-    $N=500{,}000$. A from-scratch quicksort was measured for the numeric types only.}
+  \caption{Two further comparison sorts, measured on the same arrays as Table ~\ref{tab:HS_BM} and
+    directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm$ 99.9\% CI;
+    numeric types at $N=500{,}000$). \emph{Dual-pivot quicksort} is Yaroslavskiy's algorithm
+    transcribed for objects, the JDK applying it only to primitives; \emph{quicksort (raw)} unboxes each
+    element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects
+    rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass ---
+    and so bounds from below what any husky variant could achieve on these types. It was measured for
+    the numeric types only; the final block is the Permit tuple.}
   \label{tab:ComparisonBaselines}
   \begin{tabular}{llll}
     \toprule
@@ -1558,7 +1561,7 @@ itself when the ordering is expensive, and not otherwise.
     BigInteger & 500,000 & 209.9$\pm$2.0 & 42.2$\pm$0.1 \\
     BigDecimal & 500,000 & 246.2$\pm$3.7 & 47.6$\pm$0.0 \\
     \midrule
-    & 20,000 & 3.41$\pm$0.09 & --- \\
+    Tuple & 20,000 & 3.41$\pm$0.09 & --- \\
     & 100,000 & 21.36$\pm$0.48 & --- \\
     & 500,000 & 142.70$\pm$4.98 & --- \\
     \bottomrule
@@ -1819,14 +1822,14 @@ since LSD radix sort has no recursion to begin with.
 
 \subsection{Handling of partially-sorted arrays}
 
-Not surprisingly, HuskySort is best suited for sorting random arrays.
+Not surprisingly, QuickHuskySort is best suited for sorting random arrays.
 The benefits of partially-sorted arrays are enjoyed most by the merge sort family of algorithms (including Timsort).
-However, we have studied the efficacy of a modified merge sort (it is required to manage both the objects and the longs) as the first pass of the HuskySort algorithm.
+However, we have studied the efficacy of a modified merge sort (it is required to manage both the objects and the longs) as the first pass of the algorithm.
 For random English String inputs,
-the merge-sort variation improves on system sort by approximately 20 percent whereas the normal intro-sort-based HuskySort improves on the system sort by more like 40 Percent.
+the merge-sort variation improves on the system sort by approximately 20 percent, where the normal Introsort-based QuickHuskySort improves on it by more like 40 percent.
 
-However, it is not recommended to use HuskySort when arrays are partially ordered.
-In such cases, the merge-sort variation of HuskySort will take anywhere between one and one half times and four times as long as Timsort.
+However, neither husky variant is recommended when arrays are partially ordered.
+In such cases, the merge-sort variation of QuickHuskySort will take between one and a half and four times as long as Timsort.
 
 \end{document}
 \endinput
