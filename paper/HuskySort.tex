@@ -485,14 +485,6 @@ cleaning up the (hopefully few) remaining inversions in step 3, where the array 
   \centering
   \includegraphics[width=0.5\linewidth]{HuskySortFlow.png}
 \end{figure}
-\begin{figure}
-  
-  \caption{Introsort Flow}
-  \label{Fig:Introsort}
-  \Description{An Overview of Introsort}
-  \centering
-  \includegraphics[width=0.5\linewidth]{IntroSort.png}
-\end{figure}
 The strategy of HuskySort (see Flow ~\ref{Fig:HS}) is as follows (assuming that the dataset is presented as an array $xs$ of type $X$):
 see Algorithm ~\ref{alg:the_alg}
 
@@ -506,7 +498,7 @@ see Algorithm ~\ref{alg:the_alg}
     \end{enumerate}
 \item {}Sort array \emph{longs} using quicksort (in practice, we have found that Introsort\cite{doi:10.1002} works well)
 in such a way that when elements $i, j$ of \emph{longs} are exchanged, then elements $i, j$ of $xs$ are also exchanged;
-See Flow ~\ref{Fig:Introsort} \item {}Finally, when quicksort is finished and, if necessary,
+\item {}Finally, when quicksort is finished and, if necessary,
 we run Timsort on the array $xs$ to ensure that its elements are truly in order.
 \end{steps}
 
@@ -918,64 +910,37 @@ return result\;
 
 \subsection{System Environment}
 
-Table ~\ref{tab:SysEnvOriginal} lists the configuration used for the JDK 1.8.0\_152-based benchmarks reported in \S~\ref{sec:analysis},
+Three machines appear in this paper, and Table ~\ref{tab:SysEnv} lists all three.
+Machine A ran the JDK 1.8.0\_152 comparison-sort benchmarks of \S~\ref{sec:analysis},
 Table ~\ref{tab:TimvsInsertion} among them;
-Table ~\ref{tab:SysEnvCurrent} lists the different configuration used for the radix-sort and JMH work of \S~\ref{sec:radix}-\S~\ref{sec:radix-results},
-on different hardware and a different JVM.
-A natural question is whether the qualitative finding generalizes across machines and JVM versions rather than being an artifact of one particular environment;
-reporting both configurations lets a reader check directly.
-The finding (HuskySort, and now radix sort,
-beating System sort) holds unchanged across this substantial a difference in both machine and JVM version.
+machine B, on different hardware and two JVM generations later, ran the radix-sort and JMH development work.
+Machine C is the machine of record: an independently administered cloud instance, confirmed idle before
+each run, and the source of every figure quoted in this paper.
+It is ARM-based like machine B but differs from it in core design, vendor, core count and operating system.
 
-Table ~\ref{tab:SysEnvAWS} lists a third,
-independently run configuration used to confirm the radix-sort and parallel-scaling findings of \S~\ref{sec:radix-results} and \S~\ref{sec:parallel-radix} at larger scale:
-a cloud server instance which, while also ARM-based like the machine of Table ~\ref{tab:SysEnvCurrent},
-uses an entirely different core design, vendor, core count, and operating system, confirmed idle before the run.
-The qualitative finding holds there too, now checked across three machines that differ in vendor, architecture, and JVM build, not just two.
+Reporting all three lets a reader check directly whether the qualitative finding generalizes across
+machines and JVM versions rather than being an artifact of one environment.
+It does: HuskySort, and now radix sort, beat the system sort on all three,
+which differ in vendor, instruction set, core design and JVM generation.
 
-\begin{table}
-  \caption{Benchmark environment used for the comparison-sort results (\S~\ref{sec:analysis})}
-  \label{tab:SysEnvOriginal}
-  \begin{tabularx}{\linewidth}{lX}
+\begin{table*}
+  \caption{The three benchmark environments. Machine A supplies the comparison-sort results of
+    \S~\ref{sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine
+    of record, every figure quoted in this paper.}
+  \label{tab:SysEnv}
+  \begin{tabularx}{\linewidth}{lXXX}
     \toprule
-    Model & MacBook Pro (MacBookPro14,3) \\
-    Processor & Quad-Core Intel Core i7, 2.8 GHz, 1 processor, 4 cores, Hyper-Threading \\
-    Cache & 256 KB L2 (per core), 6 MB L3 \\
-    Memory & 16 GB 2133 MHz LPDDR3 \\
-    JVM & 1.8.0\_152 \\
+    & \textbf{A} --- comparison sorts & \textbf{B} --- development & \textbf{C} --- machine of record \\
+    \midrule
+    Model & MacBook Pro (MacBookPro14,3) & MacBook (Apple Silicon) & AWS EC2 c7g.4xlarge \\
+    Processor & Quad-core Intel Core i7, 2.8 GHz, Hyper-Threading & Apple M1, 8 cores (4 performance + 4 efficiency) & ARM Neoverse V1 (Graviton3), 16 vCPU, 2.6 GHz \\
+    Cache & 256 KB L2 per core, 6 MB L3 & 128 KB L1I / 64 KB L1D per core; 12 MB + 4 MB L2 & --- \\
+    Memory & 16 GB 2133 MHz LPDDR3 & 16 GB unified & 30 GiB \\
+    OS & --- & macOS 26.5.2 & Amazon Linux 2023 \\
+    JVM & 1.8.0\_152 & OpenJDK 21.0.10 & OpenJDK 21.0.12 (Corretto) \\
     \bottomrule
   \end{tabularx}
-\end{table}
-
-\begin{table}
-  \caption{Benchmark environment used for the radix-sort and JMH results
-    (\S~\ref{sec:radix}--\S~\ref{sec:radix-results})}
-  \label{tab:SysEnvCurrent}
-  \begin{tabularx}{\linewidth}{lX}
-    \toprule
-    Model & MacBook (Apple Silicon) \\
-    Processor & Apple M1, 8 cores (4 performance + 4 efficiency) \\
-    Cache & 128 KB L1I / 64 KB L1D per core; 12 MB L2 (performance cluster), 4 MB L2 (efficiency cluster) \\
-    Memory & 16 GB unified \\
-    OS & macOS 26.5.2 \\
-    JVM & OpenJDK 21.0.10 \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
-\begin{table}
-  \caption{Benchmark environment used for the AWS Graviton3 confirmation run}
-  \label{tab:SysEnvAWS}
-  \begin{tabularx}{\linewidth}{lX}
-    \toprule
-    Instance & AWS EC2 c7g.4xlarge (Graviton3) \\
-    Processor & ARM Neoverse V1, 16 vCPU, 2.6 GHz \\
-    Memory & 30 GiB \\
-    OS & Amazon Linux 2023 \\
-    JVM & OpenJDK 21.0.12 (Corretto) \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+\end{table*}
 
 \subsection{Implementation of Algorithm}
 
@@ -1018,14 +983,6 @@ lot and filing date, and are included because their distribution is the city's r
 
 In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in Listing~\ref{lst:DS}.
 
-The sample of data can be seen here ~\ref{fig:Example}
-\begin{figure}
-  \caption{Strings Data Example}
-  \label{fig:Example}
-   \Description{An Example of Data file}
-  \centering
-  \includegraphics[width=0.5\linewidth]{Strings.png}
-\end{figure}
 
 \begin{lstlisting}[caption={Data Source},label={lst:DS},language=Java]
 private static String[] getLeipzigWordsFromResource(final String resource) {
@@ -1228,16 +1185,6 @@ Please refer to table ~\ref{tab:TimvsInsertion}.
 \item{} Comparison of sort times for HuskySort, dual-pivot quicksort, system sort.
 Please refer to tables ~\ref{tab:HS_BM_N} and ~\ref{tab:HS_BM_T}, which carry a dual-pivot column.
 
-\item {}Time vs Size ($N$) for HuskySort,
-Please refer to figure ~\ref{Fig:TvsN}
-\begin{figure}
-  
-  \caption{Time vs Size ($N$)}
-  \Description{Time taken with HuskySort Corresponding to  Size of Words}
-  \label{Fig:TvsN}
-  \centering
-  \includegraphics[width=0.5\linewidth]{BenchmarkTvsN.png}
-\end{figure}
 
 \item {}Comparison of HuskySort with system sort for numeric types (Integer, Double, Long, BigInteger, BigDecimal):
 Table ~\ref{tab:HS_BM_N} (JMH, $N=500{,}000$, ms $\pm$ 99.9\% CI).
@@ -1380,9 +1327,9 @@ margin, but it is our largest on data whose distribution we did not choose.
 \S~\ref{sec:permits} gives the case study, and \S~\ref{sec:composite-future} what a general
 composite encoder would have to provide, that one having been written by hand.
 
-The measurements were reproduced qualitatively on the two machines of Tables ~\ref{tab:SysEnvOriginal}
-and ~\ref{tab:SysEnvCurrent}, which differ from the machine of record and from each other in vendor,
-instruction set, core design and JVM generation.
+The measurements were reproduced qualitatively on machines A and B of Table ~\ref{tab:SysEnv},
+which differ from the machine of record and from each other in vendor, instruction set, core design and
+JVM generation.
 We quote no figures from them, since mixing environments within a comparison would rob it of meaning,
 but every ordering reported here holds on all three.
 
@@ -1546,7 +1493,7 @@ from more bit manipulation and fewer calls to \textit{equals}.
 
 These findings are not an artifact of a single development machine.
 The same qualitative pattern held on three environments spanning two CPU vendors and three distinct architectures
-(Tables ~\ref{tab:SysEnvOriginal}, ~\ref{tab:SysEnvCurrent}, and ~\ref{tab:SysEnvAWS}),
+(Table ~\ref{tab:SysEnv}),
 the last a 16-core ARM server instance with no performance/efficiency core split to confound the result.
 That same run also settled a question the parallel variant's own results had left open (\S~\ref{sec:parallel-radix}):
 its scaling ceiling past a handful of threads is a property of the design itself,

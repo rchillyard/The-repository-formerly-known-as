@@ -1258,18 +1258,34 @@ overheads into one without losing a single number, which none of the other three
 
 | target | avenue | ~saving | why it is defensible |
 | --- | --- | ---: | --- |
-| **Figure `TvsN`, "Time vs Size"** | delete | 0.4 | **It is a 2020 measurement plot from the Intel/Java 8 machine.** Exactly the category `HSComp` was deleted for, and §7's audit covered tables and missed figures. It cannot be rebuilt — it is a PNG. Deleting it removes an inconsistency as well as a page fraction |
-| **Figure `Introsort`, "Introsort Flow"** | delete | 0.4 | A flow diagram of *someone else's* algorithm, already explained in prose at two places. Not our contribution |
-| **Figure `Example`, "Strings Data Example"** | delete or appendix | 0.4 | A picture of what a corpus file looks like. Illustrates nothing about the mechanism |
-| **`SysEnvOriginal` + `SysEnvCurrent` + `SysEnvAWS`** | consolidate to one 3-column table | 0.3 | Three small tables of machine specifications, same rows, different values. One table, three columns, no content lost |
+| ~~Figure `TvsN`~~ | **DONE 2026-09-08** | | a 2020 measurement plot from the Intel/Java 8 machine — the category `HSComp` went for, and §7's audit covered tables and missed figures. A PNG, so unrebuildable |
+| ~~Figure `Introsort`~~ | **DONE** | | a flow diagram of someone else's algorithm, explained in prose at two places |
+| ~~Figure `Example`~~ | **DONE** | | a picture of what a corpus file looks like |
+| ~~the three `SysEnv` tables~~ | **DONE — consolidated to one 3-column `table*`, `tab:SysEnv`** | | machines A, B and C in one table; the prose now names them rather than citing three floats. No content lost except two "Cache"/"OS" cells that were never filled for all three |
+
+**Measured after those four: body 16.5 → 15.0 pages**, exactly the 1.5 estimated. **Three pages still to
+find.** Remaining targets:
 | **`TimvsInsertion`** (14 rows) | appendix | 0.5 | Design justification for choosing Timsort in step 3, not a headline result — appendix-worthy on the CFP's own test. Also the last old-machine table |
 | **`HS_BM_N` + `HS_BM_S` + `HS_BM_T`** | consolidate | 0.4 | Three benchmark tables that differ only in data type. One table with a type column |
 | **`Guidance`** | appendix | 0.4 | Already flagged in §0j; guidance rather than results |
 | **`ParallelRadix`** | appendix | 0.3 | Already flagged; the surrounding prose quotes every figure in it |
 
-That comes to roughly 3.1 pages of the 4.5 needed. The remaining 1.4 has to come from either
-`RadixImprovements` (12 rows, and the largest table left), moving all of §sec:usecase rather than just
-its table, or a genuine prose pass accepted as the last resort rather than the first.
+The four remaining rows come to roughly 1.6 pages of the 3.0 still needed. The last 1.4 has to come
+from either `RadixImprovements` (12 rows, and the largest table left), moving all of §sec:usecase rather
+than just its table, or a genuine prose pass accepted as the last resort rather than the first.
+
+## The conversion is now scripted
+
+`doc/siam-convert.py` performs the whole acmart→SIAM conversion from `paper/HuskySort.tex` in one pass,
+so the page count can be re-measured after any change without redoing the work by hand:
+
+```
+python3 doc/siam-convert.py paper/HuskySort.tex /tmp/try/HuskySort.tex
+```
+
+It needs `siamproceedings.sty`, `siamplain.bst`, `sample-base.bib` and the `.png` files alongside the
+output. `doc/HuskySort-siam-trial.tex` is its current output, kept as evidence rather than as the
+paper.
 
 ## The test to apply, which is the venue's own
 
