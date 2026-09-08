@@ -2402,3 +2402,44 @@ directly below, so the table declares it instead of making the reader find it in
   twenty lines later. Now says so.
 
 Body unchanged at 13.69: the label and the disambiguations pay for the §A.13 trim.
+
+---
+
+# 0u. Retitled, and a measurement bug of mine that flattered the page count — 2026-09-08
+
+## Title
+
+`\title{HuskySort}` → **`RadixHuskySort: A Linear Second Phase for Proxy-Key Sorting`**.
+
+The old title promised the 2020 paper, when the point of this one is that it is not that algorithm; it
+also matches the contributions sentence at 406 ("The contributions here are RadixHuskySort, or RHSort
+… which replaces that algorithm's comparison sort with a linear-time radix sort"). The subtitle exists
+because the bare name is opaque to anyone who does not already know what a HuskySort is.
+
+Deliberately **not** "in linear time": both phases are linear only when the encoding is exact, and
+§sec:pcrit is precisely the measurement of what the cleanup pass costs when it is not. A title claiming
+linear time would overclaim the thing the paper is most careful about.
+
+## The SIAM trial was measuring an orphan page — every figure quoted before now was ~0.7 too high
+
+`doc/siam-convert.py` left the front matter in **acmart's** order, with `\begin{abstract}` before
+`\maketitle`. That is correct for acmart and wrong for `article`/`siamproceedings`, where `\maketitle`
+issues `\twocolumn[...]`: the abstract was typeset alone on page 1, the page then broke, and the title
+started page 2. Nearly a blank page, counted as body, in every measurement made through this script.
+
+Caught only because the retitle prompted a check that the new title rendered — it did under acmart and
+did not in the trial. The style file was innocent; a minimal document with `siamproceedings` sets the
+title correctly with or without an `\author`. So was the `\AddToHook` no-op shim for TL2020, which
+discards nothing but `crefalias` declarations for theorem environments this paper does not use.
+
+Fixed in the script, which now moves the abstract to just after `\maketitle` and asserts it found one.
+
+| | body | total |
+| --- | ---: | ---: |
+| as measured all day (orphan page 1) | 13.69 | 22 |
+| **corrected** | **13.0** | 21 |
+
+REFERENCES now starts at the very top of page 14, left column, and the last body float
+(`tab:Guidance`) is on page 12. **So the overage is 1.0 page, not the 1.7 reported earlier today.**
+Every relative comparison made today still holds — they were all measured the same wrong way, so the
+deltas (0.036 for the Chinese-words deletion, 0.06 for the audit) are unaffected.

@@ -34,4 +34,14 @@ s=s.replace('\\begin{algorithm}','\\begin{algorithm2e}').replace('\\end{algorith
 i=s.find('% Code for ORCID iD'); j=s.find('\\end{comment}', i)
 if i>0 and j>i: s=s[:i]+'%% ORCID block removed (anonymous submission)\n'+s[j+len('\\end{comment}'):]
 s=re.sub(r'\\ifdraftstamp\s*\n\s*\\makeatletter.*?\\fi','',s,flags=re.S)
+# acmart wants \begin{abstract} BEFORE \maketitle; article/siamproceedings wants it after.
+# Left in acmart's order, \maketitle's \twocolumn[...] breaks the page, so the abstract lands
+# alone on page 1 and the title starts page 2 -- which silently added a page to every
+# measurement made through this script. Move the block to just after \maketitle.
+m=re.search(r'\\begin\{abstract\}.*?\\end\{abstract\}\n?',s,flags=re.S)
+assert m, "no abstract block found"
+if s.find('\\maketitle') > m.start():
+    abstract=m.group(0)
+    s=s[:m.start()]+s[m.end():]
+    s=s.replace('\\maketitle','\\maketitle\n\n'+abstract,1)
 open(sys.argv[2],'w').write(s)
