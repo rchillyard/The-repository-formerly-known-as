@@ -7,11 +7,17 @@
 | 3 | Real data: San Francisco building permits | **done** — PR #63 |
 | 4 | The full suite at the current commit | **done** — PR #63, 20h30m unattended |
 | 5 | The small-N crossover | **done** — PR #63 |
-| 6 | chinesenames against a pinyin-*correct* system sort | **pending** — ~20 min, and it matters |
-| 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **pending** — ~40 min |
+| 6 | chinesenames against a pinyin-*correct* system sort | **done** — PR #64, `doc/pinyin.json` |
+| 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **done** — PR #64, `doc/adversarial.json` |
 
-**Requests 1 to 5 are all answered — thank you, that was fast.** Request 6 below is new, and it
-changes the interpretation of one of your own results.
+**All seven requests are answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
+"pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
+Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseline now quoted in the
+abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
+dual-pivot comparison in the appendix.
+
+**Nothing further is being asked for.** One optional measurement is recorded at the end of this
+document should there be time after the 15th.
 
 Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, `...2026-09-02.md` and
 `...2026-09-03.md`. What requests 1 and 2 settled is summarised in Appendix A.
@@ -23,9 +29,7 @@ radix-sort results on an Apple M1. Yours becomes the single source of record; th
 only as qualitative cross-checks, with no figures quoted from them. Your request-4 run is what makes
 that possible.
 
-**Requests 6 and 7 are outstanding**, and they are independent — run them in either order, from one
-checkout. Requests 3, 4 and 5 and their reasoning are in Appendix B;
-nothing there needs acting on.
+Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs acting on.
 
 ---
 

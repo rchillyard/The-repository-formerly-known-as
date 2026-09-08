@@ -628,14 +628,14 @@ frequency, according to purpose --- so code-point order there is one collation a
 the wrong one, and it keeps that row comparable with the English one.
 A fair comparison for the names requires a pinyin-aware MultikeyQuicksort.
 We extended it with the same syllable-then-tone character key the pinyin encoding of \S~\ref{sec:radix} already uses,
-restricted the comparison to the three pinyin-aware sorters (a natural-order system sort is not a real competitor for this corpus),
-and re-ran it.
-Across two independent runs,
-confidence intervals were wide enough (up to $\pm$29\%) that the finer RadixHuskySort-vs-QuickHuskySort distinction was not resolvable —
-a question the crossover analysis of \S~\ref{sec:usecase} already answers precisely on cleaner data —
-but one result held directionally in both attempts:
-RadixHuskySort and QuickHuskySort, both pinyin-aware, beat MultikeyQuicksort by roughly 1.6--2.7x,
-consistent with the margins measured above for English and Chinese natural-order text.
+restricted the comparison to the three pinyin-aware sorters, and re-ran it.
+RHSort is faster than the repaired multikey quicksort by 1.57x, 1.83x and 2.09x at $N = 32{,}000$,
+$200{,}000$ and $1{,}000{,}000$, and QuickHuskySort by 1.33x, 1.49x and 1.27x.
+Two independent runs on the machine of record agree to within two hundredths of those multipliers.
+Note that the RHSort margin grows with $N$ while QuickHuskySort's does not:
+the linear second phase keeps paying as the array grows where a linearithmic one cannot,
+which is the same pattern the natural-order corpora show and the clearest form in which this corpus
+shows it.
 
 \begin{algorithm}
 \KwIn{\it{xs} as an array of object X which extends Comparable<X>}
