@@ -1,75 +1,35 @@
 # Tasks for Sai Vineeth — ACDA27 submission, due 2026-09-15
 
-Two things, both needing an account or a download, which is why they are not done already. Task 1
-blocks the change of document class and is the critical path. Task 2 is required for double-blind
-review. A third item is optional and only if there is time.
+**Task 1 is done** — Robin downloaded the macros himself on 2026-09-08, and the conversion has been
+trialled successfully. **Task 2 is the only thing outstanding for you**: the anonymised code mirror,
+which needs an account and so is not something that could be done for you. Task 3 is optional and only
+if there is time before the 15th.
 
 ---
 
-# 1. Fetch the SIAM proceedings macros
+# 1. Fetch the SIAM proceedings macros — **DONE 2026-09-08, by Robin. Nothing to do.**
 
-Everything else on the critical path is done; this is the last thing blocking the change of document
-class, and it is a download rather than a judgement call.
+Robin found and downloaded the complete package to `paper/siamproceedingsmacros_022425/`:
+`siamproceedings.sty`, `siamplain.bst`, `example_doublecolumn.tex` and `.pdf`, the single-column
+equivalents, and the example figures and bibliography.
 
-## Why it is needed
+The conversion has since been trialled and **it works** — zero errors, zero undefined references, using
+SIAM's own preamble and `siamplain.bst`. The working trial is `doc/HuskySort-siam-trial.tex`, and the
+nine changes it took are recorded as §0l of `paper/Paper edits pending.md`.
 
-ACDA27's submissions page requires it **at submission**, not on acceptance:
+**The one hard finding from that trial:** the paper is **16.5 pages of body against a limit of 12**.
+SIAM's template forbids changing the margins, page size, font or the 10pt size, so there is no denser
+configuration to reach for. Four and a half pages have to come out of the main part. That is a decision
+about the paper, and Robin has it.
 
-> Submissions should use the LaTeX macros at the web page:
-> https://www.siam.org/publications/proceedings/
+Two smaller notes for whoever does the switch:
 
-The paper is currently `\documentclass[acmtog]{acmart}` — ACM's class, in its Transactions on Graphics
-variant. Every trace of ACM identity has been suppressed so the PDF does not claim to be something it
-isn't, but the class itself still has to go.
-
-## What to get
-
-**`siamproceedings.sty`** — version 2.0, dated 15 January 2025, from
-<https://www.siam.org/publications/proceedings/>.
-
-> **Corrected 2026-09-08.** An earlier version of this note sent you after `ltexpprt.sty` in
-> `soda2e_022817.zip`. Robin found that `siamproceedings.sty` has superseded it, and he is right: the
-> new file's own header says it is "based on ltexpprt.sty and siamart250106.cls" and identifies itself
-> as a "Revision of SIAM Proceedings macros for use with LaTeX 2e". The package I named is from 2017.
-> Get the 2025 one.
-
-The package consists of six files, and we want at least the first three:
-
-| file | what it is |
-| --- | --- |
-| `siamproceedings.sty` | **the macro file** |
-| `siamplain.bst` | **the BibTeX style — we need this too, see below** |
-| `example_doublecolumn.tex` | the template to follow; it settles which `\documentclass` and options to use |
-| `example_singlecolumn.tex` | the single-column variant, not what we want |
-| `example_references.bib`, `example_fig1.eps` | example inputs |
-
-It is a **package**, used with `\usepackage{siamproceedings}`, not a document class — so there is no
-`.cls` to look for. That is worth knowing because searching for a class file is how the previous
-attempt at this went wrong.
-
-## Why `siamplain.bst` matters as much as the `.sty`
-
-The paper's bibliography is currently produced by `ACM-Reference-Format.bst`, which comes with acmart
-and emits a `.bbl` full of acmart-only macros. Under the SIAM package that `.bbl` will not compile, so
-the bibliography has to be regenerated with `siamplain.bst`.
-
-**That is possible now and was not a week ago.** `paper/sample-base.bib` did not exist until it was
-reconstructed on 2026-09-07 — BibTeX had been failing silently and the committed `.bbl` was the only
-copy of the bibliography anywhere. So grab `siamplain.bst` along with the `.sty`, or the references
-will disappear at the first `bibtex` run with nothing to rebuild them from.
-
-## One earlier warning in this note was overstated
-
-It said `siamart` is "not it" and is "the wrong series". That was too strong: `siamproceedings.sty` is
-itself derived from `siamart250106.cls`. What remains true is that we want the *proceedings* package
-rather than the journal class, and that ACDA27's submissions page points at SIAM's proceedings macros
-page specifically.
-
-## Also worth knowing
-
-The appendix does not count against the twelve pages — ACDA27 reads it at the program committee's
-discretion and it is not printed in the proceedings. Three sections have been moved or written there
-for that reason, and it remains the cheapest place to put anything that is detail rather than argument.
+- `siamproceedings.sty` and `siamplain.bst` sit one directory below `paper/`, where `acmart.cls`
+  currently sits. Copy those two files up into `paper/` at switch time, or add the package directory to
+  `TEXINPUTS` and `BSTINPUTS`.
+- On TeX Live 2020 the package needs a two-line shim: it calls `\AddToHook`, added to the LaTeX kernel
+  in 2020-10-01, and TL2020 carries 2020-02-02. See §0l. On a current distribution the shim is
+  unnecessary.
 
 ---
 
