@@ -50,7 +50,7 @@ then.
 | ~~**4.1**~~ | ~~"HuskySort is always faster than dual-pivot quicksort"~~ — **APPLIED 2026-09-07**, tex 1441–1447 |
 | ~~**8**~~ | ~~the appendix's crash result~~ — **APPLIED 2026-09-07**: both columns now shown, prose rewritten |
 | ~~**0h**~~ | ~~PR #64 rebuild~~ — **APPLIED 2026-09-07**: five tables, every derived figure, the appendix, the abstract |
-| **9** | **the squeeze**: body is 12.46 pages against a limit of 12 — about half a page still to find | throughout |
+| **9** | **the squeeze**: body still runs onto page 13. **Do not attempt further trimming under acmart** — see 0j |
 | ~~**5.2**~~ | ~~a measurement the body does not contain~~ — **APPLIED 2026-09-07**, tex 729–758. But see the new item below about the abstract's range |
 | **0e** | **the abstract's "a tenth to a quarter" is not what the body now says** — and the abstract is submitted tomorrow | tex 251–254 |
 | ~~**1.5**~~ | ~~"every non-string row exceeds every string row"~~ — **APPLIED 2026-09-07**, tex 567–588 |
@@ -924,6 +924,62 @@ to carry that much identifying information in package names regardless of anonym
 ends `.seis`, not `.huskySort` — so an IDE package refactor, or a find-and-replace on the package name,
 will miss it. To be done only if tasks 1
 and 2 are complete and the paper is otherwise ready, and never in the same commit as anything else.
+
+---
+
+# 0j. Why the squeeze must wait for the SIAM class — measured, 2026-09-08
+
+Four trims were applied and measured individually. Three helped, one hurt badly, and removing a whole
+table hurt too. **The metric is dominated by float placement, not by content length**, so trimming
+under acmart is not converging on anything and would not transfer anyway.
+
+The measurement used throughout is where `ACKNOWLEDGMENTS` starts on page 13, the body running onto
+that page at all being what puts us over twelve. Lower is better; 10% is the top text margin, i.e.
+success.
+
+| state | ACKS on p13 |
+| --- | ---: |
+| before this pass | 55.8% |
+| §Data Source trimmed, Amdahl passage fixed, conclusion bullets to prose | **40.7%** |
+| …plus Table `Guidance`'s caption shortened | **39.4%** |
+| …plus §sec:usecase's two restating passages compressed | 83.0% |
+| A/B/C + caption, but with Table `Guidance` deleted outright | 55.7% |
+
+The last two rows are the point. Compressing five lines of §sec:usecase cost **42 percentage points**,
+and deleting a six-row full-width table cost **16**. Removing content made the overflow worse in both
+cases, because LaTeX re-deferred floats and text redistributed across pages 12 and 13 in ways that had
+nothing to do with how much text there was.
+
+**Kept** (rows 2 and 3 above): they are improvements on their own merits, not just page count.
+
+- §Data Source's permits paragraph was six lines duplicating §A.3, which now carries the case study.
+- The parallel-scaling passage **contradicted itself**: it said "the explanation we favour is bandwidth
+  rather than scheduling", then two sentences later "this points instead to a property of the design
+  itself", endorsing both. It now names both, says we cannot separate them without hardware counters,
+  and observes that only the design one would survive better hardware.
+- The conclusion's three-bullet `itemize` restated §sec:summary; it is now one sentence.
+- Table `Guidance`'s caption said "The questions are ordered by…" while its first column is headed
+  "Your situation". Shortening it reconciled that mismatch, which 0d had recorded separately.
+
+**Reverted, and worth keeping for later**: the §sec:usecase compression. The prose change is good — it
+removes a genuine restatement — but it costs 42 points under this class. Retry it after the switch.
+
+```latex
+Every one of these crossovers has the same shape --- each successive algorithm carries a larger fixed
+setup cost, repaid only once there is enough work to amortize it against --- which is the story
+\S~\ref{sec:parallel-radix} finds again one level down, in thread and barrier setup.
+They were measured for String keys only; the costs involved are architectural rather than
+type-specific, so other types plausibly behave similarly, but we have not confirmed it.
+```
+
+## What to do instead
+
+Nothing, until `ltexpprt.sty` lands and the paper builds under it. Then measure once and cut against
+that layout. The structural levers, in the order they cost the argument least, are: move Table
+`Guidance` to the appendix and keep §sec:usecase's prose in the body, which the prose supports since it
+already states every crossover; move the whole of §sec:usecase to the appendix, which is guidance
+rather than results; or drop Table `ParallelRadix`, which is two rows and whose figures the surrounding
+prose quotes in full anyway.
 
 ---
 

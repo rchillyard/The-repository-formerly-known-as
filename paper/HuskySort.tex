@@ -1012,11 +1012,9 @@ Table ~\ref{tab:EncodingConstants} lists the constants each wrapper uses.
 The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection\cite{GOLDHAHN12.327}.
 Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus\cite{wainshine2020chinesenames}.
 Every other dataset in this paper is generated: pseudo-random numbers, dates and tuples.
-One is not.
-The building-permit records of \S~\ref{sec:radix-results} are 198,900 rows of a public municipal dataset,
-each ordered by a composite key of three fields --- assessor's block, assessor's lot, and filing date ---
-and they are included precisely because they are real,
-with whatever distribution of block sizes, lot numbering and filing dates the city happens to have.
+The building-permit records of \S~\ref{sec:radix-results} are not.
+They are 198,900 rows of a public municipal dataset, ordered by a composite key of assessor's block,
+lot and filing date, and are included because their distribution is the city's rather than ours.
 
 In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in Listing~\ref{lst:DS}.
 
@@ -1434,17 +1432,16 @@ Unlike on the eight-core machine of an earlier draft, scaling does not stop at f
 on sixteen uniform cores, eight threads beats four at both sizes with intervals that do not overlap,
 reaching 1.51x and 1.37x over a single thread.
 
-That is still well short of linear, and the shortfall is the more interesting number.
-An eightfold increase in threads buys between 1.4x and 1.5x,
+That is still well short of linear, and the shortfall is the more interesting number:
+an eightfold increase in threads buys between 1.4x and 1.5x,
 on hardware with no performance/efficiency asymmetry to account for it.
-The explanation we favour is bandwidth rather than scheduling:
-each digit pass scatters across the whole array, so the algorithm is limited by memory throughput,
-which extra cores do not supply.
-The parallel variant still beat QuickHuskySort by roughly 9x on that run even at this weak scaling,
-since most of that margin comes from radix sort's own serial advantage rather than parallelism's incremental contribution.
-This points instead to a property of the design itself:
-each pass's sequential histogram-combine step runs once per synchronization point regardless of thread count,
-so it becomes a proportionally larger part of the total as thread count grows — an Amdahl's-law-style bottleneck rather than an artifact of any one machine's core layout.
+Two explanations fit, and we cannot separate them without hardware counters.
+Each digit pass scatters across the whole array, so the sort may simply be limited by memory throughput,
+which extra cores do not supply; and each pass's histogram-combine step is sequential,
+running once per synchronization point whatever the thread count,
+so it grows as a share of the total as threads are added.
+The first would be a property of the machine and the second of the design,
+and only the second would survive better hardware.
 
 \subsection{Use-Case Guidance}
 \label{sec:usecase}
@@ -1459,9 +1456,8 @@ and Table ~\ref{tab:Guidance} puts them in the order a practitioner can answer t
 Size enters only once those are settled, and then only near the bottom of the range.
 
 \begin{table*}
-  \caption{Which sort to reach for. The questions are ordered by how much they decide:
-    the cost of the comparison, the exactness of the encoding, and the existence of a sort
-    specialised to the type. Array size settles nothing until all three are answered.}
+  \caption{Which sort to reach for. The situations are ordered by how much they decide, and
+    array size settles nothing until all of them are.}
   \label{tab:Guidance}
   \begin{tabular}{p{0.42\textwidth}p{0.24\textwidth}p{0.26\textwidth}}
     \toprule
@@ -1557,16 +1553,13 @@ its scaling ceiling past a handful of threads is a property of the design itself
 the fixed sequential cost of combining per-thread histograms once per pass,
 not an artifact of any one machine's particular mix of core types.
 
-HuskySort's advantage is specific to a particular kind of workload, not universal.
-All three of the following need to hold:
-\begin{itemize}
-\item {}\textbf{A large array}: at least a few hundred elements for QuickHuskySort,
-growing to a few thousand or more before RadixHuskySort's own fixed per-pass setup cost is worth paying (\S~\ref{sec:usecase}).
-\item {}\textbf{No expectation of pre-existing order}: a partially-sorted array favors Timsort's adaptivity instead (\S~\ref{sec:summary}).
-\item {}\textbf{A comparison or equality test that costs more than a single machine-word check}:
-Strings, arbitrary-precision numbers, and multi-field records,
-as opposed to \textit{int}/\textit{long}/\textit{double}, where dual-pivot quicksort already wins outright.
-\end{itemize}
+HuskySort's advantage is specific to a particular kind of workload rather than universal, and needs
+all three of the following to hold: an array of at least a few hundred elements, growing to a few
+thousand before RadixHuskySort's own per-pass setup cost is repaid (\S~\ref{sec:usecase});
+no expectation of pre-existing order, which favours Timsort's adaptivity instead (\S~\ref{sec:summary});
+and a comparison costing more than a single machine-word check --- strings, arbitrary-precision numbers
+and multi-field records, as opposed to \textit{int}, \textit{long} or \textit{double},
+where dual-pivot quicksort already wins outright.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
