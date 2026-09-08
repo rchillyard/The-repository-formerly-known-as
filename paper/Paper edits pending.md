@@ -1570,6 +1570,52 @@ have that structure unless someone had thought to put it there.
 
 ---
 
+# 0q. Wasted space around Figure 1 and between the algorithm listings, 2026-09-08
+
+Robin spotted three layout problems by eye. All three were real, all three are fixed, and **none of
+them moved the page count** — which is itself the useful result.
+
+## Figure 1: 25% of the image was blank margin
+
+A 208pt gap sat in page 2's left column after the Fig. 1 caption — about a third of a column. Decoding
+`HuskySortFlow.png` directly (no PIL on this machine, so a small pure-Python PNG reader) gave the ink
+bounding box as x 133..755, y 85..817 of 806x976 pixels. **Blank margins of 85px top, 158px bottom,
+133px left and 50px right — 25\% of the height and 23\% of the width, baked into the file.**
+
+Fixed with `trim` and `clip` rather than by editing the PNG, so the file stays as published. `pHYs`
+declares 144 dpi, so the trim values are in bp (pixels x 72/144) and are held a few bp inside the
+measured margins so no ink can be clipped.
+
+**One correction to myself along the way.** Cropping at the original `width=0.5\linewidth` made the
+*diagram* 30\% bigger rather than the *space* smaller — the box height barely changed while the ink
+grew from 109pt to 141pt. To recover space the width had to come down too, to `0.39\linewidth`, which
+is $0.5 \times 623/806$ and keeps the diagram at its original apparent size, 92pt by 109pt of pure ink.
+**The gap is now 136pt, down from 208.**
+
+## Algorithms 1 and 2, and 3 and 4
+
+45pt and 49pt between consecutive listings. The cause is float separation: `\floatsep`,
+`\textfloatsep` and `\intextsep` at their defaults, which are generous for a two-column layout under a
+page limit. Now 8pt, 10pt and 8pt, set inside `\AtBeginDocument` so the class cannot override them
+afterwards. The 45pt and 49pt gaps are gone; one 37pt gap remains between Algorithms 3 and 4.
+
+## But the page count did not improve
+
+**14.29 before, 14.40 after** — marginally worse, which is float reflow within noise. Seventy-two
+points of gap removed from one column and a dozen float separations tightened, and the body is where it
+was.
+
+That is now the fifth measurement today saying the same thing (§0j, §0m, §0o, §0n): **the SIAM body
+sits at about 14.3--14.4 pages almost regardless of local changes**, because float *placement* rather
+than float *size* decides where the pages break. It reinforces that the remaining 2.4 pages have to
+come from removing whole floats, not from making the existing ones smaller or the gaps tighter.
+
+Three end-of-column gaps survive at 58pt, 76pt and 51pt on pages 9, 10 and 11. Those are columns cut
+short because the next float would not fit, which is inherent to float placement and not addressable by
+settings.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE

@@ -62,6 +62,15 @@
 \acmMonth{9}
 \pdfoutput=1
 
+%% Float separation. The defaults leave 45--49pt between consecutive algorithm listings and a
+%% comparable band around figures, which is generous in a two-column layout under a page limit.
+%% Set at begin-document so the class cannot override these afterwards.
+\AtBeginDocument{%
+  \setlength{\floatsep}{8pt plus 2pt minus 2pt}%
+  \setlength{\textfloatsep}{10pt plus 2pt minus 4pt}%
+  \setlength{\intextsep}{8pt plus 2pt minus 2pt}%
+}
+
 %%
 %% ---- Draft revision stamp -------------------------------------------------------------
 %% Prints the build date and time in the page footer of every page, so that any printout or
@@ -447,7 +456,12 @@ cleaning up the (hopefully few) remaining inversions in step 3, where the array 
   \label{Fig:HS}
    \Description{An Overview of HuskySort}
   \centering
-  \includegraphics[width=0.5\linewidth]{HuskySortFlow.png}
+  %% The source PNG carries wide blank margins -- 25\% of its height, 23\% of its width. Measured
+  %% ink bounding box is x 133..755, y 85..817 of 806x976 px; pHYs declares 144 dpi, so trim is in
+  %% bp (px * 72/144), held a little inside the measured margins so no ink is clipped.
+  %% Width is 0.39 rather than 0.5 so that the diagram keeps its original apparent size and the
+  %% saving comes out of the blank margin, not out of legibility.
+  \includegraphics[trim=62 74 22 38, clip, width=0.39\linewidth]{HuskySortFlow.png}
 \end{figure}
 The strategy of HuskySort (see Flow ~\ref{Fig:HS}) is as follows,
 assuming the dataset is presented as an array $xs$ of type $X$:
