@@ -2351,3 +2351,54 @@ prose while the caption growth is in the appendix. **~1.7 pages still to find.**
 
 Note for re-measuring: the trial needs `TEXINPUTS` to include both `paper/` (for `HuskySortFlow.png`)
 and `paper/siamproceedingsmacros_022425/`, else the figure silently falls back to a draft box.
+
+---
+
+# 0t. The Chinese-words result — kept, but honestly labelled — 2026-09-08
+
+Robin asked whether to delete it: not compared against MSD radix sort, and code-point order may not be
+an order anyone wants. Both objections are sound. The proposed remedy was space, and that premise fails.
+
+## Deleting it saves 0.036 pages
+
+Measured, not estimated. A trial removing the result everywhere — three `HS_BM` rows, the
+`RadixImprovements` row, the summary-range clause, the multikey figure, and the whole of §A.13 — was
+converted through `siam-convert.py` and built:
+
+| | body |
+| --- | ---: |
+| current | 13.690 |
+| Chinese words deleted throughout | 13.655 |
+
+Two lines, against the ~1.7 pages needed. **Kept.** It is our best string result (3.4x, fourth of
+eleven, against English at 2.6x), and it is the positive pole of the within-type contrast in
+§sec:usecase — delete it and Chinese names and English words contrast with nothing.
+
+## What the objections are worth
+
+- **MSD**: correct that there is no MSD row for Chinese, and the paper says why at 611--616 (our MSD
+  indexes 256 characters, which neither Chinese corpus fits). But Chinese words *is* measured against
+  three-way radix quicksort at 3.1--4.0x, which is Bentley--Sedgewick, not a strawman. "Not compared"
+  overstates it; "compared against one of the two classic baselines" is exact. The residual exposure is
+  presentational: the baseline that beats us cannot run on the corpus carrying our best string number.
+- **Code-point order**: correct, and the paper's defence was thin. It argued a word list has several
+  conventional orderings so code-point order is "one collation among many"; the real reason is the
+  clause after it, that it keeps the row comparable with the English one. Reworded to say that plainly.
+
+## One term, everywhere
+
+The paper had three names for one thing — "natural Unicode order" (595, 623), "natural order" (625,
+1126), "code-point order" (627, 1056). Now **code-point order** throughout, that being the precise one
+and the one the `HS_BM` caption already used.
+
+`HS_BM` also now labels the collation on the words rows, mirroring "(pinyin order)" on the names rows
+directly below, so the table declares it instead of making the reader find it in prose.
+
+## And two more bare-"Chinese" ambiguities, same family as §0s
+
+- 1143 "holds roughly constant on Chinese" — which corpus? True of both (words 1.96/2.31/2.03, names
+  2.60/2.81/2.48), so: "on both Chinese corpora".
+- 601 "3.1--4.0x on Chinese" — the words corpus, names in code-point order being explicitly disclaimed
+  twenty lines later. Now says so.
+
+Body unchanged at 13.69: the label and the disambiguations pay for the §A.13 trim.

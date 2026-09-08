@@ -592,13 +592,13 @@ Strings are unfavourable on the third count in a way no other type in this paper
 Half a century of specialised string sorting exists,
 and a general mechanism should not be expected to beat it on its own ground.
 We compared RadixHuskySort against both of the classic string sorts named above,
-under JMH, on English and Chinese text, in natural Unicode order so that every sort compared
+under JMH, on English and Chinese text, in code-point order so that every sort compared
 performs the same task.
 Both baselines are our own implementations,
 each tuned so that its fallback below the partitioning cutoff allocates nothing
 and compares from the depth the partitioning has already established.
 Against three-way radix quicksort RadixHuskySort is faster at every size tested,
-by 1.3--2.4x on English and 3.1--4.0x on Chinese,
+by 1.3--2.4x on English words and 3.1--4.0x on Chinese words,
 with non-overlapping 99.9\% confidence intervals throughout.
 Against MSD radix sort the result goes the other way at scale, though not by much:
 on English text the two are indistinguishable at $N=32{,}000$,
@@ -620,12 +620,12 @@ A direct empirical comparison against burstsort remains future work;
 it is a trie-based, cache-conscious algorithm designed to beat both baselines used here on exactly this workload,
 and we have not implemented it.
 
-Natural Unicode order is not a meaningful comparison for Chinese personal names specifically —
+Code-point order is not a meaningful comparison for Chinese personal names specifically —
 it is simply the wrong order for that use case, not merely a different one.
-Leaving the word corpus in natural order is deliberate: a directory of people has one conventional
+Leaving the word corpus in that order is deliberate: a directory of people has one conventional
 ordering and it is by pinyin, where a word list has several --- by radical, stroke count, pinyin or
-frequency, according to purpose --- so code-point order there is one collation among many rather than
-the wrong one, and it keeps that row comparable with the English one.
+frequency, according to purpose --- so no single ordering is the right one to hold it to,
+and code-point order keeps that row comparable with the English one.
 A fair comparison for the names requires a pinyin-aware MultikeyQuicksort.
 We extended it with the same syllable-then-tone character key the pinyin encoding of \S~\ref{sec:radix} already uses,
 restricted the comparison to the three pinyin-aware sorters, and re-ran it.
@@ -1053,7 +1053,7 @@ rather than on RHSort, so they are in \S~\ref{sec:comparison-baselines}.
 \begin{table*}
   \caption{Sort times by data type (JMH, ms, mean $\pm$ 99.9\% CI). Numeric types at $N=500{,}000$.
     For Chinese names the system-sort column is a system sort performing the same pinyin ordering;
-    natural code-point order is a different and much cheaper task (\S~\ref{sec:radix-results}).}
+    code-point order is a different and much cheaper task (\S~\ref{sec:radix-results}).}
   \label{tab:HS_BM}
   \begin{tabular}{llllll}
     \toprule
@@ -1068,7 +1068,7 @@ rather than on RHSort, so they are in \S~\ref{sec:comparison-baselines}.
     & 200,000 & 141.39$\pm$2.59 & 94.74$\pm$2.44 & 55.01$\pm$2.20 & 50.27$\pm$2.51 \\
     & 1,000,000 & 1120.87$\pm$14.43 & 697.88$\pm$16.15 & 355.26$\pm$24.71 & 272.74$\pm$6.46 \\
     Chinese words & 32,000 & 9.78$\pm$0.08 & 5.00$\pm$0.04 & 2.10$\pm$0.03 & 1.89$\pm$0.02 \\
-    & 200,000 & 71.34$\pm$0.63 & 30.90$\pm$0.13 & 13.49$\pm$0.15 & 10.85$\pm$0.10 \\
+    (code-point order) & 200,000 & 71.34$\pm$0.63 & 30.90$\pm$0.13 & 13.49$\pm$0.15 & 10.85$\pm$0.10 \\
     & 1,000,000 & 447.12$\pm$2.28 & 219.80$\pm$1.99 & 83.25$\pm$2.31 & 65.46$\pm$1.47 \\
     Chinese names & 32,000 & 69.1$\pm$1.4 & 26.6$\pm$0.3 & 24.1$\pm$0.2 & 23.1$\pm$0.3 \\
     (pinyin order) & 200,000 & 526.2$\pm$9.5 & 187.2$\pm$1.0 & 157.0$\pm$1.3 & 154.9$\pm$1.2 \\
@@ -1123,7 +1123,7 @@ rather than as a percentage, since a percentage figure close to or above 100\% b
     \texttt{Dates} & 20,000 & 5.9x \\
     \texttt{Long} & 500,000 & 3.6x \\
     \texttt{Integer} & 500,000 & 3.6x \\
-    \texttt{Strings of Chinese words (natural order)} & 1,000,000 & 3.4x \\
+    \texttt{Strings of Chinese words (code-point order)} & 1,000,000 & 3.4x \\
     \texttt{Double} & 500,000 & 3.2x \\
     \texttt{BigInteger} & 500,000 & 2.8x \\
     \texttt{BigDecimal} & 500,000 & 2.8x \\
@@ -1140,7 +1140,7 @@ as $N$ grows: a constant-factor saving on a linearithmic sort could be swamped a
 Neither does.
 QuickHuskySort's margin over the system sort on English text \emph{widens} with size,
 from 1.41x at $N=32{,}000$ to 1.49x and then 1.61x (Table ~\ref{tab:HS_BM}),
-and holds roughly constant on Chinese.
+and holds roughly constant on both Chinese corpora.
 Radix sort's advantage over QuickHuskySort likewise does not shrink with $N$:
 at every size and data type in Table ~\ref{tab:RadixImprovements}, the margin is 1.5x or greater,
 consistent with the theoretical model of \S~\ref{sec:radix} predicting no logarithmic term at all,
@@ -1620,8 +1620,8 @@ which is what allows the pass to be switched on and off over identical codes.
 \subsection{Why the two Chinese corpora sit at opposite ends of the table}
 \label{sec:chinese-coders}
 
-Both corpora are Chinese text, yet Chinese words are among the strongest results in Table
-~\ref{tab:RadixImprovements} and Chinese personal names the weakest.
+Both corpora are Chinese text, yet they sit at opposite ends of Table
+~\ref{tab:RadixImprovements}.
 The difference is entirely in how the two coders spend their 64 bits.
 
 The Unicode coder gives each character sixteen bits, drawn from a range of thousands of code points,
