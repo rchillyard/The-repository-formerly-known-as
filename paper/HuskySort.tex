@@ -440,6 +440,7 @@ cleaning up the (hopefully few) remaining inversions in step 3, where the array 
 
 
 \subsection{Overview}
+\label{sec:overview}
 
 \begin{figure}
   \caption{HuskySort Flow}
@@ -448,8 +449,8 @@ cleaning up the (hopefully few) remaining inversions in step 3, where the array 
   \centering
   \includegraphics[width=0.5\linewidth]{HuskySortFlow.png}
 \end{figure}
-The strategy of HuskySort (see Flow ~\ref{Fig:HS}) is as follows (assuming that the dataset is presented as an array $xs$ of type $X$):
-see Algorithm ~\ref{alg:the_alg}
+The strategy of HuskySort (see Flow ~\ref{Fig:HS}) is as follows,
+assuming the dataset is presented as an array $xs$ of type $X$:
 
 
 \begin{steps}
@@ -810,16 +811,6 @@ Given the notion of hashing that the algorithm uses, it would seem natural to ca
 Unfortunately, that name was already taken for quite a different algorithm\cite{DBLP:journals/corr/cs-DS-0408040}.
 We chose the name Husky Sort instead, after the husky, which is the mascot of the university where this work was developed.
 
-\begin{algorithm}
-\KwIn{\it{xs} as an array of object X which extends Comparable<X>}
- coding = huskyCoder.huskyEncode(xs)\;
- longs = coding.longs\;
- Introsort(xs, longs, 0, longs.length, 2 * floor\_lg(xs.length))\;
- \If{coding.perfect}{return\;}
- Arrays.sort(xs)\;
- \caption{HuskySort.sort}
- \label{alg:the_alg}
-\end{algorithm}
 
 \begin{algorithm}
 \KwIn{\it{xs} as an array of object X}
@@ -833,20 +824,6 @@ We chose the name Husky Sort instead, after the husky, which is the mascot of th
  \label{alg:the_alg2}
 \end{algorithm}
 
-\begin{algorithm}
-\KwIn{\it{xs} as an array of CharSequence X}
-\KwOut{A new \it{Coding} object}
- isPerfect = true\;
- result = new long[xs.length]\;
- \For{i = 0 to xs.length}{
- X x = xs[i]\;
- \If{isPerfect}{isPerfect = perfectForLength(x.length())\;}
- result[i] = huskyEncode(xs[i])\;
- }
- return new Coding(result, isPerfect)\;
- \caption{huskyEncode (for character sequence)}
- \label{alg:the_alg3}
-\end{algorithm}
 
 \begin{algorithm}
 \KwIn{\it{permit}, with fields \it{block}, \it{lot}, \it{filedDate}\;}
@@ -892,8 +869,9 @@ which differ in vendor, instruction set, core design and JVM generation.
 
 \subsection{Implementation of Algorithm}
 
-The top-level \textit{sort} method and the default \textit{huskyEncode} method are implemented directly as shown in Algorithms ~\ref{alg:the_alg} and ~\ref{alg:the_alg2} above;
-rather than repeat that logic here as Java source, we describe only the details not already covered by those two listings.
+The top-level \textit{sort} method follows the three steps of \S~\ref{sec:overview} directly, and the
+default \textit{huskyEncode} is Algorithm ~\ref{alg:the_alg2} above;
+rather than repeat either as Java source, we describe only the details those do not already cover.
 
 \textit{Coding} is a simple immutable holder combining the resulting \textit{long[]} array of codes with the \textit{perfect}
 flag used by both algorithms (two fields, set once by its constructor).

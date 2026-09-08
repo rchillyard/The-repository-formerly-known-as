@@ -1456,8 +1456,12 @@ headline results. That leaves four, of which two are strong:
 | `RadixHuskySort.sort`, `radixSortIndices` | core; keep |
 | `PermitCoder` (new) | Robin asked for it, and it carries §A.5's three properties; keep |
 | `huskyEncode` | shared by both algorithms; keep |
-| **`HuskySort.sort`** | QuickHuskySort's top level — **candidate**, being the algorithm now positioned as prior work |
-| **`huskyEncode` for a character sequence** | string-specific — **candidate**, strings being explicitly not the sweet spot |
+| ~~`HuskySort.sort`~~ | **REMOVED 2026-09-08.** QuickHuskySort's top level, the algorithm now positioned as prior work. Its two references were reworded: §Overview's steps stand on their own, and §Implementation now says the top-level `sort` follows those three steps directly |
+| ~~`huskyEncode` for a character sequence~~ | **REMOVED.** String-specific, strings being explicitly not the sweet spot — and it was **orphaned**, with no reference anywhere in the paper |
+
+**Measured: 14.45 → 14.29, worth only 0.16** against the 0.5 estimated. Four listings remain, all
+earning their place: `RadixHuskySort.sort`, `radixSortIndices`, `huskyEncode`, and the `PermitCoder`.
+**2.29 still to find**, and nothing cheap is left.
 
 **Measured: those two were worth 0.93 — body 15.38 → 14.45**, the first substantial move since the
 figures, and confirming that floats rather than prose are where the pages are. **2.45 still to find.**
