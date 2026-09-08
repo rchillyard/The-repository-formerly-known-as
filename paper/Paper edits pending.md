@@ -1052,6 +1052,69 @@ The SIAM package has no equivalent option, so under it this is manual.
 
 ---
 
+# 0l. The SIAM conversion — it builds, and the paper is four pages over. Trial, 2026-09-08
+
+Robin downloaded `siamproceedings.sty` and `ltexpprt.all` into `paper/`. I converted the paper in the
+scratchpad, leaving `paper/HuskySort.tex` untouched. The working trial is kept as
+`doc/HuskySort-siam-trial.tex` — it is **not** the paper, it is a proof that the conversion works and a
+record of what it took.
+
+## It builds: zero errors, zero undefined references
+
+`\documentclass[twocolumn]{article}` plus `\usepackage{siamproceedings}`, two-column, letter. Nine
+changes were needed, and the first is the one nobody would guess.
+
+| # | change | why |
+| ---: | --- | --- |
+| 1 | shim `\AddToHook` to a no-op | **`siamproceedings.sty` is newer than this machine's LaTeX.** It calls `\AddToHook`, added to the kernel in 2020-10-01; TeX Live 2020 here has kernel 2020-02-02. Ten uses, all `\crefalias` for theorem environments this paper does not contain, so discarding them costs nothing — but on an unpatched TL2020 the build dies with 844 errors |
+| 2 | `algorithm2e` gains the `algo2e` option; six `algorithm` environments renamed to `algorithm2e` | `siamproceedings` requires the `algorithm` package and `algorithm2e` defines the same environment name. `algo2e` is the documented escape. The paper uses `\KwIn` ×8, `\KwOut` ×4, `\KwTo`, `\eIf`, so algorithm2e has to stay |
+| 3 | add `xcolor`, `booktabs`, `tabularx`, `comment` | all four were being provided by acmart |
+| 4 | drop `\setcopyright`, `\copyrightyear`, `\acmYear`, `\acmDOI`, `\settopmatter`, `\acmJournal`, `\acmVolume`, `\acmNumber`, `\acmArticle`, `\acmMonth`, `\citestyle`, `\footnotetextcopyrightpermission` | acmart-only |
+| 5 | drop the `CCSXML` block and `\ccsdesc[...]{...}` | ACM's classification scheme. **Note the optional argument** — a regex for `\ccsdesc{...}` misses `\ccsdesc[500]{...}` |
+| 6 | drop `\Description{...}` from figures | acmart's accessibility macro |
+| 7 | `\begin{acks}` → `\section*{Acknowledgments}` | acmart environment |
+| 8 | remove the ORCID icon machinery | it uses tikz's `\foreach`, which nothing else loads. **And it was already inside `\begin{comment}`** — see the correction to 0k below |
+| 9 | `\bibliographystyle{plain}` as a stopgap | `siamplain.bst` was not among the downloaded files |
+
+## The bad news: 16.5 pages of body against a limit of 12
+
+| | acmart | siamproceedings |
+| --- | ---: | ---: |
+| body | ~13 pages | **~16.5** |
+| total | 16 | 20 |
+| references start | p13 | p17 |
+| appendix | 13–16 | 18–20 |
+
+The Conclusion runs onto page 17, interleaved with the start of the references. **So the SIAM layout
+costs about three and a half pages relative to acmart**, and the squeeze is a four-and-a-half page
+problem rather than the half-page one we were planning for.
+
+The cause is straightforward: `siamproceedings` sets `\textwidth` to 41pc and `\textheight` to 52.5pc
+and forces 10pt via `\renewcommand\@ptsize{}`, where acmart's `acmtog` uses a smaller body font and
+tighter leading. There is no size option to turn — the package overrides `\@ptsize` itself.
+
+**This changes the nature of the remaining work**, and it is Robin's call which way to go. Trimming
+four and a half pages of prose is not a tidying exercise; it is a rewrite of the paper at a different
+length. The alternatives worth weighing are moving substantially more into the appendix, which is free
+and which the program committee reads at its discretion; or checking whether ACDA27's twelve pages are
+counted in *their* template, in which case the figure that matters may not be 16.5 at all.
+
+## Two caveats on the measurement
+
+The trial has **no front matter at all** — no title block, no author block — so the real thing will be
+slightly longer, not shorter. And it uses `plain` rather than `siamplain.bst`, which will change the
+length of the reference list but not of the body.
+
+## A correction to 0k
+
+0k said authors A and B had ORCIDs "declared but never used". That was wrong: **all three
+`\orcidauthor` macros sit inside a `\begin{comment}` block at tex 150–177, so none of them is declared
+at all.** The one ORCID that does print comes from a literal `\orcid{0000-0001-9734-7358}` at tex 233
+and 242, not from the macros. The conclusion of 0k is unaffected — the ORCIDs come out — but the reason
+is simpler than stated.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE
