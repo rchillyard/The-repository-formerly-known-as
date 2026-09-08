@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{20}
+\begin{thebibliography}{21}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -98,6 +98,17 @@
   \bibinfo{address}{USA}, \bibinfo{pages}{360--369}.
 \newblock
 \showISBNx{0898713900}
+
+
+\bibitem[\protect\citeauthoryear{{DataSF}}{{DataSF}}{2026}]%
+        {datasf-building-permits}
+\bibfield{author}{\bibinfo{person}{{DataSF}}.} \bibinfo{year}{2026}\natexlab{}.
+\newblock \bibinfo{title}{Building Permits}.
+\newblock \bibinfo{howpublished}{San Francisco open data portal}.
+\newblock
+\newblock
+\shownote{Licensed under the Open Data Commons Database Contents License (DbCL)
+  v1.0, \url{https://opendatacommons.org/licenses/dbcl/1-0/}.}
 
 
 \bibitem[\protect\citeauthoryear{Frigo, Leiserson, Prokop, and

@@ -1466,6 +1466,62 @@ The two candidate listings are perhaps 0.5 of it; the rest has to come from `HS_
 
 ---
 
+# 0p. The abstract rewritten, and two gaps it exposed, 2026-09-08
+
+Robin's judgement: the abstract was too long and no longer matched the paper's focus. Both were right.
+**423 words down to 237**, and QuickHuskySort now retires in eight third-person words — "Earlier work
+sorted such codes with quicksort" — which is what §1 had already said and the abstract had not caught up
+with.
+
+Dropped, all of it still in the body: QuickHuskySort's own paragraph and its 1.4--2.5x range; the
+pinyin baseline disclosure at length; the cleanup pass's figures, reduced to "we measure directly, for
+the first time"; and "which bounds the result rather than contradicting it".
+
+**Page-neutral.** 193 words out of the abstract moved the body not at all, consistent with everything
+else measured today.
+
+## Gap 1: the parenthetical, and where it belongs
+
+Robin agreed to restoring the pinyin baseline disclosure but questioned whether the abstract was the
+place. The resolution was placement rather than presence: attached to the *claim* it reads as a hedge,
+attached to the *list item* it reads as specifying what was measured. It now sits on the item ---
+"Chinese personal names in pinyin order (against a system sort performing that same ordering)".
+
+## Gap 2: the body never reported the figure the claim rests on
+
+Checking that disclosure turned up something worse, and it predates the rewrite. **Table `HS_BM` had no
+Chinese-names row at all.** The corpus appeared only in `RadixImprovements`, as 1.6x over
+QuickHuskySort. So the abstract claimed RHSort beats the system sort "in every case" while listing a
+corpus for which the body gave no system-sort comparison — the same defect class as §5.2, and present
+in the previous abstract too.
+
+Fixed by adding three Chinese-names rows to `HS_BM`. **`full-suite.json` does carry
+`systemSortPinyin`**, so they come from the same run as every other row and no environments are mixed:
+69.1, 526.2 and 3112.9\,ms against RHSort/16's 23.1, 154.9 and 767.2 — **4.06x at the largest size**,
+which is what the abstract's range needed. The caption now states that this row's system-sort column is
+a pinyin-performing system sort and that code-point order is a different, cheaper task.
+
+## And a precision fix the new rows forced
+
+With those rows visible, a reader can compute 2.99x at $N=32{,}000$ — outside the abstract's stated
+"3.6 to 6.8x". That was already true of other types: English gives 3.28x at 32,000 and tuples 2.86x at
+20,000. **The range was always over the largest size of each type and the abstract never said so.**
+It now reads "by 3.6 to 6.8x at the largest size measured for each", which costs six words and makes
+the claim exact.
+
+## The permits data is now cited and licensed
+
+Robin found the licence: Open Data Commons DbCL v1.0. The permits corpus had been **uncited** while
+both other corpora were — conspicuous now that the abstract foregrounds "two hundred thousand municipal
+records". `sample-base.bib` gains an entry crediting **DataSF** as publisher, taken from
+`PermitLoader`'s own class comment rather than guessed, with the licence in a note. §Data Source cites
+it and states that only three columns are retained and under what licence.
+
+**No access date is recorded anywhere in the repository, so none was invented.** Worth adding before
+submission if Robin has it.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE

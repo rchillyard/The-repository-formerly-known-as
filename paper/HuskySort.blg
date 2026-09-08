@@ -27,45 +27,45 @@ Warning--empty address in 6115063
 Warning--empty publisher in Dual-pivot
 Warning--empty address in Dual-pivot
 Warning--page numbers missing in both pages and numpages fields in sort
-You've used 20 entries,
+You've used 21 entries,
             5901 wiz_defined-function locations,
-            1463 strings with 18475 characters,
-and the built_in function-call counts, 22798 in all, are:
-= -- 3040
-> -- 654
+            1469 strings with 18684 characters,
+and the built_in function-call counts, 23560 in all, are:
+= -- 3128
+> -- 674
 < -- 0
-+ -- 203
-- -- 239
-* -- 1535
-:= -- 2197
-add.period$ -- 103
-call.type$ -- 20
-change.case$ -- 117
-chr.to.int$ -- 20
-cite$ -- 36
-duplicate$ -- 2071
-empty$ -- 1464
-format.name$ -- 279
-if$ -- 5579
++ -- 208
+- -- 247
+* -- 1577
+:= -- 2284
+add.period$ -- 109
+call.type$ -- 21
+change.case$ -- 122
+chr.to.int$ -- 21
+cite$ -- 37
+duplicate$ -- 2144
+empty$ -- 1516
+format.name$ -- 287
+if$ -- 5743
 int.to.chr$ -- 2
 int.to.str$ -- 1
 missing$ -- 78
-newline$ -- 259
-num.names$ -- 164
-pop$ -- 733
+newline$ -- 269
+num.names$ -- 172
+pop$ -- 752
 preamble$ -- 1
-purify$ -- 297
+purify$ -- 311
 quote$ -- 0
-skip$ -- 711
+skip$ -- 740
 stack$ -- 0
-substring$ -- 1725
-swap$ -- 205
+substring$ -- 1784
+swap$ -- 210
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 430
+type$ -- 460
 warning$ -- 16
-while$ -- 173
+while$ -- 181
 width$ -- 0
-write$ -- 446
+write$ -- 465
 (There were 16 warnings)

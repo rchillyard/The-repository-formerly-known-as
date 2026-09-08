@@ -248,42 +248,26 @@
 %% article.
 
 \begin{abstract}
-    Most sorting algorithms in the literature optimize for the number of comparisons or exchanges;
-    we argue the more appropriate yardstick is the total number of array accesses (the "work"),
-    which for divide-and-conquer sorts splits into a linear, $\textbf{O}(N)$, phase and a linearithmic,
-    $\textbf{O}(N \log N)$, phase.
-    Moving work out of the linearithmic phase and into the linear phase reduces this total and,
-    where comparison itself is expensive, reduces processing time as well.
-    The key concept is a 64-bit code that is, as far as possible, order-preserving,
-    and stands in as a proxy for each original element;
-    we call it a "Husky" code.
-    Its effect is to extract each element's sort key once, rather than once per comparison.
-    We present two algorithms built on it.
-    QuickHuskySort encodes each object in a linear preamble,
-    sorts the cheap encoded keys in place of the expensive originals,
-    and falls back to a cleanup pass only where the encoding is imperfect.
-    RadixHuskySort replaces that sort with a linear-time radix sort on the same keys,
-    moving the second phase itself from linearithmic to linear.
-    Measured against Java's system sort for objects --- across integers, arbitrary-precision numbers,
-    dates, tuples, English and Chinese text, Chinese personal names in pinyin order,
+    Most sorting algorithms are judged by the comparisons or exchanges they perform.
+    We argue the better yardstick is the total number of array accesses,
+    which for a divide-and-conquer sort falls into a linear phase and a linearithmic one:
+    moving work out of the second and into the first reduces the total,
+    and where comparison is itself expensive it reduces running time as well.
+    The mechanism is a 64-bit code, order-preserving as far as possible,
+    standing proxy for each element; we call it a husky code.
+    Its effect is to extract each element's sort key once rather than once per comparison.
+    Earlier work sorted such codes with quicksort.
+    We replace that with a linear-time radix sort, making the second phase linear too,
+    and describe a parallel variant of it.
+    Measured against Java's system sort for objects --- integers, arbitrary-precision numbers,
+    dates, tuples, English and Chinese text,
+    Chinese personal names in pinyin order (against a system sort performing that same ordering),
     and two hundred thousand municipal records ordered by a composite key ---
-    RadixHuskySort is faster in every case, by 3.6--6.8x;
-    QuickHuskySort, which retains a comparison sort, by 1.4--2.5x wherever comparison is genuinely costly.
-    The clearest demonstration is the pinyin ordering,
-    where obtaining a single character's sort key requires a table lookup.
-    Compared against a system sort performing that same ordering ---
-    rather than the default one, which sorts by code point and so answers a different and much cheaper question ---
-    RadixHuskySort is faster by 4.1x at one million names and QuickHuskySort by 2.5x,
-    and the margin widens as the array grows.
-    That widening is the premise made visible:
-    what is saved is one key extraction per element in place of one per comparison.
-    The margin is widest of all when the ordering is expensive to evaluate and the encoding is also exact,
-    so that no cleanup pass is needed:
-    measured on input where that pass provably has nothing to correct,
-    it nonetheless accounts for as much as a quarter of total running time.
-    It is narrowest where algorithms specialised to the type already exist:
-    on English words, a tuned MSD radix sort matches or overtakes us.
-    This bounds the result rather than contradicting it, since the same mechanism applies unchanged to types for which no specialized sort exists.
+    RadixHuskySort is faster in every case, by 3.6 to 6.8x at the largest size measured for each.
+    The margin is widest where the ordering is expensive to evaluate and the encoding is exact;
+    where the encoding is inexact we measure directly, for the first time,
+    what the resulting cleanup pass costs.
+    One specialised competitor overtakes us: on English words a tuned MSD radix sort.
 \end{abstract}
 
 %%
@@ -942,8 +926,11 @@ The sources for the Strings (English and  Chinese) are retrieved from Leipzig Co
 Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus\cite{wainshine2020chinesenames}.
 Every other dataset in this paper is generated: pseudo-random numbers, dates and tuples.
 The building-permit records of \S~\ref{sec:radix-results} are not.
-They are 198,900 rows of a public municipal dataset, ordered by a composite key of assessor's block,
-lot and filing date, and are included because their distribution is the city's rather than ours.
+They are 198,900 rows of a public municipal dataset\cite{datasf-building-permits}, ordered by a
+composite key of assessor's block, lot and filing date, and are included because their distribution is
+the city's rather than ours.
+Only those three columns are retained, and the data is used under the Open Data Commons Database
+Contents License.
 
 In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in Listing~\ref{lst:DS}.
 
@@ -1129,7 +1116,9 @@ Dual-pivot quicksort and a from-scratch quicksort were measured too; they bear o
 rather than on RHSort, so they are in \S~\ref{sec:comparison-baselines}.
 
 \begin{table*}
-  \caption{Sort times by data type (JMH, ms, mean $\pm$ 99.9\% CI). Numeric types at $N=500{,}000$.}
+  \caption{Sort times by data type (JMH, ms, mean $\pm$ 99.9\% CI). Numeric types at $N=500{,}000$.
+    For Chinese names the system-sort column is a system sort performing the same pinyin ordering;
+    natural code-point order is a different and much cheaper task (\S~\ref{sec:radix-results}).}
   \label{tab:HS_BM}
   \begin{tabular}{llllll}
     \toprule
@@ -1146,6 +1135,9 @@ rather than on RHSort, so they are in \S~\ref{sec:comparison-baselines}.
     Chinese words & 32,000 & 9.78$\pm$0.08 & 5.00$\pm$0.04 & 2.10$\pm$0.03 & 1.89$\pm$0.02 \\
     & 200,000 & 71.34$\pm$0.63 & 30.90$\pm$0.13 & 13.49$\pm$0.15 & 10.85$\pm$0.10 \\
     & 1,000,000 & 447.12$\pm$2.28 & 219.80$\pm$1.99 & 83.25$\pm$2.31 & 65.46$\pm$1.47 \\
+    Chinese names & 32,000 & 69.1$\pm$1.4 & 26.6$\pm$0.3 & 24.1$\pm$0.2 & 23.1$\pm$0.3 \\
+    (pinyin order) & 200,000 & 526.2$\pm$9.5 & 187.2$\pm$1.0 & 157.0$\pm$1.3 & 154.9$\pm$1.2 \\
+    & 1,000,000 & 3112.9$\pm$68.0 & 1252.7$\pm$6.4 & 775.7$\pm$4.2 & 767.2$\pm$14.0 \\
     Tuples & 20,000 & 3.72$\pm$0.01 & 2.79$\pm$0.02 & --- & 1.30$\pm$0.01 \\
     & 100,000 & 23.24$\pm$0.19 & 17.65$\pm$0.16 & --- & 6.82$\pm$0.05 \\
     & 500,000 & 209.53$\pm$7.98 & 142.61$\pm$1.83 & --- & 57.98$\pm$0.76 \\
