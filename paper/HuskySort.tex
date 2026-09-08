@@ -848,7 +848,7 @@ If the coding was perfect, we simply skip the final pass.
 
 Given the notion of hashing that the algorithm uses, it would seem natural to call it Hash Sort.
 Unfortunately, that name was already taken for quite a different algorithm\cite{DBLP:journals/corr/cs-DS-0408040}.
-We chose the name Husky Sort instead, after the husky, Northeastern University's mascot, where this work was developed.
+We chose the name Husky Sort instead, after the husky, which is the mascot of the university where this work was developed.
 
 \begin{algorithm}
 \KwIn{\it{xs} as an array of object X which extends Comparable<X>}
@@ -1636,6 +1636,43 @@ worth reporting.
 The same records also supply the cleanup-pass measurement of \S~\ref{sec:pcrit},
 because the encoding for them is exact and can be declared so ---
 which is what allows the pass to be switched on and off over identical codes.
+
+\subsection{Composite keys, and what a library would have to provide}
+\label{sec:composite-future}
+
+The permit coder above was written by hand, as was every composite encoding in this paper,
+and one practical obstacle stands between that and a library implementation of this mechanism.
+A hand-written coder must satisfy three properties that nothing checks.
+Fields must be packed most-significant-first in the same order as the type's own comparison.
+Symbol codes must run from one upwards, so that a field shorter than its width pads with zero and
+sorts low, as a string prefix does.
+And a symbol outside a field's alphabet must collapse to the largest symbol at or below it,
+so that an unexpected value weakens the ordering rather than inverting it.
+
+The first of those is the one that bites, and it bites hardest where one might expect it to matter
+least.
+An encoding declared perfect skips the cleanup pass entirely (\S~\ref{sec:pcrit}),
+so if its field order does not match the comparison, the sort returns the wrong answer and nothing
+downstream detects it.
+The same mistake in an imperfect encoding is merely slow: the cleanup pass re-sorts by the real
+comparison and the answer is still correct.
+Field order therefore matters most exactly when the encoding is at its best.
+
+We expect most of this can be automated rather than merely assisted.
+Where a type's ordering is already derived from its field declarations ---
+as with Java records, or Python dataclasses declared with an ordering ---
+the encoding can be derived from the same declaration,
+which removes by construction the possibility that packing order and comparison order disagree,
+and would let the perfection flag be computed rather than asserted and separately verified.
+What such a derivation additionally needs is each field's range rather than its type,
+since it is the narrowness of the fields that lets a composite key fit at all:
+the permit block field is five characters of a thirty-one symbol alphabet, not an unbounded string.
+That range is either declared or inferred from the data.
+
+This argues specifically for the radix variant.
+Once the fields do not fit in 64 bits --- three fit comfortably, six will not ---
+a wider code costs RadixHuskySort proportionally more digit passes and nothing else (\S~\ref{sec:radix}),
+where a comparison-based husky sort has no comparable escape.
 
 \subsection{Adversarial inputs}
 \label{sec:adversarial}

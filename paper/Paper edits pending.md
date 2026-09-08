@@ -57,11 +57,11 @@ then.
 | ~~**5.1**~~ | ~~the permits case study is nowhere in the prose~~ — **APPLIED 2026-09-07**, tex 899–905 and 1352–1365 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
 | **0c** | **the SIAM proceedings template** — blocked only on fetching `ltexpprt.sty`; Robin has asked Sai Vineeth. See `doc/SIAM template — what to fetch.md` | tex 43–58 |
-| **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 191–228, **775** |
+| **0c** | **anonymisation**: front matter and the repo URL remain — both live in the acmart-specific block, so they go with the template switch. **The body-prose leak is fixed** (2026-09-07) |
 | ~~**0c**~~ | ~~12 pages excluding references~~ — **CLOSED**: 12.0 under acmart. Must be re-measured after the SIAM reflow | — |
 | ~~**0b**~~ | ~~cite arXiv:2012.00866~~ — **APPLIED 2026-09-07**, Introduction + `HuskySort.bbl` |
 | ~~**0f**~~ | ~~`sample-base.bib` is missing~~ — **RECONSTRUCTED 2026-09-07** from the `.bbl`; BibTeX now runs clean and all 19 citations resolve |
-| **0g** | no general composite-key coder exists — Robin's framing: not essential for the paper, but needed for adoption. Draft future-work paragraph ready | tex 566–577 |
+| ~~**0g**~~ | ~~no general composite-key coder~~ — **APPLIED 2026-09-07** as appendix §A.4, which costs nothing against the page limit |
 | **0a** | **superseded by 0c.** The template question is answered; only the author footnotes remain, and they come out for review anyway | tex 43–58 |
 
 Sections marked DONE need no further action.
@@ -710,8 +710,21 @@ where a comparison-based husky sort has no comparable escape.
 Cost: about fifteen lines, no new code, and it converts the weakest thing about the mechanism into the
 clearest statement of what adopting it would take.
 
-**Not applied — Robin's call.** The alternative is to write the combinator and describe it instead,
-which is a better paper but is new code and new tests eight days out.
+**Applied 2026-09-07 as appendix §A.4**, `\label{sec:composite-future}`, placed directly after the
+permits case study since that is the paper's one worked example of a hand-written composite coder.
+Body page count unchanged at 12.46, confirming the appendix is genuinely free.
+
+It absorbed the `perfect()` correction as its middle paragraph, which is the part worth having: field
+order matters *most* where the encoding is at its best, because a perfect encoding skips the cleanup
+pass and so has nothing downstream to catch a mismatch, where the same mistake in an imperfect one is
+merely slow.
+
+**One trade-off to be aware of.** ACDA27 does not print the appendix — the program committee reads it
+at its discretion. So this argument reaches referees but not the published proceedings. That is the
+right call for future work, but the last paragraph is arguably more than future work: that a wider key
+costs RadixHuskySort proportionally more passes and nothing else, where a comparison-based husky sort
+has no escape, is an argument for the radix variant over the quicksort one. If the reflow under the
+SIAM class leaves room, that sentence is the one worth promoting into \S~\ref{sec:radix}.
 
 ---
 
