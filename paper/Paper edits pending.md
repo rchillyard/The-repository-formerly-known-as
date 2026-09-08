@@ -1060,8 +1060,19 @@ The SIAM package has no equivalent option, so under it this is manual.
 against SIAM's own preamble and bibliography style; the figures below are from that build, and they
 match the first attempt, so the number is solid.
 
-The two copies of `siamproceedings.sty` now in `paper/` are **identical apart from line endings** — the
-package copy has CRLF, the loose one LF. No version discrepancy; one of them can be deleted.
+The two copies of `siamproceedings.sty` were **identical apart from line endings** — the package copy
+CRLF, the loose one LF — so the loose `paper/siamproceedings.sty` was deleted on 2026-09-08. The single
+authoritative copy is now `paper/siamproceedingsmacros_022425/siamproceedings.sty`.
+
+**One consequence to handle at switch time.** `acmart.cls` sits directly in `paper/`, which is why the
+paper builds there with no path configuration. `siamproceedings.sty` and `siamplain.bst` are now one
+directory down, so a build of `paper/HuskySort.tex` will not find them. Either copy those two files up
+into `paper/` when the switch is made, or put the package directory on `TEXINPUTS` and `BSTINPUTS`.
+Copying two files up is the simpler answer and keeps the package folder intact as the pristine
+download.
+
+`paper/ltexpprt.all` is the superseded package and is no longer referenced by anything. It can go
+whenever Robin wants; it is left in place for now since it cost something to find.
 
 ## SIAM's own preamble, which the trial now uses verbatim
 
