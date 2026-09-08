@@ -1412,19 +1412,56 @@ according to purpose — so code-point order there is one collation among many r
 and it keeps the Chinese word row comparable with the English one. The paper had asserted the first
 half and never addressed the second, which is the obvious referee question.
 
-**Page cost: about 0.8, and tightening does not recover it.** The first draft took the body from 14.55
-to 15.29; a tighter rewrite gave **15.38** — worse. Float reflow again, exactly as §0j found. So this is
-a content-versus-pages trade rather than a writing problem, and it needs a decision:
+**Page cost: about 0.8, and nothing recovers it.** The first draft took the body from 14.55 to 15.29; a
+tighter rewrite gave 15.38, *worse*; and moving the mechanism to appendix §A.6 on Robin's instruction
+left it at **15.38 again**. Four prose interventions, no movement.
 
-1. **Keep both in the body**, accept 15.38, and find 3.38 pages elsewhere.
-2. **Move the alphabet-size mechanism to the appendix** and keep the pinyin-scope justification in the
-   body. By the CFP's own test this is the right split: the *claim* — names are the weakest result
-   because the encoding is poor — is argument and stays; the *mechanism* — nine bits over a few hundred
-   syllables against sixteen over thousands of code points — is supporting detail. Recovers perhaps 0.5.
-3. Move both.
+## What that finally establishes: prose is no longer the lever
 
-My recommendation is 2. The pinyin-scope sentence pre-empts a question a referee will actually ask and
-costs little; the alphabet arithmetic rewards a reader who wants it but does not carry the argument.
+Measured on the current file by stripping body floats and rebuilding:
+
+| what | pages |
+| --- | ---: |
+| prose alone, all body floats and listings removed | **11.29** |
+| the 8 body tables | **~3.4** |
+| the 6 body pseudocode listings | **~1.4** |
+| everything, as it stands | **15.38** |
+| the limit | 12 |
+
+**Prose already fits.** At 11.29 it leaves 0.71 of a page for floats that currently cost over four. So
+±0.8 of a page of explanation moves the total not at all — which is exactly what the four
+interventions above measured — and the remaining 3.4 pages must come from floats.
+
+The alphabet-size mechanism is nonetheless better placed in §A.6 than in §sec:radix: the *claim* stays
+in the body where the argument is, and the arithmetic is where a reader who wants it will look. It cost
+nothing to move and it reads better. But it was not a page saving and the document should not pretend
+otherwise.
+
+## The eight body tables, ranked as candidates
+
+Guidance and ParallelRadix are kept on Robin's instruction, and `HS_BM` and `RadixImprovements` are the
+headline results. That leaves four, of which two are strong:
+
+| table | rows | verdict |
+| --- | ---: | --- |
+| **`PriorAlgorithms`** | 5 | **strongest candidate.** A background table of textbook sorting algorithms with their asymptotic cases — the definition of supporting material, and §BACKGROUND's prose carries the argument without it |
+| **`SysEnv`** | 6 | **strong candidate.** Machine specifications are methodology, not argument. Just consolidated from three tables to one, so moving it wholesale is cheap |
+| `EncodingConstants` | 4 | small, and it now carries the bit-widths that the deleted `stringToLong` listing used to show |
+| `Comparison` | 4 | the array-access model's own output. This is argument, and it should stay |
+
+## And the six listings, under the RHSort reframing
+
+| listing | verdict |
+| --- | --- |
+| `RadixHuskySort.sort`, `radixSortIndices` | core; keep |
+| `PermitCoder` (new) | Robin asked for it, and it carries §A.5's three properties; keep |
+| `huskyEncode` | shared by both algorithms; keep |
+| **`HuskySort.sort`** | QuickHuskySort's top level — **candidate**, being the algorithm now positioned as prior work |
+| **`huskyEncode` for a character sequence** | string-specific — **candidate**, strings being explicitly not the sweet spot |
+
+`PriorAlgorithms` and `SysEnv` to the appendix, plus those two listings, is perhaps 1.3 of the 3.4. The
+rest has to come from `HS_BM` or `RadixImprovements` — the two headline tables — or from accepting a
+shorter paper than the one we have.
 
 ---
 

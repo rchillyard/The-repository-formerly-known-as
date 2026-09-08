@@ -594,15 +594,10 @@ The string rows show those same three factors varying \emph{within} a single dat
 which is the more instructive demonstration.
 Chinese words are favourable on the first two counts --- an expensive Unicode comparison,
 captured well enough by the encoding --- and sit fourth of eleven, above all but three of the non-string rows.
-Chinese personal names are unfavourable on the second, and why is worth stating, since the two Chinese
-rows otherwise look like two points on one axis.
-The comparison for names is more expensive still, a table lookup per character; but the coders spend
-their 64 bits very differently.
-The Unicode coder gives each character sixteen bits drawn from thousands of code points, and a word of
-one to four characters is often captured whole.
-The pinyin coder gives each character nine bits for a syllable out of a few hundred, plus a tone out of
-five --- and names are two or three characters whose surnames come from a smaller pool again.
-Distinct codes are therefore few, ties common, and the cleanup pass does real work rather than none.
+Chinese personal names are unfavourable on the second: the comparison is more expensive still,
+a table lookup per character, but the pinyin coding captures far less of the key than the Unicode
+coding does, so ties are common and the cleanup pass does real work rather than none
+(\S~\ref{sec:chinese-coders} accounts for the difference).
 The more expensive comparison is paired with the weaker encoding, and this is the weakest result we report.
 English words are unremarkable on the first two counts and distinctive on the third,
 being the one case in this paper with a mature specialised literature ranged against it.
@@ -1590,6 +1585,28 @@ worth reporting.
 The same records also supply the cleanup-pass measurement of \S~\ref{sec:pcrit},
 because the encoding for them is exact and can be declared so ---
 which is what allows the pass to be switched on and off over identical codes.
+
+\subsection{Why the two Chinese corpora sit at opposite ends of the table}
+\label{sec:chinese-coders}
+
+Both corpora are Chinese text, yet Chinese words are among the strongest results in Table
+~\ref{tab:RadixImprovements} and Chinese personal names the weakest.
+The difference is entirely in how the two coders spend their 64 bits.
+
+The Unicode coder gives each character sixteen bits, drawn from a range of thousands of code points,
+and a Leipzig Chinese word runs to one to four characters --- so the code often captures the whole word
+and the encoding is close to exact.
+The pinyin coder gives each character nine bits for its syllable and two more for its tone, but there
+are only a few hundred distinct syllables and five tones, so the entropy available per character is far
+below sixteen bits however many are allocated to it.
+Names are two or three characters, and their surnames are drawn from a smaller pool again: a few
+hundred cover most of the corpus.
+
+Distinct codes are therefore scarce where the Unicode coder has them in abundance, ties are frequent,
+and step 3 has genuine work to do rather than none.
+The pinyin case pairs the paper's most expensive comparison with its weakest encoding, which is why it
+is the smallest margin we report --- and why the two Chinese rows should not be read as two points on a
+single axis.
 
 \subsection{Future work: composite keys, and what a library would have to provide}
 \label{sec:composite-future}

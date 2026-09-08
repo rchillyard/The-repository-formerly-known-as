@@ -43,16 +43,16 @@
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{tab:PriorAlgorithms}{{1}{3}{Prior comparison-based sorting algorithms\relax }{table.caption.2}{}}
 \citation{6115063}
+\citation{GOLDHAHN12.327}
 \@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces RadixHuskySort.sort\relax }}{4}{algocf.1}\protected@file@percent }
 \newlabel{alg:the_alg5}{{1}{4}{RadixHuskySort}{algocf.1}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces radixSortIndices (LSD, deferred permutation)\relax }}{4}{algocf.2}\protected@file@percent }
 \newlabel{alg:the_alg6}{{2}{4}{RadixHuskySort}{algocf.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Discussion of Husky Encoding}{4}{subsection.3.3}\protected@file@percent }
-\citation{GOLDHAHN12.327}
+\citation{10.1007/3-540-61680-2_42}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Discussion of $p_{crit}$}{5}{subsection.3.4}\protected@file@percent }
 \newlabel{sec:pcrit}{{3.4}{5}{Discussion of \texorpdfstring {$p_{crit}$}{p\_crit}}{subsection.3.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Why HuskySort Works}{5}{subsection.3.5}\protected@file@percent }
-\citation{10.1007/3-540-61680-2_42}
 \citation{LAMARCA199966}
 \citation{Dual-pivot}
 \citation{DBLP:journals/corr/cs-DS-0408040}
@@ -110,16 +110,16 @@
 \bibcite{huskysort2020}{{8}{2020}{{Hillyard et~al\mbox  {.}}}{{Hillyard, Liaozheng, and K~R}}}
 \bibcite{10.1145/366622.366644}{{9}{1961}{{Hoare}}{{Hoare}}}
 \bibcite{doi:10.1137/1.9781611975994.101}{{10}{2020}{{Jug{\'e}}}{{Jug{\'e}}}}
+\bibcite{LAMARCA199966}{{11}{1999}{{LaMarca and Ladner}}{{LaMarca and Ladner}}}
+\bibcite{10.5555/313559.313859}{{12}{1993}{{McIlroy}}{{McIlroy}}}
+\bibcite{doi:10.1002}{{13}{1997}{{Musser}}{{Musser}}}
+\bibcite{Timsort}{{14}{2002}{{Peters}}{{Peters}}}
 \@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{12}{table.caption.15}\protected@file@percent }
 \newlabel{tab:ParallelRadix}{{7}{12}{Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.15}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.\relax }}{12}{table.caption.16}\protected@file@percent }
 \newlabel{tab:Guidance}{{8}{12}{Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.\relax }{table.caption.16}{}}
 \@writefile{toc}{\contentsline {section}{Acknowledgments}{12}{section*.18}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{References}{12}{section*.20}\protected@file@percent }
-\bibcite{LAMARCA199966}{{11}{1999}{{LaMarca and Ladner}}{{LaMarca and Ladner}}}
-\bibcite{10.5555/313559.313859}{{12}{1993}{{McIlroy}}{{McIlroy}}}
-\bibcite{doi:10.1002}{{13}{1997}{{Musser}}{{Musser}}}
-\bibcite{Timsort}{{14}{2002}{{Peters}}{{Peters}}}
 \bibcite{10.1007/3-540-61680-2_42}{{15}{1996}{{Sedgewick}}{{Sedgewick}}}
 \bibcite{1064546.1180622}{{16}{2004}{{Sinha and Zobel}}{{Sinha and Zobel}}}
 \bibcite{wainshine2020chinesenames}{{17}{2020}{{Wainshine}}{{Wainshine}}}
@@ -136,23 +136,25 @@
 \newlabel{sec:cleanup-scaling}{{A.4}{13}{The cleanup pass as \texorpdfstring {$N$}{N} grows}{subsection.A.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Building permits: the case study in full}{13}{subsection.A.5}\protected@file@percent }
 \newlabel{sec:permits}{{A.5}{13}{Building permits: the case study in full}{subsection.A.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Future work: composite keys, and what a library would have to provide}{13}{subsection.A.6}\protected@file@percent }
-\newlabel{sec:composite-future}{{A.6}{13}{Future work: composite keys, and what a library would have to provide}{subsection.A.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Why the two Chinese corpora sit at opposite ends of the table}{13}{subsection.A.6}\protected@file@percent }
+\newlabel{sec:chinese-coders}{{A.6}{13}{Why the two Chinese corpora sit at opposite ends of the table}{subsection.A.6}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Timsort or insertion sort as the cleanup pass (time in milliseconds)\relax }}{14}{table.caption.21}\protected@file@percent }
 \newlabel{tab:TimvsInsertion}{{9}{14}{Timsort or insertion sort as the cleanup pass (time in milliseconds)\relax }{table.caption.21}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Comparison-sort baselines (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$. A from-scratch quicksort was measured for the numeric types only.\relax }}{14}{table.caption.22}\protected@file@percent }
 \newlabel{tab:ComparisonBaselines}{{10}{14}{Comparison-sort baselines (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$. A from-scratch quicksort was measured for the numeric types only.\relax }{table.caption.22}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}Adversarial inputs}{14}{subsection.A.7}\protected@file@percent }
-\newlabel{sec:adversarial}{{A.7}{14}{Adversarial inputs}{subsection.A.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}Future work: composite keys, and what a library would have to provide}{14}{subsection.A.7}\protected@file@percent }
+\newlabel{sec:composite-future}{{A.7}{14}{Future work: composite keys, and what a library would have to provide}{subsection.A.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.8}Adversarial inputs}{14}{subsection.A.8}\protected@file@percent }
+\newlabel{sec:adversarial}{{A.8}{14}{Adversarial inputs}{subsection.A.8}{}}
 \citation{10.1002/spe.4380231105}
-\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$. The dual-pivot baseline is shown both without a recursion-depth bound and with the one the JDK itself applies.\relax }}{15}{table.caption.23}\protected@file@percent }
-\newlabel{tab:AdversarialBits}{{11}{15}{Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$. The dual-pivot baseline is shown both without a recursion-depth bound and with the one the JDK itself applies.\relax }{table.caption.23}{}}
 \newlabel{tocindent-1}{0pt}
 \newlabel{tocindent0}{0pt}
 \newlabel{tocindent1}{6.25499pt}
 \newlabel{tocindent2}{12.41998pt}
 \newlabel{tocindent3}{0pt}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$. The dual-pivot baseline is shown both without a recursion-depth bound and with the one the JDK itself applies.\relax }}{16}{table.caption.23}\protected@file@percent }
+\newlabel{tab:AdversarialBits}{{11}{16}{Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$. The dual-pivot baseline is shown both without a recursion-depth bound and with the one the JDK itself applies.\relax }{table.caption.23}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$\relax }}{16}{table.caption.24}\protected@file@percent }
 \newlabel{tab:AdversarialPrefix}{{12}{16}{Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$\relax }{table.caption.24}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.8}Handling of partially-sorted arrays}{16}{subsection.A.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.9}Handling of partially-sorted arrays}{16}{subsection.A.9}\protected@file@percent }
 \newlabel{TotPages}{{16}{16}{}{page.16}{}}
