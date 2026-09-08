@@ -1511,14 +1511,24 @@ the claim exact.
 
 ## The permits data is now cited and licensed
 
-Robin found the licence: Open Data Commons DbCL v1.0. The permits corpus had been **uncited** while
-both other corpora were — conspicuous now that the abstract foregrounds "two hundred thousand municipal
-records". `sample-base.bib` gains an entry crediting **DataSF** as publisher, taken from
-`PermitLoader`'s own class comment rather than guessed, with the licence in a note. §Data Source cites
-it and states that only three columns are retained and under what licence.
+The permits corpus had been **uncited** while both other corpora were — conspicuous now that the
+abstract foregrounds "two hundred thousand municipal records". Robin supplied the licence, Open Data
+Commons DbCL v1.0, and then the source: the Kaggle dataset
+`aparnashastry/building-permit-applications-data`.
 
-**No access date is recorded anywhere in the repository, so none was invented.** Worth adding before
-submission if Robin has it.
+**That second message corrected a mistake in my first attempt.** I had credited DataSF as publisher,
+inferring it from `PermitLoader`'s class comment. But the data was obtained from a Kaggle
+redistribution, and it is that redistribution the DbCL licence attaches to — Kaggle's usual licence for
+datasets of this kind, which is why the licence pointed there. The entry now credits **Aparna Shastry**
+as the Kaggle author with the full URL, notes the underlying record as San Francisco's published by
+DataSF, and carries the licence. §Data Source says the rows are "San Francisco's published
+building-permit record, obtained from a public redistribution of it".
+
+**I had also written `year = {2026}`, which was a guess and is removed.** No year or access date is
+recorded anywhere in the repository, so the entry renders as "[n.d.]" — which is the honest rendering
+of an undated web resource, and the same treatment the Jugé entry got until its DOI supplied a year.
+Robin should supply the year and an access date before submission; BibTeX flags it as an empty year so
+it will not be forgotten.
 
 ---
 

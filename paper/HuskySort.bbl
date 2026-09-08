@@ -100,17 +100,6 @@
 \showISBNx{0898713900}
 
 
-\bibitem[\protect\citeauthoryear{{DataSF}}{{DataSF}}{2026}]%
-        {datasf-building-permits}
-\bibfield{author}{\bibinfo{person}{{DataSF}}.} \bibinfo{year}{2026}\natexlab{}.
-\newblock \bibinfo{title}{Building Permits}.
-\newblock \bibinfo{howpublished}{San Francisco open data portal}.
-\newblock
-\newblock
-\shownote{Licensed under the Open Data Commons Database Contents License (DbCL)
-  v1.0, \url{https://opendatacommons.org/licenses/dbcl/1-0/}.}
-
-
 \bibitem[\protect\citeauthoryear{Frigo, Leiserson, Prokop, and
   Ramachandran}{Frigo et~al\mbox{.}}{1999}]%
         {814600}
@@ -281,6 +270,20 @@
   \bibinfo{address}{Berlin, Heidelberg}, \bibinfo{pages}{1--11}.
 \newblock
 \showISBNx{978-3-540-70667-0}
+
+
+\bibitem[\protect\citeauthoryear{Shastry}{Shastry}{[n.d.]}]%
+        {sf-building-permits}
+\bibfield{author}{\bibinfo{person}{Aparna Shastry}.}
+  \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{title}{Building Permit Applications Data}.
+\newblock \bibinfo{howpublished}{Kaggle dataset
+  \url{https://www.kaggle.com/datasets/aparnashastry/building-permit-applications-data}}.
+\newblock
+\newblock
+\shownote{Derived from San Francisco's published building-permit record
+  (DataSF). Licensed under the Open Data Commons Database Contents License
+  (DbCL) v1.0, \url{https://opendatacommons.org/licenses/dbcl/1-0/}.}
 
 
 \bibitem[\protect\citeauthoryear{Sinha and Zobel}{Sinha and Zobel}{2004}]%

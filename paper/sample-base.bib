@@ -236,14 +236,18 @@
   volume     = {abs/1609.04471}
 }
 
-%% Added 2026-09-08. Robin supplied the licence URL; the publisher (DataSF) and the dataset's
-%% identity come from PermitLoader's own class comment. No access date is recorded in the repo,
-%% so none is invented here -- add one before submission if you have it.
-@misc{datasf-building-permits,
-  author       = {{DataSF}},
-  title        = {Building Permits},
-  howpublished = {San Francisco open data portal},
-  note         = {Licensed under the Open Data Commons Database Contents License (DbCL) v1.0,
-                  \url{https://opendatacommons.org/licenses/dbcl/1-0/}},
-  year         = {2026}
+%% Added 2026-09-08, corrected the same day. Robin supplied both the licence and the Kaggle URL.
+%% The immediate source is the Kaggle redistribution, which is what the DbCL licence attaches to;
+%% the underlying record is San Francisco's, published by DataSF, per PermitLoader's class comment.
+%% NOTE no year or access date is recorded anywhere in the repository. An earlier version of this
+%% entry carried year = {2026}, which was a guess and is removed. It will render as "[n.d.]" until
+%% Robin supplies the real values -- which is the honest rendering, not a defect to paper over.
+@misc{sf-building-permits,
+  author       = {Shastry, Aparna},
+  title        = {Building Permit Applications Data},
+  howpublished = {Kaggle dataset \url{https://www.kaggle.com/datasets/aparnashastry/building-permit-applications-data}},
+  note         = {Derived from San Francisco's published building-permit record (DataSF).
+                  Licensed under the Open Data Commons Database Contents License (DbCL) v1.0,
+                  \url{https://opendatacommons.org/licenses/dbcl/1-0/}}
+}
 }
