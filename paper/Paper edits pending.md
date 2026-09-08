@@ -1527,8 +1527,8 @@ building-permit record, obtained from a public redistribution of it".
 **I had also written `year = {2026}`, which was a guess and is removed.** No year or access date is
 recorded anywhere in the repository, so the entry renders as "[n.d.]" — the honest rendering of an
 undated web resource, and the same treatment the Jugé entry got until its DOI supplied a year.
-**One small question for Robin: use 2018, the end of coverage, or the download year?** Either removes
-the "[n.d.]". BibTeX reports the empty year on every run so it will not be forgotten.
+**Robin chose 2018**, the end of the declared coverage window. Every entry in the bibliography is now
+dated; no `[n.d.]` survives anywhere in the built PDF.
 
 ## A third message, and a consistency check it invited
 
@@ -1547,6 +1547,22 @@ the data stops, and 2018 contributes 5,953 of the 198,900 rows against 35,000--4
 year. It now reads "between January 2013 and February 2018". And §A.5 gained the reason eleven bits
 suffice — that the field depends on the corpus rather than the schema, and that the window is checked
 rather than assumed, which is what makes `perfect()` a verified property here.
+
+## The declared window differs from the data's own, and why that is worth a sentence
+
+Robin's fourth message gave Kaggle's declared range as 2013-01-01 to 2018-02-25. The extract's own
+range is 2013-01-02 to 2018-02-23, and the three missing days explain themselves: 1 January 2013 was
+New Year's Day, and 24 and 25 February 2018 were a Saturday and a Sunday. **The declared window is
+calendar-based; the data's boundary is business-day-based.**
+
+Checked rather than assumed, because I had written the claim before verifying it: **zero of the 198,900
+filings fall on a Saturday or Sunday** — the weekday histogram runs Monday to Friday only — and **all
+sixteen weekday fixed-date federal holidays in range have zero filings** too (New Year, Independence
+Day, Christmas, Veterans Day, 2013--2018).
+
+§A.5 now says so, because it is the sharpest available evidence for the one claim the permits data
+exists to support — that its distribution is the city's rather than ours. A generated corpus would not
+have that structure unless someone had thought to put it there.
 
 ---
 

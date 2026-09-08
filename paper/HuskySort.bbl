@@ -100,18 +100,17 @@
 \showISBNx{0898713900}
 
 
-\bibitem[\protect\citeauthoryear{{DataSF}}{{DataSF}}{[n.d.]}]%
+\bibitem[\protect\citeauthoryear{{DataSF}}{{DataSF}}{2018}]%
         {sf-building-permits}
-\bibfield{author}{\bibinfo{person}{{DataSF}}.}
-  \bibinfo{year}{[n.d.]}\natexlab{}.
+\bibfield{author}{\bibinfo{person}{{DataSF}}.} \bibinfo{year}{2018}\natexlab{}.
 \newblock \bibinfo{title}{Building Permits}.
 \newblock \bibinfo{howpublished}{San Francisco open data portal, dataset
   \texttt{i98e-djp9},
   \url{https://data.sf.gov/Housing-and-Buildings/Building-Permits/i98e-djp9/about_data}}.
 \newblock
 \newblock
-\shownote{Extract covering 2013--2018, obtained from a public redistribution on
-  Kaggle
+\shownote{Extract declared as covering 2013-01-01 to 2018-02-25, obtained from
+  a public redistribution on Kaggle
   (\url{https://www.kaggle.com/datasets/aparnashastry/building-permit-applications-data})
   licensed under the Open Data Commons Database Contents License (DbCL) v1.0,
   \url{https://opendatacommons.org/licenses/dbcl/1-0/}.}

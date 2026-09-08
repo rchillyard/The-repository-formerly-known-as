@@ -12,7 +12,6 @@ Reallocated global_strs (elt_size=200001) to 20 items from 10.
 Reallocated glb_str_end (elt_size=4) to 20 items from 10.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Warning--page numbers missing in both pages and numpages fields in DBLP:journals/corr/abs-1805-08612
-Warning--empty year in sf-building-permits
 Warning--empty publisher in 814600
 Warning--empty address in 814600
 Warning--page numbers missing in both pages and numpages fields in DBLP:journals/corr/cs-DS-0408040
@@ -30,43 +29,43 @@ Warning--empty address in Dual-pivot
 Warning--page numbers missing in both pages and numpages fields in sort
 You've used 21 entries,
             5901 wiz_defined-function locations,
-            1468 strings with 18956 characters,
-and the built_in function-call counts, 23490 in all, are:
-= -- 3111
+            1468 strings with 18982 characters,
+and the built_in function-call counts, 23560 in all, are:
+= -- 3128
 > -- 674
 < -- 0
 + -- 208
 - -- 247
-* -- 1576
+* -- 1577
 := -- 2284
 add.period$ -- 109
 call.type$ -- 21
 change.case$ -- 122
 chr.to.int$ -- 21
-cite$ -- 38
-duplicate$ -- 2132
-empty$ -- 1510
+cite$ -- 37
+duplicate$ -- 2144
+empty$ -- 1516
 format.name$ -- 287
-if$ -- 5731
+if$ -- 5743
 int.to.chr$ -- 2
 int.to.str$ -- 1
 missing$ -- 78
 newline$ -- 269
 num.names$ -- 172
-pop$ -- 767
+pop$ -- 752
 preamble$ -- 1
-purify$ -- 305
+purify$ -- 311
 quote$ -- 0
-skip$ -- 730
+skip$ -- 740
 stack$ -- 0
-substring$ -- 1761
+substring$ -- 1784
 swap$ -- 210
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 460
-warning$ -- 17
+warning$ -- 16
 while$ -- 181
 width$ -- 0
 write$ -- 465
-(There were 17 warnings)
+(There were 16 warnings)
