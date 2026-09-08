@@ -1379,7 +1379,8 @@ The building permits row is the only one in that table not measured on data we g
 198,900 real municipal records ordered by a composite key of three fields (\S~\ref{sec:data-source}).
 At 2.1x it is tenth of eleven, which is the point worth making about it --- it is not our largest
 margin, but it is our largest on data whose distribution we did not choose.
-\S~\ref{sec:permits} gives the case study.
+\S~\ref{sec:permits} gives the case study, and \S~\ref{sec:composite-future} what a general
+composite encoder would have to provide, that one having been written by hand.
 
 The measurements were reproduced qualitatively on the two machines of Tables ~\ref{tab:SysEnvOriginal}
 and ~\ref{tab:SysEnvCurrent}, which differ from the machine of record and from each other in vendor,
@@ -1637,11 +1638,12 @@ The same records also supply the cleanup-pass measurement of \S~\ref{sec:pcrit},
 because the encoding for them is exact and can be declared so ---
 which is what allows the pass to be switched on and off over identical codes.
 
-\subsection{Composite keys, and what a library would have to provide}
+\subsection{Future work: composite keys, and what a library would have to provide}
 \label{sec:composite-future}
 
-The permit coder above was written by hand, as was every composite encoding in this paper,
-and one practical obstacle stands between that and a library implementation of this mechanism.
+The permit coder above was written by hand, as was every composite encoding in this paper.
+One practical obstacle stands between that and a library implementation of this mechanism,
+and removing it is the piece of future work we think matters most for adoption.
 A hand-written coder must satisfy three properties that nothing checks.
 Fields must be packed most-significant-first in the same order as the type's own comparison.
 Symbol codes must run from one upwards, so that a field shorter than its width pads with zero and

@@ -712,7 +712,16 @@ clearest statement of what adopting it would take.
 
 **Applied 2026-09-07 as appendix §A.4**, `\label{sec:composite-future}`, placed directly after the
 permits case study since that is the paper's one worked example of a hand-written composite coder.
-Body page count unchanged at 12.46, confirming the appendix is genuinely free.
+Body page count 12.51, essentially unchanged, confirming the appendix is genuinely free.
+
+> **It was initially unfindable, which Robin caught.** Two faults, both mine. The heading read
+> "Composite keys, and what a library would have to provide" and the text never used the phrase
+> *future work* anywhere, so searching the PDF for it returned only the burstsort line in §sec:radix.
+> And unlike every other appendix section it had **no inbound reference from the body** — §A.2 is cited
+> from §sec:pcrit and §A.3 from §sec:radix-results, but §A.4 could only be reached by reading the
+> appendix through. Retitled to "Future work: composite keys, and what a library would have to
+> provide", the opening now says it is future work, and §sec:radix-results points at it alongside its
+> existing pointer to §A.3.
 
 It absorbed the `perfect()` correction as its middle paragraph, which is the part worth having: field
 order matters *most* where the encoding is at its best, because a perfect encoding skips the cleanup
