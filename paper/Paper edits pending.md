@@ -56,7 +56,7 @@ then.
 | ~~**1.5**~~ | ~~"every non-string row exceeds every string row"~~ — **APPLIED 2026-09-07**, tex 567–588 |
 | ~~**5.1**~~ | ~~the permits case study is nowhere in the prose~~ — **APPLIED 2026-09-07**, tex 899–905 and 1352–1365 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
-| **0c** | **the SIAM proceedings template** — blocked only on fetching `ltexpprt.sty`; Robin has asked Sai Vineeth. See `doc/Tasks for Sai Vineeth.md` | tex 43–58 |
+| **0c** | **the SIAM proceedings template** — blocked only on fetching `siamproceedings.sty` **and `siamplain.bst`**; Robin has asked Sai Vineeth. See `doc/Tasks for Sai Vineeth.md` | tex 43–58 |
 | **0k** | **front-matter anonymisation** — names, emails, affiliations *and ORCIDs*. Decided 2026-09-08; goes with the template switch | tex 174–176, 199–245 |
 | ~~**0c**~~ | ~~anonymisation~~ — split into **0k** (front matter) and **0i** (the repository link), both decided |
 | ~~**0c**~~ | ~~12 pages excluding references~~ — **CLOSED**: 12.0 under acmart. Must be re-measured after the SIAM reflow | — |
@@ -187,9 +187,11 @@ Two further notes:
 
 ## The template — action required, and it needs a download
 
-No SIAM class is installed on this machine: `kpsewhich` finds none of `soda2e.cls`, `siamproc.cls`,
-`siamltex.cls`, `siamart0216.cls`, `siamart190516.cls`, `siamart220329.cls`, and
-`/usr/local/texlive/2020/texmf-dist/tex/latex/siam*` does not exist.
+Nothing SIAM is installed on this machine: `kpsewhich` finds no `siamproceedings.sty`, no
+`siamplain.bst`, none of `soda2e.cls`, `siamproc.cls`, `siamltex.cls`, `siamart0216.cls`,
+`siamart190516.cls` or `siamart220329.cls`, and `/usr/local/texlive/2020/texmf-dist/tex/latex/siam*`
+does not exist. Note that the thing needed is a **package**, `siamproceedings.sty`, not a class — which
+is why an earlier search for a `.cls` came up empty and concluded too much from it.
 
 **Getting the macros means downloading them from <https://www.siam.org/publications/proceedings/>, which
 is Robin's call to make — I have not done it.** Note that the required class is the *proceedings*
@@ -975,7 +977,7 @@ type-specific, so other types plausibly behave similarly, but we have not confir
 
 ## What to do instead
 
-Nothing, until `ltexpprt.sty` lands and the paper builds under it. Then measure once and cut against
+Nothing, until `siamproceedings.sty` lands and the paper builds under it. Then measure once and cut against
 that layout. The structural levers, in the order they cost the argument least, are: move Table
 `Guidance` to the appendix and keep §sec:usecase's prose in the body, which the prose supports since it
 already states every crossover; move the whole of §sec:usecase to the appendix, which is guidance
@@ -1041,12 +1043,12 @@ camera-ready either way, and fixing them now would only be undone by the class s
 
 ## The contingency, which matters while we wait on the template
 
-**acmart has an `anonymous` class option** (`acmart.cls:131`). If `ltexpprt.sty` does not arrive in
-time, `\documentclass[acmtog,anonymous]{acmart}` suppresses the author block in a single word. So
-anonymity is never what blocks the submission, even in the worst case — and that is worth knowing
-before anyone starts hand-deleting the front matter under time pressure.
+**acmart has an `anonymous` class option** (`acmart.cls:131`). If `siamproceedings.sty` does not
+arrive in time, `\documentclass[acmtog,anonymous]{acmart}` suppresses the author block in a single
+word. So anonymity is never what blocks the submission, even in the worst case — and that is worth
+knowing before anyone starts hand-deleting the front matter under time pressure.
 
-`ltexpprt` has no equivalent option, so under the SIAM class this is manual.
+The SIAM package has no equivalent option, so under it this is manual.
 
 ---
 

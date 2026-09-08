@@ -24,54 +24,46 @@ isn't, but the class itself still has to go.
 
 ## What to get
 
-**`soda2e_022817.zip`**, from <https://archive.siam.org/proceedings/macros.php>, or the same package on
-CTAN at <https://ctan.org/tex-archive/macros/latex/contrib/siam> (there as `soda2e.all`).
+**`siamproceedings.sty`** — version 2.0, dated 15 January 2025, from
+<https://www.siam.org/publications/proceedings/>.
 
-It contains two files:
+> **Corrected 2026-09-08.** An earlier version of this note sent you after `ltexpprt.sty` in
+> `soda2e_022817.zip`. Robin found that `siamproceedings.sty` has superseded it, and he is right: the
+> new file's own header says it is "based on ltexpprt.sty and siamart250106.cls" and identifies itself
+> as a "Revision of SIAM Proceedings macros for use with LaTeX 2e". The package I named is from 2017.
+> Get the 2025 one.
+
+The package consists of six files, and we want at least the first three:
 
 | file | what it is |
 | --- | --- |
-| `ltexpprt.sty` | **the macro file — this is the one that matters** |
-| `ltexpprt.tex` | an example document and the documentation |
+| `siamproceedings.sty` | **the macro file** |
+| `siamplain.bst` | **the BibTeX style — we need this too, see below** |
+| `example_doublecolumn.tex` | the template to follow; it settles which `\documentclass` and options to use |
+| `example_singlecolumn.tex` | the single-column variant, not what we want |
+| `example_references.bib`, `example_fig1.eps` | example inputs |
 
-## Two ways to pick the wrong file
+It is a **package**, used with `\usepackage{siamproceedings}`, not a document class — so there is no
+`.cls` to look for. That is worth knowing because searching for a class file is how the previous
+attempt at this went wrong.
 
-1. **`siamart` is not it.** SIAM also publishes `siamart220329.cls` / `siamart190516.cls` for its
-   *journals*. Those are single-column and are the wrong series. We want the double-column
-   **proceedings** macro, which is `ltexpprt.sty`.
-2. **The class name `soda2e.cls` does not exist**, despite being referred to in places. The
-   distribution is `soda2e.zip` / `soda2e.all`, and what comes out of it is a `.sty`, used as
-   `\documentclass[twoside]{article}` plus `\usepackage{ltexpprt}`. Do not go looking for a `.cls`.
+## Why `siamplain.bst` matters as much as the `.sty`
 
-## Where to put it
+The paper's bibliography is currently produced by `ACM-Reference-Format.bst`, which comes with acmart
+and emits a `.bbl` full of acmart-only macros. Under the SIAM package that `.bbl` will not compile, so
+the bibliography has to be regenerated with `siamplain.bst`.
 
-`paper/`, alongside `acmart.cls`, which is already vendored there — so the repository stays
-self-contained and anyone can build the paper without installing anything. Commit `ltexpprt.sty` and
-`ltexpprt.tex` both; the example file is worth having when the front matter needs rewriting.
+**That is possible now and was not a week ago.** `paper/sample-base.bib` did not exist until it was
+reconstructed on 2026-09-07 — BibTeX had been failing silently and the committed `.bbl` was the only
+copy of the bibliography anywhere. So grab `siamplain.bst` along with the `.sty`, or the references
+will disappear at the first `bibtex` run with nothing to rebuild them from.
 
-Nothing needs installing into a TeX tree. It is not present in this machine's TeX Live 2020
-(`kpsewhich ltexpprt.sty` finds nothing, and there is no `siam` directory under `texmf-dist`), and
-`tlmgr` is not available here, which is why it has to come in by hand.
+## One earlier warning in this note was overstated
 
-## What happens once it lands
-
-In this order, because the last step depends on the others:
-
-1. Build under the new class and fix what breaks. Expect the acmart-specific front matter to go:
-   `\setcopyright`, `\acmJournal`, `\acmVolume`/`\acmNumber`/`\acmArticle`, `\settopmatter`,
-   `\footnotetextcopyrightpermission`, and the `\ps@plain` redefinition that prints the draft
-   revision stamp.
-2. Regenerate the bibliography. **This now works** — `paper/sample-base.bib` was reconstructed on
-   2026-09-07 and BibTeX runs clean over it. It did not exist before, which is what had made a class
-   change impossible: the committed `.bbl` depends on acmart's own `\bibfield`, `\bibinfo`,
-   `\natexlab`, `\showeprint` and `\urldef`, and gives twelve undefined control sequences outside that
-   class.
-3. Re-measure the page count. The body currently runs 12.46 pages against a limit of 12, but that is
-   an acmart number and will not survive the reflow. Measure by the **last body float**, not by where
-   `REFERENCES` begins — a `table*` can float past the references and be missed. Concretely: take the
-   page of the last `tab:` label in `HuskySort.aux` that belongs to the body, then confirm with
-   `pdftotext -f N -l N -bbox` that the acknowledgments start at the top text margin of the next page.
-4. Then trim the remainder, once, against the layout we actually submit.
+It said `siamart` is "not it" and is "the wrong series". That was too strong: `siamproceedings.sty` is
+itself derived from `siamart250106.cls`. What remains true is that we want the *proceedings* package
+rather than the journal class, and that ACDA27's submissions page points at SIAM's proceedings macros
+page specifically.
 
 ## Also worth knowing
 
