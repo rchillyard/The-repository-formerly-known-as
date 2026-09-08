@@ -123,10 +123,12 @@ So **the template has to change before the 15th.** 0a is no longer a judgement c
 Submission is via EasyChair, <https://easychair.org/conferences/?conf=acda27>. There are **two submissions,
 46 and 47**, both made on 2026-09-08 within about half a minute of each other: Sai Vineeth's, which did
 not carry Robin's email and so was invisible under his account, and Robin's, made because of that
-apparent absence. **One must be withdrawn, and it has to happen before the 15th** — the paper PDF is
-uploaded against the surviving submission, so uploading first and withdrawing after would discard the
-paper along with the duplicate. Whichever survives should list all three authors with correct emails,
-which is what made 46 invisible in the first place. There is a rebuttal
+apparent absence. **Decided 2026-09-08: withdraw 46, keep 47**, Robin to speak to Sai
+Vineeth on the 9th first. It has to happen **before the 15th** — the paper PDF uploads against the
+surviving submission, so uploading first and withdrawing after would discard the paper along with the
+duplicate. **Check 47's author list before uploading:** it was entered by Robin in a hurry and may name
+only him, where it needs all three authors with correct emails — a missing address is what made 46
+invisible, and it also governs who receives the November 2 notification and who can read the reviews. There is a rebuttal
 phase: "The submissions will be refereed and authors will be provided an opportunity to respond to the
 reviews."
 
