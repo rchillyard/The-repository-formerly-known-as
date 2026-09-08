@@ -57,7 +57,7 @@ then.
 | ~~**5.1**~~ | ~~the permits case study is nowhere in the prose~~ — **APPLIED 2026-09-07**, tex 899–905 and 1352–1365 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
 | **0c** | **the SIAM proceedings template** — blocked only on fetching `ltexpprt.sty`; Robin has asked Sai Vineeth. See `doc/SIAM template — what to fetch.md` | tex 43–58 |
-| **0c** | **anonymisation**: front matter and the repo URL remain — both live in the acmart-specific block, so they go with the template switch. **The body-prose leak is fixed** (2026-09-07) |
+| **0c** | **anonymisation**: front matter goes with the template switch. **The repo link needs a decision — see 0i**, because an anonymised mirror of this repository would not be anonymous |
 | ~~**0c**~~ | ~~12 pages excluding references~~ — **CLOSED**: 12.0 under acmart. Must be re-measured after the SIAM reflow | — |
 | ~~**0b**~~ | ~~cite arXiv:2012.00866~~ — **APPLIED 2026-09-07**, Introduction + `HuskySort.bbl` |
 | ~~**0f**~~ | ~~`sample-base.bib` is missing~~ — **RECONSTRUCTED 2026-09-07** from the `.bbl`; BibTeX now runs clean and all 19 citations resolve |
@@ -854,6 +854,73 @@ anything.
 - **Environment drift**: kernel now 6.12.103 after a 09-03 reboot; swap now 8 GiB zram plus a 32 GiB
   file, 0 B used during runs. Table `SysEnvAWS` carries neither field, so nothing needs changing, but
   §5.4's note should record it.
+
+---
+
+# 0i. The repository link — an anonymous mirror would not be anonymous
+
+ACDA27 does not merely permit a code link, it encourages one, and tells us how:
+
+> We strongly encourage also making code and data available; please keep in mind the double-blind
+> nature of the review process. We recommend including a link to an anonymized version that makes a
+> 'best-effort' to avoid revealing the identity of the authors (e.g., using Anonymous Github or an
+> anonymous Dropbox/Google Drive folder).
+
+So the `\url{https://github.com/rchillyard/HuskySort}` at tex 206 should be **replaced, not deleted** —
+deleting it would weaken a submission whose contribution is an implementation, which the same page
+tells us not to do. But pointing Anonymous GitHub at this repository as it stands would not achieve
+anonymity, and it is worth knowing why before anyone sets one up.
+
+## Fixed on 2026-09-07
+
+| where | what it was |
+| --- | --- |
+| `HuskySortTest.java:82` | `new Person("Robin", "Hillyard")` and five more family members, plus `new Person("Yunlu", "Liao Zheng")`. A signature, not a hint. The test only asserts `sorted()`, never a specific order, so the names were free to change; replaced with synthetic ones preserving both properties the data exercised — a surname shared by all but one element, and one surname containing a space |
+| `InsertionSortCorrectnessTest.java:17` | a comment naming Robin |
+| `StringSortBenchmarks.java:196` | a comment naming Robin, which I wrote |
+
+`grep` over `src/**/*.java` for the four identifying strings now returns nothing. Full suite green at
+396 tests. The corpus files under `src/main/resources` match "robin" but that is the English word in
+Leipzig sentences, not a leak.
+
+## The one that cannot be fixed cheaply
+
+**Every source file is under `package edu.neu.coe.huskySort`** — `neu` and `coe` being Northeastern and
+its College of Engineering. That is 165 Java files, the directory tree itself, and every import
+statement. Anonymous GitHub rewrites the repository's *name and owner*; it does not rewrite file
+contents or paths.
+
+That is a hint rather than a signature — a reader must already know the mapping — and the page is
+explicit that the bar is best-effort and that the purpose "is not to make it impossible for them to
+discover the authors if they were to try". So it is arguably tolerable. Renaming the package across
+165 files is mechanical but touches every file in the repository, and is not something to do eight days
+out.
+
+## What a mirror would have to exclude
+
+Anonymous GitHub takes an exclusion list. These paths name Robin, or Northeastern, or both, throughout —
+the working documents of this revision are the worst offenders, since they are written in terms of what
+Robin asked for:
+
+`paper/` (the whole directory — it contains the paper itself, author block included, plus
+`Paper edits pending.md` and `Paper deletions.md`), `doc/` (the run requests and results, which address
+Yunlu by name and quote Robin's decisions), `docs/Audit against INFO6205.md`, `logs/`, `TODO.md`,
+`.idea/`, `dependency-reduced-pom.xml`.
+
+What remains after those exclusions — `src/` and `pom.xml` — is the code the paper is actually about,
+and is clean apart from the package name.
+
+## Decision needed
+
+1. **Anonymous GitHub over `src/` only**, accepting the package name. Proportionate to a best-effort
+   standard, and cheapest. My recommendation.
+2. **A curated anonymous snapshot**: a fresh repository containing `src/` and `pom.xml` with the
+   package renamed. Cleanest, and perhaps two hours including a build check, but it is a second
+   artefact to keep in step with this one.
+3. **No link.** Complies, and forgoes what the CFP encourages.
+
+Creating the mirror is Robin's or Sai Vineeth's action either way — it needs an account and it publishes
+something. The tex change is one line once the URL exists.
 
 ---
 

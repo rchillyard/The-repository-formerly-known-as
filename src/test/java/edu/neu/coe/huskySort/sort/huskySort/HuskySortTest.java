@@ -79,7 +79,9 @@ public class HuskySortTest {
 
     @Test
     public void testSortPerson() {
-        final Person[] xs = {new Person("Robin", "Hillyard"), new Person("Yunlu", "Liao Zheng"), new Person("Miranda", "Hillyard"), new Person("William", "Hillyard"), new Person("Ella", "Hillyard"), new Person("Paul", "Hillyard"), new Person("Mia", "Hillyard")};
+        // NOTE surnames are shared by all but one element, and one surname contains a space:
+        // between them these exercise the second-level comparison and a non-alphanumeric character.
+        final Person[] xs = {new Person("Ada", "Fisher"), new Person("Grace", "Van Dijk"), new Person("Brian", "Fisher"), new Person("Clara", "Fisher"), new Person("Dmitri", "Fisher"), new Person("Elena", "Fisher"), new Person("Farid", "Fisher")};
         final DutchHuskySort<Person> sorter = new DutchHuskySort<>(Person::huskyCode, config);
         final Person[] sorted = sorter.sort(xs);
         assertTrue("sorted", sorter.getHelper().sorted(sorted));

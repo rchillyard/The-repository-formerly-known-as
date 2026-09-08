@@ -193,7 +193,7 @@ public class StringSortBenchmarks {
         return copy;
     }
 
-    // ---------- Insertion sort (paper resubmission, small-N crossover follow-up): Robin asked
+    // ---------- Insertion sort (paper resubmission, small-N crossover follow-up): we asked
     // how plain insertion sort compares at very small N, since System sort likely already
     // defers to something insertion-sort-like below its own internal threshold. ----------
 

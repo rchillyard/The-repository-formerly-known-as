@@ -14,7 +14,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Rigorous correctness checks for the binary-search-based InsertionSort.sort (swapIntoSorted),
- * added after Robin was suspicious of a 4-10x JMH speedup measured for it relative to the old
+ * added after a 4-10x JMH speedup measured for it relative to the old
  * linear-scan implementation (2026-08-05). The existing InsertionSortTest only ever sorts 4 or
  * 128 elements and never checks stability directly, so none of it would have caught a
  * correctness regression large enough to produce a spurious speedup.
