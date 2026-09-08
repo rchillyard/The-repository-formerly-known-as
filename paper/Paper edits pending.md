@@ -120,7 +120,9 @@ So **the template has to change before the 15th.** 0a is no longer a judgement c
 | November 23, 2026 | camera-ready |
 | Feb 22–24, 2027 | conference, Pittsburgh, co-located with CSE27 |
 
-Submission is via EasyChair, <https://easychair.org/conferences/?conf=acda27>. There is a rebuttal
+Submission is via EasyChair, <https://easychair.org/conferences/?conf=acda27>. **We are submission 47**,
+registered by Robin himself on 2026-09-08 after his EasyChair account showed no paper under his name;
+the 2026-09-15 PDF is uploaded against that same submission, not as a new one. There is a rebuttal
 phase: "The submissions will be refereed and authors will be provided an opportunity to respond to the
 reviews."
 
