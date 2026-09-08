@@ -1334,6 +1334,50 @@ a file.
 
 ---
 
+# 0n. Algorithm 6: `stringToLong` replaced by the Permit coder, 2026-09-08
+
+Robin's question: do we need the `stringToLong` listing, and would the Permit coder not be better?
+Yes to the second, and the reason is sharper than "more interesting".
+
+**`stringToLong` was the one listing whose content the adjacent prose already fully stated.**
+§Implementation says the wrappers differ "only in which bit-width, maximum length, and mask constant
+they pass in", and Table `EncodingConstants` gives those constants, so the listing added nothing a
+reader could not reconstruct from the two sentences beside it — shift left, OR in the character, pad
+the tail. It also displayed its loop body twice, differing only by `\& mask`.
+
+**The Permit coder shows what a reader cannot guess**, and it is exactly what §A.4 argues is the hard
+and unchecked part of the mechanism: fields most-significant-first in `compareTo` order; symbol codes
+from 1 up with 0 reserved so a short field right-pads and sorts low; and an out-of-alphabet symbol
+collapsing to the largest at or below it, so the order weakens rather than inverting. Those three were
+asserted in prose with no code to make them concrete. Robin asked for `codeOf` to be shown alongside
+`huskyEncode`, which is right — `codeOf` is where the third property lives, and it is the one that
+fails silently.
+
+## I got the page cost wrong, for the third time today in the same way
+
+I predicted the swap would be "comparable in length". The first version cost **0.83 of a page**, taking
+the body from 14.55 to 15.38, because I wrote three long `\tcp` comments and a three-line caption.
+Folding `encodeString` into the caption and cutting the comments to one line each brought it back to
+**14.55 — page-neutral**, which is what I had claimed at the outset.
+
+That is the same mistake as §0j and as the table merge: **the explanation I write to justify a change
+costs more than the change saves.** Three times in one day is a pattern rather than bad luck. The rule
+for the rest of this work: make the structural change first, measure, and only then write the prose —
+and measure again after writing it.
+
+## Knock-ons, all done
+
+- §Overview's "For the details of the husky-coding itself" now reads "For a worked example of a husky
+  coding", since the listing is one type's coder rather than the general mechanism.
+- §Implementation's sentence drops the algorithm reference and keeps the prose plus
+  `EncodingConstants`, which is where the constants were anyway.
+- §A.3, the permits case study, gains "Algorithm ~\ref{alg:permitcoder} gives the coder."
+- The label changed from `alg:the_alg4` to `alg:permitcoder`. The old label survives nowhere.
+- The "nine 7-bit ASCII characters per 64-bit code" claim in the adversarial appendix rests on
+  `EncodingConstants`, not on the deleted listing, so it is untouched.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE

@@ -494,7 +494,7 @@ in such a way that when elements $i, j$ of \emph{longs} are exchanged, then elem
 we run Timsort on the array $xs$ to ensure that its elements are truly in order.
 \end{steps}
 
-For the details of the husky-coding itself, see Algorithm ~\ref{alg:the_alg4}
+For a worked example of a husky coding, see Algorithm ~\ref{alg:permitcoder}
 
 \subsection{RadixHuskySort}
 \label{sec:radix}
@@ -873,29 +873,22 @@ We chose the name Husky Sort instead, after the husky, which is the mascot of th
 \end{algorithm}
 
 \begin{algorithm}
-\KwIn{\\
-\it{str} as String\;
-\it{maxLength} as the max length can be encoded\;
-\it{bitWidth} as how many bits will one char be encoded into\;
-\it{mask} as a modifier for different encoding\;
-}
-\KwOut{A new \it{Coding} object}
- length = Math.min(str.length(), maxLength)\;
- padding = maxLength - length\;
- result = 0\;
- \eIf{mask == 0}{
- \For{i = 0 to length}{
- result = result << bitWidth | str.charAt(i)\;
- }
+\KwIn{\it{permit}, with fields \it{block}, \it{lot}, \it{filedDate}\;}
+\KwOut{a 60-bit code, order-preserving for \it{permit.compareTo}}
+ \tcp{fields most-significant first, in compareTo order}
+ r = encodeString(block, 5, 5, BLOCK\_ALPHABET)\;
+ r = r $\ll$ 24 $|$ encodeString(lot, 4, 6, LOT\_ALPHABET)\;
+ \Return r $\ll$ 11 $|$ daysSinceEpoch(filedDate)\;
+ \BlankLine
+ \tcp{codeOf(x, alphabet), used by encodeString for each symbol}
+ \eIf{alphabet contains x}{
+   \Return 1 + index of x\tcp*{0 is left for padding}
  }{
- \For{i = 0 to length}{
- result = result << bitWidth | str.charAt(i) {\&} mask\;
+   \Return count of symbols $<$ x\tcp*{weaken, never invert}
  }
- }
- result = result << bitWidth * padding\;
-return result\;
- \caption{stringToLong}
- \label{alg:the_alg4}
+ \caption{A composite husky coder: \textit{PermitCoder}. \textit{encodeString} packs \textit{width}
+   symbols of \textit{bits} each, right-padding with zero.}
+ \label{alg:permitcoder}
 \end{algorithm}
 
 \section{Implementation}
@@ -947,8 +940,8 @@ rather than repeat that logic here as Java source, we describe only the details 
 \textit{Coding} is a simple immutable holder combining the resulting \textit{long[]} array of codes with the \textit{perfect}
 flag used by both algorithms (two fields, set once by its constructor).
 
-\textit{unicodeToLong} and \textit{asciiToLong} are both thin wrappers around \textit{stringToLong}
-(Algorithm ~\ref{alg:the_alg4}), differing only in which bit-width, maximum length, and mask constant they pass in;
+\textit{unicodeToLong} and \textit{asciiToLong} are both thin wrappers around one packing loop,
+differing only in which bit-width, maximum length, and mask constant they pass in;
 \textit{unicodeToLong} additionally discards the lowest bit of the packed result (an unsigned right shift by one)
 to guarantee a non-negative code regardless of the input string's content.
 Table ~\ref{tab:EncodingConstants} lists the constants each wrapper uses.
@@ -1572,6 +1565,7 @@ and the corpus holds 198,900 records, so the measurement cannot be extended on r
 The permits row of Table ~\ref{tab:RadixImprovements} is the case this mechanism is designed for.
 The ordering is expensive, since a comparison may have to examine all three fields of the key in turn,
 and the key nevertheless packs exactly into 60 bits, so no cleanup pass is required at all.
+Algorithm ~\ref{alg:permitcoder} gives the coder.
 Against the system sort, RadixHuskySort is faster by 5.17x, 4.26x and 4.53x at $N = 32{,}000$,
 $100{,}000$ and $198{,}900$; against QuickHuskySort, by 2.52x, 2.06x and 2.12x.
 
