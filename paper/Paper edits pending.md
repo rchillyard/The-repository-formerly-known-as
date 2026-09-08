@@ -1616,6 +1616,73 @@ settings.
 
 ---
 
+# 0r. The Analysis section: two placeholders, and the derivation moved, 2026-09-08
+
+Robin's observation was that §Analysis carries "not-terribly-well-justified mathematics", mostly
+pertaining to QuickHuskySort, and that some labels still read "HuskySort". Both right, and looking into
+it found something worse.
+
+## Two unresolved 2020 placeholders were printing in the PDF
+
+> Wild and Nebel's average-case analysis of dual-pivot quicksort **[Nebel]** that these values are…
+>
+> Our experiments **[refer to Quicksort Analysis table]** show that each comparison requires 2 array accesses…
+
+Both rendered literally. Nothing in a week of table rebuilds and figure audits had caught them, because
+neither is a number.
+
+- **`[Nebel]`** is now `\cite{WildNebel12}` — Wild and Nebel, *Average Case Analysis of Java 7's Dual
+  Pivot Quicksort*, ESA 2012. Their result is **exactly** the 1.9 $N \ln N$ comparisons and
+  0.6 $N \ln N$ swaps the paper quotes, so the figures were right all along and only the attribution
+  was missing.
+- **`[refer to Quicksort Analysis table]`** pointed at a table that does not exist in the paper. It
+  needed no table: what followed it is arithmetic, not an experiment — a comparison reads two elements,
+  a swap does two reads and two writes — so the sentence now says that instead.
+
+## The stale label
+
+`tab:Comparison`'s header read `merge sort | HuskySort | Radix`. Now `merge sort | QuickHuskySort |
+RHSort`. It was the only stale one inside a table; `\caption{HuskySort Flow}` and `\title{HuskySort}`
+are the family name and are left alone.
+
+## The derivation moved, and it is the largest single saving of the day
+
+**Body 14.40 → 13.45, worth 0.95.** Equations 1--5, the QuickHuskySort-versus-merge-sort counting
+argument, are now appendix §A.2 (`sec:qhs-analysis`). The body keeps the framing, the encoding-cost
+measurement, the conclusion (break-even at $N = 4$, widening thereafter), Table `Comparison`, and the
+RHSort derivation, which is the part that is ours.
+
+Robin identified the weak step correctly. Equation 1 is $A = 4 + 0.6 \times 4 = 6.4$, where 0.6 stands
+for the proportion of object-reference swaps whose targets are not already cached — asserted from "these
+will not, in general, have been pre-fetched", never measured — and it then propagates through equations
+2, 4 and 5 into $A_h = 6.4 N \ln N + 9N$ and thence into Table `Comparison`. A soft coefficient ends up
+looking like a derived constant. **The new appendix section says so in its second paragraph**, and
+observes that the RHSort figure needs no such factor: $4 \cdot 64/b$ digit passes is a count.
+
+## And a stale-figure defect the move exposed
+
+The encoding-cost paragraph — which stays in the body, being a real measurement rather than weak
+arithmetic — had **six figures from a superseded run.** Every one was wrong:
+
+| | said | actual |
+| --- | ---: | ---: |
+| English encode | 52.7\,ms | **67.7** |
+| … as a share of QuickHuskySort | 13.7\% | **9.7\%** |
+| … as a share of RHSort | 21.1\% | **24.8\%** |
+| pinyin encode | 311.6\,ms | **211.1** |
+| … as a share of QuickHuskySort | 29.1\% | **16.9\%** |
+| … as a share of RHSort | 40.0\% | **27.8\%** |
+
+The §7 rebuild swept tables and derived ratios; this was prose in a section nobody was looking at.
+Both claims the paragraph makes survive — encoding is a minority of total time in every case, and its
+share is larger for RHSort than for QuickHuskySort — and one improves: the pinyin encoding is 27.8\% of
+RHSort's total rather than the 40\% claimed.
+
+A sweep of every millisecond figure quoted in prose against `full-suite.json` now returns no
+unmatched value.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE

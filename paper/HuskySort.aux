@@ -73,32 +73,29 @@
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Data Source}{6}{lstlisting.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Analysis}{7}{subsection.5.2}\protected@file@percent }
 \newlabel{sec:analysis}{{5.2}{7}{Analysis}{subsection.5.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Theoretical comparisons (array accesses, dimensionless counts)\relax }}{8}{table.caption.8}\protected@file@percent }
+\newlabel{tab:Comparison}{{2}{8}{Theoretical comparisons (array accesses, dimensionless counts)\relax }{table.caption.8}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Results and Observations}{8}{section.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Benchmarks}{8}{subsection.6.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Summary}{8}{subsection.6.2}\protected@file@percent }
 \newlabel{sec:summary}{{6.2}{8}{Summary}{subsection.6.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Radix Sort Results}{8}{subsection.6.3}\protected@file@percent }
 \newlabel{sec:radix-results}{{6.3}{8}{Radix Sort Results}{subsection.6.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Theoretical comparisons (array accesses, dimensionless counts)\relax }}{9}{table.caption.8}\protected@file@percent }
-\newlabel{tab:Comparison}{{2}{9}{Theoretical comparisons (array accesses, dimensionless counts)\relax }{table.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort}{8}{subsection.6.4}\protected@file@percent }
+\newlabel{sec:parallel-radix}{{6.4}{8}{Parallel Radix Sort}{subsection.6.4}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Sort times by data type (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$. For Chinese names the system-sort column is a system sort performing the same pinyin ordering; natural code-point order is a different and much cheaper task (\S  \nonbreakingspace \ref  {sec:radix-results}).\relax }}{9}{table.caption.9}\protected@file@percent }
 \newlabel{tab:HS_BM}{{3}{9}{Sort times by data type (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$. For Chinese names the system-sort column is a system sort performing the same pinyin ordering; natural code-point order is a different and much cheaper task (\S ~\ref {sec:radix-results}).\relax }{table.caption.9}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Radix sort advantage over QuickHuskySort\relax }}{9}{table.caption.10}\protected@file@percent }
 \newlabel{tab:RadixImprovements}{{4}{9}{Radix sort advantage over QuickHuskySort\relax }{table.caption.10}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort}{10}{subsection.6.4}\protected@file@percent }
-\newlabel{sec:parallel-radix}{{6.4}{10}{Parallel Radix Sort}{subsection.6.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{10}{table.caption.11}\protected@file@percent }
+\newlabel{tab:ParallelRadix}{{5}{10}{Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.11}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Use-Case Guidance}{10}{subsection.6.5}\protected@file@percent }
 \newlabel{sec:usecase}{{6.5}{10}{Use-Case Guidance}{subsection.6.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{10}{section.7}\protected@file@percent }
+\newlabel{sec:conclusion-dp}{{7}{10}{Conclusion}{section.7}{}}
 \bibstyle{ACM-Reference-Format}
 \bibdata{sample-base}
 \bibcite{10.1145/48529.48535}{{1}{1988}{{Aggarwal and Vitter}}{{Aggarwal and Vitter}}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads\relax }}{11}{table.caption.11}\protected@file@percent }
-\newlabel{tab:ParallelRadix}{{5}{11}{Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads\relax }{table.caption.11}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.\relax }}{11}{table.caption.12}\protected@file@percent }
-\newlabel{tab:Guidance}{{6}{11}{Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.\relax }{table.caption.12}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{11}{section.7}\protected@file@percent }
-\newlabel{sec:conclusion-dp}{{7}{11}{Conclusion}{section.7}{}}
-\@writefile{toc}{\contentsline {section}{Acknowledgments}{11}{section*.14}\protected@file@percent }
 \bibcite{DBLP:journals/corr/abs-1805-08612}{{2}{2018}{{Auger et~al\mbox  {.}}}{{Auger, Jug{\'{e}}, Nicaud, and Pivoteau}}}
 \bibcite{10.1002/spe.4380231105}{{3}{1993}{{Bentley and McIlroy}}{{Bentley and McIlroy}}}
 \bibcite{314161.314321}{{4}{1997}{{Bentley and Sedgewick}}{{Bentley and Sedgewick}}}
@@ -116,41 +113,48 @@
 \bibcite{10.1007/3-540-61680-2_42}{{16}{1996}{{Sedgewick}}{{Sedgewick}}}
 \bibcite{1064546.1180622}{{17}{2004}{{Sinha and Zobel}}{{Sinha and Zobel}}}
 \bibcite{wainshine2020chinesenames}{{18}{2020}{{Wainshine}}{{Wainshine}}}
-\bibcite{6115063}{{19}{2011}{{{Xiang}}}{{{Xiang}}}}
-\bibcite{Dual-pivot}{{20}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
-\bibcite{sort}{{21}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
+\bibcite{WildNebel12}{{19}{2012}{{Wild and Nebel}}{{Wild and Nebel}}}
+\bibcite{6115063}{{20}{2011}{{{Xiang}}}{{{Xiang}}}}
+\bibcite{Dual-pivot}{{21}{2009}{{Yaroslavskiy}}{{Yaroslavskiy}}}
+\bibcite{sort}{{22}{2016}{{Zhang et~al\mbox  {.}}}{{Zhang, Meng, and Liang}}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.\relax }}{11}{table.caption.12}\protected@file@percent }
+\newlabel{tab:Guidance}{{6}{11}{Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.\relax }{table.caption.12}{}}
+\@writefile{toc}{\contentsline {section}{Acknowledgments}{11}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{11}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{11}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}The array-access analysis of QuickHuskySort}{11}{subsection.A.1}\protected@file@percent }
+\newlabel{sec:qhs-analysis}{{A.1}{11}{The array-access analysis of QuickHuskySort}{subsection.A.1}{}}
+\citation{WildNebel12}
 \citation{doi:10.1002}
 \citation{DBLP:journals/corr/abs-1805-08612}
-\@writefile{toc}{\contentsline {section}{References}{12}{section*.16}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{12}{appendix.A}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Prior comparison-based sorting algorithms}{12}{subsection.A.1}\protected@file@percent }
-\newlabel{sec:prior-algorithms}{{A.1}{12}{Prior comparison-based sorting algorithms}{subsection.A.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Benchmark environments}{12}{subsection.A.2}\protected@file@percent }
-\newlabel{sec:environments}{{A.2}{12}{Benchmark environments}{subsection.A.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Discussion of coding accuracy}{12}{subsection.A.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.4}Timsort or insertion sort for the cleanup pass}{12}{subsection.A.4}\protected@file@percent }
-\newlabel{sec:cleanup-choice}{{A.4}{12}{Timsort or insertion sort for the cleanup pass}{subsection.A.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Comparison-sort baselines for the numeric and tuple types}{12}{subsection.A.5}\protected@file@percent }
-\newlabel{sec:comparison-baselines}{{A.5}{12}{Comparison-sort baselines for the numeric and tuple types}{subsection.A.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}The cleanup pass as $N$ grows}{12}{subsection.A.6}\protected@file@percent }
-\newlabel{sec:cleanup-scaling}{{A.6}{12}{The cleanup pass as \texorpdfstring {$N$}{N} grows}{subsection.A.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Prior comparison-based sorting algorithms}{12}{subsection.A.2}\protected@file@percent }
+\newlabel{sec:prior-algorithms}{{A.2}{12}{Prior comparison-based sorting algorithms}{subsection.A.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Benchmark environments}{12}{subsection.A.3}\protected@file@percent }
+\newlabel{sec:environments}{{A.3}{12}{Benchmark environments}{subsection.A.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.4}Discussion of coding accuracy}{12}{subsection.A.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Timsort or insertion sort for the cleanup pass}{12}{subsection.A.5}\protected@file@percent }
+\newlabel{sec:cleanup-choice}{{A.5}{12}{Timsort or insertion sort for the cleanup pass}{subsection.A.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Comparison-sort baselines for the numeric and tuple types}{12}{subsection.A.6}\protected@file@percent }
+\newlabel{sec:comparison-baselines}{{A.6}{12}{Comparison-sort baselines for the numeric and tuple types}{subsection.A.6}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Prior comparison-based sorting algorithms\relax }}{13}{table.caption.17}\protected@file@percent }
 \newlabel{tab:PriorAlgorithms}{{7}{13}{Prior comparison-based sorting algorithms\relax }{table.caption.17}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces The three benchmark environments. Machine A supplies the comparison-sort results of \S  \nonbreakingspace \ref  {sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine of record, every figure quoted in this paper.\relax }}{13}{table.caption.18}\protected@file@percent }
 \newlabel{tab:SysEnv}{{8}{13}{The three benchmark environments. Machine A supplies the comparison-sort results of \S ~\ref {sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine of record, every figure quoted in this paper.\relax }{table.caption.18}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Timsort or insertion sort as the cleanup pass (time in milliseconds)\relax }}{13}{table.caption.19}\protected@file@percent }
 \newlabel{tab:TimvsInsertion}{{9}{13}{Timsort or insertion sort as the cleanup pass (time in milliseconds)\relax }{table.caption.19}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}Building permits: the case study in full}{13}{subsection.A.7}\protected@file@percent }
-\newlabel{sec:permits}{{A.7}{13}{Building permits: the case study in full}{subsection.A.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}The cleanup pass as $N$ grows}{13}{subsection.A.7}\protected@file@percent }
+\newlabel{sec:cleanup-scaling}{{A.7}{13}{The cleanup pass as \texorpdfstring {$N$}{N} grows}{subsection.A.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.8}Building permits: the case study in full}{13}{subsection.A.8}\protected@file@percent }
+\newlabel{sec:permits}{{A.8}{13}{Building permits: the case study in full}{subsection.A.8}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Comparison-sort baselines (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$. A from-scratch quicksort was measured for the numeric types only.\relax }}{14}{table.caption.20}\protected@file@percent }
 \newlabel{tab:ComparisonBaselines}{{10}{14}{Comparison-sort baselines (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$. A from-scratch quicksort was measured for the numeric types only.\relax }{table.caption.20}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.8}Why the two Chinese corpora sit at opposite ends of the table}{14}{subsection.A.8}\protected@file@percent }
-\newlabel{sec:chinese-coders}{{A.8}{14}{Why the two Chinese corpora sit at opposite ends of the table}{subsection.A.8}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.9}Future work: composite keys, and what a library would have to provide}{14}{subsection.A.9}\protected@file@percent }
-\newlabel{sec:composite-future}{{A.9}{14}{Future work: composite keys, and what a library would have to provide}{subsection.A.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.10}Adversarial inputs}{14}{subsection.A.10}\protected@file@percent }
-\newlabel{sec:adversarial}{{A.10}{14}{Adversarial inputs}{subsection.A.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.9}Why the two Chinese corpora sit at opposite ends of the table}{14}{subsection.A.9}\protected@file@percent }
+\newlabel{sec:chinese-coders}{{A.9}{14}{Why the two Chinese corpora sit at opposite ends of the table}{subsection.A.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.10}Future work: composite keys, and what a library would have to provide}{14}{subsection.A.10}\protected@file@percent }
+\newlabel{sec:composite-future}{{A.10}{14}{Future work: composite keys, and what a library would have to provide}{subsection.A.10}{}}
 \citation{10.1002/spe.4380231105}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.11}Adversarial inputs}{15}{subsection.A.11}\protected@file@percent }
+\newlabel{sec:adversarial}{{A.11}{15}{Adversarial inputs}{subsection.A.11}{}}
 \newlabel{tocindent-1}{0pt}
 \newlabel{tocindent0}{0pt}
 \newlabel{tocindent1}{6.25499pt}
@@ -160,5 +164,5 @@
 \newlabel{tab:AdversarialBits}{{11}{16}{Timings (ms) as high-order bits are progressively collapsed, $N = 1{,}000{,}000$. The dual-pivot baseline is shown both without a recursion-depth bound and with the one the JDK itself applies.\relax }{table.caption.21}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$\relax }}{16}{table.caption.22}\protected@file@percent }
 \newlabel{tab:AdversarialPrefix}{{12}{16}{Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$\relax }{table.caption.22}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.11}Handling of partially-sorted arrays}{16}{subsection.A.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.12}Handling of partially-sorted arrays}{16}{subsection.A.12}\protected@file@percent }
 \newlabel{TotPages}{{16}{16}{}{page.16}{}}

@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{21}
+\begin{thebibliography}{22}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -313,6 +313,19 @@
 \url{https://github.com/wainshine/Chinese-Names-Corpus}
 \showURL{%
 \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Wild and Nebel}{Wild and Nebel}{2012}]%
+        {WildNebel12}
+\bibfield{author}{\bibinfo{person}{Sebastian Wild} {and}
+  \bibinfo{person}{Markus~E. Nebel}.} \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{Average Case Analysis of Java 7's Dual Pivot
+  Quicksort}. In \bibinfo{booktitle}{\emph{Algorithms --- ESA 2012}}.
+  \bibinfo{publisher}{Springer Berlin Heidelberg}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1007/978-3-642-33090-2_71}
+\showDOI{\tempurl}
 
 
 \bibitem[\protect\citeauthoryear{{Xiang}}{{Xiang}}{2011}]%

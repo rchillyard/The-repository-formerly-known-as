@@ -971,40 +971,18 @@ The first thing to note is that, like merge sort, HuskySort requires $\textbf{O}
 This is because, in addition to the array of object references, we must have an equal-length array of longs (the huskyCode values).
 
 Secondly, HuskySort is not stable unless using the merge sort variation.
-How many comparisons and swaps does HuskySort require, on average?
-It has been shown for dual-pivot quicksort [Nebel] that these values are (approximately):
-\begin{itemize}
-    \item Comparisons: $1.9 N ln N$;
-    \item Swaps: $0.6 N ln N$.
-\end{itemize}
-
-Our experiments [refer to Quicksort Analysis table] show that each comparison requires 2 array accesses (although,
-because one comparand is always a pivot value, this number is effectively closer to 1.)
-Each swap requires 4 array accesses, although again, we will be swapping elements that have already been accessed.
-The effective number of (normalized) array accesses is, in total, approximately 4 rather than the expected 3.8 + 2.4.
-That is to say, the coefficient of $N ln N$ is approximately 4.
-The analysis represented by the table is for dual-pivot quicksort.
-\footnote{Note that, since dual-pivot quicksort is not actually implemented in the Java library for Comparable objects,
-    we re-implemented the class for objects.}
-However, in HuskySort, each swap also must swap the object references.
-These will not, in general, have been pre-fetched and so the effective total normalized array accesses ($A$) is approximately:
-\[A = 4 + 0.6 * 4 = 6.4\]
-Additionally, HuskySort requires $N$ huskyCode constructions.
-Each of these requires $k+1$ array accesses where $k$ is proportional to the number of fields contributing to the huskyCode.
-For a string,
-that will be the number of characters in the string (except that this is limited to a relatively small number according to the encoding).
-For ASCII strings, it is nine.
-For Unicode strings, it is four.
-
-However, keep in mind that this is linear and, while it can’t be completely ignored,
-it doesn't contribute to the overall growth of the complexity.
+The derivation of that comparison is a counting argument rather than a measurement, and it rests on
+one coefficient we estimated rather than measured; it is set out in \S~\ref{sec:qhs-analysis}.
+Its conclusion is that QuickHuskySort's linear phase is relatively costly at small $N$ and is soon
+swamped by the comparisons saved in the linearithmic phase, with a break-even against merge sort at
+$N = 4$ and a widening advantage thereafter.
 
 Encoding's cost has not simply been assumed:
 we timed the encoding phase in isolation,
 separately from the sort that follows it, to confirm it directly.
-At $N = 1{,}000{,}000$, encoding takes 52.7ms for English words (13.7\% of QuickHuskySort's 383.2ms total,
-21.1\% of RadixHuskySort's 249.3ms total) and 311.6ms for Chinese names encoded via pinyin (29.1\% of QuickHuskySort's 1070.2ms total,
-40.0\% of RadixHuskySort's 779.4ms total) — confirming that encoding cost, while real and non-negligible,
+At $N = 1{,}000{,}000$, encoding takes 67.7ms for English words (9.7\% of QuickHuskySort's 697.9ms total,
+24.8\% of RHSort's 272.7ms) and 211.1ms for Chinese names encoded via pinyin (16.9\% of QuickHuskySort's
+1252.7ms, 27.8\% of RHSort's 760.9ms) — confirming that encoding cost, while real and non-negligible,
 especially for the more elaborate pinyin encoding, remains a minority of total time in every case measured,
 consistent with the linear-and-subordinate role it is assumed to play above.
 Encoding's share of the total is larger for RadixHuskySort than for QuickHuskySort in both cases,
@@ -1013,38 +991,6 @@ as the sort phase gets cheaper,
 whatever cost remains in the encoding phase necessarily becomes a proportionally larger slice of what is left,
 which suggests encoding cost (particularly for pinyin)
 is the more promising target for further optimization now that the sort phase itself is no longer the dominant cost.
-Once the HuskySort is complete, we will assume that there are $p N$ remaining inversions,
-where $p$ is the probability of an idiogenic (self-inflicted) inversion.
-Again, while we should not ignore it completely, it is linear.
-The number of array access for the comparisons/swaps to fix these will be $(2 + j + 4) p N$,
-where $j$ is the number of fields to be compared to get a result ($j$ is usually smaller than $k$).
-
-So, the total number of array accesses ($A$) for Husky-sorting an array of length $N$ is:
-\[A = (6.4 ln N + (2 + j + 4) p + k + 1) N\]
-   
-Timsort would be hard to analyze in the general case and so we instead analyze merge sort,
-which should be approximately the same number of array accesses in the average case.
- 
-For merge sort, the analysis is much simpler:
-the number of comparisons for a randomly ordered array of length $N$ is $N log_2 N$.
-Merge sort does not use swaps, \emph{per se}, but instead uses copies.
-Assuming that we optimize the extra copying, there will be $N$ copies to get the algorithm started and $N$ per level.
-Thus, the number of copies will be $N {log_2 N}$.
-Each of these copies requires two array accesses while each comparison requires 2 + j (described above) array accesses.
- 
-The total number of array accesses ($A$) for merge sort is, therefore:
-\[A = (4 + j) N log_2 N + 2 N\]
- 
-Given that $log_2 N = 1.44 ln N$, and assuming that:
-
-$j = 4$ corresponding to the comparison of two strings that start with the same character but differ in the second character; and
-
-$k = 7$ and $p = 0.1$; then
-
-the totals ($A_m$ for merge sort and $A_h$ for HuskySort) come to:
- \[A_m = 11.5 N ln N + 2 N\]
- \[A_h = 6.4 N ln N + 9 N\]
- 
 The consequence of this is that, as expected,
 the linear phase of HuskySort is relatively high for small $N$ but that is soon swamped by the saving of comparisons in the linearithmic phase.
 The break-even point is actually a very small value of $N$:
@@ -1081,7 +1027,7 @@ but it is worth stating rather than leaving the model looking like radix wins un
   \label{tab:Comparison}
   \begin{tabular}{rrrrr}
     \toprule
-    N  &  N ln N & merge sort & HuskySort & Radix \\
+    N  &  N ln N & merge sort & QuickHuskySort & RHSort \\
     \midrule
      4 & 6 & 72 & 72 & 108 \\
      1,000 & 6,908 & 81,439 & 55,075 & 27,000 \\
@@ -1420,6 +1366,80 @@ To Darshan Dedhia, Akshay Bhusare, Kartik Kumar for their help with this project
 %% If your work has an appendix, this is the place to put it.
 \appendix
 \section{Appendix}
+\subsection{The array-access analysis of QuickHuskySort}
+\label{sec:qhs-analysis}
+
+\S~\ref{sec:analysis} counts array accesses for RHSort and compares the result with QuickHuskySort and
+merge sort in Table ~\ref{tab:Comparison}. This section derives the two comparison figures.
+
+It is a counting argument, and one step in it is an estimate rather than a count: the factor of 0.6
+below, which stands for the proportion of object-reference swaps whose targets have not already been
+fetched into cache. We have not measured it. Everything else here is arithmetic over the operation
+counts of the algorithms concerned, and the RHSort figure in \S~\ref{sec:analysis} needs no such
+factor --- $4 \cdot 64/b$ digit passes is a count, not an estimate. The comparison should be read as an
+order-of-magnitude argument, which is all the paper asks of it; the measurements of
+\S~\ref{sec:radix-results} are what carry the result.
+
+How many comparisons and swaps does HuskySort require, on average?
+Wild and Nebel's average-case analysis of dual-pivot quicksort\cite{WildNebel12} gives, approximately:
+\begin{itemize}
+    \item Comparisons: $1.9 N ln N$;
+    \item Swaps: $0.6 N ln N$.
+\end{itemize}
+
+A comparison reads two array elements, though because one comparand is always the pivot --- already
+in hand --- the effective count is closer to one.
+Each swap requires 4 array accesses, although again, we will be swapping elements that have already been accessed.
+The effective number of (normalized) array accesses is, in total, approximately 4 rather than the expected 3.8 + 2.4.
+That is to say, the coefficient of $N ln N$ is approximately 4.
+The analysis represented by the table is for dual-pivot quicksort.
+\footnote{Note that, since dual-pivot quicksort is not actually implemented in the Java library for Comparable objects,
+    we re-implemented the class for objects.}
+However, in HuskySort, each swap also must swap the object references.
+These will not, in general, have been pre-fetched and so the effective total normalized array accesses ($A$) is approximately:
+\[A = 4 + 0.6 * 4 = 6.4\]
+Additionally, HuskySort requires $N$ huskyCode constructions.
+Each of these requires $k+1$ array accesses where $k$ is proportional to the number of fields contributing to the huskyCode.
+For a string,
+that will be the number of characters in the string (except that this is limited to a relatively small number according to the encoding).
+For ASCII strings, it is nine.
+For Unicode strings, it is four.
+
+However, keep in mind that this is linear and, while it can’t be completely ignored,
+it doesn't contribute to the overall growth of the complexity.
+
+Once the HuskySort is complete, we will assume that there are $p N$ remaining inversions,
+where $p$ is the probability of an idiogenic (self-inflicted) inversion.
+Again, while we should not ignore it completely, it is linear.
+The number of array access for the comparisons/swaps to fix these will be $(2 + j + 4) p N$,
+where $j$ is the number of fields to be compared to get a result ($j$ is usually smaller than $k$).
+
+So, the total number of array accesses ($A$) for Husky-sorting an array of length $N$ is:
+\[A = (6.4 ln N + (2 + j + 4) p + k + 1) N\]
+   
+Timsort would be hard to analyze in the general case and so we instead analyze merge sort,
+which should be approximately the same number of array accesses in the average case.
+ 
+For merge sort, the analysis is much simpler:
+the number of comparisons for a randomly ordered array of length $N$ is $N log_2 N$.
+Merge sort does not use swaps, \emph{per se}, but instead uses copies.
+Assuming that we optimize the extra copying, there will be $N$ copies to get the algorithm started and $N$ per level.
+Thus, the number of copies will be $N {log_2 N}$.
+Each of these copies requires two array accesses while each comparison requires 2 + j (described above) array accesses.
+ 
+The total number of array accesses ($A$) for merge sort is, therefore:
+\[A = (4 + j) N log_2 N + 2 N\]
+ 
+Given that $log_2 N = 1.44 ln N$, and assuming that:
+
+$j = 4$ corresponding to the comparison of two strings that start with the same character but differ in the second character; and
+
+$k = 7$ and $p = 0.1$; then
+
+the totals ($A_m$ for merge sort and $A_h$ for HuskySort) come to:
+ \[A_m = 11.5 N ln N + 2 N\]
+ \[A_h = 6.4 N ln N + 9 N\]
+
 \subsection{Prior comparison-based sorting algorithms}
 \label{sec:prior-algorithms}
 

@@ -22,50 +22,52 @@ Warning--empty address in Timsort
 Warning--articleno or eid field, but no numpages field, in 1064546.1180622
 Warning--page numbers missing in both pages and numpages fields in 1064546.1180622
 Warning--articleno or eid, but no pages or numpages field in 1064546.1180622
+Warning--empty address in WildNebel12
+Warning--page numbers missing in both pages and numpages fields in WildNebel12
 Warning--empty publisher in 6115063
 Warning--empty address in 6115063
 Warning--empty publisher in Dual-pivot
 Warning--empty address in Dual-pivot
 Warning--page numbers missing in both pages and numpages fields in sort
-You've used 21 entries,
+You've used 22 entries,
             5901 wiz_defined-function locations,
-            1468 strings with 18982 characters,
-and the built_in function-call counts, 23560 in all, are:
-= -- 3128
-> -- 674
+            1474 strings with 19145 characters,
+and the built_in function-call counts, 24621 in all, are:
+= -- 3234
+> -- 712
 < -- 0
-+ -- 208
-- -- 247
-* -- 1577
-:= -- 2284
-add.period$ -- 109
-call.type$ -- 21
-change.case$ -- 122
-chr.to.int$ -- 21
-cite$ -- 37
-duplicate$ -- 2144
-empty$ -- 1516
-format.name$ -- 287
-if$ -- 5743
++ -- 221
+- -- 263
+* -- 1649
+:= -- 2394
+add.period$ -- 114
+call.type$ -- 22
+change.case$ -- 128
+chr.to.int$ -- 22
+cite$ -- 40
+duplicate$ -- 2249
+empty$ -- 1589
+format.name$ -- 307
+if$ -- 5983
 int.to.chr$ -- 2
 int.to.str$ -- 1
-missing$ -- 78
-newline$ -- 269
-num.names$ -- 172
-pop$ -- 752
+missing$ -- 83
+newline$ -- 279
+num.names$ -- 180
+pop$ -- 800
 preamble$ -- 1
-purify$ -- 311
+purify$ -- 326
 quote$ -- 0
-skip$ -- 740
+skip$ -- 779
 stack$ -- 0
-substring$ -- 1784
-swap$ -- 210
+substring$ -- 1845
+swap$ -- 217
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 460
-warning$ -- 16
-while$ -- 181
+type$ -- 490
+warning$ -- 18
+while$ -- 189
 width$ -- 0
-write$ -- 465
-(There were 16 warnings)
+write$ -- 484
+(There were 18 warnings)
