@@ -1224,6 +1224,65 @@ is simpler than stated.
 
 ---
 
+# 0m. Strategy for the four and a half pages — measured, 2026-09-08
+
+Robin proposed three avenues: tighten the text, delete fluff, move appendix-worthy material. The
+measurements say the second and third can work and the first cannot, because of where the pages
+actually are.
+
+## The whole overage is floats. The prose is exactly at the limit.
+
+Four builds of the SIAM trial, differing only in which floats the body carries:
+
+| configuration | body | implies |
+| --- | ---: | --- |
+| as it stands, 17 body floats | ~16.5 pages | |
+| minus the 4 body figures | ~15 | **the figures cost ~1.5 pages** |
+| minus the 13 body tables | ~13 | **the tables cost ~3.5 pages** |
+| minus every body float | **~12** | **the prose is 12 pages — the limit exactly** |
+
+So tightening prose cannot solve this. Even a heroic pass would only buy headroom for floats we have
+already decided to keep, and today's experiment under acmart showed prose trims being swamped by float
+reflow in any case (§0j). **Deprioritise avenue 1.** It is the expensive one and it is aimed at the
+wrong target.
+
+Avenues 2 and 3 both work, but only when applied to floats rather than to sentences.
+
+## And a fourth avenue, which the numbers argue for
+
+**Consolidate floats.** Thirteen tables cost 3.5 pages, an average of 0.27 each, and a good part of that
+is fixed overhead — caption, rules, inter-float spacing — rather than data. Merging tables converts N
+overheads into one without losing a single number, which none of the other three avenues can claim.
+
+## Ranked targets
+
+| target | avenue | ~saving | why it is defensible |
+| --- | --- | ---: | --- |
+| **Figure `TvsN`, "Time vs Size"** | delete | 0.4 | **It is a 2020 measurement plot from the Intel/Java 8 machine.** Exactly the category `HSComp` was deleted for, and §7's audit covered tables and missed figures. It cannot be rebuilt — it is a PNG. Deleting it removes an inconsistency as well as a page fraction |
+| **Figure `Introsort`, "Introsort Flow"** | delete | 0.4 | A flow diagram of *someone else's* algorithm, already explained in prose at two places. Not our contribution |
+| **Figure `Example`, "Strings Data Example"** | delete or appendix | 0.4 | A picture of what a corpus file looks like. Illustrates nothing about the mechanism |
+| **`SysEnvOriginal` + `SysEnvCurrent` + `SysEnvAWS`** | consolidate to one 3-column table | 0.3 | Three small tables of machine specifications, same rows, different values. One table, three columns, no content lost |
+| **`TimvsInsertion`** (14 rows) | appendix | 0.5 | Design justification for choosing Timsort in step 3, not a headline result — appendix-worthy on the CFP's own test. Also the last old-machine table |
+| **`HS_BM_N` + `HS_BM_S` + `HS_BM_T`** | consolidate | 0.4 | Three benchmark tables that differ only in data type. One table with a type column |
+| **`Guidance`** | appendix | 0.4 | Already flagged in §0j; guidance rather than results |
+| **`ParallelRadix`** | appendix | 0.3 | Already flagged; the surrounding prose quotes every figure in it |
+
+That comes to roughly 3.1 pages of the 4.5 needed. The remaining 1.4 has to come from either
+`RadixImprovements` (12 rows, and the largest table left), moving all of §sec:usecase rather than just
+its table, or a genuine prose pass accepted as the last resort rather than the first.
+
+## The test to apply, which is the venue's own
+
+> The main part of the submission should therefore contain a clear technical presentation of the merits
+> of the paper, including a discussion of the paper's significance within the context of prior work and
+> a description of the key technical and conceptual ideas used to achieve its main claims.
+
+Merits, significance against prior work, and the key ideas stay. Everything above passes that test:
+none of it is an argument, and the two deletions are a diagram of another algorithm and a screenshot of
+a file.
+
+---
+
 # 1. Must fix — claims the evidence no longer supports
 
 ## 1.1 The Conclusion: "especially fast for Unicode character strings" — DONE
