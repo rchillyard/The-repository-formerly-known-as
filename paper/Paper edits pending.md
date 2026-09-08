@@ -56,7 +56,7 @@ then.
 | ~~**1.5**~~ | ~~"every non-string row exceeds every string row"~~ — **APPLIED 2026-09-07**, tex 567–588 |
 | ~~**5.1**~~ | ~~the permits case study is nowhere in the prose~~ — **APPLIED 2026-09-07**, tex 899–905 and 1352–1365 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
-| **0c** | **the SIAM proceedings template** — blocked only on fetching `ltexpprt.sty`; Robin has asked Sai Vineeth. See `doc/SIAM template — what to fetch.md` | tex 43–58 |
+| **0c** | **the SIAM proceedings template** — blocked only on fetching `ltexpprt.sty`; Robin has asked Sai Vineeth. See `doc/Tasks for Sai Vineeth.md` | tex 43–58 |
 | **0c** | **anonymisation**: front matter goes with the template switch. **The repo link needs a decision — see 0i**, because an anonymised mirror of this repository would not be anonymous |
 | ~~**0c**~~ | ~~12 pages excluding references~~ — **CLOSED**: 12.0 under acmart. Must be re-measured after the SIAM reflow | — |
 | ~~**0b**~~ | ~~cite arXiv:2012.00866~~ — **APPLIED 2026-09-07**, Introduction + `HuskySort.bbl` |
@@ -910,17 +910,17 @@ Yunlu by name and quote Robin's decisions), `docs/Audit against INFO6205.md`, `l
 What remains after those exclusions — `src/` and `pom.xml` — is the code the paper is actually about,
 and is clean apart from the package name.
 
-## Decision needed
+## Decided 2026-09-07: Anonymous GitHub over `src/` only
 
-1. **Anonymous GitHub over `src/` only**, accepting the package name. Proportionate to a best-effort
-   standard, and cheapest. My recommendation.
-2. **A curated anonymous snapshot**: a fresh repository containing `src/` and `pom.xml` with the
-   package renamed. Cleanest, and perhaps two hours including a build check, but it is a second
-   artefact to keep in step with this one.
-3. **No link.** Complies, and forgoes what the CFP encourages.
+Accepting the package name, which is proportionate to a best-effort standard. Assigned to Sai Vineeth
+as task 2 of [Tasks for Sai Vineeth.md](../doc/Tasks%20for%20Sai%20Vineeth.md), together with the
+exclusion list; creating the mirror needs an account and publishes something, so it is not mine to do.
+The tex change at line 206 is one line once the URL exists.
 
-Creating the mirror is Robin's or Sai Vineeth's action either way — it needs an account and it publishes
-something. The tex change is one line once the URL exists.
+**The package rename is a separate, optional task 3** — Robin's view being that there is no good reason
+to carry that much identifying information in package names regardless of anonymity. Scope measured:
+164 Java files plus one `pom.xml` line, with nothing in resources or config. To be done only if tasks 1
+and 2 are complete and the paper is otherwise ready, and never in the same commit as anything else.
 
 ---
 
