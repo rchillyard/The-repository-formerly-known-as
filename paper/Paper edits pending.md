@@ -1444,8 +1444,8 @@ headline results. That leaves four, of which two are strong:
 
 | table | rows | verdict |
 | --- | ---: | --- |
-| **`PriorAlgorithms`** | 5 | **strongest candidate.** A background table of textbook sorting algorithms with their asymptotic cases — the definition of supporting material, and §BACKGROUND's prose carries the argument without it |
-| **`SysEnv`** | 6 | **strong candidate.** Machine specifications are methodology, not argument. Just consolidated from three tables to one, so moving it wholesale is cheap |
+| ~~`PriorAlgorithms`~~ | 5 | **MOVED to appendix §A.1, 2026-09-08.** A background table of textbook sorting algorithms; §BACKGROUND's prose carries the argument without it |
+| ~~`SysEnv`~~ | 6 | **MOVED to appendix §A.2, 2026-09-08.** Machine specifications are methodology, not argument. Its introduction became one sentence in the body |
 | `EncodingConstants` | 4 | small, and it now carries the bit-widths that the deleted `stringToLong` listing used to show |
 | `Comparison` | 4 | the array-access model's own output. This is argument, and it should stay |
 
@@ -1459,9 +1459,10 @@ headline results. That leaves four, of which two are strong:
 | **`HuskySort.sort`** | QuickHuskySort's top level — **candidate**, being the algorithm now positioned as prior work |
 | **`huskyEncode` for a character sequence** | string-specific — **candidate**, strings being explicitly not the sweet spot |
 
-`PriorAlgorithms` and `SysEnv` to the appendix, plus those two listings, is perhaps 1.3 of the 3.4. The
-rest has to come from `HS_BM` or `RadixImprovements` — the two headline tables — or from accepting a
-shorter paper than the one we have.
+**Measured: those two were worth 0.93 — body 15.38 → 14.45**, the first substantial move since the
+figures, and confirming that floats rather than prose are where the pages are. **2.45 still to find.**
+The two candidate listings are perhaps 0.5 of it; the rest has to come from `HS_BM` or
+`RadixImprovements` — the two headline tables — or from accepting a shorter paper than the one we have.
 
 ---
 

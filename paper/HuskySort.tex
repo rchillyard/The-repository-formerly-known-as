@@ -424,25 +424,13 @@ We describe our Test Cases in Section 5 and present results in Section 6, with o
 
 
 \section{BACKGROUND}
+\label{sec:background}
 
 Before introducing HuskySort, it is worth laying out the four comparison-based algorithms it draws on side by side,
 since each contributes a different property to the final design.
-Table ~\ref{tab:PriorAlgorithms} summarizes their standard complexity and stability characteristics.
+Their standard complexity and stability characteristics are summarized in
+\S~\ref{sec:prior-algorithms}.
 
-\begin{table*}
-  \caption{Prior comparison-based sorting algorithms}
-  \label{tab:PriorAlgorithms}
-  \begin{tabularx}{\textwidth}{llllX}
-    \toprule
-    Algorithm & Average case & Worst case & Stable & Notes \\
-    \midrule
-    Insertion sort & $\textbf{O}(N + I)$ & $\textbf{O}(N^2)$ & Yes & $I$ = number of inversions; fast only for small or nearly-sorted $N$ \\
-    Merge sort & $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Linearithmic regardless of input order; $\textbf{O}(N)$ extra space \\
-    Quicksort & $\textbf{O}(N \log N)$ & $\textbf{O}(N^2)$ & No & In-place, cache-friendly; the quadratic worst case is mitigated in practice (e.g., Introsort's heapsort fallback\cite{doi:10.1002}) \\
-    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs; more precisely $\textbf{O}(N + N \log p)$ for $p$ runs\cite{DBLP:journals/corr/abs-1805-08612} \\
-    \bottomrule
-  \end{tabularx}
-\end{table*}
 
 Quicksort is fastest in practice on unordered data (its actual average case),
 because its in-place partitioning and cache-friendly access pattern outweigh merge sort's guaranteed $\textbf{O}(N \log N)$ bound;
@@ -904,7 +892,7 @@ The implementation is available at \url{https://github.com/rchillyard/HuskySort}
 
 \subsection{System Environment}
 
-Three machines appear in this paper, and Table ~\ref{tab:SysEnv} lists all three.
+Three machines appear in this paper, and \S~\ref{sec:environments} specifies all three.
 Machine A ran the JDK 1.8.0\_152 comparison-sort benchmarks of \S~\ref{sec:analysis},
 the choice of cleanup sort among them (\S~\ref{sec:cleanup-choice});
 machine B, on different hardware and two JVM generations later, ran the radix-sort and JMH development work.
@@ -917,24 +905,6 @@ machines and JVM versions rather than being an artifact of one environment.
 It does: HuskySort, and now RHSort, beat the system sort on all three,
 which differ in vendor, instruction set, core design and JVM generation.
 
-\begin{table*}
-  \caption{The three benchmark environments. Machine A supplies the comparison-sort results of
-    \S~\ref{sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine
-    of record, every figure quoted in this paper.}
-  \label{tab:SysEnv}
-  \begin{tabularx}{\linewidth}{lXXX}
-    \toprule
-    & \textbf{A} --- comparison sorts & \textbf{B} --- development & \textbf{C} --- machine of record \\
-    \midrule
-    Model & MacBook Pro (MacBookPro14,3) & MacBook (Apple Silicon) & AWS EC2 c7g.4xlarge \\
-    Processor & Quad-core Intel Core i7, 2.8 GHz, Hyper-Threading & Apple M1, 8 cores (4 performance + 4 efficiency) & ARM Neoverse V1 (Graviton3), 16 vCPU, 2.6 GHz \\
-    Cache & 256 KB L2 per core, 6 MB L3 & 128 KB L1I / 64 KB L1D per core; 12 MB + 4 MB L2 & --- \\
-    Memory & 16 GB 2133 MHz LPDDR3 & 16 GB unified & 30 GiB \\
-    OS & --- & macOS 26.5.2 & Amazon Linux 2023 \\
-    JVM & 1.8.0\_152 & OpenJDK 21.0.10 & OpenJDK 21.0.12 (Corretto) \\
-    \bottomrule
-  \end{tabularx}
-\end{table*}
 
 \subsection{Implementation of Algorithm}
 
@@ -1263,7 +1233,7 @@ margin, but it is our largest on data whose distribution we did not choose.
 \S~\ref{sec:permits} gives the case study, and \S~\ref{sec:composite-future} what a general
 composite encoder would have to provide, that one having been written by hand.
 
-The measurements were reproduced qualitatively on machines A and B of Table ~\ref{tab:SysEnv},
+The measurements were reproduced qualitatively on machines A and B of \S~\ref{sec:environments},
 which differ from the machine of record and from each other in vendor, instruction set, core design and
 JVM generation.
 We quote no figures from them, since mixing environments within a comparison would rob it of meaning,
@@ -1430,7 +1400,7 @@ from more bit manipulation and fewer calls to \textit{equals}.
 
 These findings are not an artifact of a single development machine.
 The same qualitative pattern held on three environments spanning two CPU vendors and three distinct architectures
-(Table ~\ref{tab:SysEnv}),
+(\S~\ref{sec:environments}),
 the last a 16-core ARM server instance with no performance/efficiency core split to confound the result.
 That same run also settled a question the parallel variant's own results had left open (\S~\ref{sec:parallel-radix}):
 its scaling ceiling past a handful of threads is a property of the design itself,
@@ -1466,6 +1436,53 @@ To Darshan Dedhia, Akshay Bhusare, Kartik Kumar for their help with this project
 %% If your work has an appendix, this is the place to put it.
 \appendix
 \section{Appendix}
+\subsection{Prior comparison-based sorting algorithms}
+\label{sec:prior-algorithms}
+
+The algorithms reviewed in \S~\ref{sec:background}, with the standard complexity and stability
+characteristics referred to there.
+
+\begin{table*}
+  \caption{Prior comparison-based sorting algorithms}
+  \label{tab:PriorAlgorithms}
+  \begin{tabularx}{\textwidth}{llllX}
+    \toprule
+    Algorithm & Average case & Worst case & Stable & Notes \\
+    \midrule
+    Insertion sort & $\textbf{O}(N + I)$ & $\textbf{O}(N^2)$ & Yes & $I$ = number of inversions; fast only for small or nearly-sorted $N$ \\
+    Merge sort & $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Linearithmic regardless of input order; $\textbf{O}(N)$ extra space \\
+    Quicksort & $\textbf{O}(N \log N)$ & $\textbf{O}(N^2)$ & No & In-place, cache-friendly; the quadratic worst case is mitigated in practice (e.g., Introsort's heapsort fallback\cite{doi:10.1002}) \\
+    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs; more precisely $\textbf{O}(N + N \log p)$ for $p$ runs\cite{DBLP:journals/corr/abs-1805-08612} \\
+    \bottomrule
+  \end{tabularx}
+\end{table*}
+
+\subsection{Benchmark environments}
+\label{sec:environments}
+
+Machine C is the machine of record and the source of every figure quoted in this paper.
+Machines A and B appear only as the qualitative cross-checks of \S~\ref{sec:radix-results}, and
+machine A additionally supplies the cleanup-sort comparison of \S~\ref{sec:cleanup-choice}.
+
+\begin{table*}
+  \caption{The three benchmark environments. Machine A supplies the comparison-sort results of
+    \S~\ref{sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine
+    of record, every figure quoted in this paper.}
+  \label{tab:SysEnv}
+  \begin{tabularx}{\linewidth}{lXXX}
+    \toprule
+    & \textbf{A} --- comparison sorts & \textbf{B} --- development & \textbf{C} --- machine of record \\
+    \midrule
+    Model & MacBook Pro (MacBookPro14,3) & MacBook (Apple Silicon) & AWS EC2 c7g.4xlarge \\
+    Processor & Quad-core Intel Core i7, 2.8 GHz, Hyper-Threading & Apple M1, 8 cores (4 performance + 4 efficiency) & ARM Neoverse V1 (Graviton3), 16 vCPU, 2.6 GHz \\
+    Cache & 256 KB L2 per core, 6 MB L3 & 128 KB L1I / 64 KB L1D per core; 12 MB + 4 MB L2 & --- \\
+    Memory & 16 GB 2133 MHz LPDDR3 & 16 GB unified & 30 GiB \\
+    OS & --- & macOS 26.5.2 & Amazon Linux 2023 \\
+    JVM & 1.8.0\_152 & OpenJDK 21.0.10 & OpenJDK 21.0.12 (Corretto) \\
+    \bottomrule
+  \end{tabularx}
+\end{table*}
+
 \subsection{Discussion of coding accuracy}
 It is not essential that coding is perfect for HuskySort to work well.
 We have experimented with deliberately throwing off the encoding quite drastically.
@@ -1483,7 +1500,7 @@ sort qualify.
 Below about 50,000 elements the choice barely matters and insertion sort is sometimes marginally
 faster; beyond it Timsort wins decisively, by a factor of four and a half at $N = 4{,}000{,}000$.
 That is why step 3 uses the system sort.
-These figures are from machine A of Table ~\ref{tab:SysEnv} and are the paper's only measurements not
+These figures are from machine A of \S~\ref{sec:environments} and are the paper's only measurements not
 taken on the machine of record; they are reported here because the effect is an order of magnitude
 larger than any plausible machine difference, and because the choice they settle is a design decision
 rather than a result.
