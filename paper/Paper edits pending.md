@@ -56,7 +56,7 @@ then.
 | ~~**1.5**~~ | ~~"every non-string row exceeds every string row"~~ — **APPLIED 2026-09-07**, tex 567–588 |
 | ~~**5.1**~~ | ~~the permits case study is nowhere in the prose~~ — **APPLIED 2026-09-07**, tex 899–905 and 1352–1365 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
-| **0c** | **the SIAM proceedings template is required at submission, not on acceptance** — and no SIAM class is installed | tex 43–58 |
+| **0c** | **the SIAM proceedings template** — blocked only on fetching `ltexpprt.sty`; Robin has asked Sai Vineeth. See `doc/SIAM template — what to fetch.md` | tex 43–58 |
 | **0c** | **anonymisation**: front matter, the repo URL, and one line of body prose | tex 191–228, **775** |
 | ~~**0c**~~ | ~~12 pages excluding references~~ — **CLOSED**: 12.0 under acmart. Must be re-measured after the SIAM reflow | — |
 | ~~**0b**~~ | ~~cite arXiv:2012.00866~~ — **APPLIED 2026-09-07**, Introduction + `HuskySort.bbl` |
@@ -569,7 +569,10 @@ the `.bbl` never carried the fields and guessing them would be worse than flaggi
   `arxi` in the `.bbl`, which is why it renders without an arXiv label. Corrected to `arxiv` in the
   `.bib`, so that entry now displays properly.
 
-Both should be completed before submission; neither blocks anything.
+Both were completed on 2026-09-07: Jugé from the DOI, which resolves to the SODA 2020 proceedings
+volume (Thirty-First Annual, pages 1639–1654), and *Sort Race* from its arXiv id with the eprint type
+corrected. BibTeX no longer reports an empty year, booktitle or publisher for either, and the "[n.d.]"
+that had been printing against Jugé is gone.
 
 ---
 

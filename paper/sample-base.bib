@@ -11,9 +11,10 @@
 %% \natexlab, \showeprint and \urldef, none of which it self-guards, so it does not compile
 %% outside acmart.
 %%
-%% Every field below was read off the .bbl. Where the .bbl showed no value for a field, the
-%% field is absent here rather than guessed. Two entries are consequently thinner than one
-%% would like and are marked INCOMPLETE.
+%% Every field below was read off the .bbl. Two entries came back thinner than the rest,
+%% because the .bbl had never carried the fields; both were completed on 2026-09-07 from
+%% their DOI and arXiv id respectively, and each carries a comment saying so. Nothing here
+%% is guessed.
 
 @article{10.1145/48529.48535,
   author  = {Aggarwal, Alok and Vitter, Jeffrey Scott},
@@ -116,15 +117,19 @@
   doi     = {10.1145/366622.366644}
 }
 
-%% INCOMPLETE: the .bbl carries no year, booktitle host or publisher for this entry, only a
-%% title, a page range and a DOI. It is Jugé, "Adaptive Shivers Sort", SODA 2020, and the
-%% missing fields should be filled in before submission.
+%% The .bbl carried no year, host booktitle or publisher for this entry -- only a title, a
+%% page range and a DOI, so it had been rendering as "[n.d.]". Completed 2026-09-07 from the
+%% DOI, which resolves to the SODA 2020 proceedings volume.
 @inproceedings{doi:10.1137/1.9781611975994.101,
-  author = {Jug{\'e}, Vincent},
-  title  = {Adaptive Shivers Sort: An Alternative Sorting Algorithm},
-  pages  = {1639--1654},
-  doi    = {10.1137/1.9781611975994.101},
-  eprint = {https://epubs.siam.org/doi/pdf/10.1137/1.9781611975994.101}
+  author    = {Jug{\'e}, Vincent},
+  title     = {Adaptive Shivers Sort: An Alternative Sorting Algorithm},
+  booktitle = {Proceedings of the Thirty-First Annual ACM-SIAM Symposium on Discrete Algorithms},
+  series    = {SODA '20},
+  publisher = {Society for Industrial and Applied Mathematics},
+  address   = {USA},
+  year      = {2020},
+  pages     = {1639--1654},
+  doi       = {10.1137/1.9781611975994.101}
 }
 
 @article{LAMARCA199966,
@@ -219,9 +224,8 @@
   note   = {Retrieved November 3, 2020}
 }
 
-%% INCOMPLETE: the .bbl carries only a title and an eprint id for this entry -- and the
-%% eprint type is misspelled "arxi" there, which is why it renders without an arXiv label.
-%% It is Zhang, Meng and Liang, "Sort Race", arXiv:1609.04471.
+%% The .bbl carried only a title and an eprint id here, with the eprint type misspelled
+%% "arxi", which is why it rendered without an arXiv label. Corrected 2026-09-07.
 @article{sort,
   author     = {Zhang, Hantao and Meng, Baoluo and Liang, Yiwen},
   title      = {Sort Race},

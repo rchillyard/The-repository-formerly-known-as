@@ -17,10 +17,6 @@ Warning--empty address in 814600
 Warning--page numbers missing in both pages and numpages fields in DBLP:journals/corr/cs-DS-0408040
 Warning--page numbers missing in both pages and numpages fields in GOLDHAHN12.327
 Warning--page numbers missing in both pages and numpages fields in huskysort2020
-Warning--empty year in doi:10.1137/1.9781611975994.101
-Warning--empty booktitle in doi:10.1137/1.9781611975994.101
-Warning--empty publisher in doi:10.1137/1.9781611975994.101
-Warning--empty address in doi:10.1137/1.9781611975994.101
 Warning--empty publisher in Timsort
 Warning--empty address in Timsort
 Warning--articleno or eid field, but no numpages field, in 1064546.1180622
@@ -33,43 +29,43 @@ Warning--empty address in Dual-pivot
 Warning--page numbers missing in both pages and numpages fields in sort
 You've used 20 entries,
             5901 wiz_defined-function locations,
-            1462 strings with 18445 characters,
-and the built_in function-call counts, 22698 in all, are:
-= -- 3012
+            1463 strings with 18475 characters,
+and the built_in function-call counts, 22798 in all, are:
+= -- 3040
 > -- 654
 < -- 0
 + -- 203
 - -- 239
-* -- 1527
-:= -- 2193
+* -- 1535
+:= -- 2197
 add.period$ -- 103
 call.type$ -- 20
 change.case$ -- 117
 chr.to.int$ -- 20
-cite$ -- 40
-duplicate$ -- 2057
-empty$ -- 1457
+cite$ -- 36
+duplicate$ -- 2071
+empty$ -- 1464
 format.name$ -- 279
-if$ -- 5561
+if$ -- 5579
 int.to.chr$ -- 2
 int.to.str$ -- 1
 missing$ -- 78
-newline$ -- 260
+newline$ -- 259
 num.names$ -- 164
-pop$ -- 758
+pop$ -- 733
 preamble$ -- 1
-purify$ -- 291
+purify$ -- 297
 quote$ -- 0
-skip$ -- 699
+skip$ -- 711
 stack$ -- 0
-substring$ -- 1695
-swap$ -- 201
+substring$ -- 1725
+swap$ -- 205
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 430
-warning$ -- 20
+warning$ -- 16
 while$ -- 173
 width$ -- 0
-write$ -- 443
-(There were 20 warnings)
+write$ -- 446
+(There were 16 warnings)

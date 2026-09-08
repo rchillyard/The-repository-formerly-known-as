@@ -185,17 +185,20 @@
 \showDOI{\tempurl}
 
 
-\bibitem[\protect\citeauthoryear{Jug{\'e}}{Jug{\'e}}{[n.d.]}]%
+\bibitem[\protect\citeauthoryear{Jug{\'e}}{Jug{\'e}}{2020}]%
         {doi:10.1137/1.9781611975994.101}
 \bibfield{author}{\bibinfo{person}{Vincent Jug{\'e}}.}
-  \bibinfo{year}{[n.d.]}\natexlab{}.
+  \bibinfo{year}{2020}\natexlab{}.
 \newblock \showarticletitle{Adaptive Shivers Sort: An Alternative Sorting
-  Algorithm}. \bibinfo{pages}{1639--1654}.
+  Algorithm}. In \bibinfo{booktitle}{\emph{Proceedings of the Thirty-First
+  Annual ACM-SIAM Symposium on Discrete Algorithms}}
+  \emph{(\bibinfo{series}{SODA '20})}. \bibinfo{publisher}{Society for
+  Industrial and Applied Mathematics}, \bibinfo{address}{USA},
+  \bibinfo{pages}{1639--1654}.
 \newblock
 \urldef\tempurl%
 \url{https://doi.org/10.1137/1.9781611975994.101}
 \showDOI{\tempurl}
-\showeprint{https://epubs.siam.org/doi/pdf/10.1137/1.9781611975994.101}
 
 
 \bibitem[\protect\citeauthoryear{LaMarca and Ladner}{LaMarca and
