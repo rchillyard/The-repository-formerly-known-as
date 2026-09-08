@@ -1,4 +1,4 @@
-# Every edit this week's work implies — started 2026-09-02, last updated 2026-09-07
+# Every edit this week's work implies — started 2026-09-02, last updated 2026-09-08
 
 Supersedes `MSD baseline draft text.md`. This is intended to be exhaustive: it lists the claims that
 must change, the claims that must be added, the claims that should be softened, the optional
@@ -2282,3 +2282,72 @@ than celebrating.
 **Nothing in §8 can be applied until those numbers arrive.** If they do not arrive before the 15th, the
 fallback is to delete the two crashed rows and the sentence at 1648–1649, and report the sweep as far as
 56 fixed bits — which loses the two least informative columns and no argument.
+
+---
+
+# 0s. The all-at-once table and naming audit — 2026-09-08
+
+Robin found five defects in one reading ("I think you need a break") — Table 4's "Radix sort", Table 9's
+bare "Husky", Table 10 showing something unexplained, A.12 saying "HuskySort", and "several" more
+"HuskySort" references. Piecemeal fixing is what produced them, so instead: **all 12 tables** (number,
+page, caption, every header) and **all 43 bare "HuskySort" occurrences** were read in a single pass.
+
+**24 corrections, plus 3 more once Table 10 was checked against the benchmark source.**
+
+## What Robin listed
+
+| site | was | now |
+| --- | --- | --- |
+| Table 4 caption | "Radix sort" — which one? | "RHSort's advantage over QuickHuskySort, as a direct multiplier" |
+| Table 9 header | bare "Husky" ×2 | "QuickHuskySort, Timsort cleanup" / "…, insertion-sort cleanup" |
+| Table 10 caption | said nothing about what it shows | defines both baselines and what each measures |
+| A.12 | "HuskySort" throughout | QuickHuskySort where meant; also "40 Percent" → "40 percent" |
+| 15 further sites | "HuskySort" meaning QuickHuskySort | named explicitly |
+
+## Table 10 needed a second correction, because my first was wrong
+
+The caption I wrote said *quicksort (raw)* "sorts the husky codes alone". It does not.
+`NumericSortBenchmarks.rawLongQuicksort` unboxes each element to a primitive `long` (or `double`) and
+calls `Arrays.sort` on that array — the benchmark's own note says "what's being measured here is the
+primitive-array sort + box round trip". For `Double`, `BigInteger` and `BigDecimal` a husky code is not
+what gets sorted. The "bounds from below" claim survives; the description of the mechanism did not.
+
+I nearly compounded it by adding that the unboxing is lossy for the two `Big` types. It is not, for this
+data: the generators are `BigInteger.valueOf(r.nextLong())` and `BigDecimal.valueOf(double)`, both of
+which round-trip exactly. Checked before writing, not after.
+
+**Table 10 also had three unlabelled rows.** They are the Permit tuple at N = 20,000 / 100,000 /
+500,000, carried over from the old Tuples table when it was merged into this one; the row label was lost
+in the merge and the table had been printing a blank "Data type" cell ever since.
+
+## Two defects the audit found that were not on Robin's list
+
+- **A duplicated paragraph, mine, an hour old.** The bridge added when the derivation moved to §A.1
+  restated the conclusion text still sitting at 994–999. Trimmed to the pointer it was meant to be.
+- **The worked example still quoted pre-PR64 figures** — 732\,ms, 1,194\,ms, ratio 1.63. Against the
+  current `HS_BM` run (system 1120.87, QuickHuskySort 697.88) it is **698, 1,121, 1.61**.
+
+## The 22 remaining "HuskySort" uses are deliberate
+
+Family-level by intent: the introduction and the shared three-step strategy, the "Why HuskySort Works"
+heading, the ShellSort comparison, the GitHub URL, the code identifiers `HuskySortBenchmark` and
+`HuskySortBenchmarkHelper`, §sec:summary's target applications, "not either HuskySort variant", the
+coding-accuracy appendix, and the conclusion's own gloss, "The original idea behind HuskySort, that's to
+say QuickHuskySort". That gloss is why the line four sentences later needs no change.
+
+## Page count, re-measured under SIAM rather than acmart
+
+Worth recording because it caught me out: `paper/HuskySort.tex` is still acmart, and its body measures
+**10.2 pages** — which means nothing, since the limit applies to the SIAM reflow. Regenerating the trial
+through `doc/siam-convert.py` and measuring to where REFERENCES starts:
+
+| | body |
+| --- | ---: |
+| cfb51b8, before the audit | 13.75 |
+| a104898, after it | **13.69** |
+
+So the audit paid for its own added caption text and a little more, the trimmed duplicate being body
+prose while the caption growth is in the appendix. **~1.7 pages still to find.**
+
+Note for re-measuring: the trial needs `TEXINPUTS` to include both `paper/` (for `HuskySortFlow.png`)
+and `paper/siamproceedingsmacros_022425/`, else the figure silently falls back to a draft box.
