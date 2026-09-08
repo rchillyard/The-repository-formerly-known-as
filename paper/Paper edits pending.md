@@ -57,7 +57,8 @@ then.
 | ~~**5.1**~~ | ~~the permits case study is nowhere in the prose~~ — **APPLIED 2026-09-07**, tex 899–905 and 1352–1365 |
 | ~~**7**~~ | ~~tables from the 2017 Intel/Java 8 machine~~ — **CLOSED 2026-09-07.** `HSComp` and `Improvements Summary` removed; `TimvsInsertion` kept and now attributed at tex 806 | — |
 | **0c** | **the SIAM proceedings template** — blocked only on fetching `ltexpprt.sty`; Robin has asked Sai Vineeth. See `doc/Tasks for Sai Vineeth.md` | tex 43–58 |
-| **0c** | **anonymisation**: front matter goes with the template switch. **The repo link needs a decision — see 0i**, because an anonymised mirror of this repository would not be anonymous |
+| **0k** | **front-matter anonymisation** — names, emails, affiliations *and ORCIDs*. Decided 2026-09-08; goes with the template switch | tex 174–176, 199–245 |
+| ~~**0c**~~ | ~~anonymisation~~ — split into **0k** (front matter) and **0i** (the repository link), both decided |
 | ~~**0c**~~ | ~~12 pages excluding references~~ — **CLOSED**: 12.0 under acmart. Must be re-measured after the SIAM reflow | — |
 | ~~**0b**~~ | ~~cite arXiv:2012.00866~~ — **APPLIED 2026-09-07**, Introduction + `HuskySort.bbl` |
 | ~~**0f**~~ | ~~`sample-base.bib` is missing~~ — **RECONSTRUCTED 2026-09-07** from the `.bbl`; BibTeX now runs clean and all 19 citations resolve |
@@ -980,6 +981,72 @@ that layout. The structural levers, in the order they cost the argument least, a
 already states every crossover; move the whole of §sec:usecase to the appendix, which is guidance
 rather than results; or drop Table `ParallelRadix`, which is two rows and whose figures the surrounding
 prose quotes in full anyway.
+
+---
+
+# 0k. Front-matter anonymisation — decided 2026-09-08
+
+> Numbering note: I referred to this as "0e" in conversation, which was wrong — 0e is the abstract's
+> cleanup-pass range. Anonymisation had been a line of 0c; it is split out here because the repository
+> link half of it grew into 0i.
+
+## Reviewers do see the front matter
+
+The PDF uploaded to EasyChair is what reviewers download and read; nothing strips page one. ACDA27
+names this as the place it cares about:
+
+> authors' names, affiliations, and email addresses should not appear **at the beginning** or in the
+> body of the submission
+
+## The ORCIDs go too, and this was the question worth asking
+
+Robin asked whether the ORCIDs could stay, on the reasoning that a reviewer would have to actively look
+up the name. **They resolve.** `orcid.org/0000-0001-9734-7358` returns a public page carrying the
+person's name, affiliation and publication list — so it is not a hint requiring a search, it is the
+name one click away.
+
+Strictly an ORCID is not a name, an affiliation or an email address, so it falls outside the letter of
+the rule while sitting squarely inside its purpose. ACDA's bar is a "best-effort" and a resolvable
+person-identifier does not meet it.
+
+**Keeping only the ORCIDs would be the worst of the options**, and not merely on a technicality. An
+ORCID's whole function is to disambiguate a *named* author for indexing; with no name printed there is
+nothing to disambiguate, so it delivers no benefit to a review copy while carrying nearly all of the
+risk. To a reviewer who notices, it reads worse than either clean anonymity or full disclosure —
+anonymity with a back door left open.
+
+It would also be arbitrary, because of an accident in the current front matter. **Only one of the three
+ORCIDs is actually printed:**
+
+| macro | value | used? |
+| --- | --- | --- |
+| `\orcidauthorA` (tex 174) | 0000-0001-5446-5645 | **no** — the `\orcidA{}` usage at tex 201 is commented out |
+| `\orcidauthorB` (tex 175) | 0000-0002-5538-8378 | **no** — declared and never referenced |
+| `\orcidauthorC` (tex 176) | 0000-0001-9734-7358 | **twice**, at tex 233 and 242 — and 242 is inside `\affiliation{}`, which is a misuse |
+
+So "keep just the ORCIDs" would identify one author and not the other two.
+
+## Decision
+
+Names, emails, affiliations and ORCIDs all come out of the review copy. **Keep the whole block
+commented out immediately above the anonymous version**, so camera-ready is a one-step restore rather
+than a retyping job from memory.
+
+Two pre-existing defects to fix when that block is restored, not before — they are wrong in the
+camera-ready either way, and fixing them now would only be undone by the class switch:
+
+1. Authors A and B have ORCIDs declared but never printed. Either print all three or none.
+2. Author C's ORCID appears twice, and the second is inside `\affiliation{}` rather than alongside
+   `\author`.
+
+## The contingency, which matters while we wait on the template
+
+**acmart has an `anonymous` class option** (`acmart.cls:131`). If `ltexpprt.sty` does not arrive in
+time, `\documentclass[acmtog,anonymous]{acmart}` suppresses the author block in a single word. So
+anonymity is never what blocks the submission, even in the worst case — and that is worth knowing
+before anyone starts hand-deleting the front matter under time pressure.
+
+`ltexpprt` has no equivalent option, so under the SIAM class this is manual.
 
 ---
 
