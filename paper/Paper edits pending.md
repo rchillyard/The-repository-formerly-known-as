@@ -1263,12 +1263,44 @@ overheads into one without losing a single number, which none of the other three
 | ~~Figure `Example`~~ | **DONE** | | a picture of what a corpus file looks like |
 | ~~the three `SysEnv` tables~~ | **DONE — consolidated to one 3-column `table*`, `tab:SysEnv`** | | machines A, B and C in one table; the prose now names them rather than citing three floats. No content lost except two "Cache"/"OS" cells that were never filled for all three |
 
-**Measured after those four: body 16.5 → 15.0 pages**, exactly the 1.5 estimated. **Three pages still to
-find.** Remaining targets:
-| **`TimvsInsertion`** (14 rows) | appendix | 0.5 | Design justification for choosing Timsort in step 3, not a headline result — appendix-worthy on the CFP's own test. Also the last old-machine table |
-| **`HS_BM_N` + `HS_BM_S` + `HS_BM_T`** | consolidate | 0.4 | Three benchmark tables that differ only in data type. One table with a type column |
-| **`Guidance`** | appendix | 0.4 | Already flagged in §0j; guidance rather than results |
-| **`ParallelRadix`** | appendix | 0.3 | Already flagged; the surrounding prose quotes every figure in it |
+**Measured after those four: body 16.5 → 15.4 pages.** Then, on Robin's decision of 2026-09-08 to
+reframe the paper around RadixHuskySort and de-emphasize QuickHuskySort:
+
+| | body |
+| --- | ---: |
+| after the figures and `SysEnv` | 15.40 |
+| `TimvsInsertion` to the appendix, three benchmark tables merged | 15.58 — **worse** |
+| the same, with my own added prose trimmed back | **14.55** |
+
+The middle row is the lesson, and it is the second time today the same trap has caught me (§0j). I
+replaced three one-line `\item` entries with a ten-line explanatory paragraph and added `\midrule`s and
+a repeated type name to the merged table. **The consolidation was worth 0.85 of a page; the prose I
+wrote to justify it cost 1.03.** Trimming the paragraph to four lines, dropping the rules and dittoing
+the repeated labels recovered all of it and more.
+
+**2.55 pages still to find.** Remaining targets:
+| ~~`TimvsInsertion`~~ | **DONE** — now appendix §A.2, `sec:cleanup-choice` | | design justification for Timsort in step 3, not a headline result. It also carries the paper's only non-machine-of-record figures, which the appendix now states outright |
+| ~~`HS_BM_N` + `HS_BM_S` + `HS_BM_T`~~ | **DONE** — merged as `tab:HS_BM` | | one table, 14 rows, dittoed type labels. The dual-pivot and raw-quicksort columns went to appendix §A.3, `sec:comparison-baselines`, since they bear on QuickHuskySort rather than radix |
+| **`Guidance`** | ~~appendix~~ **KEEP** | | Robin's decision, and right: it is the practical contribution and answers a reviewer concern |
+| **`ParallelRadix`** | ~~appendix~~ **KEEP** | | Robin's decision, and I had it wrong before. Under a radix-focused paper the digit passes are precisely what parallelizes, so this is core content rather than an appendix curiosity |
+
+## Still available under the reframing
+
+Robin's decision to centre the paper on RadixHuskySort opens three more, none yet done:
+
+- **`RadixImprovements` reframed as radix over the *system sort*** rather than over QuickHuskySort.
+  No pages, but the range becomes 3.6--6.8x instead of 1.5--5.9x — larger, tighter at the bottom, and
+  the comparison a reader of a radix paper actually wants.
+- **§sec:summary**, 25 lines of QuickHuskySort-over-Timsort framing, is now the most obviously
+  mis-aimed section in the paper. Compressing it is worth perhaps 0.3.
+- **The conclusion's dual-pivot passage** can shrink to a sentence now that its table is in the
+  appendix.
+
+**The boundary to hold:** de-emphasize QuickHuskySort as an *algorithm under evaluation*, but keep the
+encoding material — the array-access model, $T_1$/$T_2$/$T_3$, $p_{crit}$, and the cleanup-pass
+measurement. Those are shared by both algorithms and are the intellectual core. And keep enough
+QuickHuskySort to make the contrast work: the model's claim is that work moves out of the linearithmic
+phase, and QuickHuskySort is the case where that phase is still there.
 
 The four remaining rows come to roughly 1.6 pages of the 3.0 still needed. The last 1.4 has to come
 from either `RadixImprovements` (12 rows, and the largest table left), moving all of §sec:usecase rather

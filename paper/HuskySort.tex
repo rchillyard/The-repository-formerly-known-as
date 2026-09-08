@@ -716,7 +716,7 @@ This implies that the second sort can be performed in very close to linear time.
 The results have been very satisfactory.
 For example, taking an array of 1,000,000 English words drawn randomly from a corpus of 275,333\cite{GOLDHAHN12.327},
 HuskySort sorts in 732 ms against the system sort's 1,194 ms, a factor of 1.63
-(for the full data, please refer to table ~\ref{tab:HS_BM_S}).
+(for the full data, please refer to table ~\ref{tab:HS_BM}).
 
 
 
@@ -746,7 +746,7 @@ counting array accesses directly rather than folding everything into abstract sy
 and extended there to cover RadixHuskySort (\S~\ref{sec:radix}) as a fourth alternative for the $T_2$ step.
 The actual values of $p_{crit}$ are very much dependent on the machine running the sort.
 We have not calculated a typical value for $p_{crit}$ but, even for the worst-case:
-Chinese characters using UTF8 encoding, we still find very significant gains, reported later in Table ~\ref{tab:HS_BM_S}.
+Chinese characters using UTF8 encoding, we still find very significant gains, reported later in Table ~\ref{tab:HS_BM}.
 
 Of the three terms, $T_3$ can be isolated experimentally.
 Two benchmarks over the same two hundred thousand municipal records (\S~\ref{sec:radix-results})
@@ -912,7 +912,7 @@ return result\;
 
 Three machines appear in this paper, and Table ~\ref{tab:SysEnv} lists all three.
 Machine A ran the JDK 1.8.0\_152 comparison-sort benchmarks of \S~\ref{sec:analysis},
-Table ~\ref{tab:TimvsInsertion} among them;
+the choice of cleanup sort among them (\S~\ref{sec:cleanup-choice});
 machine B, on different hardware and two JVM generations later, ran the radix-sort and JMH development work.
 Machine C is the machine of record: an independently administered cloud instance, confirmed idle before
 each run, and the source of every figure quoted in this paper.
@@ -1149,102 +1149,45 @@ but it is worth stating rather than leaving the model looking like radix wins un
   \end{tabular}
 \end{table*}
 
-Since the final pass of HuskySort will be cleaning up a relatively small number of inversions, does it matter whether we use insertion sort or Timsort? It turns out that for arrays which are smaller than about 50,000 Strings, it makes barely any difference at all.
-Indeed, insertion sort is sometimes faster.
-However, as the size of the array increases beyond this value, Timsort begins to win out over insertion sort.
-Please refer to table ~\ref{tab:TimvsInsertion}.
+Since the final pass of HuskySort will be cleaning up a relatively small number of inversions, does it
+matter whether we use insertion sort or Timsort?
+Below about 50,000 Strings it makes barely any difference, and insertion sort is sometimes faster;
+beyond that Timsort wins out, by a factor of four and a half at $N = 4{,}000{,}000$.
+That measurement, and the choice it settles, are in \S~\ref{sec:cleanup-choice}.
 
- \begin{table*}
-  \caption{Timsort or insertion sort as the cleanup pass (time in milliseconds)}
-  \label{tab:TimvsInsertion}
-  \begin{tabular}{ccc}
-    \toprule
-    N & Husky with Tim (ms) & Husky with Insertion (ms)\\
-    \midrule
-    \ 1000&0.14&0.14 \\
-\ 2000&0.31&0.30 \\
-\ 4000&0.63&0.64 \\
-\ 8000&1.46&1.56 \\
-\ 16000&3.24&3.19 \\
-\ 32000&6.56&6.48 \\
-\ 64000&16.85&19.41 \\
-\ 125000&47.74&54.90 \\
-\ 250000&168.21&167.90 \\
-\ 500000&259.37&373.43 \\
-\ 1000000&602.08&1202.61 \\
-\ 2000000&1234.90&3129.23 \\
-\ 4000000&2423.62&11018.19 \\
-
-    \bottomrule
-  \end{tabular}
-\end{table*}
 
 \section{Results and Observations}
 \subsection{Benchmarks}
-\begin{itemize}
-\item{} Comparison of sort times for HuskySort, dual-pivot quicksort, system sort.
-Please refer to tables ~\ref{tab:HS_BM_N} and ~\ref{tab:HS_BM_T}, which carry a dual-pivot column.
 
-
-\item {}Comparison of HuskySort with system sort for numeric types (Integer, Double, Long, BigInteger, BigDecimal):
-Table ~\ref{tab:HS_BM_N} (JMH, $N=500{,}000$, ms $\pm$ 99.9\% CI).
+Table ~\ref{tab:HS_BM} reports absolute sort times for every data type and corpus.
+The two radix columns bracket the digit-width plateau of \S~\ref{sec:radix-results}.
+Dual-pivot quicksort and a from-scratch quicksort were measured too; they bear on QuickHuskySort
+rather than on radix sort, so they are in \S~\ref{sec:comparison-baselines}.
 
 \begin{table*}
-  \caption{Comparison of HuskySort with system sort (Numeric, $N=500{,}000$, ms, mean $\pm$ 99.9\% CI)}
-  \label{tab:HS_BM_N}
-  \begin{tabular}{lllllll}
-    \toprule
-    Type & System & QuickHuskySort & DualPivotQuicksort & quicksort (raw) & Radix/8 & Radix/16 \\
-    \midrule
-    Integer & 121.2$\pm$0.6 & 89.7$\pm$3.5 & 82.5$\pm$0.2 & 38.1$\pm$0.1 & 31.2$\pm$0.5 & 25.2$\pm$0.2 \\
-    Double & 141.7$\pm$1.3 & 97.8$\pm$3.6 & 89.6$\pm$0.5 & 42.6$\pm$0.2 & 34.0$\pm$0.5 & 31.0$\pm$0.3 \\
-    Long & 135.8$\pm$1.2 & 97.7$\pm$1.0 & 89.2$\pm$0.6 & 38.2$\pm$0.3 & 30.2$\pm$0.2 & 28.6$\pm$0.3 \\
-    BigInteger & 208.4$\pm$1.7 & 152.3$\pm$1.7 & 209.9$\pm$2.0 & 42.2$\pm$0.1 & 56.9$\pm$0.3 & 54.1$\pm$0.2 \\
-    BigDecimal & 262.2$\pm$1.6 & 144.1$\pm$2.1 & 246.2$\pm$3.7 & 47.6$\pm$0.0 & 54.1$\pm$0.3 & 52.5$\pm$0.3 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-\item {}Comparison of HuskySort with system sort for String types (English words, Chinese words):
-Table ~\ref{tab:HS_BM_S} (JMH, ms $\pm$ 99.9\% CI).
-
-\begin{table*}
-  \caption{Comparison of HuskySort with system sort (Strings, ms, mean $\pm$ 99.9\% CI)}
-  \label{tab:HS_BM_S}
+  \caption{Sort times by data type (JMH, ms, mean $\pm$ 99.9\% CI). Numeric types at $N=500{,}000$.}
+  \label{tab:HS_BM}
   \begin{tabular}{llllll}
     \toprule
-    N & Corpus & System sort & QuickHuskySort & Radix/8 & Radix/16 \\
+    Data type & N & System sort & QuickHuskySort & Radix/8 & Radix/16 \\
     \midrule
-    32,000 & English & 13.69$\pm$0.19 & 9.72$\pm$0.12 & 4.63$\pm$0.16 & 4.18$\pm$0.16 \\
-    32,000 & Chinese & 9.78$\pm$0.08 & 5.00$\pm$0.04 & 2.10$\pm$0.03 & 1.89$\pm$0.02 \\
-    200,000 & English & 141.39$\pm$2.59 & 94.74$\pm$2.44 & 55.01$\pm$2.20 & 50.27$\pm$2.51 \\
-    200,000 & Chinese & 71.34$\pm$0.63 & 30.90$\pm$0.13 & 13.49$\pm$0.15 & 10.85$\pm$0.10 \\
-    1,000,000 & English & 1120.87$\pm$14.43 & 697.88$\pm$16.15 & 355.26$\pm$24.71 & 272.74$\pm$6.46 \\
-    1,000,000 & Chinese & 447.12$\pm$2.28 & 219.80$\pm$1.99 & 83.25$\pm$2.31 & 65.46$\pm$1.47 \\
+    Integer & 500,000 & 121.2$\pm$0.6 & 89.7$\pm$3.5 & 31.2$\pm$0.5 & 25.2$\pm$0.2 \\
+    Double & 500,000 & 141.7$\pm$1.3 & 97.8$\pm$3.6 & 34.0$\pm$0.5 & 31.0$\pm$0.3 \\
+    Long & 500,000 & 135.8$\pm$1.2 & 97.7$\pm$1.0 & 30.2$\pm$0.2 & 28.6$\pm$0.3 \\
+    BigInteger & 500,000 & 208.4$\pm$1.7 & 152.3$\pm$1.7 & 56.9$\pm$0.3 & 54.1$\pm$0.2 \\
+    BigDecimal & 500,000 & 262.2$\pm$1.6 & 144.1$\pm$2.1 & 54.1$\pm$0.3 & 52.5$\pm$0.3 \\
+    English words & 32,000 & 13.69$\pm$0.19 & 9.72$\pm$0.12 & 4.63$\pm$0.16 & 4.18$\pm$0.16 \\
+    & 200,000 & 141.39$\pm$2.59 & 94.74$\pm$2.44 & 55.01$\pm$2.20 & 50.27$\pm$2.51 \\
+    & 1,000,000 & 1120.87$\pm$14.43 & 697.88$\pm$16.15 & 355.26$\pm$24.71 & 272.74$\pm$6.46 \\
+    Chinese words & 32,000 & 9.78$\pm$0.08 & 5.00$\pm$0.04 & 2.10$\pm$0.03 & 1.89$\pm$0.02 \\
+    & 200,000 & 71.34$\pm$0.63 & 30.90$\pm$0.13 & 13.49$\pm$0.15 & 10.85$\pm$0.10 \\
+    & 1,000,000 & 447.12$\pm$2.28 & 219.80$\pm$1.99 & 83.25$\pm$2.31 & 65.46$\pm$1.47 \\
+    Tuples & 20,000 & 3.72$\pm$0.01 & 2.79$\pm$0.02 & --- & 1.30$\pm$0.01 \\
+    & 100,000 & 23.24$\pm$0.19 & 17.65$\pm$0.16 & --- & 6.82$\pm$0.05 \\
+    & 500,000 & 209.53$\pm$7.98 & 142.61$\pm$1.83 & --- & 57.98$\pm$0.76 \\
     \bottomrule
   \end{tabular}
 \end{table*}
-
-\item {}Comparison of HuskySort with system sort for Tuples:
-Table ~\ref{tab:HS_BM_T} (JMH, ms $\pm$ 99.9\% CI).
-
-\begin{table*}
-  \caption{Comparison of HuskySort with system sort (Tuples, ms, mean $\pm$ 99.9\% CI)}
-  \label{tab:HS_BM_T}
-  \begin{tabular}{lllll}
-    \toprule
-    N & System & QuickHuskySort & DualPivotQuicksort & Radix/16 \\
-    \midrule
-    20,000 & 3.72$\pm$0.01 & 2.79$\pm$0.02 & 3.41$\pm$0.09 & 1.30$\pm$0.01 \\
-    100,000 & 23.24$\pm$0.19 & 17.65$\pm$0.16 & 21.36$\pm$0.48 & 6.82$\pm$0.05 \\
-    500,000 & 209.53$\pm$7.98 & 142.61$\pm$1.83 & 142.70$\pm$4.98 & 57.98$\pm$0.76 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-\end{itemize}
-
-
 
 \subsection{Summary}
 \label{sec:summary}
@@ -1260,9 +1203,8 @@ in Java, a clear distinction exists between primitive types (char, byte, short, 
 Dual-pivot quicksort (the Java system sort for primitives) is already the fastest algorithm for sorting such types.
 \end{itemize}
 Thus, HuskySort is best for any object array where there’s no expectation of partial ordering.
-Typical improvements over Timsort can be read directly off Tables ~\ref{tab:HS_BM_N}, ~\ref{tab:HS_BM_S}
-and ~\ref{tab:HS_BM_T} above, which give absolute times with 99.9\% confidence intervals rather than
-summary ranges:
+Typical improvements over Timsort can be read directly off Table ~\ref{tab:HS_BM} above, which gives
+absolute times with 99.9\% confidence intervals rather than summary ranges:
 1.4--1.8x across the five numeric types at $N=500{,}000$,
 1.4--1.6x on English words,
 2.0--2.3x on Chinese words,
@@ -1306,7 +1248,7 @@ This is worth confronting directly, since a reader might reasonably ask whether 
 as $N$ grows: a constant-factor saving on a linearithmic sort could be swamped at scale.
 Neither does.
 QuickHuskySort's margin over the system sort on English text \emph{widens} with size,
-from 1.41x at $N=32{,}000$ to 1.49x and then 1.61x (Table ~\ref{tab:HS_BM_S}),
+from 1.41x at $N=32{,}000$ to 1.49x and then 1.61x (Table ~\ref{tab:HS_BM}),
 and holds roughly constant on Chinese.
 Radix sort's advantage over QuickHuskySort likewise does not shrink with $N$:
 at every size and data type in Table ~\ref{tab:RadixImprovements}, the margin is 1.5x or greater,
@@ -1471,9 +1413,10 @@ provided there is enough total work to amortize its own thread-coordination cost
 The original idea behind HuskySort, that's to say QuickHuskySort,
 was to shift work from the linearithmic phase of sorting to the linear phase (both the prelude and the postlude)
 and effect an overall reduction in array accesses and thus processing time.
+\label{sec:conclusion-dp}%
 This has been demonstrated such that, when sorting objects rather than primitives,
 HuskySort is faster than dual-pivot quicksort wherever the ordering is expensive to evaluate ---
-by 1.4x on \textit{BigInteger} and 1.7x on \textit{BigDecimal} (Table ~\ref{tab:HS_BM_N}).
+by 1.4x on \textit{BigInteger} and 1.7x on \textit{BigDecimal} (\S~\ref{sec:comparison-baselines}).
 On \textit{Integer}, \textit{Double} and \textit{Long}, where a comparison costs almost nothing,
 the encoding has nothing to amortise and dual-pivot quicksort is ahead instead, by up to a tenth.
 That is the same criterion which governs every other result in this paper,
@@ -1537,6 +1480,75 @@ The inference that we can take from this is that it is not critical that encodin
 We can be confident that we are still saving time up to about one in four errors.
 
 These deliberate errors were tested for Bytes and Integers but not the other generic types.
+
+\subsection{Timsort or insertion sort for the cleanup pass}
+\label{sec:cleanup-choice}
+
+Step 3 needs a stable sort for an array that is nearly ordered already, and both Timsort and insertion
+sort qualify.
+Below about 50,000 elements the choice barely matters and insertion sort is sometimes marginally
+faster; beyond it Timsort wins decisively, by a factor of four and a half at $N = 4{,}000{,}000$.
+That is why step 3 uses the system sort.
+These figures are from machine A of Table ~\ref{tab:SysEnv} and are the paper's only measurements not
+taken on the machine of record; they are reported here because the effect is an order of magnitude
+larger than any plausible machine difference, and because the choice they settle is a design decision
+rather than a result.
+
+\begin{table*}
+  \caption{Timsort or insertion sort as the cleanup pass (time in milliseconds)}
+  \label{tab:TimvsInsertion}
+  \begin{tabular}{ccc}
+    \toprule
+    N & Husky with Tim (ms) & Husky with Insertion (ms)\\
+    \midrule
+    \ 1000&0.14&0.14 \\
+\ 2000&0.31&0.30 \\
+\ 4000&0.63&0.64 \\
+\ 8000&1.46&1.56 \\
+\ 16000&3.24&3.19 \\
+\ 32000&6.56&6.48 \\
+\ 64000&16.85&19.41 \\
+\ 125000&47.74&54.90 \\
+\ 250000&168.21&167.90 \\
+\ 500000&259.37&373.43 \\
+\ 1000000&602.08&1202.61 \\
+\ 2000000&1234.90&3129.23 \\
+\ 4000000&2423.62&11018.19 \\
+
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsection{Comparison-sort baselines for the numeric and tuple types}
+\label{sec:comparison-baselines}
+
+Table ~\ref{tab:HS_BM} omits two baselines that were measured alongside the others: dual-pivot
+quicksort adapted to objects, and a from-scratch quicksort with no equal-key handling.
+Both bear on QuickHuskySort rather than on radix sort, which is why they are here rather than in the
+body.
+The comparison they support is the one drawn in \S~\ref{sec:conclusion-dp}: husky encoding repays
+itself when the ordering is expensive, and not otherwise.
+
+\begin{table*}
+  \caption{Comparison-sort baselines (JMH, ms, mean $\pm$ 99.9\% CI). Numeric types at
+    $N=500{,}000$. A from-scratch quicksort was measured for the numeric types only.}
+  \label{tab:ComparisonBaselines}
+  \begin{tabular}{llll}
+    \toprule
+    Data type & N & Dual-pivot quicksort & quicksort (raw) \\
+    \midrule
+    Integer & 500,000 & 82.5$\pm$0.2 & 38.1$\pm$0.1 \\
+    Double & 500,000 & 89.6$\pm$0.5 & 42.6$\pm$0.2 \\
+    Long & 500,000 & 89.2$\pm$0.6 & 38.2$\pm$0.3 \\
+    BigInteger & 500,000 & 209.9$\pm$2.0 & 42.2$\pm$0.1 \\
+    BigDecimal & 500,000 & 246.2$\pm$3.7 & 47.6$\pm$0.0 \\
+    \midrule
+    & 20,000 & 3.41$\pm$0.09 & --- \\
+    & 100,000 & 21.36$\pm$0.48 & --- \\
+    & 500,000 & 142.70$\pm$4.98 & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
 \subsection{The cleanup pass as \texorpdfstring{$N$}{N} grows}
 \label{sec:cleanup-scaling}
