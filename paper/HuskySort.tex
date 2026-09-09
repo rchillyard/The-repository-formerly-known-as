@@ -22,7 +22,23 @@
 %% in the same archive or directory.)
 %%https://www.overleaf.com/project/5f87ef5d6466e50001466e9c
 %% The first command in your LaTeX source must be the \documentclass command.
-\documentclass[acmtog]{acmart}
+%% Preamble per SIAM's example_doublecolumn.tex (022425), which ACDA27 requires.
+%% siamproceedings.sty and siamplain.bst are committed alongside this file.
+\documentclass[twoside,leqno,twocolumn]{article}
+\usepackage[letterpaper]{geometry}
+%% siamproceedings uses \AddToHook, which needs a LaTeX kernel of 2020-10-01 or later; the
+%% TeX Live here is 2020-02-02. The no-op shim discards only the \crefalias declarations the
+%% style registers for theorem environments, none of which this paper uses.
+\makeatletter
+\@ifundefined{AddToHook}{\newcommand{\AddToHook}[2]{}}{}
+\makeatother
+\usepackage{siamproceedings}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts}
+\usepackage{epstopdf}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{comment}
 
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
@@ -40,28 +56,25 @@
 %% would assert an ACM identity is therefore suppressed rather than filled in.
 %% See paper/Paper edits pending.md, "The template" -- whether acmart is acceptable at
 %% all for ACDA is an open question and needs deciding before submission.
-\setcopyright{none}
-\copyrightyear{2027}
-\acmYear{2027}
-\acmDOI{}
-\settopmatter{printacmref=false}
+%% [acmart-only] \setcopyright{none}
+%% [acmart-only] \copyrightyear{2027}
+%% [acmart-only] \acmYear{2027}
+%% [acmart-only] \acmDOI{}
+%% [acmart-only] \settopmatter{printacmref=false}
 %% ...and the first page carries the same journal line separately, in the copyright-permission
 %% footnote, which setcopyright{none} empties but does not remove.
-\renewcommand\footnotetextcopyrightpermission[1]{}
-
-
+%% [acmart-only] \renewcommand\footnotetextcopyrightpermission[1]{}
 %%
 %% acmart insists on a valid journal code in journal mode, so TOG is retained purely to let the
 %% class load; printacmref=false suppresses the reference block that would otherwise print it.
 %% The volume, number and article defaults (37, 4, 111) are blanked -- 111 was appearing in every
 %% running header as "111:2".
-\acmJournal{TOG}
-\acmVolume{}
-\acmNumber{}
-\acmArticle{}
-\acmMonth{9}
+%% [acmart-only] \acmJournal{TOG}
+%% [acmart-only] \acmVolume{}
+%% [acmart-only] \acmNumber{}
+%% [acmart-only] \acmArticle{}
+%% [acmart-only] \acmMonth{9}
 \pdfoutput=1
-
 %% Float separation. The defaults leave 45--49pt between consecutive algorithm listings and a
 %% comparable band around figures, which is generous in a two-column layout under a page limit.
 %% Set at begin-document so the class cannot override these afterwards.
@@ -82,8 +95,22 @@
 %% \draftstampfalse before submitting. The stamp must not appear on the camera-ready copy,
 %% and under double-blind review a build timestamp is the kind of incidental metadata that is
 %% better absent than explained.
+%% ---- Build variants ------------------------------------------------------------------
+%% One source, two PDFs. \ifanonymous is set from the command line so that neither variant
+%% needs its own copy of this file:
+%%
+%%   pdflatex HuskySort                                      -> identified, draft stamp on
+%%   pdflatex -jobname=HuskySort-anon "\def\ANONYMOUS{}\input{HuskySort}"  -> blind, no stamp
+%%
+%% paper/build.sh builds both.
+\newif\ifanonymous
+\ifdefined\ANONYMOUS \anonymoustrue \else \anonymousfalse \fi
+
 \newif\ifdraftstamp
-\draftstamptrue
+%% The stamp is a build timestamp, which is exactly the sort of incidental metadata that is
+%% better absent than explained under double-blind review -- so it follows the anonymity flag
+%% rather than being switched by hand and forgotten.
+\ifanonymous \draftstampfalse \else \draftstamptrue \fi
 %% \time is TeX's minutes since midnight, in local time -- verified against the system clock,
 %% timezone and DST offset all agreeing.
 %%
@@ -114,10 +141,10 @@
 %% If you are preparing content for an event
 %% sponsored by ACM SIGGRAPH, you must use the "author year" style of
 %% citations and references.
-\citestyle{acmauthoryear}
+%% [acmart-only] \citestyle{acmauthoryear}
 % \documentclass{article}
 \usepackage{enumitem}
-\usepackage[boxruled, linesnumbered, noend, noline]{algorithm2e}
+\usepackage[algo2e, boxruled, linesnumbered, noend, noline]{algorithm2e}
 \newlist{steps}{enumerate}{1}
 \setlist[steps, 1]{label = Step \arabic*:}
 \usepackage{listings}
@@ -208,40 +235,23 @@
 %% "authornote" and "authornotemark" commands
 %% used to denote shared contribution to the research.
 %% \author[R C HILLYARD]{R C HILLYARD\orcidA{}}
-\author{R C HILLYARD}
-\email{r.hillyard@northeastern.edu}
-\affiliation{
-  \institution{College of Engineering, Northeastern University}
-  \streetaddress{360 Huntington Avenue}
-  \city{Boston}
-  \state{Massachusetts}
-  \country{USA}
-  \postcode{02115}
-}
-
-\author{Yunlu Liaozheng}
-\email{liaozheng.y@northeastern.edu}
-\affiliation{
-  \institution{College of Engineering, Northeastern University}
-  \streetaddress{360 Huntington Avenue}
-  \city{Boston}
-  \state{Massachusetts}
-  \country{USA}
-  \postcode{02115}
-}
-
-\author{Sai Vineeth K R}
- \email{kandappareddigari.s@northeastern.edu}
- \orcid{0000-0001-9734-7358}
-\affiliation{
-  \institution{College of Engineering, Northeastern University}
-  \streetaddress{360 Huntington Avenue}
-  \city{Boston}
-  \state{Massachusetts}
-  \country{USA}
-  \postcode{02115}
-  \orcid{0000-0001-9734-7358}
-}
+%% ---- Authors -------------------------------------------------------------------------
+%% SIAM's form (example_doublecolumn.tex): affiliations go in \thanks footnotes, and the
+%% second author shares the first's via \footnotemark.
+%%
+%% ANONYMISATION (see "0k. The front matter" in Paper edits pending.md): the review copy must
+%% carry no names, emails, affiliations or ORCIDs. Rather than keep a second copy of this file,
+%% the block is guarded -- build with \def\ANONYMOUS{} to suppress it. EasyChair still collects
+%% the real author metadata; anonymising *that* would be a mistake.
+\ifanonymous
+  \author{}
+\else
+  \author{R C Hillyard\thanks{College of Engineering, Northeastern University, 360 Huntington
+      Avenue, Boston, Massachusetts 02115, USA (\email{r.hillyard@northeastern.edu},
+      \email{liaozheng.y@northeastern.edu}, \email{kandappareddigari.s@northeastern.edu}).}
+    \and Yunlu Liaozheng\footnotemark[1]
+    \and Sai Vineeth K R\footnotemark[1]}
+\fi
 
 
 
@@ -255,6 +265,54 @@
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
+
+
+%%
+%% The code below is generated by the tool at http://dl.acm.org/ccs.cfm.
+%% Please copy and paste the code instead of the example below.
+%%
+%% \begin{CCSXML}
+%% <ccs2012>
+%%    <concept>
+%%        <concept_id>10003752.10003809.10010031.10010033</concept_id>
+%%        <concept_desc>Theory of computation~Sorting and searching</concept_desc>
+%%        <concept_significance>500</concept_significance>
+%%        </concept>
+%%    <concept>
+%%        <concept_id>10003752</concept_id>
+%%        <concept_desc>Theory of computation</concept_desc>
+%%        <concept_significance>300</concept_significance>
+%%        </concept>
+%%    <concept>
+%%        <concept_id>10011007.10011006.10011008.10011024.10011028</concept_id>
+%%        <concept_desc>Software and its engineering~Data types and structures</concept_desc>
+%%        <concept_significance>500</concept_significance>
+%%        </concept>
+%%    <concept>
+%%        <concept_id>10010520.10010521.10010528.10010536</concept_id>
+%%        <concept_desc>Computer systems organization~Multicore architectures</concept_desc>
+%%        <concept_significance>100</concept_significance>
+%%        </concept>
+%%    <concept>
+%%        <concept_id>10003752.10010070.10010111.10011710</concept_id>
+%%        <concept_desc>Theory of computation~Data structures and algorithms for data management</concept_desc>
+%%        <concept_significance>500</concept_significance>
+%%        </concept>
+%%  </ccs2012>
+%% \end{CCSXML}
+
+%% [acmart-only] \ccsdesc[500]{Theory of computation~Sorting and searching}
+%% [acmart-only] \ccsdesc[300]{Theory of computation}
+%% [acmart-only] \ccsdesc[500]{Software and its engineering~Data types and structures}
+%% [acmart-only] \ccsdesc[100]{Computer systems organization~Multicore architectures}
+%% [acmart-only] \ccsdesc[500]{Theory of computation~Data structures and algorithms for data management}
+%%
+%% Keywords. The author(s) should pick words that accurately describe
+%% the work being presented. Separate the keywords with commas.
+%% [acmart-only; siamproceedings has no \keywords. Kept because EasyChair and the
+%% camera-ready both want this list.]
+%% \keywords{Sorting, Quicksort, Timsort, Radix sort, Complexity, Comparison Sorting, String sorting, Parallel sorting}
+\maketitle
 
 \begin{abstract}
     Most sorting algorithms are judged by the comparisons or exchanges they perform.
@@ -279,80 +337,15 @@
     One specialised competitor overtakes us: on English words a tuned MSD radix sort.
 \end{abstract}
 
-%%
-%% The code below is generated by the tool at http://dl.acm.org/ccs.cfm.
-%% Please copy and paste the code instead of the example below.
-%%
-\begin{CCSXML}
-<ccs2012>
-   <concept>
-       <concept_id>10003752.10003809.10010031.10010033</concept_id>
-       <concept_desc>Theory of computation~Sorting and searching</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
-   <concept>
-       <concept_id>10003752</concept_id>
-       <concept_desc>Theory of computation</concept_desc>
-       <concept_significance>300</concept_significance>
-       </concept>
-   <concept>
-       <concept_id>10011007.10011006.10011008.10011024.10011028</concept_id>
-       <concept_desc>Software and its engineering~Data types and structures</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
-   <concept>
-       <concept_id>10010520.10010521.10010528.10010536</concept_id>
-       <concept_desc>Computer systems organization~Multicore architectures</concept_desc>
-       <concept_significance>100</concept_significance>
-       </concept>
-   <concept>
-       <concept_id>10003752.10010070.10010111.10011710</concept_id>
-       <concept_desc>Theory of computation~Data structures and algorithms for data management</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
- </ccs2012>
-\end{CCSXML}
 
-\ccsdesc[500]{Theory of computation~Sorting and searching}
-\ccsdesc[300]{Theory of computation}
-\ccsdesc[500]{Software and its engineering~Data types and structures}
-\ccsdesc[100]{Computer systems organization~Multicore architectures}
-\ccsdesc[500]{Theory of computation~Data structures and algorithms for data management}
+%% siamproceedings loads fancyhdr and empties every header and footer field, so a page number
+%% has to be put back explicitly. \maketitle sets the first page to the same style, so this
+%% covers page one too and needs no \thispagestyle companion.
 
-%%
-%% Keywords. The author(s) should pick words that accurately describe
-%% the work being presented. Separate the keywords with commas.
-\keywords{Sorting, Quicksort, Timsort, Radix sort, Complexity, Comparison Sorting, String sorting, Parallel sorting}
-
-
-\maketitle
-
-%% acmart's journal page style prints "ACM Trans. Graph., Vol. , No. , Article ." in the footer of
-%% every page. With the journal fields blanked that reads as a broken ACM footer rather than a
-%% suppressed one, so the plain style replaces it with a bare page number.
-\pagestyle{plain}
-%% maketitle sets the first page's style itself, so it needs overriding separately.
-\thispagestyle{plain}
-
-%% The draft revision stamp declared in the preamble, added to that bare page number.
-%% NOTE the whole page style has to be redefined, not just the footer: both pagestyle and
-%% thispagestyle re-execute \ps@plain when the page is shipped out, which would overwrite a
-%% bare \@oddfoot patch made here. Hence the redefinition, then re-applying it.
-%% The phantom on the right keeps the page number centred rather than nudged off-centre.
+\fancyfoot[C]{\thepage}
+%% The stamp sits in the right-hand footer field, so it cannot shift the centred page number.
 \ifdraftstamp
-  \makeatletter
-  \def\ps@plain{%
-    \let\@mkboth\@gobbletwo
-    \let\@oddhead\@empty
-    \let\@evenhead\@empty
-    %% The page number keeps the whole width to centre itself in; the stamp is then lapped
-    %% leftward from the right margin, so it cannot shift the number off-centre.
-    \def\@oddfoot{\reset@font\hfil\thepage\hfil
-      \llap{\footnotesize\itshape draft \revisionstamp}}%
-    \let\@evenfoot\@oddfoot}
-  \makeatother
-  \pagestyle{plain}
-  \thispagestyle{plain}
+  \fancyfoot[R]{\footnotesize\itshape draft \revisionstamp}
 \fi
 %%
 %% This command processes the author and affiliation and title
@@ -451,7 +444,7 @@ Standard complexity and stability characteristics for the algorithms named here 
 \begin{figure}
   \caption{HuskySort Flow}
   \label{Fig:HS}
-   \Description{An Overview of HuskySort}
+   %% [acmart-only] \Description{An Overview of HuskySort}
   \centering
   %% The source PNG carries wide blank margins -- 25\% of its height, 23\% of its width. Measured
   %% ink bounding box is x 133..755, y 85..817 of 806x976 px; pHYs declares 144 dpi, so trim is in
@@ -634,7 +627,7 @@ the linear second phase keeps paying as the array grows where a linearithmic one
 which is the same pattern the natural-order corpora show and the clearest form in which this corpus
 shows it.
 
-\begin{algorithm}
+\begin{algorithm2e}
 \KwIn{\it{xs} as an array of object X which extends Comparable<X>}
 \KwIn{\it{b} as the number of bits per digit}
  coding = huskyCoder.huskyEncode(xs)\;
@@ -645,9 +638,9 @@ shows it.
  Arrays.sort(ys)\;
  \caption{RadixHuskySort.sort}
  \label{alg:the_alg5}
-\end{algorithm}
+\end{algorithm2e}
 
-\begin{algorithm}
+\begin{algorithm2e}
 \KwIn{\it{longs} as an array of long}
 \KwIn{\it{b} as the number of bits per digit}
 \KwOut{\it{index}, a permutation of $0, \ldots, \textit{longs.length} - 1$ such that
@@ -659,7 +652,7 @@ shows it.
  }
  \caption{radixSortIndices (LSD, deferred permutation)}
  \label{alg:the_alg6}
-\end{algorithm}
+\end{algorithm2e}
 
 \subsection{Discussion of Husky Encoding}
 
@@ -794,7 +787,7 @@ non-sequence types, and for strings a scan that stops at the first string too lo
 Where it was exact, no inversions remain and the pass is skipped altogether.
 
 
-\begin{algorithm}
+\begin{algorithm2e}
 \KwIn{\it{xs} as an array of object X}
 \KwOut{A new \it{Coding} object}
  result = new long[xs.length]\;
@@ -804,10 +797,10 @@ Where it was exact, no inversions remain and the pass is skipped altogether.
  return new Coding(result, perfect())\;
  \caption{huskyEncode}
  \label{alg:the_alg2}
-\end{algorithm}
+\end{algorithm2e}
 
 
-\begin{algorithm}
+\begin{algorithm2e}
 \KwIn{\it{permit}, with fields \it{block}, \it{lot}, \it{filedDate}\;}
 \KwOut{a 60-bit code, order-preserving for \it{permit.compareTo}}
  \tcp{fields most-significant first, in compareTo order}
@@ -824,14 +817,19 @@ Where it was exact, no inversions remain and the pass is skipped altogether.
  \caption{A composite husky coder: \textit{PermitCoder}. \textit{encodeString} packs \textit{width}
    symbols of \textit{bits} each, right-padding with zero.}
  \label{alg:permitcoder}
-\end{algorithm}
+\end{algorithm2e}
 
 \section{Implementation}
 
-%% ANONYMISATION: this URL must become an Anonymous GitHub link before submission -- it names its
-%% owner. See "0i. The repository link" in Paper edits pending.md. It was moved here from an author
-%% footnote, which was deleted along with the other two.
-The implementation is available at \url{https://github.com/rchillyard/HuskySort}.
+%% ANONYMISATION: the real URL names its owner, so it is guarded with the author block. See
+%% "0i. The repository link" in Paper edits pending.md -- the Anonymous GitHub mirror is task 2
+%% on Sai Vineeth's list; when its URL exists, substitute it for the placeholder below and the
+%% review copy can cite the code directly.
+\ifanonymous
+  The implementation is available in an anonymised repository, linked from the submission site.
+\else
+  The implementation is available at \url{https://github.com/rchillyard/HuskySort}.
+\fi
 
 \subsection{System Environment}
 
@@ -1301,16 +1299,19 @@ where dual-pivot quicksort already wins outright.
 %% (and NOT an unnumbered section). This ensures the proper
 %% identification of the section in the article metadata, and the
 %% consistent spelling of the heading.
-\begin{acks}
-To Darshan Dedhia, Akshay Bhusare, Kartik Kumar for their help with this project.
-\end{acks}
+%% Guarded with the author block: naming collaborators identifies the authors as surely as
+%% the author block does, so the review copy carries no acknowledgments at all.
+\ifanonymous\else
+  \section*{Acknowledgments}
+  To Darshan Dedhia, Akshay Bhusare, Kartik Kumar for their help with this project.
+\fi
 
 
 
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
-\bibliographystyle{ACM-Reference-Format}
+\bibliographystyle{siamplain}
 \bibliography{sample-base}
 
 %%

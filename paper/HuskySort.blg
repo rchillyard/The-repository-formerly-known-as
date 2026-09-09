@@ -1,72 +1,49 @@
 This is BibTeX, Version 0.99d (TeX Live 2020)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: HuskySort.aux
-The style file: ACM-Reference-Format.bst
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+The style file: siamplain.bst
 Database file #1: sample-base.bib
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
-Reallocated global_strs (elt_size=200001) to 20 items from 10.
-Reallocated glb_str_end (elt_size=4) to 20 items from 10.
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Warning--page numbers missing in both pages and numpages fields in DBLP:journals/corr/abs-1805-08612
-Warning--empty publisher in 814600
-Warning--empty address in 814600
-Warning--page numbers missing in both pages and numpages fields in GOLDHAHN12.327
-Warning--page numbers missing in both pages and numpages fields in huskysort2020
 Warning--empty publisher in Timsort
-Warning--empty address in Timsort
-Warning--articleno or eid field, but no numpages field, in 1064546.1180622
-Warning--page numbers missing in both pages and numpages fields in 1064546.1180622
-Warning--articleno or eid, but no pages or numpages field in 1064546.1180622
-Warning--empty address in WildNebel12
-Warning--page numbers missing in both pages and numpages fields in WildNebel12
-Warning--empty publisher in 6115063
-Warning--empty address in 6115063
 Warning--empty publisher in Dual-pivot
-Warning--empty address in Dual-pivot
-Warning--page numbers missing in both pages and numpages fields in sort
 You've used 20 entries,
-            5901 wiz_defined-function locations,
-            1459 strings with 18762 characters,
-and the built_in function-call counts, 22528 in all, are:
-= -- 2955
-> -- 664
+            2244 wiz_defined-function locations,
+            682 strings with 8126 characters,
+and the built_in function-call counts, 7167 in all, are:
+= -- 623
+> -- 270
 < -- 0
-+ -- 209
-- -- 245
-* -- 1520
-:= -- 2194
-add.period$ -- 104
++ -- 107
+- -- 85
+* -- 543
+:= -- 1029
+add.period$ -- 26
 call.type$ -- 20
-change.case$ -- 118
-chr.to.int$ -- 20
-cite$ -- 37
-duplicate$ -- 2045
-empty$ -- 1444
-format.name$ -- 289
-if$ -- 5462
-int.to.chr$ -- 2
-int.to.str$ -- 1
-missing$ -- 74
-newline$ -- 259
-num.names$ -- 162
-pop$ -- 723
+change.case$ -- 96
+chr.to.int$ -- 0
+cite$ -- 22
+duplicate$ -- 398
+empty$ -- 710
+format.name$ -- 85
+if$ -- 1593
+int.to.chr$ -- 0
+int.to.str$ -- 20
+missing$ -- 20
+newline$ -- 69
+num.names$ -- 42
+pop$ -- 159
 preamble$ -- 1
-purify$ -- 298
+purify$ -- 78
 quote$ -- 0
-skip$ -- 713
+skip$ -- 253
 stack$ -- 0
-substring$ -- 1695
-swap$ -- 200
+substring$ -- 415
+swap$ -- 122
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 444
-warning$ -- 17
-while$ -- 169
-width$ -- 0
-write$ -- 444
-(There were 17 warnings)
+type$ -- 76
+warning$ -- 2
+while$ -- 69
+width$ -- 22
+write$ -- 212
+(There were 2 warnings)
