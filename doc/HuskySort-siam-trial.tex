@@ -292,7 +292,9 @@ Counting memory operations rather than only comparisons is itself an established
 and we frame our own array-access model relative to two well-known lines of work in that tradition rather than proposing it as new:
 the external-memory (I/O) model of Aggarwal and Vitter \cite{10.1145/48529.48535},
 which counts block transfers between disk and memory, and the cache-oblivious algorithms of Frigo et al. \cite{814600},
-which achieve near-optimal memory-hierarchy behaviour without advance knowledge of cache parameters.
+which achieve near-optimal memory-hierarchy behaviour without advance knowledge of cache parameters;
+and, closest to our own concern, LaMarca and Ladner's study of how caches shape the relative performance
+of sorting algorithms\cite{LAMARCA199966}.
 Our array-access count is a simpler, single-level analogue of the same underlying idea:
 rather than modeling an explicit multi-level memory hierarchy, we count raw array reads and writes as a proxy for real cost,
 motivated by the observation that a comparison between two heavyweight objects (e.g., two \textit{String}s)
@@ -316,14 +318,16 @@ In a recent paper\cite{sort}, the authors conclude that quicksort is indeed the 
 However, quicksort does not perform as well as some variations of merge sort, especially Timsort\cite{Timsort}, when the dataset is partially sorted.
 Timsort, a hybrid stable sorting algorithm derived from merge sort, is now available in the Python and Java libraries as the default object-sorting utility.
 
-One of the authors had originally posed this as a hypothetical question in a mid-term exam (Fall 2018):
-encode a date-time object as a 64-bit hash code and sort the array of codes with quicksort.
-It turned out to be a pretty good idea,
-and we decided to test the efficacy of combining quicksort with Timsort for object types that are costly to compare.
-Such types include \emph{String, LocalDateTime, BigInteger, BigDecimal}, and many user-defined types of this kind.
-
-This paper builds on the work of Hillyard et al.\cite{huskysort2020},
-which introduced the husky code and the QuickHuskySort algorithm that sorts by it.
+The husky code was introduced by Hillyard et al.\cite{huskysort2020}, together with QuickHuskySort,
+which sorts an array of objects by sorting an array of their codes and then repairing whatever the codes
+got wrong.
+That work established the basic result --- encoding pays for itself for types whose ordering is expensive
+to evaluate, among them \emph{String}, \emph{LocalDateTime}, \emph{BigInteger}, \emph{BigDecimal} and many
+user-defined types of the same kind --- and it is the starting point of this paper rather than its
+subject.
+Two things it left undone define the work here.
+Its second phase was a comparison sort, so the $\textbf{O}(N \log N)$ term survived the encoding intact;
+and the cost of an inexact encoding, which every string corpus incurs, was argued rather than measured.
 The contributions here are RadixHuskySort, or RHSort (\S~\ref{sec:radix}),
 which replaces that algorithm's comparison sort with a linear-time radix sort on the same codes,
 and a parallel variant of it (\S~\ref{sec:parallel-radix});
@@ -340,28 +344,21 @@ We describe our Test Cases in Section 5 and present results in Section 6, with o
 \section{BACKGROUND}
 \label{sec:background}
 
-Before introducing HuskySort, it is worth laying out the four comparison-based algorithms it draws on side by side,
-since each contributes a different property to the final design.
-Their standard complexity and stability characteristics are summarized in
+Two comparison sorts bracket the design space, and HuskySort's three-step strategy follows from the
+contrast between them.
+Quicksort is fastest in practice on unordered data, its in-place partitioning and sequential access
+outweighing merge sort's guaranteed bound, but it is unstable and its worst case is quadratic unless
+mitigated --- as Introsort does, by falling back to heapsort past a recursion-depth
+threshold\cite{doi:10.1002}.
+Timsort takes the opposite trade: guaranteed $\textbf{O}(N \log N)$ and stable, at the cost of extra
+space and of being no faster than $\textbf{O}(N \log N)$ on unordered input, but adaptive, so where the
+number of inversions $I$ is small its cost falls towards $\textbf{O}(N)$.
+Husky coding exploits both ends of that contrast.
+Step 2 hands its sort cheap-to-compare, effectively unordered longs, which is quicksort's best case and,
+as \S~\ref{sec:radix} shows, a radix sort's natural input; step 3 hands Timsort an array already close to
+sorted, the one regime in which its adaptivity pays.
+Standard complexity and stability characteristics for the algorithms named here are tabulated in
 \S~\ref{sec:prior-algorithms}.
-
-
-Quicksort is fastest in practice on unordered data (its actual average case),
-because its in-place partitioning and cache-friendly access pattern outweigh merge sort's guaranteed $\textbf{O}(N \log N)$ bound;
-but it buys that speed at the cost of stability,
-and its worst case is quadratic unless mitigated (as Introsort does, by falling back to heapsort past a recursion-depth threshold —
-see \S~\ref{sec:radix} below).
-Timsort takes the opposite trade:
-guaranteed $\textbf{O}(N \log N)$ worst case and stability,
-at the cost of being merge-sort-based (extra space, and no faster than $\textbf{O}(N \log N)$ on unordered data) —
-but it is adaptive,
-so on data that is already close to sorted (few inversions, $I$),
-its cost drops towards $\textbf{O}(N)$, which quicksort's partitioning does not exploit in the same way.
-HuskySort's own strategy follows directly from this contrast:
-husky-coding turns step 2's input into something quicksort (or, as described in \S~\ref{sec:radix}, radix sort)
-can sort at its best case — the coded longs are effectively unordered, cheap-to-compare data —
-and reserves Timsort for exactly the regime where it is strongest:
-cleaning up the (hopefully few) remaining inversions in step 3, where the array is already close to sorted rather than random.
 
 \section{ALGORITHM}
 
@@ -691,59 +688,30 @@ so no single $p_{crit}$ can be quoted even for one type on one machine.
 Second, an encoding which can be declared perfect avoids a cost of up to a quarter of total running
 time, where one which cannot must repay it before correcting a single genuine inversion.
 
-\subsection{Why HuskySort Works}
+\subsection{Why husky coding works}
+\label{sec:why-husky}
 
-So, why does this work? Well, first of all, we observe that 64-bit word length in today’s computers is the norm.
-This allows for an encoding which has a low, possibly zero, value of $p_{crit}$.
+The rationale is set out in full by Hillyard et al.\cite{huskysort2020}; we restate only what the rest of
+this paper depends on.
+A 64-bit word holds enough of most keys to place elements close to their final order, and comparing two
+longs costs far less than following two object references and running a type-specific
+\textit{compareTo} --- so the encoding trades one $\textbf{O}(N)$ pass for cheaper comparisons throughout
+the $\textbf{O}(N \log N)$ one.
+The code need not be exact, only good: whatever inversions it leaves are the cleanup pass's problem, and
+\S~\ref{sec:pcrit} measures what they cost.
 
-Even though a Unicode string can encode only the first 3 15/16ths characters in 64 bits, this is extremely helpful in getting the elements close to their final order.
-The 15/16ths comes from a final unsigned right shift by one bit, applied after packing four 16-bit characters into the 64-bit code:
-without it, any string beginning with a character whose code point is 0x8000 or above (common among CJK characters) would set the sign bit and be encoded as a negative \textit{long}, corrupting simple numeric comparison.
-The shift costs exactly the least-significant bit of a true fourth character;
-for strings of three characters or fewer, that bit is always an unused padding zero, so nothing is actually lost — which is exactly why this encoding is only declared \textit{perfect} up to three characters, not four.
+Exactness has a precise limit for strings.
+Packing four 16-bit characters fills the word (Table ~\ref{tab:EncodingConstants} gives the constants for
+both string codings), but the packed result is then shifted right by one bit, because any string whose
+first character is \texttt{0x8000} or above --- common among CJK characters --- would otherwise set the
+sign bit and encode as a negative \textit{long}, corrupting numeric comparison.
+The shift costs the least significant bit of a true fourth character; for three characters or fewer that
+bit is padding, which is why the Unicode coding is declared \textit{perfect} up to three characters and
+not four.
 
-Here, we may compare the method of HuskySort with that of ShellSort.\cite{10.1007/3-540-61680-2_42}
-
-ShellSort acts exactly like a series of insertion sorts but, whereas each compare/swap in insertion sort is limited to resolving one inversion only, so in ShellSort, $h$ inversions can be resolved in one compare/swap (where we are $h$-sorting the array).
-So, Shellsort’s primary mechanism is to try to fix as many inversions as possible before taking the subsequent step.
-
-In the same way, HuskySort fixes as many inversions as possible before doing the final step.
-Note that it isn’t necessary for the encoding to be perfect.
-But it should be good.
-
-Another way of looking at it is that running quicksort or merge sort (or their variations) will require $\textbf{O}( N log N )$ comparisons.
-Merge sort, like insertion sort, is linear when the number of inversions is small and grows with $\textbf{O}(N)$.
-But merge sort does use extra memory.
-But values such as 64-bit integers (int or long), doubles, can be compared extremely quickly in modern machines—far quicker than the time required to follow a reference (pointer) to an object in memory.
-In Java, this distinction is described by contrasting primitives with objects.
-Primitives can be quick-sorted very fast, and \textit{long} is a primitive data type.
-
-Exchanging (swapping), on the other hand, takes the same amount of time whatever type you are sorting because swapping an object reference is just the same as swapping any 64-bit word.
-The other reason why quicksort is so fast is that it is cache-friendly:
-its in-place partitioning scans memory sequentially rather than jumping between widely-separated locations,
-giving it markedly better cache behavior than, for example, heapsort\cite{LAMARCA199966}.
-Cache behavior also distinguishes quicksort variants from one another, not just quicksort from other algorithm families:
-dual-pivot quicksort's own performance advantage over classic single-pivot quicksort has likewise been attributed largely to cache effects\cite{Dual-pivot}.
-(LaMarca and Ladner's study also found that a naive radix sort,
-sorting keys directly rather than through a deferred index permutation,
-has relatively poor cache behavior of its own on 1990s hardware — a finding about a different radix sort design than \S~\ref{sec:radix}'s,
-on much older hardware, so it does not bear on this paper's own radix-sort results.)
-So, we perform a fast quicksort on the array of longs.
-The only difference between the Husky version of quicksort and standard quicksort is that the swap operation must actually do two swaps:
-one of the longs and one of the object references.
-But, again, swapping is fast because elements of both arrays (i.e., both longs and refs) have good chances of being cached.
-
-The extra time (and space) required to perform the encoding upfront, which is \textbf{O}(N), is more than offset by the faster comparisons of longs as opposed to comparisons of objects.
-
-After the first pass (using quicksort), we can easily determine whether our encoding was perfect—in which case, there will be no remaining inversions.
-We do this for non-sequence classes via a simple constant-time lookup.
-For sequences (in practice, these are always Strings), we check each sequence’s coding perfection (according to its length), and as soon as we find a sequence that cannot be encoding perfectly, we stop checking.
-
-If the coding was perfect, we simply skip the final pass.
-
-Given the notion of hashing that the algorithm uses, it would seem natural to call it Hash Sort.
-Unfortunately, that name was already taken for quite a different algorithm\cite{DBLP:journals/corr/cs-DS-0408040}.
-We chose the name Husky Sort instead, after the husky, which is the mascot of the university where this work was developed.
+Whether a coding was in fact exact is known before the cleanup pass runs: a constant-time lookup for
+non-sequence types, and for strings a scan that stops at the first string too long to encode exactly.
+Where it was exact, no inversions remain and the pass is skipped altogether.
 
 
 \begin{algorithm2e}
@@ -801,20 +769,6 @@ It does: QuickHuskySort, and now RHSort, beat the system sort on all three,
 which differ in vendor, instruction set, core design and JVM generation.
 
 
-\subsection{Implementation of Algorithm}
-
-The top-level \textit{sort} method follows the three steps of \S~\ref{sec:overview} directly, and the
-default \textit{huskyEncode} is Algorithm ~\ref{alg:the_alg2} above;
-rather than repeat either as Java source, we describe only the details those do not already cover.
-
-\textit{Coding} is a simple immutable holder combining the resulting \textit{long[]} array of codes with the \textit{perfect}
-flag used by both algorithms (two fields, set once by its constructor).
-
-\textit{unicodeToLong} and \textit{asciiToLong} are both thin wrappers around one packing loop,
-differing only in which bit-width, maximum length, and mask constant they pass in;
-\textit{unicodeToLong} additionally discards the lowest bit of the packed result (an unsigned right shift by one)
-to guarantee a non-negative code regardless of the input string's content.
-Table ~\ref{tab:EncodingConstants} lists the constants each wrapper uses.
 
 \begin{table}
   \caption{String-encoding constants}

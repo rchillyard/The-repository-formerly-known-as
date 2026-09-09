@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{22}
+\begin{thebibliography}{20}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -129,21 +129,6 @@
 \urldef\tempurl%
 \url{https://doi.org/10.1109/SFFCS.1999.814600}
 \showDOI{\tempurl}
-
-
-\bibitem[\protect\citeauthoryear{Gilreath}{Gilreath}{2004}]%
-        {DBLP:journals/corr/cs-DS-0408040}
-\bibfield{author}{\bibinfo{person}{William~F. Gilreath}.}
-  \bibinfo{year}{2004}\natexlab{}.
-\newblock \showarticletitle{Hash sort: {A} linear time complexity
-  multiple-dimensional sort algorithm}.
-\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{cs.DS/0408040}
-  (\bibinfo{year}{2004}).
-\newblock
-\urldef\tempurl%
-\url{http://arxiv.org/abs/cs.DS/0408040}
-\showURL{%
-\tempurl}
 
 
 \bibitem[\protect\citeauthoryear{Goldhahn, Eckart, and Quasthoff}{Goldhahn
@@ -273,19 +258,6 @@
 \tempurl}
 \newblock
 \shownote{Retrieved November 3, 2020.}
-
-
-\bibitem[\protect\citeauthoryear{Sedgewick}{Sedgewick}{1996}]%
-        {10.1007/3-540-61680-2_42}
-\bibfield{author}{\bibinfo{person}{Robert Sedgewick}.}
-  \bibinfo{year}{1996}\natexlab{}.
-\newblock \showarticletitle{Analysis of Shellsort and related algorithms}. In
-  \bibinfo{booktitle}{\emph{Algorithms --- ESA '96}},
-  \bibfield{editor}{\bibinfo{person}{Josep Diaz} {and} \bibinfo{person}{Maria
-  Serna}} (Eds.). \bibinfo{publisher}{Springer Berlin Heidelberg},
-  \bibinfo{address}{Berlin, Heidelberg}, \bibinfo{pages}{1--11}.
-\newblock
-\showISBNx{978-3-540-70667-0}
 
 
 \bibitem[\protect\citeauthoryear{Sinha and Zobel}{Sinha and Zobel}{2004}]%
