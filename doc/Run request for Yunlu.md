@@ -9,6 +9,7 @@
 | 5 | The small-N crossover | **done** — PR #63 |
 | 6 | chinesenames against a pinyin-*correct* system sort | **done** — PR #64, `doc/pinyin.json` |
 | 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **done** — PR #64, `doc/adversarial.json` |
+| 8 | cache behaviour of the object-reference swap | **requested 2026-09-09** — see below |
 
 **All seven requests are answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -16,8 +17,10 @@ Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseli
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**Nothing further is being asked for.** One optional measurement is recorded at the end of this
-document should there be time after the 15th.
+**One new request, number 8**, is set out immediately below. It is not needed for the 15th and
+should not displace anything you are already doing --- it justifies an appendix derivation rather
+than any headline figure. Read step 0 first: it takes thirty seconds and may tell us the whole
+request is impossible on the machine of record, in which case please stop there and say so.
 
 Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, `...2026-09-02.md` and
 `...2026-09-03.md`. What requests 1 and 2 settled is summarised in Appendix A.
@@ -30,6 +33,168 @@ only as qualitative cross-checks, with no figures quoted from them. Your request
 that possible.
 
 Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs acting on.
+
+---
+
+## Request 8 — the cache behaviour of the object-reference swap
+
+Requested 2026-09-09. **Not needed for the 15th.** This one justifies an appendix derivation, not a
+headline number, and it is the only claim in the paper that rests on an estimate rather than a count.
+
+### Why — one number in the paper was guessed, and it is labelled as guessed
+
+Appendix A.1 derives QuickHuskySort's array-access cost and arrives at
+
+```
+A = 4 + 0.6 x 4 = 6.4
+```
+
+where the **0.6** stands for the proportion of the object-reference swap's four array accesses whose
+targets are *not* already in cache. Every other quantity in that derivation is arithmetic over
+operation counts. That one is a guess, made around 2020, and the appendix says so in as many words:
+"one step in it is an estimate rather than a count... We have not measured it."
+
+We would like to measure it. Robin would like the result in the appendix at least, and it connects to
+the quicksort and dual-pivot analysis he teaches in DSAIPG, so it has a life beyond this paper.
+
+### Step 0 — thirty seconds, and it may end the request
+
+Hardware performance counters are usually **not exposed on virtualised EC2 instances**, only on
+`.metal` ones. We think the machine of record is in that category: the paper's own environment table
+records machine C's cache sizes as unknown, because they are not visible to the guest. If the cache
+*geometry* is hidden, the counters almost certainly are too.
+
+So before anything else, on `c7g.4xlarge`:
+
+```
+perf stat -e cache-misses,cache-references true
+```
+
+* If it prints counts, we are in business — carry on to step 1.
+* If it prints `<not supported>` or `<not counted>`, **please stop and tell us.** That is a useful
+  answer, not a failure, and it decides between two quite different plans:
+  * a short run on a `c7g.metal` instance, which does expose the PMU. The runs below take minutes,
+    not the twenty hours request 4 took, so the cost is small — but that is Robin's call, not
+    something to spend on unasked.
+  * or the timing-only fallback in step 3, which needs no counters at all.
+
+You may also need `sudo sysctl -w kernel.perf_event_paranoid=1` and `perf` itself
+(`sudo dnf install perf`). If `perf` is missing entirely, that is worth reporting too.
+
+### Prerequisite — two benchmark methods that do not exist yet
+
+**Do not write these; we will commit them and tell you the commit.** They are listed so you know what
+you will be running and can object if the design looks wrong to you.
+
+1. `StringSortBenchmarks.quickHuskySortCodesOnly` — QuickHuskySort with a `swap` that exchanges only
+   the `long[]` entries and leaves the `Object[]` untouched. Identical comparisons, identical branch
+   decisions, identical `long[]` traffic; the only difference from `quickHuskySort` is the two object
+   reads and two object writes per swap.
+
+   It deliberately produces an array whose payload is *not* sorted. It is a measurement scaffold, not
+   a sort, and it will be named and commented so that nobody ever quotes a time from it as a sorting
+   result.
+
+2. `NumericSortBenchmarks.integerSinglePivotQuicksort` — `QuickSort` (single pivot) on the same
+   `Integer[]` arrays the existing `integerDualPivotQuicksort` uses. This is for the DSAIPG angle in
+   step 2; the pairing does not exist yet because nothing in the paper needed it.
+
+### Step 1 — the differential run, and the number we actually want
+
+```
+java -jar target/benchmarks.jar \
+  "StringSortBenchmarks.(quickHuskySort|quickHuskySortCodesOnly)$" \
+  -p corpus=english -p n=32000,200000,1000000 \
+  -f 3 -wi 5 -i 10 -r 2s -w 2s \
+  -prof perfnorm \
+  -rf json -rff cache-differential.json
+```
+
+`-prof perfnorm` reports hardware counters normalised per benchmark operation, which is exactly the
+shape we need. If the generic event aliases are unavailable but ARM's own are present, name them
+explicitly — on Neoverse V1 the useful ones are `l1d_cache`, `l1d_cache_refill`, `l2d_cache`,
+`l2d_cache_refill`:
+
+```
+-prof perfnorm:events=l1d_cache,l1d_cache_refill,l2d_cache,l2d_cache_refill,instructions,cycles
+```
+
+Please send `perf list | head -60` as well, so we can see what this machine actually offers rather
+than guessing from the microarchitecture.
+
+**The arithmetic we will do with it.** Because the two variants differ in exactly one thing, the
+difference in cache refills between them is attributable to the object-reference swap. Divide it by
+four times the number of swaps and you have the fraction that 0.6 was standing in for:
+
+```
+measured factor = delta(cache refills per op) / (4 x swaps per op)
+```
+
+We can supply the swap count exactly rather than estimating it — `InstrumentedComparisonSortHelper`
+already counts swaps, so a single instrumented run at each N gives the denominator with no error
+bars at all. We will do that here; you do not need to.
+
+### Step 2 — single-pivot against dual-pivot, for the teaching material
+
+Same counters, on primitives, where the classic result lives:
+
+```
+java -jar target/benchmarks.jar \
+  "NumericSortBenchmarks.integer(SinglePivotQuicksort|DualPivotQuicksort|RawQuicksort)$" \
+  -p n=500000 \
+  -f 3 -wi 5 -i 10 -r 2s -w 2s \
+  -prof perfnorm \
+  -rf json -rff cache-quicksort.json
+```
+
+Dual-pivot quicksort's advantage over single-pivot is widely attributed to cache behaviour rather
+than to its comparison count, and the paper currently passes that attribution along on the strength
+of a citation. Three sorters on identical arrays with counters attached would let us say it from
+measurement instead — and it is the same comparison Robin uses in class, where at present the cache
+explanation is asserted rather than shown.
+
+### Step 3 — the fallback, if there is no PMU anywhere we can reach
+
+Cache behaviour can be inferred from timing alone by sweeping N across the hierarchy and watching
+where the two variants of step 1 diverge. Below the point where the working set leaves cache, the
+object swap should be nearly free; above it, it should cost. The location of the knee is the finding.
+
+```
+java -jar target/benchmarks.jar \
+  "StringSortBenchmarks.(quickHuskySort|quickHuskySortCodesOnly)$" \
+  -p corpus=english -p n=1000,4000,16000,64000,256000,1000000,4000000 \
+  -f 3 -wi 5 -i 10 -r 2s -w 2s \
+  -rf json -rff cache-sweep.json
+```
+
+This is weaker evidence than a counter — it shows the effect exists and where it starts, not what
+fraction of accesses miss — but it needs no privileged access and it is the method LaMarca and Ladner
+used, which the paper cites. It would let the appendix say the estimate is *the right shape* even if
+we cannot pin the coefficient.
+
+### What to expect, and what would surprise us
+
+We expect the measured fraction to come out **well below 0.6**, possibly by a lot. A single cache
+refill brings in a 64-byte line, which holds eight object references, and quicksort's partitioning
+scans inward from both ends — so consecutive swaps tend to touch lines already resident. If the
+measurement says 0.1 rather than 0.6, that is a plausible result and not a mistake.
+
+A figure at or above 0.6 would be the surprise, and would mean the 2020 guess was better than we
+think it was.
+
+Do not tune anything to make it land near 0.6. If it comes back at 0.05 we will report 0.05.
+
+### What this could change, which is why it is not urgent
+
+If the factor is really nearer 0.1 then A is about 4.4 rather than 6.4, and Table `Comparison`'s
+QuickHuskySort column changes — in RHSort's favour, incidentally, since it would mean the paper has
+been *overstating* the cost of the comparison-based baseline's own advantage. That is a table edit we
+would rather make calmly after the 15th than hurriedly on the 14th.
+
+Which is the real reason this is request 8 and not request 6: the appendix currently labels the 0.6 as
+an estimate, and an honest label is a perfectly publishable state. A half-integrated new number would
+be worse than the label. So please treat this as post-deadline work unless step 0 happens to be quick
+and interesting.
 
 ---
 
