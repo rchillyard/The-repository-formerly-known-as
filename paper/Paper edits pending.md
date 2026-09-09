@@ -2451,3 +2451,46 @@ REFERENCES now starts at the very top of page 14, left column, and the last body
 (`tab:Guidance`) is on page 12. **So the overage is 1.0 page, not the 1.7 reported earlier today.**
 Every relative comparison made today still holds — they were all measured the same wrong way, so the
 deltas (0.036 for the Chinese-words deletion, 0.06 for the audit) are unaffected.
+
+---
+
+# 0v. Page limit met, and Figure 5 stays out on the merits — 2026-09-09
+
+## Where the length went
+
+Body **11.50 pages** against a 12-page limit, measured on `HuskySort-anon.pdf`, which is now the
+figure that counts (see 0w below). The last two days, in order of what each avenue actually bought:
+
+| change | pages |
+| --- | ---: |
+| float placement: reclaiming the page-9 float page | **0.61** |
+| reframing as a RadixHuskySort paper, citing the 2020 work | 0.89 |
+| moving PriorAlgorithms, SysEnv, TimvsInsertion and the QHS derivation to the appendix | ~1.4 |
+| the whole table-and-naming audit | 0.06 |
+| deleting the Chinese-words result entirely (rejected) | 0.036 |
+
+Worth keeping in view: **one float parameter was worth ten times the entire prose audit**, and 17x
+the deletion that was proposed to save space. When room is needed again, look at float placement
+first, structure second, prose last. Prose is where the effort goes and where the least is gained.
+
+## Figure 5 stays out
+
+Restoring it was measured, not estimated: 0.76 pages as the spanning `figure*` it was (12.26, over
+the limit), 0.30 as a single-column figure (12.00, exactly on it). Neither is affordable against a
+metric that moved 0.61 on one parameter.
+
+But Robin's reason is the better one and is the reason of record: **the figure is one-dimensional,
+algorithm against size, where Table `tab:Guidance` is quasi-two-dimensional.** That matters because
+§`sec:usecase` argues size is the *last* axis to consult --- it eliminates two cases outright before
+size is mentioned, and says size "enters only once those are settled, and then only near the bottom
+of the range". A chart organised by size foregrounds the least decisive variable, and contradicts the
+section containing it.
+
+So this is not deferred to camera-ready, where there will be room. `paper/UseCaseGuidance.pdf` stays
+in the repository --- it is still a good picture, and useful in slides --- but it should not go back
+into the paper without answering the dimensionality objection first.
+
+## The remaining slack is slack
+
+Half a page, six days out, against a non-monotonic metric. It is worth more as margin than as
+content, and every further edit needs re-measuring rather than trusting 11.50 to hold.
