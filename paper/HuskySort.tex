@@ -146,7 +146,12 @@
 \usepackage{enumitem}
 \usepackage[algo2e, boxruled, linesnumbered, noend, noline]{algorithm2e}
 \newlist{steps}{enumerate}{1}
-\setlist[steps, 1]{label = Step \arabic*:}
+%% The label is a whole word, so it needs a labelwidth to match. Without one, enumitem hangs
+%% it to the LEFT of the list's text block, and in siamproceedings' narrower column that put
+%% "Step 1:" across the gutter and over the neighbouring column. leftmargin=! makes enumitem
+%% derive the margin from labelwidth + labelsep, so the label stays inside the column.
+\setlist[steps, 1]{label = Step \arabic*:, align = left,
+                   labelwidth = 4em, labelsep = 0.5em, leftmargin = !}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{latexsym}
@@ -352,7 +357,7 @@
 %% information and builds the first part of the formatted document.
 
 
-\section{Introduction}
+\section{Introduction.}
 With the vast increase in the size of the data world, efficient computing algorithms play a crucial role in processing data.
 From the earliest days of computing,
 sorting has been one of the most studied areas of research even though it appears to be a straightforward and familiar topic.
@@ -413,7 +418,7 @@ Implementation options and their likely impact are explored in Section 4.
 We describe our Test Cases in Section 5 and present results in Section 6, with outcomes summarized in Section 7.
 
 
-\section{BACKGROUND}
+\section{Background.}
 \label{sec:background}
 
 Two comparison sorts bracket the design space, and HuskySort's three-step strategy follows from the
@@ -432,13 +437,13 @@ sorted, the one regime in which its adaptivity pays.
 Standard complexity and stability characteristics for the algorithms named here are tabulated in
 \S~\ref{sec:prior-algorithms}.
 
-\section{ALGORITHM}
+\section{Algorithm.}
 
 
 
 
 
-\subsection{Overview}
+\subsection{Overview.}
 \label{sec:overview}
 
 \begin{figure}
@@ -472,7 +477,7 @@ we run Timsort on the array $xs$ to ensure that its elements are truly in order.
 
 For a worked example of a husky coding, see Algorithm ~\ref{alg:permitcoder}
 
-\subsection{RadixHuskySort}
+\subsection{RadixHuskySort.}
 \label{sec:radix}
 
 Step 2 sorts the husky codes using Introsort, an $\textbf{O}(N log N)$ algorithm,
@@ -654,7 +659,7 @@ shows it.
  \label{alg:the_alg6}
 \end{algorithm2e}
 
-\subsection{Discussion of Husky Encoding}
+\subsection{Discussion of Husky Encoding.}
 
 Step 1b requires the definition of a 64-bit hash function (huskyCode) whose properties are as follows:
 (refer to Algorithm ~\ref{alg:the_alg2})
@@ -696,7 +701,7 @@ QuickHuskySort sorts in 698 ms against the system sort's 1,121 ms, a factor of 1
 
 
 
-\subsection{Discussion of \texorpdfstring{$p_{crit}$}{p\_crit}}
+\subsection{Discussion of \texorpdfstring{$p_{crit}$}{p\_crit}.}
 \label{sec:pcrit}
 When $p > 0$, there is a finite probability of any pair of elements remaining inverted after the first sorting pass.
 For an array of N randomly ordered elements, the average number of inversions before sorting is $X = N (N -1 ) / 4$.
@@ -761,7 +766,7 @@ so no single $p_{crit}$ can be quoted even for one type on one machine.
 Second, an encoding which can be declared perfect avoids a cost of up to a quarter of total running
 time, where one which cannot must repay it before correcting a single genuine inversion.
 
-\subsection{Why husky coding works}
+\subsection{Why husky coding works.}
 \label{sec:why-husky}
 
 The rationale is set out in full by Hillyard et al.\cite{huskysort2020}; we restate only what the rest of
@@ -819,7 +824,7 @@ Where it was exact, no inversions remain and the pass is skipped altogether.
  \label{alg:permitcoder}
 \end{algorithm2e}
 
-\section{Implementation}
+\section{Implementation.}
 
 %% ANONYMISATION: the real URL names its owner, so it is guarded with the author block. See
 %% "0i. The repository link" in Paper edits pending.md -- the Anonymous GitHub mirror is task 2
@@ -831,7 +836,7 @@ Where it was exact, no inversions remain and the pass is skipped altogether.
   The implementation is available at \url{https://github.com/rchillyard/HuskySort}.
 \fi
 
-\subsection{System Environment}
+\subsection{System Environment.}
 
 Three machines appear in this paper, and \S~\ref{sec:environments} specifies all three.
 Machine A ran the JDK 1.8.0\_152 comparison-sort benchmarks of \S~\ref{sec:analysis},
@@ -862,9 +867,9 @@ which differ in vendor, instruction set, core design and JVM generation.
   \end{tabular}
 \end{table}
 
-\section{Test Case and Analysis}
+\section{Test Case and Analysis.}
 
-\subsection{Data Source}
+\subsection{Data Source.}
 \label{sec:data-source}
 The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection\cite{GOLDHAHN12.327}.
 Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus\cite{wainshine2020chinesenames}.
@@ -913,7 +918,7 @@ static String[] getWords(final String resource, final Function<String, List<Stri
 
 \end{lstlisting}
 
-\subsection{Analysis}
+\subsection{Analysis.}
 \label{sec:analysis}
 Let’s try to do an analysis of QuickHuskySort's performance.
 This expands on the $T_1$/$T_2$/$T_3$ decomposition introduced in \S~\ref{sec:pcrit} above,
@@ -994,8 +999,8 @@ beyond that Timsort wins out, by a factor of four and a half at $N = 4{,}000{,}0
 That measurement, and the choice it settles, are in \S~\ref{sec:cleanup-choice}.
 
 
-\section{Results and Observations}
-\subsection{Benchmarks}
+\section{Results and Observations.}
+\subsection{Benchmarks.}
 
 Table ~\ref{tab:HS_BM} reports absolute sort times for every data type and corpus.
 The two radix columns bracket the digit-width plateau of \S~\ref{sec:radix-results}.
@@ -1032,7 +1037,7 @@ rather than on RHSort, so they are in \S~\ref{sec:comparison-baselines}.
   \end{tabular}
 \end{table*}
 
-\subsection{Summary}
+\subsection{Summary.}
 \label{sec:summary}
 HuskySort’s target application is the sorting of randomly ordered arrays of objects on the JVM (Java Virtual Machine).
 Let’s eliminate the non-use-cases first:
@@ -1055,7 +1060,7 @@ and 1.3--1.5x on tuples.
 Note that the English margin \emph{widens} with array size rather than decaying,
 from 1.41x at $N=32{,}000$ to 1.61x at $N=1{,}000{,}000$.
 
-\subsection{Radix Sort Results}
+\subsection{Radix Sort Results.}
 \label{sec:radix-results}
 
 We benchmarked every data type and corpus covered above using RadixHuskySort (\S~\ref{sec:radix})
@@ -1118,7 +1123,7 @@ JVM generation.
 We quote no figures from them, since mixing environments within a comparison would rob it of meaning,
 but every ordering reported here holds on all three.
 
-\subsection{Parallel Radix Sort}
+\subsection{Parallel Radix Sort.}
 \label{sec:parallel-radix}
 
 Radix sort's digit passes are natural candidates for parallelization (\S~\ref{sec:radix} above).
@@ -1175,7 +1180,7 @@ so it grows as a share of the total as threads are added.
 The first would be a property of the machine and the second of the design,
 and only the second would survive better hardware.
 
-\subsection{Use-Case Guidance}
+\subsection{Use-Case Guidance.}
 \label{sec:usecase}
 
 \S~\ref{sec:summary} already eliminates two cases outright:
@@ -1251,7 +1256,7 @@ And given a large enough workload and spare cores, \textit{ParallelRadixHuskySor
 widens RadixHuskySort's own advantage further still (\S~\ref{sec:parallel-radix}),
 provided there is enough total work to amortize its own thread-coordination cost.
 
-\section{Conclusion}
+\section{Conclusion.}
 
 The original idea behind HuskySort, that's to say QuickHuskySort,
 was to shift work from the linearithmic phase of sorting to the linear phase (both the prelude and the postlude)
@@ -1317,8 +1322,8 @@ where dual-pivot quicksort already wins outright.
 %%
 %% If your work has an appendix, this is the place to put it.
 \appendix
-\section{Appendix}
-\subsection{The array-access analysis of QuickHuskySort}
+\section{Appendix.}
+\subsection{The array-access analysis of QuickHuskySort.}
 \label{sec:qhs-analysis}
 
 \S~\ref{sec:analysis} counts array accesses for RHSort and compares the result with QuickHuskySort and
@@ -1392,7 +1397,7 @@ the totals ($A_m$ for merge sort and $A_h$ for QuickHuskySort) come to:
  \[A_m = 11.5 N ln N + 2 N\]
  \[A_h = 6.4 N ln N + 9 N\]
 
-\subsection{Prior comparison-based sorting algorithms}
+\subsection{Prior comparison-based sorting algorithms.}
 \label{sec:prior-algorithms}
 
 The algorithms reviewed in \S~\ref{sec:background}, with the standard complexity and stability
@@ -1413,7 +1418,7 @@ characteristics referred to there.
   \end{tabularx}
 \end{table*}
 
-\subsection{Benchmark environments}
+\subsection{Benchmark environments.}
 \label{sec:environments}
 
 Machine C is the machine of record and the source of every figure quoted in this paper.
@@ -1439,7 +1444,7 @@ machine A additionally supplies the cleanup-sort comparison of \S~\ref{sec:clean
   \end{tabularx}
 \end{table*}
 
-\subsection{Discussion of coding accuracy}
+\subsection{Discussion of coding accuracy.}
 It is not essential that coding is perfect for HuskySort to work well.
 We have experimented with deliberately throwing off the encoding quite drastically.
 If the probability of one of these deliberate mis-codings is less than approximately 25 percent, HuskySort can still save time.
@@ -1448,7 +1453,7 @@ We can be confident that we are still saving time up to about one in four errors
 
 These deliberate errors were tested for Bytes and Integers but not the other generic types.
 
-\subsection{Timsort or insertion sort for the cleanup pass}
+\subsection{Timsort or insertion sort for the cleanup pass.}
 \label{sec:cleanup-choice}
 
 Step 3 needs a stable sort for an array that is nearly ordered already, and both Timsort and insertion
@@ -1486,7 +1491,7 @@ rather than a result.
   \end{tabular}
 \end{table*}
 
-\subsection{Comparison-sort baselines for the numeric and tuple types}
+\subsection{Comparison-sort baselines for the numeric and tuple types.}
 \label{sec:comparison-baselines}
 
 Table ~\ref{tab:HS_BM} omits two baselines that were measured alongside the others: dual-pivot
@@ -1523,7 +1528,7 @@ itself when the ordering is expensive, and not otherwise.
   \end{tabular}
 \end{table*}
 
-\subsection{The cleanup pass as \texorpdfstring{$N$}{N} grows}
+\subsection{The cleanup pass as \texorpdfstring{$N$}{N} grows.}
 \label{sec:cleanup-scaling}
 
 \S~\ref{sec:pcrit} measures the cleanup pass at $p = 0$ and reports a share of total running time that
@@ -1542,7 +1547,7 @@ That last calculation is a model rather than a measurement.
 The sort's own per-element cost also grows faster than $\ln N$ across these three sizes,
 and the corpus holds 198,900 records, so the measurement cannot be extended on real data.
 
-\subsection{Building permits: the case study in full}
+\subsection{Building permits: the case study in full.}
 \label{sec:permits}
 
 The permits row of Table ~\ref{tab:RadixImprovements} is the case this mechanism is designed for.
@@ -1572,7 +1577,7 @@ The same records also supply the cleanup-pass measurement of \S~\ref{sec:pcrit},
 because the encoding for them is exact and can be declared so ---
 which is what allows the pass to be switched on and off over identical codes.
 
-\subsection{Why the two Chinese corpora sit at opposite ends of the table}
+\subsection{Why the two Chinese corpora sit at opposite ends of the table.}
 \label{sec:chinese-coders}
 
 Both corpora are Chinese text, yet they sit at opposite ends of Table
@@ -1594,7 +1599,7 @@ The pinyin case pairs the paper's most expensive comparison with its weakest enc
 is the smallest margin we report --- and why the two Chinese rows should not be read as two points on a
 single axis.
 
-\subsection{Future work: composite keys, and what a library would have to provide}
+\subsection{Future work: composite keys, and what a library would have to provide.}
 \label{sec:composite-future}
 
 The permit coder above was written by hand, as was every composite encoding in this paper.
@@ -1632,7 +1637,7 @@ Once the fields do not fit in 64 bits --- three fit comfortably, six will not --
 a wider code costs RadixHuskySort proportionally more digit passes and nothing else (\S~\ref{sec:radix}),
 where a comparison-based husky sort has no comparable escape.
 
-\subsection{Adversarial inputs}
+\subsection{Adversarial inputs.}
 \label{sec:adversarial}
 
 The discussion in section A.1 raises a concern:
@@ -1775,7 +1780,7 @@ Only the third of those changes what the sweep reports, which is why it is shown
 RadixHuskySort was never at risk of any of them in the first place,
 since LSD radix sort has no recursion to begin with.
 
-\subsection{Handling of partially-sorted arrays}
+\subsection{Handling of partially-sorted arrays.}
 
 Not surprisingly, QuickHuskySort is best suited for sorting random arrays.
 The benefits of partially-sorted arrays are enjoyed most by the merge sort family of algorithms (including Timsort).
