@@ -47,9 +47,7 @@ public class QuickHuskySort<X extends Comparable<X>> {
         // This is necessary if we might be sorting a pre-sorted array. Otherwise, we usually don't need it.
         if (mayBeSorted) Collections.shuffle(Arrays.asList(xs));
         // NOTE: First pass where we code to longs and sort according to those.
-        final Coding coding = huskyCoder.huskyEncode(xs);
-        final long[] longs = coding.longs;
-        introSort(xs, longs, 0, longs.length, 2 * floor_lg(xs.length));
+        final Coding coding = sortCodes(xs);
 
         // NOTE: Second pass (if required) to fix any remaining inversions.
         if (coding.perfect)
@@ -61,6 +59,28 @@ public class QuickHuskySort<X extends Comparable<X>> {
             if (collator == null) Arrays.sort(xs);
             else Arrays.sort(xs, collator);
         }
+    }
+
+    /**
+     * The encode-and-sort-the-codes phase, on its own: steps 1 and 2 of the three-step strategy,
+     * without the cleanup pass that follows them.
+     * <p>
+     * Extracted so that a benchmark can time this phase in isolation. That matters for the cache
+     * measurement of request 8 (doc/Run request for Yunlu.md), which compares this phase against a
+     * variant that swaps only the codes: run through the full {@link #sort} instead, the codes-only
+     * variant leaves the payload in random order and the cleanup pass then has to sort it from
+     * scratch, which costs far more than the swaps it saved and drowns the effect being measured.
+     * Measured here, both arms stop before the cleanup and the difference between them is the
+     * object-reference swap alone.
+     *
+     * @param xs the array whose codes are to be sorted, permuted alongside them.
+     * @return the coding, whose {@code perfect} flag tells the caller whether a cleanup is needed.
+     */
+    protected Coding sortCodes(final X[] xs) {
+        final Coding coding = huskyCoder.huskyEncode(xs);
+        final long[] longs = coding.longs;
+        introSort(xs, longs, 0, longs.length, 2 * floor_lg(xs.length));
+        return coding;
     }
 
     /**
@@ -117,7 +137,7 @@ public class QuickHuskySort<X extends Comparable<X>> {
     }
 
     // TEST
-    private static <T extends Comparable<T>> void heapSort(final T[] objects, final long[] longs, final int from, final int to) {
+    private void heapSort(final X[] objects, final long[] longs, final int from, final int to) {
         // CONSIDER removing these size checks. They haven't really been tested.
         if (to - from <= sizeThreshold + 1) {
             insertionSort(objects, longs, from, to);
@@ -134,6 +154,10 @@ public class QuickHuskySort<X extends Comparable<X>> {
     }
 
     // TEST
+    // NOTE: this moves object references itself rather than going through swap, so a subclass
+    // that overrides swap does not affect it. That is acceptable for measurement purposes because
+    // heapSort only runs when introSort exhausts its depth threshold, which random input does not
+    // provoke; anything relying on overriding swap should say so.
     private static <T extends Comparable<T>> void downHeap(final T[] objects, final long[] longs, int i, final int n, final int lo) {
         final long d = longs[lo + i - 1];
         final T od = objects[lo + i - 1];
@@ -150,7 +174,7 @@ public class QuickHuskySort<X extends Comparable<X>> {
         objects[lo + i - 1] = od;
     }
 
-    static <T extends Comparable<T>> void insertionSort(final T[] objects, final long[] longs, final int from, final int to) {
+    void insertionSort(final X[] objects, final long[] longs, final int from, final int to) {
         for (int i = from + 1; i < to; i++)
             if (OPTIMIZED)
                 swapIntoSorted(objects, longs, from, i);
@@ -162,19 +186,25 @@ public class QuickHuskySort<X extends Comparable<X>> {
     /**
      * Regular swap of elements at indexes i and j, not necessarily adjacent.
      * However, for insertion sort, they will always be adjacent.
+     * <p>
+     * Overridable so that a benchmark can suppress the object-reference half of the swap while
+     * leaving the long[] traffic and the control flow identical -- the differential that measures
+     * how many of those object accesses actually miss cache. See CodesOnlyQuickHuskySort in the
+     * jmh source set, and request 8 in doc/Run request for Yunlu.md. Overriding it produces an
+     * array whose payload is not sorted, so nothing outside a measurement may do so.
      *
      * @param xs    the X array.
      * @param longs the long array.
      * @param i     the index of one element to be swapped.
      * @param j     the index of the other element to be swapped.
      */
-    private static <T extends Comparable<T>> void swap(final T[] xs, final long[] longs, final int i, final int j) {
+    protected void swap(final X[] xs, final long[] longs, final int i, final int j) {
         // Swap longs
         final long temp1 = longs[i];
         longs[i] = longs[j];
         longs[j] = temp1;
         // Swap xs
-        final T temp2 = xs[i];
+        final X temp2 = xs[i];
         xs[i] = xs[j];
         xs[j] = temp2;
     }

@@ -109,7 +109,7 @@ public class QuickHuskySortTest {
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
         final Coding coding = huskyCoder.huskyEncode(xs);
-        QuickHuskySort.insertionSort(xs, coding.longs, 0, N);
+        sorter.insertionSort(xs, coding.longs, 0, N);
         assertEquals(0, helper.inversions(xs));
     }
 
@@ -123,7 +123,7 @@ public class QuickHuskySortTest {
         helper.init(N);
         final String[] xs = helper.random(String.class, r -> r.nextLong() + "");
         final Coding coding = huskyCoder.huskyEncode(xs);
-        QuickHuskySort.insertionSort(xs, coding.longs, 0, N);
+        sorter.insertionSort(xs, coding.longs, 0, N);
         assertEquals(0, helper.inversions(xs));
     }
 
@@ -146,7 +146,8 @@ public class QuickHuskySortTest {
             longs[i] = key;
             objects[i] = new Tagged(key, i);
         }
-        QuickHuskySort.insertionSort(objects, longs, 0, n);
+        final QuickHuskySort<Tagged> sorter = new QuickHuskySort<>(t -> t.key, false, false);
+        sorter.insertionSort(objects, longs, 0, n);
         for (int i = 1; i < n; i++) {
             assertTrue("key order violated at index " + i, longs[i - 1] <= longs[i]);
             assertEquals("objects/longs out of sync at index " + i, objects[i].key, longs[i]);

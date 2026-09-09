@@ -81,29 +81,52 @@ perf stat -e cache-misses,cache-references true
 You may also need `sudo sysctl -w kernel.perf_event_paranoid=1` and `perf` itself
 (`sudo dnf install perf`). If `perf` is missing entirely, that is worth reporting too.
 
-### Prerequisite — two benchmark methods that do not exist yet
+### The three benchmark methods, which now exist
 
-**Do not write these; we will commit them and tell you the commit.** They are listed so you know what
-you will be running and can object if the design looks wrong to you.
+Committed 2026-09-09; nothing for you to write. Described so you can object if the design looks wrong.
 
-1. `StringSortBenchmarks.quickHuskySortCodesOnly` — QuickHuskySort with a `swap` that exchanges only
+1. `StringSortBenchmarks.quickHuskySortPhase2` — steps 1 and 2 only, codes and object references
+   swapped together as the real algorithm does, stopping before the cleanup pass.
+
+2. `StringSortBenchmarks.quickHuskySortPhase2CodesOnly` — the same, except that `swap` exchanges only
    the `long[]` entries and leaves the `Object[]` untouched. Identical comparisons, identical branch
-   decisions, identical `long[]` traffic; the only difference from `quickHuskySort` is the two object
-   reads and two object writes per swap.
+   decisions, identical `long[]` traffic. The partitioning has exactly one implementation and both
+   arms run it, so the only difference is the two object reads and two object writes per swap.
 
-   It deliberately produces an array whose payload is *not* sorted. It is a measurement scaffold, not
-   a sort, and it will be named and commented so that nobody ever quotes a time from it as a sorting
-   result.
+3. `NumericSortBenchmarks.integerSinglePivotQuicksort` — a pure single-pivot quicksort on the same
+   `Integer[]` arrays the existing `integerDualPivotQuicksort` uses, for step 2 below. Its
+   insertion-sort cutoff is matched to `PureDualPivotQuicksort`'s (47) deliberately, so that what
+   separates the two is their partitioning rather than where each stops partitioning. The existing
+   `QuickSort` could not be used: it is abstract over the instrumented helper framework, and against
+   a pure implementation it would measure the instrumentation.
 
-2. `NumericSortBenchmarks.integerSinglePivotQuicksort` — `QuickSort` (single pivot) on the same
-   `Integer[]` arrays the existing `integerDualPivotQuicksort` uses. This is for the DSAIPG angle in
-   step 2; the pairing does not exist yet because nothing in the paper needed it.
+**Neither of the first two is a sort, and both stop before the cleanup pass.** Their times mean
+nothing on their own; only the difference does.
+
+#### Why they stop before the cleanup, which we got wrong first
+
+The obvious design — run each variant through the full `sort()` — does not work, and we only found
+out by running it. The codes-only variant leaves the payload in random order, so the cleanup pass has
+to sort it from scratch instead of repairing a few inversions. Measured on a laptop at
+N=32,000: **14.6 ms against 8.7 ms**, the variant doing strictly less work coming out 70 percent
+slower. That difference is the cleanup pass, and it drowns the effect being measured.
+
+Timed on phase 2 alone, the direction is what it should be — same laptop, wide intervals, but
+unambiguous:
+
+| N | both arrays | codes only |
+| --- | ---: | ---: |
+| 32,000 | 4.96 ms | 2.79 ms |
+| 200,000 | 43.7 ms | 22.2 ms |
+
+So the object-reference swap looks like roughly half of phase 2's *time*. What we need from you is
+the same comparison in *cache refills*, which is the quantity the appendix's 0.6 actually refers to.
 
 ### Step 1 — the differential run, and the number we actually want
 
 ```
 java -jar target/benchmarks.jar \
-  "StringSortBenchmarks.(quickHuskySort|quickHuskySortCodesOnly)$" \
+  "StringSortBenchmarks.quickHuskySortPhase2" \
   -p corpus=english -p n=32000,200000,1000000 \
   -f 3 -wi 5 -i 10 -r 2s -w 2s \
   -prof perfnorm \
@@ -156,12 +179,12 @@ explanation is asserted rather than shown.
 ### Step 3 — the fallback, if there is no PMU anywhere we can reach
 
 Cache behaviour can be inferred from timing alone by sweeping N across the hierarchy and watching
-where the two variants of step 1 diverge. Below the point where the working set leaves cache, the
+where the two arms of step 1 diverge. Below the point where the working set leaves cache, the
 object swap should be nearly free; above it, it should cost. The location of the knee is the finding.
 
 ```
 java -jar target/benchmarks.jar \
-  "StringSortBenchmarks.(quickHuskySort|quickHuskySortCodesOnly)$" \
+  "StringSortBenchmarks.quickHuskySortPhase2" \
   -p corpus=english -p n=1000,4000,16000,64000,256000,1000000,4000000 \
   -f 3 -wi 5 -i 10 -r 2s -w 2s \
   -rf json -rff cache-sweep.json

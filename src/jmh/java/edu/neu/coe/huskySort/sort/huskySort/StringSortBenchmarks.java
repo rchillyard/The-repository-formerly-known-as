@@ -211,6 +211,38 @@ public class StringSortBenchmarks {
         return copy;
     }
 
+    /**
+     * NEITHER OF THE NEXT TWO IS A SORT. They are the two arms of one cache measurement -- see
+     * {@link CodesOnlyQuickHuskySort} and request 8 in doc/Run request for Yunlu.md -- and both
+     * stop after step 2, before the cleanup pass. Their times are meaningless alone and must never
+     * be quoted as sorting results; only the difference between them means anything.
+     * <p>
+     * This arm does the real thing: codes and object references swapped together.
+     */
+    @Benchmark
+    public String[] quickHuskySortPhase2(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        new QuickHuskySort<>(state.coder, false, false).sortCodes(copy);
+        return copy;
+    }
+
+    /**
+     * The other arm: identical in every respect except that the object references are not swapped.
+     * The difference in cache refills between this and quickHuskySortPhase2 is what the factor 0.6
+     * in appendix A.1 was standing in for.
+     * <p>
+     * Both arms must stop before the cleanup pass, which is why neither calls sort(). Timed through
+     * the full sort, this variant is about 70% SLOWER rather than faster, because it leaves the
+     * payload in random order and the cleanup then sorts it from scratch -- a measured 14.6ms
+     * against 8.7ms at N=32,000, which is the cleanup pass, not the swap.
+     */
+    @Benchmark
+    public String[] quickHuskySortPhase2CodesOnly(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        new CodesOnlyQuickHuskySort<>(state.coder, false, false).sortCodes(copy);
+        return copy;
+    }
+
     @Benchmark
     public String[] radixHuskySort8(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);

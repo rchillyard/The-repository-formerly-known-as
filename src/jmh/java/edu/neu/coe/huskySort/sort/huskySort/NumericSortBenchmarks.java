@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.sort.simple.PureDualPivotQuicksort;
+import edu.neu.coe.huskySort.sort.simple.PureSinglePivotQuicksort;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.Utilities;
 import org.openjdk.jmh.annotations.*;
@@ -167,6 +168,18 @@ public class NumericSortBenchmarks {
     public Integer[] integerDualPivotQuicksort(final IntegerState state) {
         final Integer[] copy = Arrays.copyOf(state.master, state.master.length);
         PureDualPivotQuicksort.sort(copy);
+        return copy;
+    }
+
+    /**
+     * Single-pivot counterpart to integerDualPivotQuicksort above, for the cache comparison of
+     * request 8 (doc/Run request for Yunlu.md). Both are pure implementations with no helper, so
+     * the difference between them is the partitioning scheme rather than any instrumentation.
+     */
+    @Benchmark
+    public Integer[] integerSinglePivotQuicksort(final IntegerState state) {
+        final Integer[] copy = Arrays.copyOf(state.master, state.master.length);
+        PureSinglePivotQuicksort.sort(copy);
         return copy;
     }
 
