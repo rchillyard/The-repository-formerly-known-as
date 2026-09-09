@@ -75,6 +75,38 @@
 %% [acmart-only] \acmArticle{}
 %% [acmart-only] \acmMonth{9}
 \pdfoutput=1
+%% ---- Float placement -----------------------------------------------------------------
+%% The stock parameters put tab:Comparison and tab:HS_BM on a float page of their own (page 9),
+%% with 272pt -- nearly four inches -- of white space between and below them. Two causes, both
+%% addressed here.
+%%
+%% First, a double-column float may occupy at most \dbltopfraction of a page top (0.7) and a
+%% page must be at least \textfraction text (0.2), so two tall table* floats cannot share a
+%% text page with any prose and get deferred to a [p] page instead. Those limits exist to stop
+%% a page becoming all floats, which under a page limit is the lesser evil.
+%%
+%% Second, on a float page \@fptop and \@fpsep carry infinite stretch, which distributes the
+%% slack *between* the floats rather than collecting it at the bottom. Even when a float page
+%% is unavoidable, it should read as a full page of tables, not as two tables adrift.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\bottomfraction}{0.5}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.7}
+\renewcommand{\dblfloatpagefraction}{0.7}
+\setcounter{topnumber}{4}
+\setcounter{dbltopnumber}{4}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{6}
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{10pt plus 0fil}
+\setlength{\@fpbot}{0pt plus 1fil}
+\setlength{\@dblfptop}{0pt}
+\setlength{\@dblfpsep}{10pt plus 0fil}
+\setlength{\@dblfpbot}{0pt plus 1fil}
+\makeatother
+
 %% Float separation. The defaults leave 45--49pt between consecutive algorithm listings and a
 %% comparable band around figures, which is generous in a two-column layout under a page limit.
 %% Set at begin-document so the class cannot override these afterwards.
