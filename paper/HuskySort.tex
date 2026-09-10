@@ -1460,7 +1460,9 @@ machine A additionally supplies the cleanup-sort comparison of \S~\ref{sec:clean
 \begin{table*}
   \caption{The three benchmark environments. Machine A supplies the comparison-sort results of
     \S~\ref{sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine
-    of record, every figure quoted in this paper.}
+    of record, every figure quoted in this paper. Machine C's cache geometry is not exposed to the
+    guest, hence the dash; machine B's is given per core cluster, since its two clusters differ and
+    the benchmarks run on the performance cores.}
   \label{tab:SysEnv}
   \begin{tabularx}{\linewidth}{lXXX}
     \toprule
@@ -1468,7 +1470,7 @@ machine A additionally supplies the cleanup-sort comparison of \S~\ref{sec:clean
     \midrule
     Model & MacBook Pro (MacBookPro14,3) & MacBook (Apple Silicon) & AWS EC2 c7g.4xlarge \\
     Processor & Quad-core Intel Core i7, 2.8 GHz, Hyper-Threading & Apple M1, 8 cores (4 performance + 4 efficiency) & ARM Neoverse V1 (Graviton3), 16 vCPU, 2.6 GHz \\
-    Cache & 256 KB L2 per core, 6 MB L3 & 128 KB L1I / 64 KB L1D per core; 12 MB + 4 MB L2 & --- \\
+    Cache & 256 KB L2 per core, 6 MB L3 & Performance cores: 192 KB L1I / 128 KB L1D each, 12 MB shared L2. Efficiency cores: 128 KB / 64 KB, 4 MB shared L2. 128 B line & --- \\
     Memory & 16 GB 2133 MHz LPDDR3 & 16 GB unified & 30 GiB \\
     OS & --- & macOS 26.5.2 & Amazon Linux 2023 \\
     JVM & 1.8.0\_152 & OpenJDK 21.0.10 & OpenJDK 21.0.12 (Corretto) \\
