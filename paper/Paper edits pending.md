@@ -2494,3 +2494,39 @@ into the paper without answering the dimensionality objection first.
 
 Half a page, six days out, against a non-monotonic metric. It is worth more as margin than as
 content, and every further edit needs re-measuring rather than trusting 11.50 to hold.
+
+---
+
+# 0w. Terms of art, settled — read before any prose pass — 2026-09-10
+
+Robin is making a pass to humanize the text and asked to know which terms are deliberate, so as not
+to undo them. Each of these cost real effort to make consistent; rewording around them is welcome,
+renaming them is not.
+
+| term | means | not |
+| --- | --- | --- |
+| **RHSort** | RadixHuskySort, in table captions, column headers and figures, where the full name will not fit | `radix`, which could mean any radix sort; `rhs`; the name spelled out in a caption |
+| **RadixHuskySort** | the same algorithm, in prose | |
+| **QuickHuskySort** | the original algorithm specifically, the one the 2020 paper introduced | plain "HuskySort", which was the ambiguity the 2026-09-08 audit removed from fifteen sites |
+| **HuskySort** | the family: both variants, the shared three-step strategy, the encoding idea | either variant specifically. 24 bare uses remain and every one is family-level by intent |
+| **ParallelRadixHuskySort** | the parallel variant | |
+| **code-point order** | sorting Chinese by Unicode code point | "natural order", "natural Unicode order" --- the paper had all three names for this until 0t |
+| **pinyin order** | the collation a directory of people actually wants | |
+| **husky code** | the 64-bit order-preserving proxy key | "hash code", which is what the 2020 paper had to disclaim: the name Hash Sort was taken |
+| **cleanup pass** | step 3, repairing whatever inversions the encoding left | "second pass", which collides with step 2 |
+| **perfect** (of an encoding) | order-preserving with no ties, so the cleanup pass can be skipped entirely | |
+| **machines A, B and C** | the Intel, the M1 and the Graviton3; C is the machine of record and the only source of quoted figures | naming them by date or by owner, which is how the paper used to distinguish them and which read as a resubmission |
+
+Two further conventions that are easy to undo by accident:
+
+- **Counts versus estimates.** Where the paper says a figure is estimated rather than measured --- the
+  0.6 cache factor of A.1 above all --- that hedge is load-bearing and is the reason the appendix is
+  publishable as it stands. Do not tidy it away.
+- **`\ifanonymous` guards.** The author block, the acknowledgments and the repository URL are each
+  wrapped in one. Editing inside a guard is fine; unwrapping one puts identifying material into the
+  review PDF.
+
+After any prose pass, the checks worth re-running are: every table caption and column header for
+ambiguous algorithm names; all bare `HuskySort` uses, classified family-level or specific; the four
+collation terms above; citation and reference integrity; and `./paper/build.sh`, reading the length
+off the **anonymous** PDF.
