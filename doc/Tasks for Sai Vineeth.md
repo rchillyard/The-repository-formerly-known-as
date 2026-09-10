@@ -58,8 +58,8 @@ worst offenders, being written in terms of what Robin asked for:
 
 ```
 paper/          the paper itself, author block included, plus the working documents
-doc/            run requests and results; they address Yunlu by name and quote Robin's decisions
-docs/           Audit against INFO6205.md
+doc/            run requests and results; they address Yunlu by name and quote Robin's decisions,
+                and now also Audit against INFO6205.md
 logs/
 TODO.md
 .idea/

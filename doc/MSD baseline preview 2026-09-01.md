@@ -74,4 +74,4 @@ published figure.
 Separately, and before this run, `MSDStringSort`'s below-cutoff comparison was changed from
 `v.substring(d).compareTo(w.substring(d))` to an in-place character comparison — about 1.3× on this
 corpus. Had that not been fixed first, every number above would have been measuring the allocator.
-See [Audit against INFO6205.md](../docs/Audit%20against%20INFO6205.md).
+See [Audit against INFO6205.md](Audit%20against%20INFO6205.md).

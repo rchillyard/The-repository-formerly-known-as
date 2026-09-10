@@ -918,8 +918,8 @@ Robin asked for:
 
 `paper/` (the whole directory — it contains the paper itself, author block included, plus
 `Paper edits pending.md` and `Paper deletions.md`), `doc/` (the run requests and results, which address
-Yunlu by name and quote Robin's decisions), `docs/Audit against INFO6205.md`, `logs/`, `TODO.md`,
-`.idea/`, `dependency-reduced-pom.xml`.
+Yunlu by name and quote Robin's decisions, and `Audit against INFO6205.md`, moved there on 2026-09-10
+when the near-empty `docs/` was retired), `logs/`, `TODO.md`, `.idea/`, `dependency-reduced-pom.xml`.
 
 What remains after those exclusions — `src/` and `pom.xml` — is the code the paper is actually about,
 and is clean apart from the package name.
