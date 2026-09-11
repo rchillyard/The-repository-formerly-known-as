@@ -1,13 +1,13 @@
 This is BibTeX, Version 0.99d (TeX Live 2020)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
-The top-level auxiliary file: HuskySort.aux
+The top-level auxiliary file: RadixHuskySort.aux
 The style file: siamplain.bst
 Database file #1: sample-base.bib
 Warning--empty publisher in Timsort
 Warning--empty publisher in Dual-pivot
 You've used 20 entries,
             2244 wiz_defined-function locations,
-            682 strings with 8126 characters,
+            683 strings with 8145 characters,
 and the built_in function-call counts, 7167 in all, are:
 = -- 623
 > -- 270

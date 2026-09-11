@@ -288,7 +288,7 @@ for the benchmark numbers this backlog refers to).
 ## Paper resubmission (2026-07-24 onward)
 
 The radix-sort backlog above (items 1-8) was groundwork for an actual SIAM ACDA21 resubmission.
-The paper source is now in this repo at [paper/HuskySort.tex](paper/HuskySort.tex) (moved from
+The paper source is now in this repo at [paper/RadixHuskySort.tex](paper/RadixHuskySort.tex) (moved from
 Robin's OneDrive so editing happens under git), with the four verbatim reviews plus PC decision
 archived at [paper/SIAM_ACDA21_Reviews.md](paper/SIAM_ACDA21_Reviews.md). Full phased plan
 (reviewer-to-content mapping, sequencing) is tracked as session tasks; see the plan file

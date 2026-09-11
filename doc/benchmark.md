@@ -1,7 +1,7 @@
 # Cross-machine crossover-N benchmark (for coauthors)
 
 This is a self-contained recipe for reproducing the crossover-N sweep behind the paper's
-Use-Case Guidance figure (`paper/HuskySort.tex`, `fig:usecase`) on a different machine, so we
+Use-Case Guidance figure (`paper/RadixHuskySort.tex`, `fig:usecase`) on a different machine, so we
 have more than one machine's timings to compare. For general JMH usage in this repo (building
 other benchmark classes, overriding parameters, etc.) see
 [JMH Benchmarks.md](JMH%20Benchmarks.md) instead — this doc is just the one specific command.

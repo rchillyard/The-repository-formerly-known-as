@@ -1,6 +1,6 @@
 # Paper deletions
 
-Material removed from `HuskySort.tex`, kept here so that it can be consulted or restored without
+Material removed from `RadixHuskySort.tex`, kept here so that it can be consulted or restored without
 digging through git. Each entry says what it was, why it went, and what replaced it.
 
 **Three things were removed on 2026-09-07**, all to get within ACDA27's 12-page limit: Tables `HSComp`
