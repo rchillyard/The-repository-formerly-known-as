@@ -764,13 +764,14 @@ The total time to sort the array is made up of these three time-consuming steps 
 \begin{steps}
  \item{} $T_1$ is the time to encode the elements:
 \[T_1 = k_1 N\]
-\item{}  $T_2$ is the (average) time to husky-sort the array (including swapping the element array itself):
+\item{}  $T_2$ is the (average) time for step 2, sorting the husky code array while permuting the
+element array alongside it, with a comparison sort:
 \[T_2 = 2 k_2 N \ln N\]
 \item{}  $T_3$  is the time to Timsort the element array (only required if $p>0$):
  \[T_3 = k_3 (N + p X)\]
 \end{steps}
 Provided that the total time $T = T_1 + T_2 + T_3$ is less than the time required to use Timsort on the original element array,
-the method has a win.
+the method wins.
 This same three-step decomposition ($T_1$/$T_2$/$T_3$, i.e., encode/sort/cleanup) is revisited in \S~\ref{sec:analysis}
 in more concrete terms —
 counting array accesses directly rather than folding everything into abstract system-dependent constants $k_1, k_2, k_3$ —
