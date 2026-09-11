@@ -373,7 +373,7 @@
     and, by way of example, a large number of municipal records ordered by a composite key ---
     RadixHuskySort is faster in every case, by 3.6x to 6.8x at the largest size measured for each.
     The margin is widest where the ordering is expensive to evaluate and the encoding is perfect;
-    and where the encoding is imperfect we measure directly what the resulting cleanup pass costs.
+    and, where the encoding is imperfect, we measure directly what the resulting cleanup pass costs.
     One specialised competitor overtakes us: on English words a tuned MSD radix sort.
 \end{abstract}
 
@@ -443,8 +443,8 @@ subject.
 Two things it left undone define the work here.
 Its step 2 was a comparison sort, so the encoding made each comparison cheap without reducing how
 many there were.
-And the cost of the cleanup pass, though analysed in terms of the proportion of inversions the
-encoding leaves behind, was never measured: it reports no calculated value for $p_{crit}$.
+And the cost of the cleanup pass, though analysed in terms of the proportion of inversions that remain after step 2,
+was never measured: it reports no calculated value for $p_{crit}$.
 The contributions here answer both.
 RadixHuskySort, or RHSort (\S~\ref{sec:radix}), replaces step 2 with a linear-time radix sort on the
 same codes, and we add a parallel variant of it (\S~\ref{sec:parallel-radix});
@@ -518,7 +518,7 @@ we run Timsort on the array $xs$ to ensure that its elements are truly in order.
 \end{steps}
 
 Step 3 is needed only where the encoding is imperfect.
-A \textit{perfect} encoding introduces no inversions at all, so that sorting the codes has already
+A \textit{perfect} encoding leaves no inversions at all, so that sorting the codes has already
 sorted the elements and step 3 can be skipped;
 \S~\ref{sec:coding} states the condition precisely and \S~\ref{sec:pcrit} measures what an
 imperfect one costs.
@@ -564,7 +564,7 @@ each pass is a stable counting sort keyed on one $b$-bit digit of the (already-c
 reordering the index array rather than the codes or the objects themselves.
 Once all $\frac{64}{b}$ passes are complete, the index array holds the sorting permutation,
 and a single $\textbf{O}(N)$ pass builds the final object array by reading $\textit{xs[index[i]]}$ for each $i$.
-This confines all object-reference movement to one pass in total, rather than one pass per digit.
+This confines all object-reference movements to one pass in total, rather than one pass per digit.
 
 Because LSD radix sort's per-digit counting sort treats keys as unsigned,
 and husky codes are signed 64-bit values whenever the underlying domain can be negative (e.g., \textit{Integer},
@@ -592,7 +592,15 @@ a $k$-bit key simply takes $\frac{k}{b}$ passes instead of $\frac{64}{b}$, with 
 So while nothing about the discussion above depends on 64-bit words specifically,
 the RadixHuskySort generalizes to other key widths more directly than a comparison-based sort does —
 if a future encoding needed, say, 128 bits to capture more of an object's structure,
-the same radix sort would apply unchanged, merely with twice as many passes.
+the same radix sort would apply unchanged, with twice as many passes.
+Width alone does not buy perfection, though: only a bounded domain admits a perfect fixed-width code
+at all, and a coder limited by its own information rather than by its width --- pinyin, whose few
+hundred syllables leave true homonyms however many characters are encoded --- gains nothing from
+extra bits.
+Nor are those passes free, and what they buy is all-or-nothing, since step 3 is skipped only for a
+perfect encoding: the measured shares put a single pass at roughly a seventh of RHSort's running time
+against a cleanup pass of at most a sixth (\S~\ref{sec:pcrit}), so the trade pays only where one or
+two further digits would reach perfection and not at all where they would merely approach it.
 
 Radix sort applied to strings specifically has its own substantial, and older, literature,
 distinct from the general fixed-width-key radix sort described above.
@@ -731,7 +739,7 @@ And, when $x > y$ and $x.huskyCode() = y.huskyCode()$, then an inversion \emph{m
 For a successful encoding, the value of $p$, the probability of a potential inversion, should be less than some critical probability, $p_{crit}$.
 Leaving a more detailed discussion of $p_{crit}$ until later, we note that, for some domains of $X$, we can definitely assert that $p = 0$.
 This is the \textit{perfect} encoding of \S~\ref{sec:overview}, stated precisely: $p = 0$.
-In such a case, we can skip step 3 of the algorithm because, when $p = 0$, there will be no inversions remaining after quick-sorting according to the huskyCodes.
+In such a case, we can skip step 3 of the algorithm because, when $p = 0$, there will be no inversions remaining after quick-sorting according to the husky codes.
 An example of such a domain is date-time values with a resolution of one nano-second over a period of 128 years.
 For strings of English case-independent letters (no punctuation or numbers), i.e., 5-bit ASCII, words of 12 (or fewer) characters in length can also be coded uniquely.
 For case-dependent strings (6-bit ASCII), we can encode perfectly if the lengths are all 10 characters or less.
