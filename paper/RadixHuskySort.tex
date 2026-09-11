@@ -416,7 +416,8 @@ touches more memory — and likely non-cached memory — than a comparison betwe
 That observation is orthogonal to, not a substitute for, the external-memory and cache-oblivious literature,
 which is chiefly concerned with data too large to fit in memory (or in cache) at all,
 rather than with the comparison cost of individual elements that do fit.
-Separately, radix sort's independent per-digit counting-sort passes are well suited to parallelization across CPU threads,
+
+Radix sort's independent per-digit counting-sort passes are well suited to parallelization across CPU threads,
 a property that is already established for radix sort generally;
 \S~\ref{sec:parallel-radix} describes and benchmarks a parallel variant of RadixHuskySort (\S~\ref{sec:radix}).
 We do not make an equivalent claim for QuickHuskySort's own comparison-based steps:
