@@ -596,7 +596,8 @@ the same radix sort would apply unchanged, with twice as many passes.
 
 Width alone does not buy perfection, though:
 only a bounded domain admits a perfect fixed-width code at all,
-and a coder limited by its own information rather than by its width --- for example pinyin --- gains nothing from extra bits.
+and a coder limited by its own information rather than by its width --- pinyin, whose few hundred
+syllables leave true homonyms at any width --- gains nothing from extra bits.
 Nor are those passes free, and what they buy is all-or-nothing, since step 3 is skipped only for a
 perfect encoding: the measured shares put a single pass at roughly a seventh of RHSort's running time
 against a cleanup pass of at most a sixth (\S~\ref{sec:pcrit}), so the trade pays only where one or
