@@ -2525,6 +2525,12 @@ renaming them is not.
 
 Four further conventions that are easy to undo by accident:
 
+- **Third person for the 2020 work, never "we".** The paper says "the husky code was introduced by
+  Hillyard et al." and "the rationale is set out in full by Hillyard et al." Third-person
+  self-citation is standard under lightweight double-blind and stays deniable; "in the original
+  algorithm, we used..." claims authorship of a named bibliography entry and de-anonymises the
+  submission. This is easy to write by accident, because it is the natural way to describe one's own
+  earlier work.
 - **What the appendix is for.** ACDA27 does not print it, but the committee reads it at its
   discretion. So appendix material is *discretionary* for a reviewer and *invisible* to the reader of
   the published proceedings. The test for whether something belongs in the body is therefore not

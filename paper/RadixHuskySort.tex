@@ -510,8 +510,8 @@ assuming the dataset is presented as an array $xs$ of type $X$:
     \item Create a $long[]$ array (\emph{longs}) of the same size as $xs$;
     \item for each element $x$ of $xs$, set the corresponding element of \emph{longs} to $x.huskyCode()$.
     \end{enumerate}
-\item {}Sort array \emph{longs} using quicksort --- in practice dual-pivot, with an insertion-sort
-cutoff and the heapsort fallback of \S~\ref{sec:background} ---
+\item {}Sort the \emph{longs} array --- with dual-pivot quicksort in the original algorithm, with an
+insertion-sort cutoff and the heapsort fallback of \S~\ref{sec:background} ---
 in such a way that when elements $i, j$ of \emph{longs} are exchanged, then elements $i, j$ of $xs$ are also exchanged;
 \item {}Finally, when step 2 is finished and, \emph{if necessary},
 we run Timsort on the array $xs$ to ensure that its elements are truly in order.
