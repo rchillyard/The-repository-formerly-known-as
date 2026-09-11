@@ -513,9 +513,15 @@ assuming the dataset is presented as an array $xs$ of type $X$:
 \item {}Sort array \emph{longs} using quicksort --- in practice dual-pivot, with an insertion-sort
 cutoff and the heapsort fallback of \S~\ref{sec:background} ---
 in such a way that when elements $i, j$ of \emph{longs} are exchanged, then elements $i, j$ of $xs$ are also exchanged;
-\item {}Finally, when quicksort is finished and, if necessary,
+\item {}Finally, when quicksort is finished and, \emph{if necessary},
 we run Timsort on the array $xs$ to ensure that its elements are truly in order.
 \end{steps}
+
+Step 3 is needed only where the encoding is imperfect.
+A \textit{perfect} encoding introduces no inversions at all, so that sorting the codes has already
+sorted the elements and step 3 can be skipped;
+\S~\ref{sec:coding} states the condition precisely and \S~\ref{sec:pcrit} measures what an
+imperfect one costs.
 
 For a worked example of a husky coding, see Algorithm ~\ref{alg:permitcoder}
 
@@ -558,7 +564,7 @@ each pass is a stable counting sort keyed on one $b$-bit digit of the (already-c
 reordering the index array rather than the codes or the objects themselves.
 Once all $\frac{64}{b}$ passes are complete, the index array holds the sorting permutation,
 and a single $\textbf{O}(N)$ pass builds the final object array by reading $\textit{xs[index[i]]}$ for each $i$.
-This confines all object-reference movement to one pass total, rather than one pass per digit.
+This confines all object-reference movement to one pass in total, rather than one pass per digit.
 
 Because LSD radix sort's per-digit counting sort treats keys as unsigned,
 and husky codes are signed 64-bit values whenever the underlying domain can be negative (e.g., \textit{Integer},
@@ -700,6 +706,7 @@ shows it.
 \end{algorithm2e}
 
 \subsection{Discussion of Husky Encoding.}
+\label{sec:coding}
 
 Step 1b requires the definition of a 64-bit hash function (huskyCode) whose properties are as follows:
 (refer to Algorithm ~\ref{alg:the_alg2})
@@ -723,7 +730,7 @@ And, when $x > y$ and $x.huskyCode() = y.huskyCode()$, then an inversion \emph{m
 
 For a successful encoding, the value of $p$, the probability of a potential inversion, should be less than some critical probability, $p_{crit}$.
 Leaving a more detailed discussion of $p_{crit}$ until later, we note that, for some domains of $X$, we can definitely assert that $p = 0$.
-We refer to this as a “perfect” encoding.
+This is the \textit{perfect} encoding of \S~\ref{sec:overview}, stated precisely: $p = 0$.
 In such a case, we can skip step 3 of the algorithm because, when $p = 0$, there will be no inversions remaining after quick-sorting according to the huskyCodes.
 An example of such a domain is date-time values with a resolution of one nano-second over a period of 128 years.
 For strings of English case-independent letters (no punctuation or numbers), i.e., 5-bit ASCII, words of 12 (or fewer) characters in length can also be coded uniquely.
