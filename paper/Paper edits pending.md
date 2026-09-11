@@ -2525,6 +2525,11 @@ renaming them is not.
 
 Four further conventions that are easy to undo by accident:
 
+- **What the appendix is for.** ACDA27 does not print it, but the committee reads it at its
+  discretion. So appendix material is *discretionary* for a reviewer and *invisible* to the reader of
+  the published proceedings. The test for whether something belongs in the body is therefore not
+  "will a reviewer see it" but "would a proceedings reader be lost without it" --- which argues for
+  keeping short justifications in the body even where the full treatment is in the appendix.
 - **Counts versus estimates.** Where the paper says a figure is estimated rather than measured --- the
   0.6 cache factor of A.1 above all --- that hedge is load-bearing and is the reason the appendix is
   publishable as it stands. Do not tidy it away.
