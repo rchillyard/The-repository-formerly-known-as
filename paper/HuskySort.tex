@@ -440,20 +440,18 @@ That work established the basic result --- encoding pays for itself for types wh
 to evaluate, among them \emph{String}, \emph{LocalDateTime}, \emph{BigInteger}, \emph{BigDecimal} and many
 user-defined types of the same kind --- and it is the starting point of this paper rather than its
 subject.
-Two things left undone define the work here.
-It sorted the codes with a comparison sort (step 2 of \S~\ref{sec:overview}), so the
-$\textbf{O}(N \log N)$ term survived the encoding intact --- the comparisons became cheap, but there
-were still $N \log N$ of them.
-And while it measured the cleanup pass in one respect, choosing between Timsort and insertion sort
-(\S~\ref{sec:cleanup-choice}), and analysed its cost in terms of the proportion of inversions the
-encoding leaves behind, it never measured that proportion --- of the critical value $p_{crit}$ it says
-plainly that no typical figure had been calculated (\S~\ref{sec:pcrit}).
-The contributions here are RadixHuskySort, or RHSort (\S~\ref{sec:radix}),
-which replaces that algorithm's comparison sort with a linear-time radix sort on the same codes,
-and a parallel variant of it (\S~\ref{sec:parallel-radix});
-an empirical comparison against the classic string sorts rather than a theoretical one (\S~\ref{sec:radix});
-a direct measurement of the cost of the cleanup pass (\S~\ref{sec:pcrit});
-and a case study on real rather than generated data (\S~\ref{sec:radix-results}).
+Two things it left undone define the work here.
+Its step 2 was a comparison sort, so the encoding made each comparison cheap without reducing how
+many there were.
+And the cost of the cleanup pass, though analysed in terms of the proportion of inversions the
+encoding leaves behind, was never measured: it reports no calculated value for $p_{crit}$.
+The contributions here answer both.
+RadixHuskySort, or RHSort (\S~\ref{sec:radix}), replaces step 2 with a linear-time radix sort on the
+same codes, and we add a parallel variant of it (\S~\ref{sec:parallel-radix});
+\S~\ref{sec:pcrit} measures what the cleanup pass costs.
+Alongside those, an empirical comparison against the classic string sorts rather than a theoretical
+one (\S~\ref{sec:radix}), and a case study on real rather than generated data
+(\S~\ref{sec:radix-results}).
 All results reported here were measured anew.
 
 We review existing methods of sorting in Section 2 and go through the HuskySort algorithm in Section 3.
@@ -512,9 +510,8 @@ assuming the dataset is presented as an array $xs$ of type $X$:
     \item Create a $long[]$ array (\emph{longs}) of the same size as $xs$;
     \item for each element $x$ of $xs$, set the corresponding element of \emph{longs} to $x.huskyCode()$.
     \end{enumerate}
-\item {}Sort array \emph{longs} using quicksort (in practice a dual-pivot quicksort, with an
-insertion-sort cutoff below eighteen elements and Introsort's depth-limited heapsort
-fallback~\cite{doi:10.1002})
+\item {}Sort array \emph{longs} using quicksort --- in practice dual-pivot, with an insertion-sort
+cutoff and the heapsort fallback of \S~\ref{sec:background} ---
 in such a way that when elements $i, j$ of \emph{longs} are exchanged, then elements $i, j$ of $xs$ are also exchanged;
 \item {}Finally, when quicksort is finished and, if necessary,
 we run Timsort on the array $xs$ to ensure that its elements are truly in order.
@@ -525,13 +522,11 @@ For a worked example of a husky coding, see Algorithm ~\ref{alg:permitcoder}
 \subsection{RadixHuskySort.}
 \label{sec:radix}
 
-Step 2 sorts the husky codes with that quicksort, an $\textbf{O}(N \log N)$ algorithm,
-but the codes themselves are fixed-width 64-bit values,
-and radix sort can sort $k$-bit keys in $\textbf{O}(N \cdot \frac{k}{b})$ time using $b$-bit digits —
+Step 2's quicksort is $\textbf{O}(N \log N)$, but the codes it sorts are fixed-width 64-bit values,
+and radix sort can sort $k$-bit keys in $\textbf{O}(N \cdot \frac{k}{b})$ time using $b$-bit digits ---
 linear in $N$ for any fixed digit width $b$.
-Given that HuskySort's entire premise is to move work from the linearithmic phase to the linear phase,
-this raises a natural question we had not previously addressed:
-could step 2 itself be made linear? This section describes RadixHuskySort, which we built to answer it (Algorithm ~\ref{alg:the_alg5}).
+So step 2 can be linear too.
+This section describes RadixHuskySort, which makes it so (Algorithm ~\ref{alg:the_alg5}).
 
 Radix sort's linear-time advantage rests on a further assumption beyond fixed key width:
 that a digit can be turned into an array index in $\textbf{O}(1)$ time,
