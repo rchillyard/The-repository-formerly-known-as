@@ -806,8 +806,8 @@ The percentages are the less stable figures, being ratios of two quantities that
 The shape is a threshold rather than a trend --- a rise by a factor of roughly three to four between the first two sizes,
 then a levelling off --- and it falls where the records stop fitting in cache.
 That last reading is inference, but the magnitudes support it:
-the system sort compares these same records some 3.5 million times in 151\,ms, or 43\,ns each,
-so the cleanup pass at 74\,ns costs nearly twice as much per comparison using the same comparator.
+the system sort compares these same records 3.25 million times in 151\,ms, or 46\,ns each,
+so the cleanup pass at 74\,ns costs about 1.6 times as much per comparison using the same comparator.
 Step 2 permutes references without moving the records,
 so a scan sequential in the array is close to random in the heap.
 
