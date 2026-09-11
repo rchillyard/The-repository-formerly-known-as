@@ -13,14 +13,16 @@ Robin found and downloaded the complete package to `paper/siamproceedingsmacros_
 `siamproceedings.sty`, `siamplain.bst`, `example_doublecolumn.tex` and `.pdf`, the single-column
 equivalents, and the example figures and bibliography.
 
-The conversion has since been trialled and **it works** — zero errors, zero undefined references, using
-SIAM's own preamble and `siamplain.bst`. The working trial is `doc/HuskySort-siam-trial.tex`, and the
-nine changes it took are recorded as §0l of `paper/Paper edits pending.md`.
+**This is done.** The paper itself now uses the class: `paper/RadixHuskySort.tex` is
+`siamproceedings` throughout, with `siamproceedings.sty` and `siamplain.bst` committed beside it, and
+`paper/build.sh` produces both the identified and the blind PDF from that one source. The changes it
+took are recorded as §0l and §0c of `paper/Paper edits pending.md`. The scripted trial that proved
+the conversion, and the script itself, have been removed now that the real source does the job.
 
-**The one hard finding from that trial:** the paper is **16.5 pages of body against a limit of 12**.
-SIAM's template forbids changing the margins, page size, font or the 10pt size, so there is no denser
-configuration to reach for. Four and a half pages have to come out of the main part. That is a decision
-about the paper, and Robin has it.
+The length problem that trial exposed — 16.5 pages of body against a limit of 12 — is resolved too:
+the body is **11.79 pages**. It came down by moving material to the appendix, which SIAM permits and
+does not print, by reframing the paper around RHSort rather than re-explaining HuskySort, and by one
+float-placement parameter that was worth 0.61 pages on its own.
 
 Two smaller notes for whoever does the switch:
 

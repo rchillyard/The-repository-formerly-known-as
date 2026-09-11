@@ -1132,7 +1132,9 @@ So `sample-base.bib` ships with the submission. Another reason yesterday's recon
 Robin downloaded `siamproceedings.sty` into `paper/`, along with `ltexpprt.all`, the superseded
 package, since deleted. I converted the paper in the scratchpad, leaving `paper/HuskySort.tex`
 untouched. The working trial is kept as
-`doc/HuskySort-siam-trial.tex` — it is **not** the paper, it is a proof that the conversion works and a
+`doc/HuskySort-siam-trial.tex` (removed 2026-09-11 once the class switch of §0c made it redundant;
+recoverable from git history if ever wanted) — it is **not** the paper, it is a proof that the
+conversion works and a
 record of what it took.
 
 ## It builds: zero errors, zero undefined references
