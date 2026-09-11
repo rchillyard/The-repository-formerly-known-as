@@ -101,12 +101,6 @@
   pivot quicksort}, in Algorithms --- ESA 2012, Springer Berlin Heidelberg,
   2012, \url{https://doi.org/10.1007/978-3-642-33090-2_71}.
 
-\bibitem{6115063}
-{\sc W.~{Xiang}}, {\em Analysis of the time complexity of quick sort
-  algorithm}, in 2011 International Conference on Information Management,
-  Innovation Management and Industrial Engineering, vol.~1, 2011, pp.~408--410,
-  \url{https://doi.org/10.1109/ICIII.2011.104}.
-
 \bibitem{Dual-pivot}
 {\sc V.~Yaroslavskiy}, {\em Dual Pivot Quicksort}, 2009,
   \url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}.

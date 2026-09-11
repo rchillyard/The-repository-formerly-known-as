@@ -593,10 +593,10 @@ So while nothing about the discussion above depends on 64-bit words specifically
 the RadixHuskySort generalizes to other key widths more directly than a comparison-based sort does —
 if a future encoding needed, say, 128 bits to capture more of an object's structure,
 the same radix sort would apply unchanged, with twice as many passes.
-Width alone does not buy perfection, though: only a bounded domain admits a perfect fixed-width code
-at all, and a coder limited by its own information rather than by its width --- pinyin, whose few
-hundred syllables leave true homonyms however many characters are encoded --- gains nothing from
-extra bits.
+
+Width alone does not buy perfection, though:
+only a bounded domain admits a perfect fixed-width code at all,
+and a coder limited by its own information rather than by its width --- for example pinyin --- gains nothing from extra bits.
 Nor are those passes free, and what they buy is all-or-nothing, since step 3 is skipped only for a
 perfect encoding: the measured shares put a single pass at roughly a seventh of RHSort's running time
 against a cleanup pass of at most a sixth (\S~\ref{sec:pcrit}), so the trade pays only where one or
@@ -716,25 +716,20 @@ shows it.
 \subsection{Discussion of Husky Encoding.}
 \label{sec:coding}
 
-Step 1b requires the definition of a 64-bit hash function (huskyCode) whose properties are as follows:
-(refer to Algorithm ~\ref{alg:the_alg2})
-\begin{itemize}
-                        \item {}If $x = y$, then $x.huskyCode() = y.huskyCode()$;
-                        \item {}If $x > y$, then: 
-                            \begin{itemize}
-                            \item{} either $x.huskyCode() <= y.huskyCode()$ (with probability $p$)
-                            \item{} or $x.huskyCode() > y.huskyCode()$ (with probability $1-p$);
-                            
-                            \end{itemize}
-                        
-                        \end{itemize}
+Step 1b requires the definition of a 64-bit husky code (refer to Algorithm ~\ref{alg:the_alg2}).
+Its defining property is monotonicity: if $x$ and $y$ compare equal then
+$x.huskyCode() = y.huskyCode()$, and if $x > y$ then $x.huskyCode() \geq y.huskyCode()$ --- the
+latter holding with probability $1 - p$ and failing with probability $p$.
+Note that the relation that matters is \textit{compareTo}, not \textit{equals}: the two differ for
+\textit{BigDecimal}, whose coder is \textit{longValue}, and it is the ordering the sort must respect.
 
-
-We interpret this rule as follows:
-if $x$ and $y$ are the same ($x.equals(y)$ in Java), their huskyCode should be the same.
-If $x > y$, we normally expect that $x.huskyCode() > y.huskyCode()$, i.e., the sort on the husky-coded longs will not invert $x$ and $y$.
-However, when $x > y$ while $x.huskyCode() < y.huskyCode()$, then an inversion will be introduced.
-And, when $x > y$ and $x.huskyCode() = y.huskyCode()$, then an inversion \emph{may} be introduced because quick-sort is not stable.~\cite{6115063}
+The two ways the second condition can fail differ.
+If $x > y$ but $x.huskyCode() < y.huskyCode()$, the codes are positively wrong and step 2 will invert
+the pair.
+If $x > y$ but $x.huskyCode() = y.huskyCode()$, the codes say nothing about the pair at all, so step 2
+leaves it in whatever order it arrived in --- input order, RHSort's counting-sort passes being stable,
+and an arbitrary order under QuickHuskySort's quicksort --- and it may be left inverted as a result.
+Only step 3 can settle either case.
 
 For a successful encoding, the value of $p$, the probability of a potential inversion, should be less than some critical probability, $p_{crit}$.
 Leaving a more detailed discussion of $p_{crit}$ until later, we note that, for some domains of $X$, we can definitely assert that $p = 0$.
@@ -1427,7 +1422,7 @@ Again, while we should not ignore it completely, it is linear.
 The number of array access for the comparisons/swaps to fix these will be $(2 + j + 4) p N$,
 where $j$ is the number of fields to be compared to get a result ($j$ is usually smaller than $k$).
 
-So, the total number of array accesses ($A$) for Husky-sorting an array of length $N$ is:
+So, the total number of array accesses ($A$) for husky-sorting an array of length $N$ is:
 \[A = (6.4 ln N + (2 + j + 4) p + k + 1) N\]
    
 Timsort would be hard to analyze in the general case and so we instead analyze merge sort,
@@ -1793,7 +1788,7 @@ Table ~\ref{tab:AdversarialPrefix} reports timings at $N = 1{,}000{,}000$.
 
 This is a genuinely different failure mode, and a less flattering one.
 Once the shared prefix reaches the coder's nine-character window, every element's husky code becomes bit-for-bit identical —
-the encoding provides zero disambiguation — and \emph{every} Husky-based approach,
+the encoding provides zero disambiguation — and \emph{every} husky-based approach,
 radix included, loses its advantage completely,
 finishing level with plain System sort or a little behind it rather than ahead.
 The mechanism has nothing to do with which algorithm sorts the codes in step 2:
@@ -1802,7 +1797,7 @@ the entire ordering burden falls on the mandatory cleanup pass (step 3) doing re
 comparisons that are themselves more expensive than usual,
 since they must scan past the shared prefix before finding a difference —
 and whichever algorithm ran first in step 2 did genuinely useless work before that.
-Radix does not recover any advantage here, and is very slightly the slowest of the three Husky-based options in this regime,
+Radix does not recover any advantage here, and is very slightly the slowest of the three husky-based options in this regime,
 since its fixed per-pass cost (a strength above) becomes pure overhead once there is no information left to sort.
 
 Taken together, these two experiments answer the question posed above with two distinct results.
@@ -1822,7 +1817,7 @@ shares exactly the same failure mode as the naive quicksort baseline above, for 
 Its equal-partition recursion advances one level per shared prefix character;
 on a long enough run of strings sharing a common prefix — the same kind of adversarial construction as above —
 a straightforward recursive implementation consumes one stack frame per shared character and eventually overflows the stack.
-Unlike the failure discussed above, this is a property of the comparison algorithm itself and unrelated to Husky encoding.
+Unlike the failure discussed above, this is a property of the comparison algorithm itself and unrelated to husky encoding.
 We fixed it in our own implementation by converting that one recursive call into a loop,
 restoring constant stack depth regardless of prefix length.
 
