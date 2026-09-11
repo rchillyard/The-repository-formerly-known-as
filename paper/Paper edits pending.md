@@ -2514,7 +2514,7 @@ renaming them is not.
 | **pinyin order** | the collation a directory of people actually wants | |
 | **husky code** | the 64-bit order-preserving proxy key | "hash code", which is what the 2020 paper had to disclaim: the name Hash Sort was taken |
 | **cleanup pass** | step 3, repairing whatever inversions the encoding left | "second pass", which collides with step 2 |
-| **perfect** (of an encoding) | order-preserving with no ties, so the cleanup pass can be skipped entirely | |
+| **perfect** (of an encoding) | order-preserving with no ties, so the cleanup pass can be skipped entirely; noun form **perfection**, negative **imperfect** | "exact", "exactness", "inexact". The paper defines *perfect* at \S~\ref{sec:coding} and the code's own flag is `perfect()`, so "exact" was a synonym with no warrant. Twelve sites corrected 2026-09-10 |
 | **machines A, B and C** | the Intel, the M1 and the Graviton3; C is the machine of record and the only source of quoted figures | naming them by date or by owner, which is how the paper used to distinguish them and which read as a resubmission |
 
 Two further conventions that are easy to undo by accident:

@@ -352,14 +352,14 @@
 \maketitle
 
 \begin{abstract}
-    Most sorting algorithms are judged by the comparisons or exchanges they perform.
-    We argue the better yardstick is the total number of array accesses,
-    which for a divide-and-conquer sort falls into a linear phase and a linearithmic one:
-    moving work out of the second and into the first reduces the total,
-    and where comparison is itself expensive it reduces running time as well.
-    The mechanism is a 64-bit code, order-preserving as far as possible,
-    standing proxy for each element; we call it a husky code.
-    Its effect is to extract each element's sort key once rather than once per comparison.
+    A common computational model for sorting algorithms is based on the numbers of comparisons and/or exchanges they perform.
+    We argue that a better yardstick is the total number of array accesses,
+    which, for a divide-and-conquer sort, falls into a linearithmic phase and possibly a linear one:
+    moving work out of the first and into the second reduces the total.
+    This is particularly true where comparison itself is expensive likely leading to a reduction in running time as well.
+    The mechanism we present is based a 64-bit code, order-preserving as far as possible,
+    that stands as a proxy for each element; we call it a husky code.
+    Its effect is to extract each element's sort key once, or at most twice, rather than at each level of recursion.
     Earlier work sorted such codes with quicksort.
     We replace that with a linear-time radix sort, making the second phase linear too,
     and describe a parallel variant of it.
@@ -367,10 +367,9 @@
     dates, tuples, English and Chinese text,
     Chinese personal names in pinyin order (against a system sort performing that same ordering),
     and two hundred thousand municipal records ordered by a composite key ---
-    RadixHuskySort is faster in every case, by 3.6 to 6.8x at the largest size measured for each.
-    The margin is widest where the ordering is expensive to evaluate and the encoding is exact;
-    where the encoding is inexact we measure directly, for the first time,
-    what the resulting cleanup pass costs.
+    RadixHuskySort is faster in every case, by 3.6x to 6.8x at the largest size measured for each.
+    The margin is widest where the ordering is expensive to evaluate and the encoding is perfect;
+    and where the encoding is imperfect we measure directly what the resulting cleanup pass costs.
     One specialised competitor overtakes us: on English words a tuned MSD radix sort.
 \end{abstract}
 
@@ -436,7 +435,7 @@ user-defined types of the same kind --- and it is the starting point of this pap
 subject.
 Two things it left undone define the work here.
 Its second phase was a comparison sort, so the $\textbf{O}(N \log N)$ term survived the encoding intact;
-and the cost of an inexact encoding, which every string corpus incurs, was argued rather than measured.
+and the cost of an imperfect encoding, which every string corpus incurs, was argued rather than measured.
 The contributions here are RadixHuskySort, or RHSort (\S~\ref{sec:radix}),
 which replaces that algorithm's comparison sort with a linear-time radix sort on the same codes,
 and a parallel variant of it (\S~\ref{sec:parallel-radix});
@@ -599,7 +598,7 @@ They span from 3.4x down to 1.6x, nearly the whole of its range below dates,
 where every other row falls between 2.1x and 3.6x.
 Three factors account for the spread, and they compose.
 The advantage grows with the cost of the type's native comparison, since that is what the encoding replaces;
-it grows with the exactness of the encoding, since an imperfect one is paid for by the cleanup pass;
+it grows with the perfection of the encoding, since an imperfect one is paid for by the cleanup pass;
 and it shrinks in the presence of algorithms specialised to the type.
 Dates are the favourable extreme on all three counts --- a provably perfect coding, no cleanup pass at all,
 and no specialised competitor --- and yield the largest margin in the table at 5.9x.
@@ -763,7 +762,7 @@ Two benchmarks over the same two hundred thousand municipal records (\S~\ref{sec
 differ only in which coder they are given.
 Both compute identical codes; one coder declares itself perfect, so the sort skips step 3,
 while the other leaves that declaration at its default and the pass runs.
-The encoding for these records is exact, so the pass that runs has provably nothing to correct.
+The encoding for these records is perfect, so the pass that runs has provably nothing to correct.
 
 Its cost is predictable in advance.
 Timsort over a fully ascending array detects a single run and stops,
@@ -807,10 +806,10 @@ A 64-bit word holds enough of most keys to place elements close to their final o
 longs costs far less than following two object references and running a type-specific
 \textit{compareTo} --- so the encoding trades one $\textbf{O}(N)$ pass for cheaper comparisons throughout
 the $\textbf{O}(N \log N)$ one.
-The code need not be exact, only good: whatever inversions it leaves are the cleanup pass's problem, and
+The code need not be perfect, only good: whatever inversions it leaves are the cleanup pass's problem, and
 \S~\ref{sec:pcrit} measures what they cost.
 
-Exactness has a precise limit for strings.
+Perfection has a precise limit for strings.
 Packing four 16-bit characters fills the word (Table ~\ref{tab:EncodingConstants} gives the constants for
 both string codings), but the packed result is then shifted right by one bit, because any string whose
 first character is \texttt{0x8000} or above --- common among CJK characters --- would otherwise set the
@@ -819,9 +818,9 @@ The shift costs the least significant bit of a true fourth character; for three 
 bit is padding, which is why the Unicode coding is declared \textit{perfect} up to three characters and
 not four.
 
-Whether a coding was in fact exact is known before the cleanup pass runs: a constant-time lookup for
-non-sequence types, and for strings a scan that stops at the first string too long to encode exactly.
-Where it was exact, no inversions remain and the pass is skipped altogether.
+Whether a coding was in fact perfect is known before the cleanup pass runs: a constant-time lookup for
+non-sequence types, and for strings a scan that stops at the first string too long to encode perfectly.
+Where it was perfect, no inversions remain and the pass is skipped altogether.
 
 
 \begin{algorithm2e}
@@ -1140,7 +1139,7 @@ because both QuickHuskySort and RadixHuskySort must pay the same cleanup pass fo
 that two or three characters of recurring syllables leave badly imperfect.
 Dates show the largest margin (5.9x) because that coding is provably perfect and never needs a cleanup pass at all,
 letting RHSort's linear-time advantage show through with nothing else in the way.
-The two lie at opposite ends of the same axis: what separates them is not the data type but the exactness of the encoding.
+The two lie at opposite ends of the same axis: what separates them is not the data type but the perfection of the encoding.
 
 The building permits row is the only one in that table not measured on data we generated:
 198,900 real municipal records ordered by a composite key of three fields (\S~\ref{sec:data-source}).
@@ -1304,7 +1303,7 @@ here separating one group of numeric types from another.
 It is faster than Timsort for arrays which are not partially ordered, above a few hundred elements;
 below that, Timsort's own tuned handling of small arrays wins instead.
 It is especially fast for types whose ordering is composite or expensive to evaluate
-and whose keys encode exactly, where the encoding replaces the whole comparison and no cleanup pass is needed.
+and whose keys encode perfectly, where the encoding replaces the whole comparison and no cleanup pass is needed.
 Strings are not reliably that case:
 they are the one domain with a mature specialised literature of its own (\S~\ref{sec:radix}),
 and they are also the most variable, spanning nearly the whole range of our results ---
@@ -1608,7 +1607,7 @@ whose distribution we did not choose, and a mechanism that only worked on synthe
 worth reporting.
 
 The same records also supply the cleanup-pass measurement of \S~\ref{sec:pcrit},
-because the encoding for them is exact and can be declared so ---
+because the encoding for them is perfect and can be declared so ---
 which is what allows the pass to be switched on and off over identical codes.
 
 \subsection{Why the two Chinese corpora sit at opposite ends of the table.}
@@ -1620,7 +1619,7 @@ The difference is entirely in how the two coders spend their 64 bits.
 
 The Unicode coder gives each character sixteen bits, drawn from a range of thousands of code points,
 and a Leipzig Chinese word runs to one to four characters --- so the code often captures the whole word
-and the encoding is close to exact.
+and the encoding is close to perfect.
 The pinyin coder gives each character nine bits for its syllable and two more for its tone, but there
 are only a few hundred distinct syllables and five tones, so the entropy available per character is far
 below sixteen bits however many are allocated to it.
