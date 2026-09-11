@@ -2499,7 +2499,7 @@ content, and every further edit needs re-measuring rather than trusting 11.50 to
 
 ---
 
-# 0w. Terms of art, settled — read before any prose pass — 2026-09-10
+# 0w. Terms of art, settled — read before any prose pass — 2026-09-10, current to 09-11
 
 Robin is making a pass to humanize the text and asked to know which terms are deliberate, so as not
 to undo them. Each of these cost real effort to make consistent; rewording around them is welcome,
@@ -2510,25 +2510,41 @@ renaming them is not.
 | **RHSort** | RadixHuskySort, in table captions, column headers and figures, where the full name will not fit | `radix`, which could mean any radix sort; `rhs`; the name spelled out in a caption |
 | **RadixHuskySort** | the same algorithm, in prose | |
 | **QuickHuskySort** | the original algorithm specifically, the one the 2020 paper introduced | plain "HuskySort", which was the ambiguity the 2026-09-08 audit removed from fifteen sites |
-| **HuskySort** | the family: both variants, the shared three-step strategy, the encoding idea | either variant specifically. 24 bare uses remain and every one is family-level by intent |
+| **HuskySort** | the family: both variants, the shared three-step strategy, the encoding idea. Also the 2020 paper, `paper/HuskySort-original-2020.tex`, and Figure 1's `HuskySortFlow.png`, which depicts the family's strategy | either variant specifically. 20 bare uses remain, every one family-level by intent |
 | **ParallelRadixHuskySort** | the parallel variant | |
 | **code-point order** | sorting Chinese by Unicode code point | "natural order", "natural Unicode order" --- the paper had all three names for this until 0t |
 | **pinyin order** | the collation a directory of people actually wants | |
 | **husky code** | the 64-bit order-preserving proxy key | "hash code", which is what the 2020 paper had to disclaim: the name Hash Sort was taken |
 | **cleanup pass** | step 3, repairing whatever inversions the encoding left | "second pass", which collides with step 2 |
-| **perfect** (of an encoding) | order-preserving with no ties, so the cleanup pass can be skipped entirely; noun form **perfection**, negative **imperfect** | "exact", "exactness", "inexact". The paper defines *perfect* at \S~\ref{sec:coding} and the code's own flag is `perfect()`, so "exact" was a synonym with no warrant. Twelve sites corrected 2026-09-10 |
+| **perfect** (of an encoding) | order-preserving with no ties, so the cleanup pass can be skipped entirely; noun form **perfection**, negative **imperfect** | "exact", "exactness", "inexact". The paper defines *perfect* under "Discussion of Husky Encoding" and the code's own flag is `perfect()`, so "exact" was a synonym with no warrant. Twelve sites corrected 2026-09-10 |
+| **dual-pivot quicksort** | step 2's partitioning: two pivots, three-way scan, three recursive calls --- Yaroslavskiy. Say so wherever the analysis depends on it, which A.1 does | "Introsort" used as though it named the partitioning. Introsort is the right name for the *hybrid strategy*, the depth-limited heapsort fallback and the small-subarray cutoff, and stays as shorthand for step 2's sorter --- but it implies nothing about pivots, and A.1 draws on Wild and Nebel's dual-pivot analysis |
+| **`RadixHuskySort.tex`** | the paper, and its build products, renamed 2026-09-11 | `HuskySort.tex`. That name now belongs to the 2020 work alone |
 | **machines A, B and C** | the Intel, the M1 and the Graviton3; C is the machine of record and the only source of quoted figures | naming them by date or by owner, which is how the paper used to distinguish them and which read as a resubmission |
 
-Two further conventions that are easy to undo by accident:
+Four further conventions that are easy to undo by accident:
 
 - **Counts versus estimates.** Where the paper says a figure is estimated rather than measured --- the
   0.6 cache factor of A.1 above all --- that hedge is load-bearing and is the reason the appendix is
   publishable as it stands. Do not tidy it away.
-- **`\ifanonymous` guards.** The author block, the acknowledgments and the repository URL are each
-  wrapped in one. Editing inside a guard is fine; unwrapping one puts identifying material into the
-  review PDF.
+- **`\ifanonymous` guards.** Three of them, and each wraps something that identifies us: the author
+  block, the repository URL, and the acknowledgments, which name three people. Editing inside a guard
+  is fine; unwrapping one puts that material into the review PDF.
+- **Citations carry a tie, `~\cite{...}`.** 21 of the 22 do; the odd one begins its own line. SIAM's
+  own example spaces every citation, and the tie additionally stops one being orphaned at a line
+  break. A rewrap is what would silently drop these.
+- **`\log` and `\ln`, never bare `log` or `ln` in math.** Bare ones set as juxtaposed italic
+  variables rather than as upright operators. Nine were fixed on 2026-09-11; there are none left.
 
 After any prose pass, the checks worth re-running are: every table caption and column header for
 ambiguous algorithm names; all bare `HuskySort` uses, classified family-level or specific; the four
 collation terms above; citation and reference integrity; and `./paper/build.sh`, reading the length
 off the **anonymous** PDF.
+
+One audit is deliberately being held until the pass is finished, because the pass can move its
+subject matter: **every numeral against its source.** Table figures against the JMH JSON, multipliers
+against the tables they derive from, counts like "three lines of work" or "eleven rows" against what
+is actually listed, and corpus sizes against the data-source section. The defects that prompted it
+all had one shape --- an edit landed and the number beside it did not follow: "two well-known lines of
+work" after a third was added, the worked example still quoting pre-PR64 timings, machine B's cache
+row taken from the wrong `sysctl`, and the 16.5-page figure left in Sai Vineeth's task list for days
+after it became false.
