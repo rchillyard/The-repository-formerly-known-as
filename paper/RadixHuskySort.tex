@@ -727,20 +727,21 @@ Note that the relation that matters is \textit{compareTo}, not \textit{equals}: 
 The two ways the second condition can fail differ.
 If $x > y$ but $x.huskyCode() < y.huskyCode()$, the codes are positively wrong and step 2 will invert
 the pair.
-If $x > y$ but $x.huskyCode() = y.huskyCode()$, the codes say nothing about the pair at all, so step 2
-leaves it in whatever order it arrived in --- input order, RHSort's counting-sort passes being stable,
-and an arbitrary order under QuickHuskySort's quicksort --- and it may be left inverted as a result.
+If $x > y$ but $x.huskyCode() = y.huskyCode()$, the codes say nothing about the pair at all, so
+whatever order step 2 leaves it in is arbitrary with respect to the true one, and it may be inverted.
 Only step 3 can settle either case.
 
 For a successful encoding, the value of $p$, the probability of a potential inversion, should be less than some critical probability, $p_{crit}$.
-Leaving a more detailed discussion of $p_{crit}$ until later, we note that, for some domains of $X$, we can definitely assert that $p = 0$.
-This is the \textit{perfect} encoding of \S~\ref{sec:overview}, stated precisely: $p = 0$.
-In such a case, we can skip step 3 of the algorithm because, when $p = 0$, there will be no inversions remaining after quick-sorting according to the husky codes.
+Leaving a more detailed discussion of $p_{crit}$ until later, we note that, for some domains of $X$, we
+can definitely assert that $p = 0$ --- which is the \textit{perfect} encoding of \S~\ref{sec:overview},
+stated precisely.
+In such a case we can skip step 3, because with $p = 0$ no inversions remain after sorting the husky
+codes.
 An example of such a domain is date-time values with a resolution of one nano-second over a period of 128 years.
 For strings of English case-independent letters (no punctuation or numbers), i.e., 5-bit ASCII, words of 12 (or fewer) characters in length can also be coded uniquely.
 For case-dependent strings (6-bit ASCII), we can encode perfectly if the lengths are all 10 characters or less.
 In step 3, it might be acceptable to use insertion sort instead of Timsort.
-In any event, assuming that the huskyCode is as accurate as required, then there will be very few inversions (elements out of place) remaining after the quicksort phase.
+In any event, assuming that the huskyCode is as accurate as required, then there will be very few inversions (elements out of place) remaining after step 2.
 This implies that the second sort can be performed in very close to linear time.
 The results have been very satisfactory.
 For example, taking an array of 1,000,000 English words drawn randomly from a corpus of 275,333~\cite{GOLDHAHN12.327},
@@ -763,8 +764,8 @@ The total time to sort the array is made up of these three time-consuming steps 
 \begin{steps}
  \item{} $T_1$ is the time to encode the elements:
 \[T_1 = k_1 N\]
-\item{}  $T_2$ is the (average) time to quick-sort the huskyCode array while also swapping the element array itself:
-\[T_2 = 2 k_2 N ln N\]
+\item{}  $T_2$ is the (average) time to quick-sort the husky code array while also swapping the element array itself:
+\[T_2 = 2 k_2 N \ln N\]
 \item{}  $T_3$  is the time to Timsort the element array (only required if $p>0$):
  \[T_3 = k_3 (N + p X)\]
 \end{steps}
@@ -1032,7 +1033,7 @@ but it is worth stating rather than leaving the model looking like radix wins un
   \label{tab:Comparison}
   \begin{tabular}{rrrrr}
     \toprule
-    N  &  N ln N & merge sort & QuickHuskySort & RHSort \\
+    $N$ & $N \ln N$ & merge sort & QuickHuskySort & RHSort \\
     \midrule
      4 & 6 & 72 & 72 & 108 \\
      1,000 & 6,908 & 81,439 & 55,075 & 27,000 \\
@@ -1424,7 +1425,7 @@ The number of array access for the comparisons/swaps to fix these will be $(2 + 
 where $j$ is the number of fields to be compared to get a result ($j$ is usually smaller than $k$).
 
 So, the total number of array accesses ($A$) for husky-sorting an array of length $N$ is:
-\[A = (6.4 ln N + (2 + j + 4) p + k + 1) N\]
+\[A = (6.4 \ln N + (2 + j + 4) p + k + 1) N\]
    
 Timsort would be hard to analyze in the general case and so we instead analyze merge sort,
 which should be approximately the same number of array accesses in the average case.
@@ -1437,7 +1438,7 @@ Thus, the number of copies will be $N {\log_2 N}$.
 Each of these copies requires two array accesses while each comparison requires 2 + j (described above) array accesses.
  
 The total number of array accesses ($A$) for merge sort is, therefore:
-\[A = (4 + j) N log_2 N + 2 N\]
+\[A = (4 + j) N \log_2 N + 2 N\]
  
 Given that $\log_2 N = 1.44 \ln N$, and assuming that:
 
@@ -1446,8 +1447,8 @@ $j = 4$ corresponding to the comparison of two strings that start with the same 
 $k = 7$ and $p = 0.1$; then
 
 the totals ($A_m$ for merge sort and $A_h$ for QuickHuskySort) come to:
- \[A_m = 11.5 N ln N + 2 N\]
- \[A_h = 6.4 N ln N + 9 N\]
+ \[A_m = 11.5 N \ln N + 2 N\]
+ \[A_h = 6.4 N \ln N + 9 N\]
 
 \subsection{Prior comparison-based sorting algorithms.}
 \label{sec:prior-algorithms}
