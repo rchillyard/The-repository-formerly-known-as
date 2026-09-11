@@ -364,9 +364,8 @@
     We replace that with a linear-time radix sort, making the second phase linear too,
     and describe a parallel variant of it.
     Measured against Java's system sort for objects --- integers, arbitrary-precision numbers,
-    dates, tuples, English and Chinese text,
-    Chinese personal names in pinyin order (against a system sort performing that same ordering),
-    and two hundred thousand municipal records ordered by a composite key ---
+    dates, tuples, English and Chinese text, Chinese personal names in pinyin order,
+    and, by way of example, a large number of municipal records ordered by a composite key ---
     RadixHuskySort is faster in every case, by 3.6x to 6.8x at the largest size measured for each.
     The margin is widest where the ordering is expensive to evaluate and the encoding is perfect;
     and where the encoding is imperfect we measure directly what the resulting cleanup pass costs.
@@ -392,7 +391,9 @@
 With the vast increase in the size of the data world, efficient computing algorithms play a crucial role in processing data.
 From the earliest days of computing,
 sorting has been one of the most studied areas of research even though it appears to be a straightforward and familiar topic.
-The rise of data volume and complexity has made clear a need for new approaches to traditional sorting techniques.
+And for good reason.
+Binary search, which depends on sorting, is perhaps the most significant optimization technique that systems can use.
+The rise of data volume and complexity has increased the need for new approaches to traditional sorting techniques.
 Within the realm of comparison-sort algorithms, many aspects of the algorithm can be significant:
 stability, adaptability, extra memory, partitioning, merging, exchanging (swapping), copying, and, of course, the comparison itself.
 
@@ -418,11 +419,13 @@ Introsort's partitioning and Timsort's adaptive run-detection are both substanti
 in character than radix sort's fixed per-digit passes,
 so parallelizing them well is a separate, harder problem that this paper does not address.
 
-Even though sorting appears to be a settled area of research, yet new improvements are still being made:
+While sorting appears to be a settled topic, yet new improvements are occasionally made:
 \cite{Dual-pivot,Timsort,doi:10.1137/1.9781611975994.101,10.5555/313559.313859,10.1002/spe.4380231105}.
-Consequently, there is an abundance of sorting techniques available for a myriad of different use cases.
+Consequently, there is an abundance of sorting techniques suitable for a myriad of different use cases.
 Nevertheless, there is still room for improved versions in regard to computation, memory, time, and space complexity.
-In a recent paper\cite{sort}, the authors conclude that quicksort is indeed the fastest general-purpose sorting algorithm, especially when appropriate care is taken to avoid the quadratic worst-case with several other improvements (e.g., dual-pivot quicksort)\cite{Dual-pivot} over the traditional version\cite{10.1145/366622.366644}.
+In a recent paper\cite{sort}, the authors conclude that quicksort is indeed the fastest general-purpose sorting algorithm,
+especially when appropriate care is taken to avoid the quadratic worst-case with several other improvements
+(e.g., dual-pivot quicksort)\cite{Dual-pivot} over the traditional version\cite{10.1145/366622.366644}.
 However, quicksort does not perform as well as some variations of merge sort, especially Timsort\cite{Timsort}, when the dataset is partially sorted.
 Timsort, a hybrid stable sorting algorithm derived from merge sort, is now available in the Python and Java libraries as the default object-sorting utility.
 
@@ -434,8 +437,12 @@ to evaluate, among them \emph{String}, \emph{LocalDateTime}, \emph{BigInteger}, 
 user-defined types of the same kind --- and it is the starting point of this paper rather than its
 subject.
 Two things it left undone define the work here.
-Its second phase was a comparison sort, so the $\textbf{O}(N \log N)$ term survived the encoding intact;
-and the cost of an imperfect encoding, which every string corpus incurs, was argued rather than measured.
+It sorted the codes with a comparison sort (step 2 of \S~\ref{sec:overview}), so the
+$\textbf{O}(N \log N)$ term survived the encoding intact --- the comparisons became cheap, but there
+were still $N \log N$ of them.
+And while it measured the cleanup pass in one respect, choosing between Timsort and insertion sort for
+it (\S~\ref{sec:cleanup-choice}), it did not measure what that pass costs: of $p_{crit}$, the quantity
+that governs the cost, it says plainly that no typical value had been calculated.
 The contributions here are RadixHuskySort, or RHSort (\S~\ref{sec:radix}),
 which replaces that algorithm's comparison sort with a linear-time radix sort on the same codes,
 and a parallel variant of it (\S~\ref{sec:parallel-radix});
