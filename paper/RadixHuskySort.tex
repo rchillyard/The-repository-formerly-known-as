@@ -402,20 +402,19 @@ The rise of data volume and complexity has increased the need for new approaches
 Within the realm of comparison-sort algorithms, many aspects of the algorithm can be significant:
 stability, adaptability, extra memory, partitioning, merging, exchanging (swapping), copying, and, of course, the comparison itself.
 
-Counting memory operations rather than only comparisons is itself an established idea,
-and we frame our own array-access model relative to two well-known lines of work in that tradition rather than proposing it as new:
-the external-memory (I/O) model of Aggarwal and Vitter~\cite{10.1145/48529.48535},
-which counts block transfers between disk and memory, and the cache-oblivious algorithms of Frigo et al.~\cite{814600},
-which achieve near-optimal memory-hierarchy behaviour without advance knowledge of cache parameters;
-and, closest to our own concern, LaMarca and Ladner's study of how caches shape the relative performance
-of sorting algorithms~\cite{LAMARCA199966}.
-Our array-access count is a simpler, single-level analogue of the same underlying idea:
-rather than modeling an explicit multi-level memory hierarchy, we count raw array reads and writes as a proxy for real cost,
-motivated by the observation that a comparison between two heavyweight objects (e.g., two \textit{String}s)
-touches more memory — and likely non-cached memory — than a comparison between two 64-bit primitives.
-That observation is orthogonal to, not a substitute for, the external-memory and cache-oblivious literature,
-which is chiefly concerned with data too large to fit in memory (or in cache) at all,
-rather than with the comparison cost of individual elements that do fit.
+Counting memory operations rather than only comparisons is an established idea, and not one we claim
+as new.
+Three lines of work bound ours: the external-memory (I/O) model of Aggarwal and
+Vitter~\cite{10.1145/48529.48535}, which counts block transfers between disk and memory;
+the cache-oblivious algorithms of Frigo et al.~\cite{814600}, which reach near-optimal
+memory-hierarchy behaviour without advance knowledge of the cache parameters;
+and, closest to our own concern, LaMarca and Ladner's study of how caches shape the relative
+performance of sorting algorithms~\cite{LAMARCA199966}.
+All three are chiefly concerned with data too large to fit in memory, or in cache, at all.
+Our array-access count is a simpler, single-level analogue: we count raw array reads and writes as a
+proxy for real cost, motivated by the observation that comparing two heavyweight objects --- two
+\textit{String}s, say --- touches more memory, and more likely uncached memory, than comparing two
+64-bit primitives.
 
 Radix sort's independent per-digit counting-sort passes are well suited to parallelization across CPU threads,
 a property that is already established for radix sort generally;
