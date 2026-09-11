@@ -421,27 +421,26 @@ so parallelizing them well is a separate, harder problem that this paper does no
 
 While sorting appears to be a settled topic, new improvements are occasionally made:
 \cite{Dual-pivot,Timsort,doi:10.1137/1.9781611975994.101,10.5555/313559.313859,10.1002/spe.4380231105}.
-Consequently, there is an abundance of sorting techniques suitable for a myriad of different use cases.
+Indeed, there is an abundance of sorting techniques suitable for a myriad of different use cases.
 Nevertheless, there is still room for improved versions in regard to computation, memory, time, and space complexity.
-In a recent paper\cite{sort}, the authors conclude that quicksort is indeed the fastest general-purpose sorting algorithm,
+In a recent paper\cite{sort}, the authors conclude that quicksort is the fastest general-purpose sorting algorithm,
 especially when appropriate care is taken to avoid the quadratic worst-case with several other improvements
 (e.g., dual-pivot quicksort)\cite{Dual-pivot} over the traditional version\cite{10.1145/366622.366644}.
 However, quicksort does not perform as well as some variations of merge sort, especially Timsort\cite{Timsort}, when the dataset is partially sorted.
-Timsort, a hybrid stable sorting algorithm derived from merge sort, is now available in the Python and Java libraries as the default object-sorting utility.
+Timsort, a hybrid stable sorting algorithm derived from merge sort, is the default object-sorting utility in the Python and Java libraries.
 
 The husky code was introduced by Hillyard et al.\cite{huskysort2020}, together with QuickHuskySort,
-which sorts an array of objects by sorting an array of their codes and then repairing whatever the codes
-got wrong.
+which sorts an array of objects by sorting an array of their codes and then repairs any remaining inversions among the objects.
 That work established the basic result --- encoding pays for itself for types whose ordering is expensive
 to evaluate, among them \emph{String}, \emph{LocalDateTime}, \emph{BigInteger}, \emph{BigDecimal} and many
 user-defined types of the same kind --- and it is the starting point of this paper rather than its
 subject.
-Two things it left undone define the work here.
+Two things left undone define the work here.
 It sorted the codes with a comparison sort (step 2 of \S~\ref{sec:overview}), so the
 $\textbf{O}(N \log N)$ term survived the encoding intact --- the comparisons became cheap, but there
 were still $N \log N$ of them.
-And while it measured the cleanup pass in one respect, choosing between Timsort and insertion sort for
-it (\S~\ref{sec:cleanup-choice}), it did not measure what that pass costs: of $p_{crit}$, the quantity
+And while it measured the cleanup pass in one respect, choosing between Timsort and insertion sort (\S~\ref{sec:cleanup-choice}),
+it did not precisely measure what that pass costs: of $p_{crit}$, the quantity
 that governs the cost, it says plainly that no typical value had been calculated.
 The contributions here are RadixHuskySort, or RHSort (\S~\ref{sec:radix}),
 which replaces that algorithm's comparison sort with a linear-time radix sort on the same codes,
@@ -466,8 +465,8 @@ outweighing merge sort's guaranteed bound, but it is unstable and its worst case
 mitigated --- as Introsort does, by falling back to heapsort past a recursion-depth
 threshold\cite{doi:10.1002}.
 Timsort takes the opposite trade: guaranteed $\textbf{O}(N \log N)$ and stable, at the cost of extra
-space and of being no faster than $\textbf{O}(N \log N)$ on unordered input, but adaptive, so where the
-number of inversions $I$ is small its cost falls towards $\textbf{O}(N)$.
+space and of being no faster than $\textbf{O}(N \log N)$ on unordered input, but adaptive, such that where the
+number of inversions $I$ is small, its cost falls towards $\textbf{O}(N)$.
 Husky coding exploits both ends of that contrast.
 Step 2 hands its sort cheap-to-compare, effectively unordered longs, which is quicksort's best case and,
 as \S~\ref{sec:radix} shows, a radix sort's natural input; step 3 hands Timsort an array already close to
@@ -507,7 +506,9 @@ assuming the dataset is presented as an array $xs$ of type $X$:
     \item Create a $long[]$ array (\emph{longs}) of the same size as $xs$;
     \item for each element $x$ of $xs$, set the corresponding element of \emph{longs} to $x.huskyCode()$.
     \end{enumerate}
-\item {}Sort array \emph{longs} using quicksort (in practice, we have found that Introsort\cite{doi:10.1002} works well)
+\item {}Sort array \emph{longs} using quicksort (in practice a dual-pivot quicksort, with an
+insertion-sort cutoff below eighteen elements and Introsort's depth-limited heapsort
+fallback\cite{doi:10.1002})
 in such a way that when elements $i, j$ of \emph{longs} are exchanged, then elements $i, j$ of $xs$ are also exchanged;
 \item {}Finally, when quicksort is finished and, if necessary,
 we run Timsort on the array $xs$ to ensure that its elements are truly in order.
@@ -518,7 +519,7 @@ For a worked example of a husky coding, see Algorithm ~\ref{alg:permitcoder}
 \subsection{RadixHuskySort.}
 \label{sec:radix}
 
-Step 2 sorts the husky codes using Introsort, an $\textbf{O}(N log N)$ algorithm,
+Step 2 sorts the husky codes with that quicksort, an $\textbf{O}(N \log N)$ algorithm,
 but the codes themselves are fixed-width 64-bit values,
 and radix sort can sort $k$-bit keys in $\textbf{O}(N \cdot \frac{k}{b})$ time using $b$-bit digits —
 linear in $N$ for any fixed digit width $b$.
@@ -545,7 +546,7 @@ once the one-time $\textbf{O}(N)$ encoding step has run,
 A naive adaptation — swapping the object reference alongside each long at every exchange within every digit pass,
 exactly as step 2's Introsort swaps at every partition exchange —
 would incur $\textbf{O}(N)$ reference movements per digit pass, or $\textbf{O}(N \cdot \frac{64}{b})$ movements in total.
-Since $\frac{64}{b}$ is typically much smaller than $log N$ at the sizes we tested,
+Since $\frac{64}{b}$ is typically much smaller than $\log N$ at the sizes we tested,
 this would still usually beat Introsort's swap cost,
 but it needlessly reintroduces exactly the kind of payload-movement overhead this whole design exists to avoid,
 and least-significant-digit (LSD) radix sort's per-pass counting-sort structure makes a better option available.
@@ -1378,16 +1379,17 @@ order-of-magnitude argument, which is all the paper asks of it; the measurements
 How many comparisons and swaps does QuickHuskySort require, on average?
 Wild and Nebel's average-case analysis of dual-pivot quicksort\cite{WildNebel12} gives, approximately:
 \begin{itemize}
-    \item Comparisons: $1.9 N ln N$;
-    \item Swaps: $0.6 N ln N$.
+    \item Comparisons: $1.9 N \ln N$;
+    \item Swaps: $0.6 N \ln N$.
 \end{itemize}
 
 A comparison reads two array elements, though because one comparand is always the pivot --- already
 in hand --- the effective count is closer to one.
 Each swap requires 4 array accesses, although again, we will be swapping elements that have already been accessed.
 The effective number of (normalized) array accesses is, in total, approximately 4 rather than the expected 3.8 + 2.4.
-That is to say, the coefficient of $N ln N$ is approximately 4.
-The analysis represented by the table is for dual-pivot quicksort.
+That is to say, the coefficient of $N \ln N$ is approximately 4.
+Wild and Nebel's is the right analysis to apply here: step 2's partitioning is itself dual-pivot
+(\S~\ref{sec:overview}).
 \footnote{Note that, since dual-pivot quicksort is not actually implemented in the Java library for Comparable objects,
     we re-implemented the class for objects.}
 However, in QuickHuskySort, each swap also must swap the object references.
@@ -1416,16 +1418,16 @@ Timsort would be hard to analyze in the general case and so we instead analyze m
 which should be approximately the same number of array accesses in the average case.
  
 For merge sort, the analysis is much simpler:
-the number of comparisons for a randomly ordered array of length $N$ is $N log_2 N$.
+the number of comparisons for a randomly ordered array of length $N$ is $N \log_2 N$.
 Merge sort does not use swaps, \emph{per se}, but instead uses copies.
 Assuming that we optimize the extra copying, there will be $N$ copies to get the algorithm started and $N$ per level.
-Thus, the number of copies will be $N {log_2 N}$.
+Thus, the number of copies will be $N {\log_2 N}$.
 Each of these copies requires two array accesses while each comparison requires 2 + j (described above) array accesses.
  
 The total number of array accesses ($A$) for merge sort is, therefore:
 \[A = (4 + j) N log_2 N + 2 N\]
  
-Given that $log_2 N = 1.44 ln N$, and assuming that:
+Given that $\log_2 N = 1.44 \ln N$, and assuming that:
 
 $j = 4$ corresponding to the comparison of two strings that start with the same character but differ in the second character; and
 
