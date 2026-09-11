@@ -2525,6 +2525,13 @@ renaming them is not.
 
 Four further conventions that are easy to undo by accident:
 
+- **The author block assumes a shared affiliation, and that has lapsed.** All three authors hang off
+  one `\thanks` footnote asserting Northeastern, attached by `\footnotemark[1]`, with all three
+  `@northeastern.edu` addresses inside it. Two of the three have left, so at camera-ready (2026-11-23)
+  each needs its own `\thanks` and its own current address; the shared-footnote construction cannot
+  express it. Invisible in the blind build, so it does not affect the 15th --- but the identified PDF
+  asserts it today, which matters if it is circulated to the coauthors. Robin emailed them for
+  current details on 2026-09-11.
 - **Third person for the 2020 work, never "we".** The paper says "the husky code was introduced by
   Hillyard et al." and "the rationale is set out in full by Hillyard et al." Third-person
   self-citation is standard under lightweight double-blind and stays deniable; "in the original
