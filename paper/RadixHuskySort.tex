@@ -755,9 +755,9 @@ QuickHuskySort sorts in 698 ms against the system sort's 1,121 ms, a factor of 1
 
 \subsection{Discussion of \texorpdfstring{$p_{crit}$}{p\_crit}.}
 \label{sec:pcrit}
-When $p > 0$, there is a finite probability of any pair of elements remaining inverted after the first sorting pass.
+When $p > 0$, there is a finite probability of any pair of elements remaining inverted after step 2.
 For an array of N randomly ordered elements, the average number of inversions before sorting is $X = N (N -1 ) / 4$.
-The number of inversions remaining after the first pass is simply $p X$.
+The number of inversions remaining after step 2 is simply $p X$.
 And, for Timsort or insertion sort, the time to re-sort the array will be $t = k (N + p X)$ where $k$ is some system-dependent constant.
 The total time to sort the array is made up of these three time-consuming steps where $k_1, k_2, k_3$ are system- and algorithm-dependent constants:
 
@@ -1843,7 +1843,7 @@ since LSD radix sort has no recursion to begin with.
 
 Not surprisingly, QuickHuskySort is best suited for sorting random arrays.
 The benefits of partially-sorted arrays are enjoyed most by the merge sort family of algorithms (including Timsort).
-However, we have studied the efficacy of a modified merge sort (it is required to manage both the objects and the longs) as the first pass of the algorithm.
+However, we have studied the efficacy of a modified merge sort (it is required to manage both the objects and the longs) as step 2.
 For random English String inputs,
 the merge-sort variation improves on the system sort by approximately 20 percent, where the normal Introsort-based QuickHuskySort improves on it by more like 40 percent.
 
