@@ -439,9 +439,10 @@ Two things left undone define the work here.
 It sorted the codes with a comparison sort (step 2 of \S~\ref{sec:overview}), so the
 $\textbf{O}(N \log N)$ term survived the encoding intact --- the comparisons became cheap, but there
 were still $N \log N$ of them.
-And while it measured the cleanup pass in one respect, choosing between Timsort and insertion sort (\S~\ref{sec:cleanup-choice}),
-it did not precisely measure what that pass costs: of $p_{crit}$, the quantity
-that governs the cost, it says plainly that no typical value had been calculated.
+And while it measured the cleanup pass in one respect, choosing between Timsort and insertion sort
+(\S~\ref{sec:cleanup-choice}), and analysed its cost in terms of the proportion of inversions the
+encoding leaves behind, it never measured that proportion --- of the critical value $p_{crit}$ it says
+plainly that no typical figure had been calculated (\S~\ref{sec:pcrit}).
 The contributions here are RadixHuskySort, or RHSort (\S~\ref{sec:radix}),
 which replaces that algorithm's comparison sort with a linear-time radix sort on the same codes,
 and a parallel variant of it (\S~\ref{sec:parallel-radix});
