@@ -281,7 +281,12 @@
 %% the block is guarded -- build with \def\ANONYMOUS{} to suppress it. EasyChair still collects
 %% the real author metadata; anonymising *that* would be a mistake.
 \ifanonymous
-  \author{}
+  %% Not \author{}: an empty one still gets \@maketitle's skips on both sides of an empty
+  %% tabular, which left 66pt of nothing between the title and the abstract -- a hole in the
+  %% one copy reviewers actually read. "Anonymous Author(s)" is the conventional
+  %% double-blind placeholder and occupies the space the names will occupy at camera-ready,
+  %% so the blind and identified builds have the same shape.
+  \author{Anonymous Author(s)}
 \else
   \author{R C Hillyard\thanks{College of Engineering, Northeastern University, 360 Huntington
       Avenue, Boston, Massachusetts 02115, USA (\email{r.hillyard@northeastern.edu},
@@ -399,11 +404,11 @@ stability, adaptability, extra memory, partitioning, merging, exchanging (swappi
 
 Counting memory operations rather than only comparisons is itself an established idea,
 and we frame our own array-access model relative to two well-known lines of work in that tradition rather than proposing it as new:
-the external-memory (I/O) model of Aggarwal and Vitter \cite{10.1145/48529.48535},
-which counts block transfers between disk and memory, and the cache-oblivious algorithms of Frigo et al. \cite{814600},
+the external-memory (I/O) model of Aggarwal and Vitter~\cite{10.1145/48529.48535},
+which counts block transfers between disk and memory, and the cache-oblivious algorithms of Frigo et al.~\cite{814600},
 which achieve near-optimal memory-hierarchy behaviour without advance knowledge of cache parameters;
 and, closest to our own concern, LaMarca and Ladner's study of how caches shape the relative performance
-of sorting algorithms\cite{LAMARCA199966}.
+of sorting algorithms~\cite{LAMARCA199966}.
 Our array-access count is a simpler, single-level analogue of the same underlying idea:
 rather than modeling an explicit multi-level memory hierarchy, we count raw array reads and writes as a proxy for real cost,
 motivated by the observation that a comparison between two heavyweight objects (e.g., two \textit{String}s)
@@ -423,13 +428,13 @@ While sorting appears to be a settled topic, new improvements are occasionally m
 \cite{Dual-pivot,Timsort,doi:10.1137/1.9781611975994.101,10.5555/313559.313859,10.1002/spe.4380231105}.
 Indeed, there is an abundance of sorting techniques suitable for a myriad of different use cases.
 Nevertheless, there is still room for improved versions in regard to computation, memory, time, and space complexity.
-In a recent paper\cite{sort}, the authors conclude that quicksort is the fastest general-purpose sorting algorithm,
+In a recent paper~\cite{sort}, the authors conclude that quicksort is the fastest general-purpose sorting algorithm,
 especially when appropriate care is taken to avoid the quadratic worst-case with several other improvements
-(e.g., dual-pivot quicksort)\cite{Dual-pivot} over the traditional version\cite{10.1145/366622.366644}.
-However, quicksort does not perform as well as some variations of merge sort, especially Timsort\cite{Timsort}, when the dataset is partially sorted.
+(e.g., dual-pivot quicksort)~\cite{Dual-pivot} over the traditional version~\cite{10.1145/366622.366644}.
+However, quicksort does not perform as well as some variations of merge sort, especially Timsort~\cite{Timsort}, when the dataset is partially sorted.
 Timsort, a hybrid stable sorting algorithm derived from merge sort, is the default object-sorting utility in the Python and Java libraries.
 
-The husky code was introduced by Hillyard et al.\cite{huskysort2020}, together with QuickHuskySort,
+The husky code was introduced by Hillyard et al.~\cite{huskysort2020}, together with QuickHuskySort,
 which sorts an array of objects by sorting an array of their codes and then repairs any remaining inversions among the objects.
 That work established the basic result --- encoding pays for itself for types whose ordering is expensive
 to evaluate, among them \emph{String}, \emph{LocalDateTime}, \emph{BigInteger}, \emph{BigDecimal} and many
@@ -464,7 +469,7 @@ contrast between them.
 Quicksort is fastest in practice on unordered data, its in-place partitioning and sequential access
 outweighing merge sort's guaranteed bound, but it is unstable and its worst case is quadratic unless
 mitigated --- as Introsort does, by falling back to heapsort past a recursion-depth
-threshold\cite{doi:10.1002}.
+threshold~\cite{doi:10.1002}.
 Timsort takes the opposite trade: guaranteed $\textbf{O}(N \log N)$ and stable, at the cost of extra
 space and of being no faster than $\textbf{O}(N \log N)$ on unordered input, but adaptive, such that where the
 number of inversions $I$ is small, its cost falls towards $\textbf{O}(N)$.
@@ -509,7 +514,7 @@ assuming the dataset is presented as an array $xs$ of type $X$:
     \end{enumerate}
 \item {}Sort array \emph{longs} using quicksort (in practice a dual-pivot quicksort, with an
 insertion-sort cutoff below eighteen elements and Introsort's depth-limited heapsort
-fallback\cite{doi:10.1002})
+fallback~\cite{doi:10.1002})
 in such a way that when elements $i, j$ of \emph{longs} are exchanged, then elements $i, j$ of $xs$ are also exchanged;
 \item {}Finally, when quicksort is finished and, if necessary,
 we run Timsort on the array $xs$ to ensure that its elements are truly in order.
@@ -591,8 +596,8 @@ the same radix sort would apply unchanged, merely with twice as many passes.
 Radix sort applied to strings specifically has its own substantial, and older, literature,
 distinct from the general fixed-width-key radix sort described above.
 Three-way radix quicksort (also called multikey quicksort) and MSD (most-significant-digit)
-radix sort for strings were both popularized by Bentley and Sedgewick's classic treatment\cite{314161.314321},
-and burstsort\cite{1064546.1180622} improves cache behaviour further by building a small trie to bucket strings before sorting.
+radix sort for strings were both popularized by Bentley and Sedgewick's classic treatment~\cite{314161.314321},
+and burstsort~\cite{1064546.1180622} improves cache behaviour further by building a small trie to bucket strings before sorting.
 These string-specialized algorithms sort variable-length strings directly, character by character, without a separate fixed-width encoding step.
 RadixHuskySort's contribution is different in kind, not degree:
 it is not a string-sorting algorithm, but a general mechanism applicable to any \textit{Comparable} type
@@ -719,7 +724,7 @@ We interpret this rule as follows:
 if $x$ and $y$ are the same ($x.equals(y)$ in Java), their huskyCode should be the same.
 If $x > y$, we normally expect that $x.huskyCode() > y.huskyCode()$, i.e., the sort on the husky-coded longs will not invert $x$ and $y$.
 However, when $x > y$ while $x.huskyCode() < y.huskyCode()$, then an inversion will be introduced.
-And, when $x > y$ and $x.huskyCode() = y.huskyCode()$, then an inversion \emph{may} be introduced because quick-sort is not stable.\cite{6115063}
+And, when $x > y$ and $x.huskyCode() = y.huskyCode()$, then an inversion \emph{may} be introduced because quick-sort is not stable.~\cite{6115063}
 
 For a successful encoding, the value of $p$, the probability of a potential inversion, should be less than some critical probability, $p_{crit}$.
 Leaving a more detailed discussion of $p_{crit}$ until later, we note that, for some domains of $X$, we can definitely assert that $p = 0$.
@@ -732,7 +737,7 @@ In step 3, it might be acceptable to use insertion sort instead of Timsort.
 In any event, assuming that the huskyCode is as accurate as required, then there will be very few inversions (elements out of place) remaining after the quicksort phase.
 This implies that the second sort can be performed in very close to linear time.
 The results have been very satisfactory.
-For example, taking an array of 1,000,000 English words drawn randomly from a corpus of 275,333\cite{GOLDHAHN12.327},
+For example, taking an array of 1,000,000 English words drawn randomly from a corpus of 275,333~\cite{GOLDHAHN12.327},
 QuickHuskySort sorts in 698 ms against the system sort's 1,121 ms, a factor of 1.61
 (for the full data, please refer to table ~\ref{tab:HS_BM}).
 
@@ -809,7 +814,7 @@ time, where one which cannot must repay it before correcting a single genuine in
 \subsection{Why husky coding works.}
 \label{sec:why-husky}
 
-The rationale is set out in full by Hillyard et al.\cite{huskysort2020}; we restate only what the rest of
+The rationale is set out in full by Hillyard et al.~\cite{huskysort2020}; we restate only what the rest of
 this paper depends on.
 A 64-bit word holds enough of most keys to place elements close to their final order, and comparing two
 longs costs far less than following two object references and running a type-specific
@@ -911,12 +916,12 @@ which differ in vendor, instruction set, core design and JVM generation.
 
 \subsection{Data Source.}
 \label{sec:data-source}
-The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection\cite{GOLDHAHN12.327}.
-Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus\cite{wainshine2020chinesenames}.
+The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection~\cite{GOLDHAHN12.327}.
+Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus~\cite{wainshine2020chinesenames}.
 Every other dataset in this paper is generated: pseudo-random numbers, dates and tuples.
 The building-permit records of \S~\ref{sec:radix-results} are not.
 They are 198,900 permits filed between January 2013 and February 2018, taken from San Francisco's published
-record\cite{sf-building-permits} and ordered by a composite key of assessor's block, lot and filing
+record~\cite{sf-building-permits} and ordered by a composite key of assessor's block, lot and filing
 date; they are included because their distribution is the city's rather than ours.
 Only those three columns are retained, and the data is used under the Open Data Commons Database
 Contents License.
@@ -1378,7 +1383,7 @@ order-of-magnitude argument, which is all the paper asks of it; the measurements
 \S~\ref{sec:radix-results} are what carry the result.
 
 How many comparisons and swaps does QuickHuskySort require, on average?
-Wild and Nebel's average-case analysis of dual-pivot quicksort\cite{WildNebel12} gives, approximately:
+Wild and Nebel's average-case analysis of dual-pivot quicksort~\cite{WildNebel12} gives, approximately:
 \begin{itemize}
     \item Comparisons: $1.9 N \ln N$;
     \item Swaps: $0.6 N \ln N$.
@@ -1453,8 +1458,8 @@ characteristics referred to there.
     \midrule
     Insertion sort & $\textbf{O}(N + I)$ & $\textbf{O}(N^2)$ & Yes & $I$ = number of inversions; fast only for small or nearly-sorted $N$ \\
     Merge sort & $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Linearithmic regardless of input order; $\textbf{O}(N)$ extra space \\
-    Quicksort & $\textbf{O}(N \log N)$ & $\textbf{O}(N^2)$ & No & In-place, cache-friendly; the quadratic worst case is mitigated in practice (e.g., Introsort's heapsort fallback\cite{doi:10.1002}) \\
-    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs; more precisely $\textbf{O}(N + N \log p)$ for $p$ runs\cite{DBLP:journals/corr/abs-1805-08612} \\
+    Quicksort & $\textbf{O}(N \log N)$ & $\textbf{O}(N^2)$ & No & In-place, cache-friendly; the quadratic worst case is mitigated in practice (e.g., Introsort's heapsort fallback~\cite{doi:10.1002}) \\
+    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs; more precisely $\textbf{O}(N + N \log p)$ for $p$ runs~\cite{DBLP:journals/corr/abs-1805-08612} \\
     \bottomrule
   \end{tabularx}
 \end{table*}
@@ -1724,7 +1729,7 @@ so a pass over collapsed digits (everything lands in one bucket) costs no more t
 The unguarded baseline degrades by more than an order of magnitude at 56 fixed bits and then fails
 outright, exhausting the stack at 60 and 63.
 This is a well-known failure mode for a quicksort that partitions naïvely around a heavily-duplicated pivot value:
-Bentley and McIlroy's classic treatment of engineering a practical quicksort\cite{10.1002/spe.4380231105}
+Bentley and McIlroy's classic treatment of engineering a practical quicksort~\cite{10.1002/spe.4380231105}
 specifically addresses this case (a solution to Dijkstra's Dutch National Flag problem, partitioning into three regions — less than, equal to,
 and greater than the pivot — rather than two), precisely to avoid the pathological recursion depth this baseline exhibits.
 The degradation is far worse than the crash makes it look, because the crash truncates it.
