@@ -895,6 +895,7 @@ which differ in vendor, instruction set, core design and JVM generation.
 \begin{table}
   \caption{String-encoding constants}
   \label{tab:EncodingConstants}
+  \centering
   \begin{tabular}{lll}
     \toprule
     Constant & Unicode & ASCII \\
@@ -985,6 +986,7 @@ but it is worth stating rather than leaving the model looking like radix wins un
  \begin{table*}
   \caption{Theoretical comparisons (array accesses, dimensionless counts)}
   \label{tab:Comparison}
+  \centering
   \begin{tabular}{rrrrr}
     \toprule
     $N$ & $N \ln N$ & merge sort & QuickHuskySort & RHSort \\
@@ -1024,6 +1026,7 @@ rather than on RHSort, so they are in \S~\ref{sec:comparison-baselines}.
     For Chinese names the system-sort column is a system sort performing the same pinyin ordering;
     code-point order is a different and much cheaper task (\S~\ref{sec:radix-results}).}
   \label{tab:HS_BM}
+  \centering
   \begin{tabular}{llllll}
     \toprule
     Data type & N & System sort & QuickHuskySort & RHSort/8 & RHSort/16 \\
@@ -1091,6 +1094,7 @@ rather than as a percentage, since a percentage figure close to or above 100\% b
     mixing widths would match nothing printed. The dates baseline partitions three ways rather than
     on two pivots.}
   \label{tab:RadixImprovements}
+  \centering
   \begin{tabular}{cll}
     \toprule
     Data Type & N & Advantage over QuickHuskySort \\
@@ -1168,6 +1172,7 @@ Table ~\ref{tab:ParallelRadix} reports the result (\textit{Long[]}, 11-bit digit
   \caption{Parallel RHSort:
 serial vs. 1, 2, 4, and 8 worker threads}
   \label{tab:ParallelRadix}
+  \centering
   \begin{tabular}{cccccc}
     \toprule
     N & Serial & 1 thread & 2 threads & 4 threads & 8 threads \\
@@ -1217,6 +1222,7 @@ Size enters only once those are settled, and then only near the bottom of the ra
   \caption{Which sort to reach for. The situations are ordered by how much they decide, and
     array size settles nothing until all of them are.}
   \label{tab:Guidance}
+  \centering
   \begin{tabular}{p{0.42\textwidth}p{0.24\textwidth}p{0.26\textwidth}}
     \toprule
 Your situation & Reach for & Evidence \\
@@ -1428,6 +1434,7 @@ characteristics referred to there.
 \begin{table*}
   \caption{Prior comparison-based sorting algorithms}
   \label{tab:PriorAlgorithms}
+  \centering
   \begin{tabularx}{\textwidth}{llllX}
     \toprule
     Algorithm & Average case & Worst case & Stable & Notes \\
@@ -1454,6 +1461,7 @@ machine A additionally supplies the cleanup-sort comparison of \S~\ref{sec:clean
     guest, hence the dash; machine B's is given per core cluster, since its two clusters differ and
     the benchmarks run on the performance cores.}
   \label{tab:SysEnv}
+  \centering
   \begin{tabularx}{\linewidth}{lXXX}
     \toprule
     & \textbf{A} --- comparison sorts & \textbf{B} --- development & \textbf{C} --- machine of record \\
@@ -1493,6 +1501,7 @@ rather than a result.
 \begin{table*}
   \caption{Timsort or insertion sort as the cleanup pass (time in milliseconds)}
   \label{tab:TimvsInsertion}
+  \centering
   \begin{tabular}{ccc}
     \toprule
     N & QuickHuskySort, Timsort cleanup & QuickHuskySort, insertion-sort cleanup \\
@@ -1535,6 +1544,7 @@ itself when the ordering is expensive, and not otherwise.
     and so bounds from below what any husky variant could achieve on these types. It was measured for
     the numeric types only; the final block is the Permit tuple.}
   \label{tab:ComparisonBaselines}
+  \centering
   \begin{tabular}{llll}
     \toprule
     Data type & N & Dual-pivot quicksort & quicksort (raw) \\
@@ -1683,6 +1693,7 @@ Table ~\ref{tab:AdversarialBits} reports both, at $N = 1{,}000{,}000$.
     The dual-pivot baseline is shown both without a recursion-depth bound and with the one the JDK
     itself applies.}
   \label{tab:AdversarialBits}
+  \centering
   \begin{tabular}{cccccc}
     \toprule
     Fixed high bits & System sort & QuickHuskySort & \multicolumn{2}{c}{Dual-pivot quicksort} & RHSort/16 \\
@@ -1745,6 +1756,7 @@ Table ~\ref{tab:AdversarialPrefix} reports timings at $N = 1{,}000{,}000$.
 \begin{table*}
   \caption{Timings (ms) as a shared string prefix grows, $N = 1{,}000{,}000$}
   \label{tab:AdversarialPrefix}
+  \centering
   \begin{tabular}{cccc}
     \toprule
     Prefix length & System sort & QuickHuskySort & RHSort/16 \\
