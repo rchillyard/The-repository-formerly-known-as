@@ -808,8 +808,10 @@ then a levelling off --- and it falls where the records stop fitting in cache.
 That last reading is inference, but the magnitudes support it:
 the system sort compares these same records 3.25 million times in 151\,ms, or 46\,ns each,
 so the cleanup pass at 74\,ns costs about 1.6 times as much per comparison using the same comparator.
-Step 2 permutes references without moving the records,
-so a scan sequential in the array is close to random in the heap.
+Step 2 permutes references without moving the records, so neither sort walks the heap in order ---
+but the system sort touches each record some thirty times as a comparison operand, where the cleanup
+pass touches it twice.
+A cache miss is amortised over the first and paid in full by the second.
 
 Whether this share must shrink as $N$ grows --- the pass being linear where the sort containing it is
 linearithmic --- is a fair question, and \S~\ref{sec:cleanup-scaling} answers it.
