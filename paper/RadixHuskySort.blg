@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2020)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: RadixHuskySort.aux
+The style file: siamplain.bst
+Database file #1: sample-base.bib
+Warning--empty publisher in Timsort
+Warning--empty publisher in Dual-pivot
+You've used 20 entries,
+            2244 wiz_defined-function locations,
+            685 strings with 8166 characters,
+and the built_in function-call counts, 7081 in all, are:
+= -- 606
+> -- 286
+< -- 0
++ -- 113
+- -- 91
+* -- 543
+:= -- 1032
+add.period$ -- 27
+call.type$ -- 20
+change.case$ -- 99
+chr.to.int$ -- 0
+cite$ -- 22
+duplicate$ -- 389
+empty$ -- 692
+format.name$ -- 91
+if$ -- 1560
+int.to.chr$ -- 0
+int.to.str$ -- 20
+missing$ -- 21
+newline$ -- 70
+num.names$ -- 42
+pop$ -- 162
+preamble$ -- 1
+purify$ -- 81
+quote$ -- 0
+skip$ -- 239
+stack$ -- 0
+substring$ -- 383
+swap$ -- 114
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 74
+warning$ -- 2
+while$ -- 66
+width$ -- 22
+write$ -- 213
+(There were 2 warnings)

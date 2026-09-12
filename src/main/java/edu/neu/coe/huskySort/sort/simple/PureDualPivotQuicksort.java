@@ -70,6 +70,16 @@ public final class PureDualPivotQuicksort {
     private static final int INSERTION_SORT_THRESHOLD = 47;
 
     /**
+     * The recursion depth past which we abandon partitioning and finish with heapsort.
+     * <p>
+     * Sixty-four levels, matching the effective limit the JDK's own primitive dual-pivot sort
+     * adopted (a counter incremented by DELTA per level against MAX_RECURSION_DEPTH = 64 * DELTA).
+     * Well-balanced input needs about log2(N) levels -- twenty at N = 1,000,000 -- so the limit is
+     * reached only where partitioning has genuinely failed.
+     */
+    private static final int MAX_RECURSION_DEPTH = 64;
+
+    /**
      * If the length of a byte array to be sorted is greater than this
      * constant, counting sort is used in preference to insertion sort.
      */
@@ -101,7 +111,7 @@ public final class PureDualPivotQuicksort {
                                                X[] work, int workBase, final int workLen) {
         // Use Quicksort on small arrays
         if (right - left < QUICKSORT_THRESHOLD) {
-            sort(a, left, right, true);
+            sort(a, left, right, true, 0);
             return;
         }
 
@@ -127,7 +137,7 @@ public final class PureDualPivotQuicksort {
             } else { // equal
                 for (int m = MAX_RUN_LENGTH; ++k <= right && a[k - 1] == a[k]; ) {
                     if (--m == 0) {
-                        sort(a, left, right, true);
+                        sort(a, left, right, true, 0);
                         return;
                     }
                 }
@@ -138,7 +148,7 @@ public final class PureDualPivotQuicksort {
              * use Quicksort instead of merge sort.
              */
             if (++count == MAX_RUN_COUNT) {
-                sort(a, left, right, true);
+                sort(a, left, right, true, 0);
                 return;
             }
         }
@@ -215,7 +225,15 @@ public final class PureDualPivotQuicksort {
      * @param leftmost indicates if this part is the leftmost in the range
      */
     @SuppressWarnings("StatementWithEmptyBody")
-    private static <X extends Comparable<X>> void sort(final X[] a, int left, int right, final boolean leftmost) {
+    private static <X extends Comparable<X>> void sort(final X[] a, int left, int right, final boolean leftmost, final int depth) {
+        // NOTE this guard is not in the 2011 original. Without it, a key space with heavy duplication
+        // drives the two-way partition maximally unbalanced, the recursion reaches a depth of order N,
+        // and at N = 1,000,000 the stack is exhausted. Later JDKs added the same guard to the primitive
+        // version, so an unguarded baseline fails where the algorithm it copies would merely degrade.
+        if (depth > MAX_RECURSION_DEPTH) {
+            heapSort(a, left, right + 1);
+            return;
+        }
         final int length = right - left + 1;
 
         // Use insertion sort on tiny arrays
@@ -431,8 +449,8 @@ public final class PureDualPivotQuicksort {
             a[great + 1] = pivot2;
 
             // Sort left and right parts recursively, excluding known pivots
-            sort(a, left, less - 2, leftmost);
-            sort(a, great + 2, right, false);
+            sort(a, left, less - 2, leftmost, depth + 1);
+            sort(a, great + 2, right, false, depth + 1);
 
             /*
              * If center part is too large (comprises > 4/7 of the array),
@@ -504,7 +522,7 @@ public final class PureDualPivotQuicksort {
             }
 
             // Sort center part recursively
-            sort(a, less, great, false);
+            sort(a, less, great, false, depth + 1);
 
         } else { // Partitioning with one pivot
             /*
@@ -571,8 +589,8 @@ public final class PureDualPivotQuicksort {
              * All elements from center part are equal
              * and, therefore, already sorted.
              */
-            sort(a, left, less - 1, leftmost);
-            sort(a, great + 1, right, false);
+            sort(a, left, less - 1, leftmost, depth + 1);
+            sort(a, great + 1, right, false, depth + 1);
         }
     }
 //
@@ -591,6 +609,35 @@ public final class PureDualPivotQuicksort {
 //                     long[] work, int workBase, final int workLen) {
 //        // Use Quicksort on small arrays
 //        if (right - left < QUICKSORT_THRESHOLD) {
+
+    /**
+     * Heapsort, reached only from the depth guard above. Adapted from the JDK's primitive version,
+     * which sorts a[low..high) -- note the exclusive upper bound, unlike the quicksort above.
+     *
+     * @param a    the array.
+     * @param low  the first index to sort.
+     * @param high one past the last index to sort.
+     */
+    private static <X extends Comparable<X>> void heapSort(final X[] a, final int low, int high) {
+        for (int k = (low + 1 + high) >>> 1; k > low; )
+            pushDown(a, --k, a[k], low, high);
+        while (--high > low) {
+            final X max = a[low];
+            pushDown(a, low, a[high], low, high);
+            a[high] = max;
+        }
+    }
+
+    private static <X extends Comparable<X>> void pushDown(final X[] a, int p, final X value, final int low, final int high) {
+        for (int k; ; a[p] = a[p = k]) {
+            k = (p << 1) - low + 2;                          // the right child
+            if (k > high) break;
+            if (k == high || a[k].compareTo(a[k - 1]) < 0) --k;
+            if (a[k].compareTo(value) <= 0) break;
+        }
+        a[p] = value;
+    }
+
 //            sort(a, left, right, true);
 //            return;
 //        }

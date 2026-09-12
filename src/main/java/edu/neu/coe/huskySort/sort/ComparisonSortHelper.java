@@ -2,8 +2,6 @@ package edu.neu.coe.huskySort.sort;
 
 import edu.neu.coe.huskySort.util.Helper;
 
-import static java.util.Arrays.binarySearch;
-
 /**
  * ComparisonSortHelper interface.
  * <p>
@@ -124,12 +122,18 @@ public interface ComparisonSortHelper<X> extends Helper<X> {
      * the destination of x[i] thru x[i-1] are moved up one place.
      * This type of swap is used by insertion sort.
      *
-     * @param xs the array of X elements, whose elements 0 thru i-1 MUST be sorted.
-     * @param i  the index of the element to be swapped into the ordered array xs[0..i-1].
+     * @param xs   the array of X elements, whose elements from thru i-1 MUST be sorted.
+     * @param from the first index of the sorted partition into which we want to insert the element at index i.
+     * @param i    the index of the element to be swapped into the ordered array xs[from..i-1].
      */
-    default void swapIntoSorted(final X[] xs, final int i) {
-        int j = binarySearch(xs, 0, i, xs[i]);
+    default void swapIntoSorted(final X[] xs, final int from, final int i) {
+        int j = BinarySearch.binarySearch(xs, from, i, xs[i], this::compare);
         if (j < 0) j = -j - 1;
+        // NOTE: an exact match found by binarySearch may land anywhere within a run of elements
+        // equal to xs[i], not necessarily at the end of that run. Scan past any ties so that
+        // equal elements are never shifted past each other (preserving stability) and so that we
+        // never perform a swap that doesn't correspond to a real inversion.
+        else while (j < i && compare(xs[j], xs[i]) == 0) j++;
         if (j < i) swapInto(xs, j, i);
     }
 

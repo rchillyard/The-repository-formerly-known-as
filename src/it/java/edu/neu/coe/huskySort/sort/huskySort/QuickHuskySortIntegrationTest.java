@@ -17,7 +17,7 @@ import static edu.neu.coe.huskySort.util.ProcessorDependentTimeout.getFactoredTi
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.junit.Assert.assertEquals;
 
-public class PureHuskySortIntegrationTest {
+public class QuickHuskySortIntegrationTest {
 
     @BeforeClass
     public static void doBeforeClass() throws IOException {
@@ -29,8 +29,8 @@ public class PureHuskySortIntegrationTest {
         final int N = 1000;
         final String[] words = HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         final Random random = new Random();
-        final PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
-        final Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);
+        final QuickHuskySort<String> quickHuskySort = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
+        final Benchmark<String[]> benchmark = new Benchmark<>("QuickHuskySort", null, quickHuskySort::sort, null);
         final double time = benchmark.run(() -> Utilities.fillRandomArray(String.class, random, N, r -> words[r.nextInt(words.length)]), 200);
         final double expected = getFactoredTimeout(475, MICROSECONDS, config, MICROSECONDS);
         assertEquals(expected, time * 1000, 400);
@@ -42,8 +42,8 @@ public class PureHuskySortIntegrationTest {
         final int N = 1000;
         final String[] words = HuskySortBenchmarkHelper.getWords("3000-common-words.txt", HuskySortBenchmark::lineAsList);
         final Random random = new Random();
-        final PureHuskySort<String> pureHuskySort = new PureHuskySort<>(HuskyCoderFactory.englishCoder, false, false);
-        final Benchmark<String[]> benchmark = new Benchmark<>("PureHuskySort", null, pureHuskySort::sort, null);
+        final QuickHuskySort<String> quickHuskySort = new QuickHuskySort<>(HuskyCoderFactory.englishCoder, false, false);
+        final Benchmark<String[]> benchmark = new Benchmark<>("QuickHuskySort", null, quickHuskySort::sort, null);
         final double time = benchmark.run(() -> Utilities.fillRandomArray(String.class, random, N, r -> words[r.nextInt(words.length)]), 200);
         final double expected = getFactoredTimeout(325, MICROSECONDS, config, MICROSECONDS);
         assertEquals(expected, time * 1000, 300);

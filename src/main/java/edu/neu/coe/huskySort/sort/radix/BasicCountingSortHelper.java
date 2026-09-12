@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.radix;
 
 import edu.neu.coe.huskySort.util.BaseHelper;
+import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.Instrumenter;
 
 import java.util.Random;
@@ -10,7 +11,10 @@ import java.util.Random;
  * See also ComparisonSortHelper, which is very similar.
  * CONSIDER merging the two helpers further.
  * <p>
- * NOTE that this Helper is not affected in any way by the configuration.
+ * NOTE that the cutoff is the one aspect of this Helper which the configuration does affect. That is
+ * deliberate: a timed run is uninstrumented, so if only InstrumentedCountingSortHelper read the
+ * configured cutoff, every timed benchmark would silently use the default while the instrumented
+ * counts moved. See CutoffIsHonouredOnBothPathsTest.
  *
  * @param <X> the type of the "string."
  * @param <Y> the type of the "characters" that form the string, e.g. decimal digits or DNA bases.
@@ -19,6 +23,18 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
 
     public Instrumenter getInstrumenter() {
         return null;
+    }
+
+    /**
+     * Get the configured cutoff value, so that a timed (and therefore uninstrumented) run uses the
+     * same value as an instrumented one.
+     *
+     * @return the configured cutoff if there is one, otherwise the interface default.
+     */
+    @Override
+    public int getCutoff() {
+        // NOTE that a cutoff value of 0 or less would result in an infinite recursion, so it means "unset."
+        return (cutoff >= 1) ? cutoff : CountingSortHelper.super.getCutoff();
     }
 
     @Override
@@ -88,14 +104,39 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
     }
 
     /**
-     * Default constructor for BasicCountingSortHelper.
+     * Constructor which reads the cutoff from the given configuration.
+     *
+     * @param description the description of this helper.
+     * @param n           the number of strings expected to be compared.
+     * @param random      a source of random numbers.
+     * @param config      the configuration, from which the cutoff is read; null means "take the default."
+     */
+    public BasicCountingSortHelper(final String description, final int n, final Random random, final Config config) {
+        super(description, random, n);
+        this.cutoff = config == null ? 0 : config.getInt("helper", "cutoff", 0);
+    }
+
+    /**
+     * Constructor which reads the cutoff from the given configuration.
+     *
+     * @param description the description of this helper.
+     * @param n           the number of strings expected to be compared.
+     * @param config      the configuration, from which the cutoff is read.
+     */
+    public BasicCountingSortHelper(final String description, final int n, final Config config) {
+        this(description, n, new Random(), config);
+    }
+
+    /**
+     * Default constructor for BasicCountingSortHelper. The cutoff takes its default value, because
+     * there is no configuration here to read one from.
      *
      * @param description the description of this helper.
      * @param n           the number of strings expected to be compared.
      * @param random      a source of random numbers.
      */
     public BasicCountingSortHelper(final String description, final int n, final Random random) {
-        super(description, random, n);
+        this(description, n, random, null);
     }
 
     /**
@@ -127,4 +168,6 @@ public class BasicCountingSortHelper<X extends StringComparable<X, Y>, Y extends
     public BasicCountingSortHelper(final String description) {
         this(description, 0);
     }
+
+    private final int cutoff;
 }

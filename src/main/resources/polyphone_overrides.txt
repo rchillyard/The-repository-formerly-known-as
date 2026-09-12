@@ -1,0 +1,27 @@
+# polyphone_overrides.txt -- corpus-derived polyphone pinyin reading overrides (TODO.md item 11).
+# Trained on Chinese_Names_Corpus.txt by PolyphoneOverrideTrainer: for each polyphone character,
+# every candidate pinyin4j reading was voted on for ordering consistency against the corpus's own
+# pre-sorted adjacent-pair order; an entry appears here only where a non-default reading won
+# decisively (>=75% of FOR votes over >=10 discriminating pairs). The table therefore encodes THIS
+# corpus curator's reading conventions (predominantly Chinese surname readings), not universal truth.
+# Format: <character><TAB><raw pinyin4j reading, e.g. shan4 or lu:3>. Lines starting with '#' are comments.
+仔	zai3
+伽	ga1
+兴	xing4
+劲	jin4
+崴	wai3
+干	gan4
+应	ying4
+柏	bai3
+桔	ju2
+禅	chan2
+筠	jun1
+肖	xiao1
+荫	yin1
+蔚	wei4
+藏	cang2
+觉	jiao4
+调	tiao2
+贲	ben1
+镐	gao3
+靓	liang4

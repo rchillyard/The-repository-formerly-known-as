@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -106,5 +107,30 @@ public class InversionCounterTest {
         System.out.println("ratio: " + inversions / meanInversions + ", tolerance: " + tolerance);
         assertTrue(inversions / meanInversions <= (1 + tolerance));
         assertTrue(inversions / meanInversions >= (1 - tolerance));
+    }
+
+    /**
+     * Counting must not sort. getInversions counts by merge sorting, and used to
+     * sort the caller's array as a side effect -- so a benchmark which counted the
+     * inversions in an array and then timed a sort on it would have been timing
+     * already-sorted data.
+     */
+    @Test
+    public void getInversionsDoesNotDisturbItsArgument() {
+        final Integer[] xs = {3, 1, 2};
+        final Integer[] before = xs.clone();
+        assertEquals(2L, new InversionCounter(xs).getInversions());
+        assertArrayEquals("counting must leave the array as it found it", before, xs);
+    }
+
+    @Test
+    public void getInversionsIsRepeatable() {
+        // It follows from the above, and is the property a caller would actually
+        // rely on: counting twice gives the same answer. It used to give 2 and
+        // then 0, because the first call sorted the array.
+        final Integer[] xs = {3, 1, 2};
+        final InversionCounter counter = new InversionCounter(xs);
+        assertEquals(2L, counter.getInversions());
+        assertEquals(2L, counter.getInversions());
     }
 }

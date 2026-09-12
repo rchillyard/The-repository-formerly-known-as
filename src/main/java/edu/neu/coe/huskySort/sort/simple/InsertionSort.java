@@ -26,9 +26,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
     public void sort(final X[] xs, final int from, final int to) {
         final ComparisonSortHelper<X> helper = getHelper();
         for (int i = from + 1; i < to; i++) {
-            // TODO implement using swapIntoSorted
-            int j = i;
-            while (j > from && helper.swapStableConditional(xs, j)) j--;
+            helper.swapIntoSorted(xs, from, i);
         }
     }
 
