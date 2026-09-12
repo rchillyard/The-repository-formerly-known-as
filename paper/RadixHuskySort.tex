@@ -839,7 +839,7 @@ The code need not be perfect, only good: whatever inversions it leaves are the c
 Perfection has a precise limit for strings.
 Packing four 16-bit characters fills the word (Table ~\ref{tab:EncodingConstants} gives the constants for
 both string codings), but the packed result is then shifted right by one bit, because any string whose
-first character is \texttt{0x8000} or above --- common among CJK characters --- would otherwise set the
+first character is \texttt{0x8000} or above --- common among Chinese characters --- would otherwise set the
 sign bit and encode as a negative \textit{long}, corrupting numeric comparison.
 The shift costs the least significant bit of a true fourth character; for three characters or fewer that
 bit is padding, which is why the Unicode coding is declared \textit{perfect} up to three characters and
