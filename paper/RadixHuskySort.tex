@@ -344,7 +344,8 @@
     Earlier work sorted such codes with quicksort.
     We replace that with a linear-time radix sort, making the second phase linear too,
     and describe a parallel variant of it.
-    Measured against Java's system sort for objects --- integers, arbitrary-precision numbers,
+    Measured against Java's system sort for objects (\textit{Arrays.sort}) --- integers,
+    arbitrary-precision numbers,
     dates, tuples, English and Chinese text, Chinese personal names in pinyin order,
     and, by way of example, a large number of municipal records ordered by a composite key ---
     RadixHuskySort is faster in every case, by 3.6x to 6.8x at the largest size measured for each.
@@ -1032,6 +1033,7 @@ rather than on RHSort, so they are in \S~\ref{sec:comparison-baselines}.
     Long & 500,000 & 135.8$\pm$1.2 & 97.7$\pm$1.0 & 30.2$\pm$0.2 & 28.6$\pm$0.3 \\
     BigInteger & 500,000 & 208.4$\pm$1.7 & 152.3$\pm$1.7 & 56.9$\pm$0.3 & 54.1$\pm$0.2 \\
     BigDecimal & 500,000 & 262.2$\pm$1.6 & 144.1$\pm$2.1 & 54.1$\pm$0.3 & 52.5$\pm$0.3 \\
+    Dates & 20,000 & 3.793$\pm$0.007 & --- & 0.836$\pm$0.002 & 0.789$\pm$0.002 \\
     English words & 32,000 & 13.69$\pm$0.19 & 9.72$\pm$0.12 & 4.63$\pm$0.16 & 4.18$\pm$0.16 \\
     & 200,000 & 141.39$\pm$2.59 & 94.74$\pm$2.44 & 55.01$\pm$2.20 & 50.27$\pm$2.51 \\
     & 1,000,000 & 1120.87$\pm$14.43 & 697.88$\pm$16.15 & 355.26$\pm$24.71 & 272.74$\pm$6.46 \\
