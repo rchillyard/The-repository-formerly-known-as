@@ -1191,12 +1191,14 @@ gives a statistically resolved speedup at both sizes: 1.39x at $N=2{,}000{,}000$
 with non-overlapping confidence intervals in both cases.
 Against the serial implementation the improvement is resolved at both sizes too,
 172.0ms to 118.5ms at $N=2{,}000{,}000$ and 935.2ms to 687.9ms at $N=10{,}000{,}000$.
-Unlike on the eight-core machine of an earlier draft, scaling does not stop at four threads:
-on sixteen uniform cores, eight threads beats four at both sizes with intervals that do not overlap,
+Unlike on machine B's eight cores, scaling does not stop at four threads:
+on sixteen uniform cores, eight threads beats four at both sizes,
 reaching 1.51x and 1.37x over a single thread.
+The improvement is resolved at $N=2{,}000{,}000$, where the intervals are clear of one another;
+at $N=10{,}000{,}000$ they just touch, so that size shows the direction rather than settling it.
 
 That is still well short of linear, and the shortfall is the more interesting number:
-an eightfold increase in threads buys between 1.4x and 1.5x,
+an eightfold increase in threads buys between 1.37x and 1.51x,
 on hardware with no performance/efficiency asymmetry to account for it.
 Two explanations fit, and we cannot separate them without hardware counters.
 Each digit pass scatters across the whole array, so the sort may simply be limited by memory throughput,
@@ -1604,8 +1606,8 @@ The corpus also shows why real data is worth the trouble of obtaining: its publi
 1 January 2013 and ends on 25 February 2018, but no permit bears either date, nor any other weekend or
 public holiday --- all 198,900 were filed on a business day.
 A generated corpus would not have that structure unless someone had thought to put it there.
-Against the system sort, RadixHuskySort is faster by 5.17x, 4.26x and 4.53x at $N = 32{,}000$,
-$100{,}000$ and $198{,}900$; against QuickHuskySort, by 2.52x, 2.06x and 2.12x.
+Against the system sort, RadixHuskySort is faster by 4.73x, 4.26x and 4.53x at $N = 32{,}000$,
+$100{,}000$ and $198{,}900$; against QuickHuskySort, by 2.30x, 2.06x and 2.12x.
 
 At 2.1x over QuickHuskySort the row is tenth of eleven.
 A composite key of three fields is more expensive to compare than a single \textit{Long} but a good
@@ -1717,7 +1719,7 @@ Table ~\ref{tab:AdversarialBits} reports both, at $N = 1{,}000{,}000$.
   \end{tabular}
 \end{table*}
 
-Radix sort's timings stay essentially flat across the entire sweep, exactly as the model of \S~\ref{sec:radix} predicts:
+RHSort's timings stay essentially flat across the entire sweep, exactly as the model of \S~\ref{sec:radix} predicts:
 each digit pass does the same fixed amount of work regardless of how the keys are distributed,
 so a pass over collapsed digits (everything lands in one bucket) costs no more than any other pass.
 
