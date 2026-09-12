@@ -933,17 +933,18 @@ which differ in vendor, instruction set, core design and JVM generation.
 
 \subsection{Data Source.}
 \label{sec:data-source}
-The sources for the Strings (English and  Chinese) are retrieved from Leipzig Corpora Collection~\cite{GOLDHAHN12.327}.
-Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a separate corpus~\cite{wainshine2020chinesenames}.
-Every other dataset in this paper is generated: pseudo-random numbers, dates and tuples.
-The building-permit records of \S~\ref{sec:radix-results} are not.
-They are 198,900 permits filed between January 2013 and February 2018, taken from San Francisco's published
-record~\cite{sf-building-permits} and ordered by a composite key of assessor's block, lot and filing
-date; they are included because their distribution is the city's rather than ours.
-Only those three columns are retained, and the data is used under the Open Data Commons Database
-Contents License.
+The English and Chinese strings come from the Leipzig Corpora Collection~\cite{GOLDHAHN12.327}; for
+each we take the appropriate \emph{sentences.txt} file and break it into strings as shown in
+Listing~\ref{lst:DS}.
+Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a
+separate corpus~\cite{wainshine2020chinesenames}.
+The building-permit records of \S~\ref{sec:radix-results} are 198,900 permits filed between January
+2013 and February 2018, taken from San Francisco's published record~\cite{sf-building-permits} and
+ordered by a composite key of assessor's block, lot and filing date; only those three columns are
+retained, and the data is used under the Open Data Commons Database Contents License.
+They are included because their distribution is the city's rather than ours.
 
-In each case, we take data from the appropriate \emph{sentences.txt} file and break it up into strings as shown in Listing~\ref{lst:DS}.
+Every other dataset in this paper is generated: pseudo-random numbers, dates and tuples.
 
 
 \begin{lstlisting}[caption={Data Source},label={lst:DS},language=Java]
