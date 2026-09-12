@@ -162,6 +162,18 @@ public class StringSortBenchmarks {
     // is directly comparable to RadixHuskySort/QuickHuskySort's pinyin-ordered result for that
     // corpus too, not just for english/chinese. ----------
 
+    /**
+     * Arrays.parallelSort is what a performance-conscious Java programmer reaches for at the sizes
+     * where this paper's headline claims live, so it is the honest baseline there -- Arrays.sort is
+     * the default, not the informed choice. Added 2026-09-12.
+     */
+    @Benchmark
+    public String[] systemSortParallel(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        Arrays.parallelSort(copy);
+        return copy;
+    }
+
     @Benchmark
     public String[] multikeyQuicksort(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
