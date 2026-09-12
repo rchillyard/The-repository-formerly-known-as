@@ -10,6 +10,7 @@
 | 6 | chinesenames against a pinyin-*correct* system sort | **done** — PR #64, `doc/pinyin.json` |
 | 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **done** — PR #64, `doc/adversarial.json` |
 | 8 | cache behaviour of the object-reference swap | **requested 2026-09-09** — see below |
+| 9 | `Arrays.parallelSort` as a baseline at the large sizes | **requested 2026-09-12** — see below, and unlike 8 this one is wanted before the 15th if at all possible |
 
 **All seven requests are answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -33,6 +34,87 @@ only as qualitative cross-checks, with no figures quoted from them. Your request
 that possible.
 
 Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs acting on.
+
+---
+
+## Request 9 — Arrays.parallelSort as a baseline
+
+Requested 2026-09-12. **Unlike request 8, this one bears on a headline claim**, so it is wanted before
+the 15th if you can reach it. If you cannot, say so and we will ship the wording change alone, which
+is already in.
+
+### Why — the baseline we quote is not the one a practitioner would use at these sizes
+
+Robin asked whether a user sorting more than a million objects would realistically call
+`Arrays.sort`. They would not. They would call **`Arrays.parallelSort`**, which is one method call
+away and which this repository had never benchmarked.
+
+A probe on Robin's own M1 (four performance cores plus four efficiency cores), English words,
+N = 1,000,000, JMH with 2 forks and 5 iterations:
+
+| sorter | ms/op, 99.9% CI |
+| --- | ---: |
+| `radixHuskySort16` | 203.5 ± 24.3 |
+| `systemSort` (`Arrays.sort`) | 586.6 ± 44.1 |
+| **`Arrays.parallelSort`** | **168.9 ± 22.0** |
+
+So on eight cores the parallel system sort is about 1.20x faster than *serial* RadixHuskySort. The
+intervals overlap between 179.2 and 190.8, so it is not resolved at 99.9% on a contended laptop — but
+the direction is plain, and the machine of record has sixteen cores rather than eight.
+
+This does not contradict the paper, whose comparison is serial against serial and where RHSort beats
+`Arrays.sort` by 2.88x on the same probe. What it means is that a reviewer with a multicore machine
+will try `Arrays.parallelSort`, find it beats our headline algorithm, and ask why it is absent.
+
+### The benchmark exists now
+
+`StringSortBenchmarks.systemSortParallel` was added 2026-09-12 and is in the jar. Nothing for you to
+write.
+
+### Step 1 — the serial-vs-parallel picture at the sizes where it matters
+
+```
+java -jar target/benchmarks.jar \
+  "StringSortBenchmarks.(systemSort|systemSortParallel|radixHuskySort16)$" \
+  -p corpus=english -p n=200000,1000000 \
+  -f 3 -wi 5 -i 10 -r 2s -w 2s \
+  -rf json -rff parallelsort.json
+```
+
+### Step 2 — the comparison that actually settles it
+
+The honest pairing is parallel against parallel, on the same data. `ParallelRadixSortBenchmarks`
+sorts `Long[]`, not strings, so it now has its own `systemSortParallel` on the same `LongState`
+arrays — added 2026-09-12, and the reason the two classes each have one. Running the whole class
+gives every column of Table `ParallelRadix` plus the new baseline in a single invocation:
+
+```
+java -jar target/benchmarks.jar \
+  "ParallelRadixSortBenchmarks" \
+  -f 3 -wi 5 -i 10 -r 2s -w 2s \
+  -rf json -rff parallel-vs-parallel.json
+```
+
+The sizes are the class's own `@Param` defaults, 2,000,000 and 10,000,000, so no `-p n` is needed.
+
+### What to expect, and what would surprise us
+
+We expect `Arrays.parallelSort` to beat serial RHSort at both sizes on sixteen cores, by more than
+the 1.20x seen on eight. That is the result we are braced for and the reason for asking.
+
+We expect ParallelRadixHuskySort to beat `Arrays.parallelSort`, on the strength of Table
+`ParallelRadix`: eight threads took 172.0 ms to 109.3 ms at N = 2,000,000, about 1.57x over serial. If
+that ratio holds it puts the parallel husky sort comfortably ahead. **If it does not, we need to know
+before the 15th rather than from a referee.**
+
+Do not tune anything to produce either outcome. A result showing `Arrays.parallelSort` ahead of
+ParallelRadixHuskySort is publishable and we would rather print it than discover it in November.
+
+### What it changes in the paper
+
+If the expected result holds, Table `ParallelRadix` gains a column and the parallel section gains a
+sentence. If it does not, the paper's claim at large N needs qualifying, which is a bigger edit and
+the reason this is urgent rather than deferred.
 
 ---
 

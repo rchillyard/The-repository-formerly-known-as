@@ -46,6 +46,19 @@ public class ParallelRadixSortBenchmarks {
         return copy;
     }
 
+    /**
+     * The parallel baseline the platform ships, on the same Long[] arrays as the parallel husky
+     * sorts below -- so that Table ParallelRadix can compare parallel against parallel rather than
+     * against its own serial implementation. See request 9 in doc/Run request for Yunlu.md.
+     * Added 2026-09-12.
+     */
+    @Benchmark
+    public Long[] systemSortParallel(final LongState state) {
+        final Long[] copy = Arrays.copyOf(state.master, state.master.length);
+        Arrays.parallelSort(copy);
+        return copy;
+    }
+
     @Benchmark
     public Long[] serialRadixHuskySort11(final LongState state) {
         final Long[] copy = Arrays.copyOf(state.master, state.master.length);
