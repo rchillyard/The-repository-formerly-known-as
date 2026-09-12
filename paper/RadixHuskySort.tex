@@ -1015,7 +1015,7 @@ The two radix columns bracket the digit-width plateau of \S~\ref{sec:radix-resul
 Throughout, \emph{system sort} means \textit{Arrays.sort}, the JVM's default for objects, and every
 sorter in the table is single-threaded.
 At the larger sizes a practitioner who cared about speed would reach instead for
-\textit{Arrays.parallelSort}, so the serial comparison is the conservative one to draw against
+\mbox{\textit{Arrays.parallelSort}}, so the serial comparison is the conservative one to draw against
 RadixHuskySort and the generous one to draw against a parallel sorter;
 \S~\ref{sec:parallel-radix} takes up parallelism on its own terms.
 Dual-pivot quicksort and a from-scratch quicksort were measured too; they bear on QuickHuskySort
@@ -1184,7 +1184,7 @@ serial vs. 1, 2, 4, and 8 worker threads}
 \end{table*}
 
 The comparison here is against RadixHuskySort's own serial implementation and against itself at other
-thread counts, not against \textit{Arrays.parallelSort}, which we have not measured on the machine of
+thread counts, not against \mbox{\textit{Arrays.parallelSort}}, which we have not measured on the machine of
 record.
 Isolating parallelism itself, that's to say comparing 1 thread against 4, both paying identical thread-coordination overhead,
 gives a statistically resolved speedup at both sizes: 1.39x at $N=2{,}000{,}000$ and 1.29x at $N=10{,}000{,}000$,
@@ -1220,7 +1220,9 @@ Size enters only once those are settled, and then only near the bottom of the ra
 
 \begin{table*}
   \caption{Which sort to reach for. The situations are ordered by how much they decide, and
-    array size settles nothing until all of them are.}
+    array size settles nothing until all of them are. Every sorter named here is single-threaded; with
+    cores to spare, compare like with like, since \mbox{\textit{Arrays.parallelSort}} costs less to adopt than
+    ParallelRadixHuskySort (\S~\ref{sec:parallel-radix}).}
   \label{tab:Guidance}
   \centering
   \begin{tabular}{p{0.42\textwidth}p{0.24\textwidth}p{0.26\textwidth}}
@@ -1242,7 +1244,8 @@ Your situation & Reach for & Evidence \\
         ASCII only and cannot sort either Chinese corpus (\S~\ref{sec:radix}) \\
     The data defeats the encoding's capture window --- long shared prefixes, or keys wider than
     the coder can see
-      & System sort & every husky variant loses its advantage (\S~\ref{sec:adversarial}) \\
+      & System sort --- \mbox{\textit{Arrays.parallelSort}} if cores are free
+      & every husky variant loses its advantage (\S~\ref{sec:adversarial}) \\
     None of the above settles it, or the keys are strings
       & by array size (\S~\ref{sec:usecase})
       & each sort's fixed setup cost is repaid at a different $N$ \\
@@ -1279,9 +1282,14 @@ If the source data defeats the husky encoding's fixed capture window entirely �
 a shared prefix longer than the encoding's own character limit, for instance —
 neither QuickHuskySort nor RadixHuskySort helps regardless of $N$ (\S~\ref{sec:adversarial}):
 both lose to plain System sort, since the encoding pass becomes pure waste and the mandatory cleanup pass must do all the real work anyway.
-And given a large enough workload and spare cores, \textit{ParallelRadixHuskySort}
-widens RadixHuskySort's own advantage further still (\S~\ref{sec:parallel-radix}),
-provided there is enough total work to amortize its own thread-coordination cost.
+And spare cores cut both ways.
+\textit{ParallelRadixHuskySort} widens RadixHuskySort's advantage further still (\S~\ref{sec:parallel-radix}),
+given enough work to amortize its thread-coordination cost —
+but the baseline parallelizes too, and more cheaply:
+\mbox{\textit{Arrays.parallelSort}} is one method call and no new code,
+and with cores to spare it can overtake serial RadixHuskySort outright.
+The comparison that settles the multicore case is parallel against parallel,
+which we have not made on the machine of record.
 
 \section{Conclusion.}
 
