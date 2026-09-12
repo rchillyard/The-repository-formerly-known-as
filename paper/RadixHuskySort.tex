@@ -605,7 +605,7 @@ The advantage grows with the cost of the type's native comparison, since that is
 it grows with the perfection of the encoding, since an imperfect one is paid for by the cleanup pass;
 and it shrinks in the presence of algorithms specialised to the type.
 Dates are the favourable extreme on all three counts --- a provably perfect coding, no cleanup pass at all,
-and no specialised competitor --- and yield the largest margin in the table at 5.9x.
+and no specialised competitor --- and yield the largest margin in the table at 5.5x.
 The string rows show those same three factors varying \emph{within} a single data type,
 which is the more instructive demonstration.
 Chinese words are favourable on the first two counts --- an expensive Unicode comparison,
@@ -1084,19 +1084,24 @@ e.g., \textbf{2.9x} means radix took roughly a third as long —
 rather than as a percentage, since a percentage figure close to or above 100\% becomes ambiguous about exactly which quantity it is a percentage \emph{of}.
 
 \begin{table*}
-  \caption{RHSort's advantage over QuickHuskySort, as a direct multiplier}
+  \caption{RHSort's advantage over the comparison-based husky sort it replaces, as a direct
+    multiplier. Every row uses RHSort/16, so those that appear in Table ~\ref{tab:HS_BM} can be
+    checked by dividing its two husky columns. Eleven-bit digits are a few per cent faster for
+    \textit{Long} and for dates, within the plateau of \S~\ref{sec:radix-results}, but a table
+    mixing widths would match nothing printed. The dates baseline partitions three ways rather than
+    on two pivots.}
   \label{tab:RadixImprovements}
   \begin{tabular}{cll}
     \toprule
     Data Type & N & Advantage over QuickHuskySort \\
     \midrule
-    \texttt{Dates} & 20,000 & 5.9x \\
-    \texttt{Long} & 500,000 & 3.6x \\
+    \texttt{Dates} & 20,000 & 5.5x \\
     \texttt{Integer} & 500,000 & 3.6x \\
+    \texttt{Long} & 500,000 & 3.4x \\
     \texttt{Strings of Chinese words (code-point order)} & 1,000,000 & 3.4x \\
     \texttt{Double} & 500,000 & 3.2x \\
     \texttt{BigInteger} & 500,000 & 2.8x \\
-    \texttt{BigDecimal} & 500,000 & 2.8x \\
+    \texttt{BigDecimal} & 500,000 & 2.7x \\
     \texttt{Strings of English words} & 1,000,000 & 2.6x \\
     \texttt{Tuples} & 500,000 & 2.5x \\
     \texttt{Building permits (composite key)} & 198,900 & 2.1x \\
@@ -1119,7 +1124,7 @@ The spread across that table is itself informative, and follows the three factor
 Chinese names sorted by pinyin order are the smallest margin measured (1.6x),
 because both QuickHuskySort and RadixHuskySort must pay the same cleanup pass for a coding
 that two or three characters of recurring syllables leave badly imperfect.
-Dates show the largest margin (5.9x) because that coding is provably perfect and never needs a cleanup pass at all,
+Dates show the largest margin (5.5x) because that coding is provably perfect and never needs a cleanup pass at all,
 letting RHSort's linear-time advantage show through with nothing else in the way.
 The two lie at opposite ends of the same axis: what separates them is not the data type but the perfection of the encoding.
 
@@ -1220,7 +1225,7 @@ Your situation & Reach for & Evidence \\
       & dual-pivot quicksort & cost of encoding cannot be recouped (\S~\ref{sec:summary}) \\
     The ordering is composite or expensive, \emph{and} the key packs exactly into 64 bits
       & RadixHuskySort; no cleanup pass is required
-      & the largest margins we measure: dates 5.9x, building permits 2.1x over QuickHuskySort \\
+      & the largest margins we measure: dates 5.5x, building permits 2.1x over QuickHuskySort \\
     The ordering is composite or expensive, but the encoding is imperfect
       & RadixHuskySort, even allowing for the cleanup pass
       & that pass costs a sixth to a quarter past $N=100{,}000$, even with nothing to correct
