@@ -1194,8 +1194,8 @@ Against the serial implementation the improvement is resolved at both sizes too,
 Unlike on machine B's eight cores, scaling does not stop at four threads:
 on sixteen uniform cores, eight threads beats four at both sizes,
 reaching 1.51x and 1.37x over a single thread.
-The improvement is resolved at $N=2{,}000{,}000$, where the intervals are clear of one another;
-at $N=10{,}000{,}000$ they just touch, so that size shows the direction rather than settling it.
+It is resolved at $N=2{,}000{,}000$; at $N=10{,}000{,}000$ the intervals just touch,
+so that size shows the direction rather than settling it.
 
 That is still well short of linear, and the shortfall is the more interesting number:
 an eightfold increase in threads buys between 1.37x and 1.51x,
@@ -1328,13 +1328,13 @@ its scaling ceiling past a handful of threads is a property of the design itself
 the fixed sequential cost of combining per-thread histograms once per pass,
 not an artifact of any one machine's particular mix of core types.
 
-HuskySort's advantage is specific to a particular kind of workload rather than universal, and needs
-all three of the following to hold: an array of at least a few hundred elements, growing to a few
-thousand before RadixHuskySort's own per-pass setup cost is repaid (\S~\ref{sec:usecase});
+HuskySort's advantage is specific to a kind of workload rather than universal, and needs all three of
+the following: an array of at least a few hundred elements, growing to a few thousand before
+RadixHuskySort's per-pass setup cost is repaid (\S~\ref{sec:usecase});
 no expectation of pre-existing order, which favours Timsort's adaptivity instead (\S~\ref{sec:summary});
-and a comparison costing more than a single machine-word check --- strings, arbitrary-precision numbers
+and a comparison costing more than a machine-word check --- strings, arbitrary-precision numbers
 and multi-field records, as opposed to \textit{int}, \textit{long} or \textit{double},
-where dual-pivot quicksort already wins outright.
+where dual-pivot quicksort wins outright.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
