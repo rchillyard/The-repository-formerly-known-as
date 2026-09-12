@@ -111,6 +111,37 @@ public class PermitSortBenchmarks {
         return copy;
     }
 
+    /**
+     * The parallel bakeoff, added 2026-09-12. The permits are the strongest case in the paper for
+     * husky coding -- an expensive three-field composite ordering paired with a perfect encoding,
+     * so step 3 never runs -- which makes them the case where a parallel comparison is most worth
+     * having. The Long[] comparison of ParallelRadixSortBenchmarks is the opposite extreme, a cheap
+     * ordering where the encoding has least to offer. See request 9 in doc/Run request for Yunlu.md.
+     * <p>
+     * N is capped at the corpus's own 198,900, which cannot be extended on real data -- an order of
+     * magnitude below the Long[] parallel sizes. Parallel speedup follows total work rather than
+     * element count, though, and a three-field comparator over 198,900 records is a great deal of
+     * work, so the comparison is still meaningful at that size.
+     */
+    @Benchmark
+    public Permit[] systemSortParallel(final PermitState state) {
+        final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
+        Arrays.parallelSort(copy);
+        return copy;
+    }
+
+    @Benchmark
+    public Permit[] parallelRadixHuskySort16_p4(final PermitState state) {
+        final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new ParallelRadixHuskySort<>("p4", 0, 16, PermitCoder.INSTANCE, Arrays::sort, state.config, 4).sort(copy);
+    }
+
+    @Benchmark
+    public Permit[] parallelRadixHuskySort16_p8(final PermitState state) {
+        final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new ParallelRadixHuskySort<>("p8", 0, 16, PermitCoder.INSTANCE, Arrays::sort, state.config, 8).sort(copy);
+    }
+
     @Benchmark
     public Permit[] radixHuskySort8(final PermitState state) {
         final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
