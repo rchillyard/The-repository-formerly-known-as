@@ -918,3 +918,24 @@ is a defect; all are hardening or generalisation.
     2026-09-07 and neither blocks anything; recorded only so the reconstruction of
     `paper/sample-base.bib` from `HuskySort.bbl` is not mistaken later for the original file. The
     original `.bib` was never committed and BibTeX had been failing silently for some time.
+
+33. **No parallel-versus-parallel comparison on strings.** Request 9 (2026-09-12) asks Yunlu to put
+    `Arrays.parallelSort` beside `ParallelRadixHuskySort` in Table `ParallelRadix`, which settles
+    the question on `Long[]` — the type that table measures. It does not settle it on strings,
+    because `ParallelRadixHuskySort` is wired into the benchmarks for `Long[]` only:
+    `StringSortBenchmarks` gained a `systemSortParallel` on 2026-09-12 but has no parallel husky
+    sort to set against it.
+
+    That leaves the gap on the data type where it matters most. Comparing two `Long`s is cheap, so
+    husky coding has least to offer there and the `Long[]` comparison is the unfavourable case for
+    us; the English and Chinese corpora are where an expensive ordering makes the encoding pay, and
+    where a reviewer asking "how does the parallel variant do against `Arrays.parallelSort` on real
+    strings?" currently has no answer.
+
+    What it needs: a `ParallelRadixHuskySort` benchmark over `StringState`, with the same thread
+    counts as the `Long[]` one, at the sizes Table `ParallelRadix` uses. The sorter itself is
+    generic over the coder, so this is benchmark wiring rather than new algorithm work. The reason
+    it is deferred rather than done is the 2026-09-15 deadline, not difficulty.
+
+    Raised by Robin on 2026-09-12, out of the same question that produced request 9: whether a user
+    at $n > 1{,}000{,}000$ would realistically reach for the system sort at all.

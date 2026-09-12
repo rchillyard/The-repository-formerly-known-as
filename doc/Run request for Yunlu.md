@@ -110,6 +110,18 @@ before the 15th rather than from a referee.**
 Do not tune anything to produce either outcome. A result showing `Arrays.parallelSort` ahead of
 ParallelRadixHuskySort is publishable and we would rather print it than discover it in November.
 
+### What this does not settle
+
+It is a `Long[]` comparison, because that is what Table `ParallelRadix` measures. Comparing two
+`Long`s is cheap, so husky coding has least to offer there --- the gain comes only from avoiding the
+boxing indirection, not from replacing an expensive ordering. A win there is therefore a strong
+result and a loss is a weaker signal than it looks.
+
+What it leaves open is the parallel comparison on **strings**, where an expensive ordering is what
+makes the encoding pay. `ParallelRadixHuskySort` is wired into the benchmarks for `Long[]` only, so
+there is nothing to set against `StringSortBenchmarks.systemSortParallel`. That is TODO.md item 33
+and post-deadline work; nothing here is asking you for it.
+
 ### What it changes in the paper
 
 If the expected result holds, Table `ParallelRadix` gains a column and the parallel section gains a
