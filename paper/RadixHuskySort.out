@@ -3,31 +3,31 @@
 \BOOKMARK [1][-]{section.4}{Algorithm.}{}% 3
 \BOOKMARK [2][-]{figure.6}{Overview.}{section.4}% 4
 \BOOKMARK [2][-]{subsection.13}{RadixHuskySort.}{section.4}% 5
-\BOOKMARK [2][-]{subsection.31}{Discussion of Husky Encoding.}{section.4}% 6
-\BOOKMARK [2][-]{subsection.32}{Discussion of p\137crit.}{section.4}% 7
-\BOOKMARK [2][-]{subsection.36}{Why husky coding works.}{section.4}% 8
-\BOOKMARK [1][-]{section.56}{Implementation.}{}% 9
-\BOOKMARK [2][-]{subsection.57}{System Environment.}{section.56}% 10
-\BOOKMARK [1][-]{section.60}{Test Case and Analysis.}{}% 11
-\BOOKMARK [2][-]{subsection.61}{Data Source.}{section.60}% 12
-\BOOKMARK [2][-]{subsection.62}{Analysis.}{section.60}% 13
-\BOOKMARK [1][-]{section.65}{Results and Observations.}{}% 14
-\BOOKMARK [2][-]{subsection.66}{Benchmarks.}{section.65}% 15
-\BOOKMARK [2][-]{subsection.69}{Summary.}{section.65}% 16
-\BOOKMARK [2][-]{subsection.70}{Radix Sort Results.}{section.65}% 17
-\BOOKMARK [2][-]{subsection.73}{Parallel Radix Sort.}{section.65}% 18
-\BOOKMARK [2][-]{subsection.76}{Use-Case Guidance.}{section.65}% 19
-\BOOKMARK [1][-]{section.79}{Conclusion.}{}% 20
-\BOOKMARK [1][-]{section.82}{Appendix.}{}% 21
-\BOOKMARK [2][-]{subsection.83}{The array-access analysis of QuickHuskySort.}{section.82}% 22
-\BOOKMARK [2][-]{subsection.85}{Prior comparison-based sorting algorithms.}{section.82}% 23
-\BOOKMARK [2][-]{subsection.88}{Benchmark environments.}{section.82}% 24
-\BOOKMARK [2][-]{subsection.91}{Discussion of coding accuracy.}{section.82}% 25
-\BOOKMARK [2][-]{subsection.92}{Timsort or insertion sort for the cleanup pass.}{section.82}% 26
-\BOOKMARK [2][-]{subsection.95}{Comparison-sort baselines for the numeric and tuple types.}{section.82}% 27
-\BOOKMARK [2][-]{subsection.98}{The cleanup pass as N grows.}{section.82}% 28
-\BOOKMARK [2][-]{subsection.99}{Building permits: the case study in full.}{section.82}% 29
-\BOOKMARK [2][-]{subsection.100}{Why the two Chinese corpora sit at opposite ends of the table.}{section.82}% 30
-\BOOKMARK [2][-]{subsection.101}{Future work: composite keys, and what a library would have to provide.}{section.82}% 31
-\BOOKMARK [2][-]{subsection.102}{Adversarial inputs.}{section.82}% 32
-\BOOKMARK [2][-]{subsection.107}{Handling of partially-sorted arrays.}{section.82}% 33
+\BOOKMARK [2][-]{subsection.24}{Discussion of Husky Encoding.}{section.4}% 6
+\BOOKMARK [2][-]{subsection.25}{Discussion of p\137crit.}{section.4}% 7
+\BOOKMARK [2][-]{subsection.29}{Why husky coding works.}{section.4}% 8
+\BOOKMARK [1][-]{section.49}{Implementation.}{}% 9
+\BOOKMARK [2][-]{subsection.50}{System Environment.}{section.49}% 10
+\BOOKMARK [1][-]{section.53}{Test Case and Analysis.}{}% 11
+\BOOKMARK [2][-]{subsection.54}{Data Source.}{section.53}% 12
+\BOOKMARK [2][-]{subsection.55}{Analysis.}{section.53}% 13
+\BOOKMARK [1][-]{section.58}{Results and Observations.}{}% 14
+\BOOKMARK [2][-]{subsection.59}{Benchmarks.}{section.58}% 15
+\BOOKMARK [2][-]{subsection.62}{Summary.}{section.58}% 16
+\BOOKMARK [2][-]{subsection.63}{Radix Sort Results.}{section.58}% 17
+\BOOKMARK [2][-]{subsection.66}{Parallel Radix Sort.}{section.58}% 18
+\BOOKMARK [2][-]{subsection.69}{Use-Case Guidance.}{section.58}% 19
+\BOOKMARK [1][-]{section.72}{Conclusion.}{}% 20
+\BOOKMARK [1][-]{section.75}{Appendix.}{}% 21
+\BOOKMARK [2][-]{subsection.76}{The array-access analysis of QuickHuskySort.}{section.75}% 22
+\BOOKMARK [2][-]{subsection.78}{Prior comparison-based sorting algorithms.}{section.75}% 23
+\BOOKMARK [2][-]{subsection.81}{Benchmark environments.}{section.75}% 24
+\BOOKMARK [2][-]{subsection.84}{Discussion of coding accuracy.}{section.75}% 25
+\BOOKMARK [2][-]{subsection.85}{Timsort or insertion sort for the cleanup pass.}{section.75}% 26
+\BOOKMARK [2][-]{subsection.88}{Comparison-sort baselines for the numeric and tuple types.}{section.75}% 27
+\BOOKMARK [2][-]{subsection.91}{The cleanup pass as N grows.}{section.75}% 28
+\BOOKMARK [2][-]{subsection.92}{Building permits: the case study in full.}{section.75}% 29
+\BOOKMARK [2][-]{subsection.93}{Why the two Chinese corpora sit at opposite ends of the table.}{section.75}% 30
+\BOOKMARK [2][-]{subsection.94}{Future work: composite keys, and what a library would have to provide.}{section.75}% 31
+\BOOKMARK [2][-]{subsection.95}{Adversarial inputs.}{section.75}% 32
+\BOOKMARK [2][-]{subsection.100}{Handling of partially-sorted arrays.}{section.75}% 33

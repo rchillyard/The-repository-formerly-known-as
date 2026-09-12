@@ -508,7 +508,7 @@ Step 2's quicksort is $\textbf{O}(N \log N)$, but the codes it sorts are fixed-w
 and radix sort can sort $k$-bit keys in $\textbf{O}(N \cdot \frac{k}{b})$ time using $b$-bit digits ---
 linear in $N$ for any fixed digit width $b$.
 So step 2 can be linear too.
-This section describes RadixHuskySort, which makes it so (Algorithm ~\ref{alg:the_alg5}).
+This section describes RadixHuskySort, which makes it so (Algorithm ~\ref{alg:radixhuskysort}).
 
 Radix sort's linear-time advantage rests on a further assumption beyond fixed key width:
 that a digit can be turned into an array index in $\textbf{O}(1)$ time,
@@ -673,27 +673,14 @@ shows it.
  \If{coding.perfect}{return ys\;}
  Arrays.sort(ys)\;
  \caption{RadixHuskySort.sort}
- \label{alg:the_alg5}
+ \label{alg:radixhuskysort}
 \end{algorithm2e}
 
-\begin{algorithm2e}
-\KwIn{\it{longs} as an array of long}
-\KwIn{\it{b} as the number of bits per digit}
-\KwOut{\it{index}, a permutation of $0, \ldots, \textit{longs.length} - 1$ such that
-  \textit{longs[index[$\cdot$]]} is sorted}
- biased[i] = longs[i] {\bf XOR} Long.MIN\_VALUE, for each i\;
- index = [0, 1, \ldots, longs.length - 1]\;
- \For{digit = 0 \KwTo (64 / b) - 1}{
- index = stableCountingSortPass(biased, index, digit, b)\;
- }
- \caption{radixSortIndices (LSD, deferred permutation)}
- \label{alg:the_alg6}
-\end{algorithm2e}
 
 \subsection{Discussion of Husky Encoding.}
 \label{sec:coding}
 
-Step 1b requires the definition of a 64-bit husky code (refer to Algorithm ~\ref{alg:the_alg2}).
+Step 1b requires the definition of a 64-bit husky code (refer to Algorithm ~\ref{alg:huskyencode}).
 Its defining property is monotonicity: if $x$ and $y$ compare equal then
 $x.huskyCode() = y.huskyCode()$, and if $x > y$ then $x.huskyCode() \geq y.huskyCode()$ --- the
 latter holding with probability $1 - p$ and failing with probability $p$.
@@ -839,7 +826,7 @@ Where it was perfect, no inversions remain and the pass is skipped altogether.
  \caption{huskyEncode. Perfection depends on the data, not only on the coder, so it is settled as the
    codes are computed. \textit{perfectFor} tests one element in constant time: a length comparison for
    a string, the coder's own constant where perfection is data-independent.}
- \label{alg:the_alg2}
+ \label{alg:huskyencode}
 \end{algorithm2e}
 
 
