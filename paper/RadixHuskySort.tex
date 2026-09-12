@@ -637,11 +637,13 @@ At $N=1{,}000{,}000$ three runs on the machine of record give 1.00x, 1.05x and 1
 so at the largest size we measure the two algorithms are level to within the spread between runs,
 and the direction should be read from the middle size rather than the largest.
 We give this result because it locates the boundary rather than obscuring it.
-MSD earns it on a corpus that suits it and within limits that are its own:
-our implementation indexes an alphabet of 256 characters beyond ASCII,
-which English text fits and neither Chinese corpus does,
-and it offers no pinyin ordering,
-so there is no MSD row for either Chinese corpus.
+MSD earns it on a corpus that suits it, and the limits that keep it off the others are ours rather
+than the algorithm's: our alphabet reserves 256 positions for characters beyond ASCII, which English
+text fits and neither Chinese corpus does, and the collation we gave it is code-point order rather
+than pinyin.
+Neither ceiling is inherent --- a wider alphabet and a pinyin-aware MSD are both implementable, and we
+did exactly that for the multikey baseline below --- so the absent Chinese rows record work we did not
+do, not a limitation of MSD radix sort.
 RadixHuskySort reaches every corpus in this paper through one encoding,
 with no per-alphabet provision and no per-type implementation.
 That is the claim being made, and the English result bounds it without contradicting it.
