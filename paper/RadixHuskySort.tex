@@ -184,7 +184,7 @@
 %% derive the margin from labelwidth + labelsep, so the label stays inside the column.
 \setlist[steps, 1]{label = Step \arabic*:, align = left,
                    labelwidth = 4em, labelsep = 0.5em, leftmargin = !}
-\usepackage{listings}
+%% [listings removed 2026-09-12 with the last lstlisting]
 \usepackage{graphicx}
 \usepackage{latexsym}
 \usepackage{etoolbox}
@@ -192,30 +192,7 @@
 \usepackage{tabularx}
 
 
-%New colors defined below
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-%Code listing style named "mystyle"
-\lstdefinestyle{mystyle}{
-  backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
-  keywordstyle=\color{magenta},
-  numberstyle=\tiny\color{codegray},
-  stringstyle=\color{codepurple},
-  basicstyle=\ttfamily\footnotesize,
-  breakatwhitespace=false,         
-  breaklines=true,                 
-  captionpos=b,                    
-  keepspaces=true,                 
-  numbers=left,                    
-  numbersep=5pt,                  
-  showspaces=false,                
-  showstringspaces=false,
-  showtabs=false,                  
-  tabsize=2
-}
+%% [mystyle listing style removed with the listings package]
 
 %------------------------------------------------------------------------------
 % Code for ORCID iD
@@ -254,7 +231,6 @@
 
 
 %"mystyle" code listing set
-\lstset{style=mystyle}
 
 \date{ }
 
@@ -933,9 +909,8 @@ which differ in vendor, instruction set, core design and JVM generation.
 
 \subsection{Data Source.}
 \label{sec:data-source}
-The English and Chinese strings come from the Leipzig Corpora Collection~\cite{GOLDHAHN12.327}; for
-each we take the appropriate \emph{sentences.txt} file and break it into strings as shown in
-Listing~\ref{lst:DS}.
+The English and Chinese strings come from the Leipzig Corpora Collection~\cite{GOLDHAHN12.327}, taking the appropriate
+\emph{sentences.txt} file and splitting each line on whitespace and punctuation.
 Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a
 separate corpus~\cite{wainshine2020chinesenames}.
 The building-permit records of \S~\ref{sec:radix-results} are 198,900 permits filed between January
@@ -947,39 +922,6 @@ They are included because their distribution is the city's rather than ours.
 Every other dataset in this paper is generated: pseudo-random numbers, dates and tuples.
 
 
-\begin{lstlisting}[caption={Data Source},label={lst:DS},language=Java]
-private static String[] getLeipzigWordsFromResource(final String resource) {
-    return getWords(resource, HuskySortBenchmark::getLeipzigWords);
-}
-private static List<String> getLeipzigWords(final String line) {
-    return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRINGSPLITTER);
-}
-final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-public static final Pattern REGEX_STRINGSPLITTER = Pattern.compile("[\\s\\p{Punct}\\uFF0C]");
-
-
-static List<String> splitLineIntoStrings(final String line, final Pattern lineMatcher, final Pattern stringsplitter) {
-    final Matcher matcher = lineMatcher.matcher(line);
-    if (matcher.find()) return Arrays.asList(stringsplitter.split(matcher.group(1)));
-    else return new ArrayList<>();
-}
-
-static String[] getWords(final String resource, final Function<String, List<String>> stringListFunction) {
-    try {
-        File file = new File(getPathname(resource, DutchHuskySort.class));
-        return getWordArray(file, stringListFunction, 2);
-    } catch (FileNotFoundException e) {
-        logger.warn("Cannot find resource: "+resource, e);
-        return new String[0];
-    }
-}
-    } catch (final Exception e) {
-        throw new RuntimeException(e);
-    }
-}
-
-
-\end{lstlisting}
 
 \subsection{Analysis.}
 \label{sec:analysis}
