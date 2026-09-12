@@ -661,9 +661,9 @@ and code-point order keeps that row comparable with the English one.
 A fair comparison for the names requires a pinyin-aware MultikeyQuicksort.
 We extended it with the same syllable-then-tone character key the pinyin encoding of \S~\ref{sec:radix} already uses,
 restricted the comparison to the three pinyin-aware sorters, and re-ran it.
-RHSort is faster than the repaired multikey quicksort by 1.57x, 1.83x and 2.09x at $N = 32{,}000$,
+RHSort is faster than the repaired multikey quicksort by 1.54x, 1.80x and 2.08x at $N = 32{,}000$,
 $200{,}000$ and $1{,}000{,}000$, and QuickHuskySort by 1.33x, 1.49x and 1.27x.
-Two independent runs on the machine of record agree to within two hundredths of those multipliers.
+Two independent runs on the machine of record agree to within seven hundredths of those multipliers.
 Note that the RHSort margin grows with $N$ while QuickHuskySort's does not:
 the linear second phase keeps paying as the array grows where a linearithmic one cannot,
 which is the same pattern the natural-order corpora show and the clearest form in which this corpus
@@ -974,8 +974,8 @@ and $b = 16$ (four digit passes, near the middle of the digit-width plateau foun
 see \S~\ref{sec:radix-results}):
 \[A_r = 27 N\]
 Table ~\ref{tab:Comparison} extends the earlier comparison with this term.
-At $N = 1{,}000{,}000$, $A_r \approx 27{,}000{,}000$ against $A_h \approx 101{,}000{,}000$ and $A_m \approx 161{,}000{,}000$ —
-a predicted advantage of roughly 3.7x over QuickHuskySort,
+At $N = 1{,}000{,}000$, $A_r \approx 27{,}000{,}000$ against $A_h \approx 97{,}000{,}000$ and $A_m \approx 161{,}000{,}000$ —
+a predicted advantage of roughly 3.6x over QuickHuskySort,
 consistent with the 2-4x speedups actually measured (\S~\ref{sec:radix-results}).
 The model does predict one caveat:
 equating $A_r$ and $A_h$ gives a theoretical break-even around $N \approx 17$,
@@ -991,10 +991,10 @@ but it is worth stating rather than leaving the model looking like radix wins un
     \toprule
     $N$ & $N \ln N$ & merge sort & QuickHuskySort & RHSort \\
     \midrule
-     4 & 6 & 72 & 72 & 108 \\
-     1,000 & 6,908 & 81,439 & 55,075 & 27,000 \\
-     1,000,000 & 13,815,511 & 160,878,371 & 101,149,455 & 27,000,000 \\
-     1,000,000,000 & 20,723,265,837 & 240,317,557,125 & 147,224,183,132 & 27,000,000,000 \\
+     4 & 6 & 72 & 71 & 108 \\
+     1,000 & 6,908 & 81,439 & 53,210 & 27,000 \\
+     1,000,000 & 13,815,511 & 160,878,371 & 97,419,268 & 27,000,000 \\
+     1,000,000,000 & 20,723,265,837 & 240,317,557,125 & 141,628,901,356 & 27,000,000,000 \\
 
     \bottomrule
   \end{tabular}
