@@ -50,7 +50,7 @@
 \citation{GOLDHAHN12.327}
 \@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces RadixHuskySort.sort. The digit passes reorder only \textit  {index}, an \textit  {int[]}, so the payload is permuted once at the end rather than once per digit.}}{5}{algocf.25}\protected@file@percent }
 \newlabel{alg:radixhuskysort}{{1}{5}{RadixHuskySort}{algocf.25}{}}
-\newlabel{alg:radixhuskysort@cref}{{[algocf][1][]1}{[1][4][]5}}
+\newlabel{alg:radixhuskysort@cref}{{[algocf][1][]1}{[1][5][]5}}
 \newlabel{sec:coding}{{3.3}{5}{Discussion of Husky Encoding}{subsection.26}{}}
 \newlabel{sec:coding@cref}{{[subsection][3][3]3.3}{[1][5][]5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Discussion of Husky Encoding.}{5}{subsection.26}\protected@file@percent }
@@ -61,17 +61,17 @@
 \newlabel{sec:why-husky}{{3.5}{6}{Why husky coding works}{subsection.31}{}}
 \newlabel{sec:why-husky@cref}{{[subsection][5][3]3.5}{[1][6][]6}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Why husky coding works.}{6}{subsection.31}\protected@file@percent }
-\@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces huskyEncode. Perfection depends on the data, not only on the coder, so it is settled as the codes are computed. \textit  {perfectFor} tests one element in constant time: a length comparison for a string, the coder's own constant where perfection is data-independent.}}{6}{algocf.40}\protected@file@percent }
-\newlabel{alg:huskyencode}{{2}{6}{Why husky coding works}{algocf.40}{}}
-\newlabel{alg:huskyencode@cref}{{[algocf][2][]2}{[1][6][]6}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation.}{6}{section.51}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}System Environment.}{6}{subsection.52}\protected@file@percent }
 \citation{GOLDHAHN12.327}
 \citation{wainshine2020chinesenames}
 \citation{sf-building-permits}
+\@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces huskyEncode. Perfection depends on the data, not only on the coder, so it is settled as the codes are computed. \textit  {perfectFor} tests one element in constant time: a length comparison for a string, the coder's own constant where perfection is data-independent.}}{7}{algocf.40}\protected@file@percent }
+\newlabel{alg:huskyencode}{{2}{7}{Why husky coding works}{algocf.40}{}}
+\newlabel{alg:huskyencode@cref}{{[algocf][2][]2}{[1][6][]7}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces A composite husky coder: \textit  {PermitCoder}. \textit  {encodeString} packs \textit  {width} symbols of \textit  {bits} each, right-padding with zero.}}{7}{algocf.50}\protected@file@percent }
 \newlabel{alg:permitcoder}{{3}{7}{Why husky coding works}{algocf.50}{}}
 \newlabel{alg:permitcoder@cref}{{[algocf][3][]3}{[1][6][]7}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation.}{7}{section.51}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}System Environment.}{7}{subsection.52}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces String-encoding constants}}{7}{table.53}\protected@file@percent }
 \newlabel{tab:EncodingConstants}{{4.1}{7}{String-encoding constants}{table.53}{}}
 \newlabel{tab:EncodingConstants@cref}{{[table][1][4]4.1}{[1][7][]7}}
@@ -96,9 +96,9 @@
 \@writefile{lot}{\contentsline {table}{\numberline {6.1}{\ignorespaces Sort times by data type (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$. For Chinese names the system-sort column is a system sort performing the same pinyin ordering; code-point order is a different and much cheaper task (\S  \nobreakspace  {}\ref  {sec:radix-results}).}}{9}{table.62}\protected@file@percent }
 \newlabel{tab:HS_BM}{{6.1}{9}{Sort times by data type (JMH, ms, mean $\pm $ 99.9\% CI). Numeric types at $N=500{,}000$. For Chinese names the system-sort column is a system sort performing the same pinyin ordering; code-point order is a different and much cheaper task (\S ~\ref {sec:radix-results})}{table.62}{}}
 \newlabel{tab:HS_BM@cref}{{[table][1][6]6.1}{[1][8][]9}}
-\@writefile{lot}{\contentsline {table}{\numberline {6.2}{\ignorespaces RHSort's advantage over QuickHuskySort, as a direct multiplier}}{9}{table.66}\protected@file@percent }
-\newlabel{tab:RadixImprovements}{{6.2}{9}{RHSort's advantage over QuickHuskySort, as a direct multiplier}{table.66}{}}
-\newlabel{tab:RadixImprovements@cref}{{[table][2][6]6.2}{[1][8][]9}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.2}{\ignorespaces RHSort's advantage over QuickHuskySort, as a direct multiplier}}{10}{table.66}\protected@file@percent }
+\newlabel{tab:RadixImprovements}{{6.2}{10}{RHSort's advantage over QuickHuskySort, as a direct multiplier}{table.66}{}}
+\newlabel{tab:RadixImprovements@cref}{{[table][2][6]6.2}{[1][9][]10}}
 \newlabel{sec:parallel-radix}{{6.4}{10}{Parallel Radix Sort}{subsection.68}{}}
 \newlabel{sec:parallel-radix@cref}{{[subsection][4][6]6.4}{[1][10][]10}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Parallel Radix Sort.}{10}{subsection.68}\protected@file@percent }
@@ -108,9 +108,9 @@
 \@writefile{lot}{\contentsline {table}{\numberline {6.3}{\ignorespaces Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads}}{11}{table.69}\protected@file@percent }
 \newlabel{tab:ParallelRadix}{{6.3}{11}{Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads}{table.69}{}}
 \newlabel{tab:ParallelRadix@cref}{{[table][3][6]6.3}{[1][10][]11}}
-\@writefile{lot}{\contentsline {table}{\numberline {6.4}{\ignorespaces Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.}}{11}{table.72}\protected@file@percent }
-\newlabel{tab:Guidance}{{6.4}{11}{Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are}{table.72}{}}
-\newlabel{tab:Guidance@cref}{{[table][4][6]6.4}{[1][10][]11}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion.}{11}{section.74}\protected@file@percent }
+\newlabel{sec:conclusion-dp}{{7}{11}{Conclusion}{section.74}{}}
+\newlabel{sec:conclusion-dp@cref}{{[section][7][]7}{[1][11][]11}}
 \bibstyle{siamplain}
 \bibdata{sample-base}
 \bibcite{10.1145/48529.48535}{1}
@@ -118,10 +118,10 @@
 \bibcite{10.1002/spe.4380231105}{3}
 \bibcite{314161.314321}{4}
 \bibcite{sf-building-permits}{5}
+\@writefile{lot}{\contentsline {table}{\numberline {6.4}{\ignorespaces Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are.}}{12}{table.72}\protected@file@percent }
+\newlabel{tab:Guidance}{{6.4}{12}{Which sort to reach for. The situations are ordered by how much they decide, and array size settles nothing until all of them are}{table.72}{}}
+\newlabel{tab:Guidance@cref}{{[table][4][6]6.4}{[1][11][]12}}
 \bibcite{814600}{6}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion.}{12}{section.74}\protected@file@percent }
-\newlabel{sec:conclusion-dp}{{7}{12}{Conclusion}{section.74}{}}
-\newlabel{sec:conclusion-dp@cref}{{[section][7][]7}{[1][12][]12}}
 \bibcite{GOLDHAHN12.327}{7}
 \bibcite{huskysort2020}{8}
 \bibcite{10.1145/366622.366644}{9}
@@ -152,34 +152,34 @@
 \newlabel{sec:cleanup-choice}{{A.5}{14}{Timsort or insertion sort for the cleanup pass}{subsection.87}{}}
 \newlabel{sec:cleanup-choice@cref}{{[subsection][5][1]A.5}{[1][14][]14}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Timsort or insertion sort for the cleanup pass.}{14}{subsection.87}\protected@file@percent }
-\newlabel{sec:comparison-baselines}{{A.6}{14}{Comparison-sort baselines for the numeric and tuple types}{subsection.90}{}}
-\newlabel{sec:comparison-baselines@cref}{{[subsection][6][1]A.6}{[1][14][]14}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Comparison-sort baselines for the numeric and tuple types.}{14}{subsection.90}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {A.1}{\ignorespaces Prior comparison-based sorting algorithms}}{15}{table.81}\protected@file@percent }
 \newlabel{tab:PriorAlgorithms}{{A.1}{15}{Prior comparison-based sorting algorithms}{table.81}{}}
 \newlabel{tab:PriorAlgorithms@cref}{{[table][1][1]A.1}{[1][14][]15}}
 \@writefile{lot}{\contentsline {table}{\numberline {A.2}{\ignorespaces The three benchmark environments. Machine A supplies the comparison-sort results of \S  \nobreakspace  {}\ref  {sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine of record, every figure quoted in this paper. Machine C's cache geometry is not exposed to the guest, hence the dash; machine B's is given per core cluster, since its two clusters differ and the benchmarks run on the performance cores.}}{15}{table.84}\protected@file@percent }
 \newlabel{tab:SysEnv}{{A.2}{15}{The three benchmark environments. Machine A supplies the comparison-sort results of \S ~\ref {sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine of record, every figure quoted in this paper. Machine C's cache geometry is not exposed to the guest, hence the dash; machine B's is given per core cluster, since its two clusters differ and the benchmarks run on the performance cores}{table.84}{}}
 \newlabel{tab:SysEnv@cref}{{[table][2][1]A.2}{[1][14][]15}}
-\@writefile{lot}{\contentsline {table}{\numberline {A.3}{\ignorespaces Timsort or insertion sort as the cleanup pass (time in milliseconds)}}{15}{table.88}\protected@file@percent }
-\newlabel{tab:TimvsInsertion}{{A.3}{15}{Timsort or insertion sort as the cleanup pass (time in milliseconds)}{table.88}{}}
-\newlabel{tab:TimvsInsertion@cref}{{[table][3][1]A.3}{[1][14][]15}}
-\newlabel{sec:cleanup-scaling}{{A.7}{16}{The cleanup pass as \texorpdfstring {$N$}{N} grows}{subsection.93}{}}
-\newlabel{sec:cleanup-scaling@cref}{{[subsection][7][1]A.7}{[1][16][]16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}The cleanup pass as $N$ grows.}{16}{subsection.93}\protected@file@percent }
+\newlabel{sec:comparison-baselines}{{A.6}{15}{Comparison-sort baselines for the numeric and tuple types}{subsection.90}{}}
+\newlabel{sec:comparison-baselines@cref}{{[subsection][6][1]A.6}{[1][15][]15}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Comparison-sort baselines for the numeric and tuple types.}{15}{subsection.90}\protected@file@percent }
+\newlabel{sec:cleanup-scaling}{{A.7}{15}{The cleanup pass as \texorpdfstring {$N$}{N} grows}{subsection.93}{}}
+\newlabel{sec:cleanup-scaling@cref}{{[subsection][7][1]A.7}{[1][15][]15}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}The cleanup pass as $N$ grows.}{15}{subsection.93}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {A.3}{\ignorespaces Timsort or insertion sort as the cleanup pass (time in milliseconds)}}{16}{table.88}\protected@file@percent }
+\newlabel{tab:TimvsInsertion}{{A.3}{16}{Timsort or insertion sort as the cleanup pass (time in milliseconds)}{table.88}{}}
+\newlabel{tab:TimvsInsertion@cref}{{[table][3][1]A.3}{[1][14][]16}}
+\@writefile{lot}{\contentsline {table}{\numberline {A.4}{\ignorespaces Two further comparison sorts, measured on the same arrays as Table \nobreakspace  {}\ref  {tab:HS_BM} and directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm $ 99.9\% CI; numeric types at $N=500{,}000$). \emph  {Dual-pivot quicksort} is Yaroslavskiy's algorithm transcribed for objects, the JDK applying it only to primitives; \emph  {quicksort (raw)} unboxes each element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass --- and so bounds from below what any husky variant could achieve on these types. It was measured for the numeric types only; the final block is the Permit tuple.}}{16}{table.91}\protected@file@percent }
+\newlabel{tab:ComparisonBaselines}{{A.4}{16}{Two further comparison sorts, measured on the same arrays as Table ~\ref {tab:HS_BM} and directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm $ 99.9\% CI; numeric types at $N=500{,}000$). \emph {Dual-pivot quicksort} is Yaroslavskiy's algorithm transcribed for objects, the JDK applying it only to primitives; \emph {quicksort (raw)} unboxes each element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass --- and so bounds from below what any husky variant could achieve on these types. It was measured for the numeric types only; the final block is the Permit tuple}{table.91}{}}
+\newlabel{tab:ComparisonBaselines@cref}{{[table][4][1]A.4}{[1][15][]16}}
 \newlabel{sec:permits}{{A.8}{16}{Building permits: the case study in full}{subsection.94}{}}
-\newlabel{sec:permits@cref}{{[subsection][8][1]A.8}{[1][16][]16}}
+\newlabel{sec:permits@cref}{{[subsection][8][1]A.8}{[1][15][]16}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.8}Building permits: the case study in full.}{16}{subsection.94}\protected@file@percent }
-\newlabel{sec:chinese-coders}{{A.9}{16}{Why the two Chinese corpora sit at opposite ends of the table}{subsection.95}{}}
-\newlabel{sec:chinese-coders@cref}{{[subsection][9][1]A.9}{[1][16][]16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.9}Why the two Chinese corpora sit at opposite ends of the table.}{16}{subsection.95}\protected@file@percent }
-\newlabel{sec:composite-future}{{A.10}{16}{Future work: composite keys, and what a library would have to provide}{subsection.96}{}}
-\newlabel{sec:composite-future@cref}{{[subsection][10][1]A.10}{[1][16][]16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.10}Future work: composite keys, and what a library would have to provide.}{16}{subsection.96}\protected@file@percent }
 \citation{10.1002/spe.4380231105}
-\@writefile{lot}{\contentsline {table}{\numberline {A.4}{\ignorespaces Two further comparison sorts, measured on the same arrays as Table \nobreakspace  {}\ref  {tab:HS_BM} and directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm $ 99.9\% CI; numeric types at $N=500{,}000$). \emph  {Dual-pivot quicksort} is Yaroslavskiy's algorithm transcribed for objects, the JDK applying it only to primitives; \emph  {quicksort (raw)} unboxes each element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass --- and so bounds from below what any husky variant could achieve on these types. It was measured for the numeric types only; the final block is the Permit tuple.}}{17}{table.91}\protected@file@percent }
-\newlabel{tab:ComparisonBaselines}{{A.4}{17}{Two further comparison sorts, measured on the same arrays as Table ~\ref {tab:HS_BM} and directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm $ 99.9\% CI; numeric types at $N=500{,}000$). \emph {Dual-pivot quicksort} is Yaroslavskiy's algorithm transcribed for objects, the JDK applying it only to primitives; \emph {quicksort (raw)} unboxes each element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass --- and so bounds from below what any husky variant could achieve on these types. It was measured for the numeric types only; the final block is the Permit tuple}{table.91}{}}
-\newlabel{tab:ComparisonBaselines@cref}{{[table][4][1]A.4}{[1][16][]17}}
+\newlabel{sec:chinese-coders}{{A.9}{17}{Why the two Chinese corpora sit at opposite ends of the table}{subsection.95}{}}
+\newlabel{sec:chinese-coders@cref}{{[subsection][9][1]A.9}{[1][17][]17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.9}Why the two Chinese corpora sit at opposite ends of the table.}{17}{subsection.95}\protected@file@percent }
+\newlabel{sec:composite-future}{{A.10}{17}{Future work: composite keys, and what a library would have to provide}{subsection.96}{}}
+\newlabel{sec:composite-future@cref}{{[subsection][10][1]A.10}{[1][17][]17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.10}Future work: composite keys, and what a library would have to provide.}{17}{subsection.96}\protected@file@percent }
 \newlabel{sec:adversarial}{{A.11}{17}{Adversarial inputs}{subsection.97}{}}
 \newlabel{sec:adversarial@cref}{{[subsection][11][1]A.11}{[1][17][]17}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.11}Adversarial inputs.}{17}{subsection.97}\protected@file@percent }

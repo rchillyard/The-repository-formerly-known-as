@@ -536,7 +536,9 @@ and least-significant-digit (LSD) radix sort's per-pass counting-sort structure 
 
 Instead, RadixHuskySort's step 2 carries only an $\textit{int[]}$ index array through the LSD digit passes,
 alongside the (unmodified) long array;
-each pass is a stable counting sort keyed on one $b$-bit digit of the (already-computed) husky code,
+each pass is a stable counting sort keyed on one $b$-bit digit of the (already-computed) husky code:
+a histogram of how many indices carry each of the $2^b$ digit values, a prefix sum turning that into a
+starting offset per value, then a scatter of the indices into their new order ---
 reordering the index array rather than the codes or the objects themselves.
 Once all $\frac{64}{b}$ passes are complete, the index array holds the sorting permutation,
 and a single $\textbf{O}(N)$ pass builds the final object array by reading $\textit{xs[index[i]]}$ for each $i$.
