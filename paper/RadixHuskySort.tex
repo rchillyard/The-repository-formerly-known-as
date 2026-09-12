@@ -534,9 +534,10 @@ this would still usually beat Introsort's swap cost,
 but it needlessly reintroduces exactly the kind of payload-movement overhead this whole design exists to avoid,
 and least-significant-digit (LSD) radix sort's per-pass counting-sort structure makes a better option available.
 
-Instead, RadixHuskySort's step 2 carries only an $\textit{int[]}$ index array through the LSD digit passes,
-alongside the (unmodified) long array;
-each pass is a stable counting sort keyed on one $b$-bit digit of the (already-computed) husky code:
+Instead, RadixHuskySort's step 2 carries only an $\textit{int[]}$ index array through the LSD digit
+passes (Algorithm ~\ref{alg:radixhuskysort}), alongside the (unmodified) long array;
+each pass is a textbook stable counting sort keyed on one $b$-bit digit of the (already-computed)
+husky code:
 a histogram of how many indices carry each of the $2^b$ digit values, a prefix sum turning that into a
 starting offset per value, then a scatter of the indices into their new order ---
 reordering the index array rather than the codes or the objects themselves.
