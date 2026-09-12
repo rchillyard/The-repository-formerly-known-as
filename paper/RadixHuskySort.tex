@@ -666,13 +666,21 @@ shows it.
 \begin{algorithm2e}
 \KwIn{\it{xs} as an array of object X which extends Comparable<X>}
 \KwIn{\it{b} as the number of bits per digit}
- coding = huskyCoder.huskyEncode(xs)\;
- longs = coding.longs\;
- index = radixSortIndices(longs, b)\;
- ys = permute(xs, index)\;
- \If{coding.perfect}{return ys\;}
- Arrays.sort(ys)\;
- \caption{RadixHuskySort.sort}
+\KwOut{\it{xs}, sorted}
+ coding = huskyCoder.huskyEncode(xs) \tcp*{Algorithm ~\ref{alg:huskyencode}}
+ \tcp{flip the sign bit, so unsigned digit order matches signed order}
+ biased[i] = coding.longs[i] {\bf XOR} Long.MIN\_VALUE, for each i\;
+ index = [0, 1, \ldots, xs.length - 1]\;
+ \For{digit = 0 \KwTo (64 / b) - 1}{
+   index = stableCountingSortPass(biased, index, digit, b)\;
+ }
+ \tcp{the only pass that moves object references}
+ source = copy of xs\;
+ xs[i] = source[index[i]], for each i\;
+ \lIf{{\bf not} coding.perfect}{Arrays.sort(xs)}
+ \Return xs\;
+ \caption{RadixHuskySort.sort. The digit passes reorder only \textit{index}, an \textit{int[]}, so
+   the payload is permuted once at the end rather than once per digit.}
  \label{alg:radixhuskysort}
 \end{algorithm2e}
 
