@@ -6,28 +6,28 @@
 \BOOKMARK [2][-]{subsection.31}{Discussion of Husky Encoding.}{section.4}% 6
 \BOOKMARK [2][-]{subsection.32}{Discussion of p\137crit.}{section.4}% 7
 \BOOKMARK [2][-]{subsection.36}{Why husky coding works.}{section.4}% 8
-\BOOKMARK [1][-]{section.54}{Implementation.}{}% 9
-\BOOKMARK [2][-]{subsection.55}{System Environment.}{section.54}% 10
-\BOOKMARK [1][-]{section.58}{Test Case and Analysis.}{}% 11
-\BOOKMARK [2][-]{subsection.59}{Data Source.}{section.58}% 12
-\BOOKMARK [2][-]{subsection.92}{Analysis.}{section.58}% 13
-\BOOKMARK [1][-]{section.95}{Results and Observations.}{}% 14
-\BOOKMARK [2][-]{subsection.96}{Benchmarks.}{section.95}% 15
-\BOOKMARK [2][-]{subsection.99}{Summary.}{section.95}% 16
-\BOOKMARK [2][-]{subsection.100}{Radix Sort Results.}{section.95}% 17
-\BOOKMARK [2][-]{subsection.103}{Parallel Radix Sort.}{section.95}% 18
-\BOOKMARK [2][-]{subsection.106}{Use-Case Guidance.}{section.95}% 19
-\BOOKMARK [1][-]{section.109}{Conclusion.}{}% 20
-\BOOKMARK [1][-]{section.112}{Appendix.}{}% 21
-\BOOKMARK [2][-]{subsection.113}{The array-access analysis of QuickHuskySort.}{section.112}% 22
-\BOOKMARK [2][-]{subsection.115}{Prior comparison-based sorting algorithms.}{section.112}% 23
-\BOOKMARK [2][-]{subsection.118}{Benchmark environments.}{section.112}% 24
-\BOOKMARK [2][-]{subsection.121}{Discussion of coding accuracy.}{section.112}% 25
-\BOOKMARK [2][-]{subsection.122}{Timsort or insertion sort for the cleanup pass.}{section.112}% 26
-\BOOKMARK [2][-]{subsection.125}{Comparison-sort baselines for the numeric and tuple types.}{section.112}% 27
-\BOOKMARK [2][-]{subsection.128}{The cleanup pass as N grows.}{section.112}% 28
-\BOOKMARK [2][-]{subsection.129}{Building permits: the case study in full.}{section.112}% 29
-\BOOKMARK [2][-]{subsection.130}{Why the two Chinese corpora sit at opposite ends of the table.}{section.112}% 30
-\BOOKMARK [2][-]{subsection.131}{Future work: composite keys, and what a library would have to provide.}{section.112}% 31
-\BOOKMARK [2][-]{subsection.132}{Adversarial inputs.}{section.112}% 32
-\BOOKMARK [2][-]{subsection.137}{Handling of partially-sorted arrays.}{section.112}% 33
+\BOOKMARK [1][-]{section.56}{Implementation.}{}% 9
+\BOOKMARK [2][-]{subsection.57}{System Environment.}{section.56}% 10
+\BOOKMARK [1][-]{section.60}{Test Case and Analysis.}{}% 11
+\BOOKMARK [2][-]{subsection.61}{Data Source.}{section.60}% 12
+\BOOKMARK [2][-]{subsection.94}{Analysis.}{section.60}% 13
+\BOOKMARK [1][-]{section.97}{Results and Observations.}{}% 14
+\BOOKMARK [2][-]{subsection.98}{Benchmarks.}{section.97}% 15
+\BOOKMARK [2][-]{subsection.101}{Summary.}{section.97}% 16
+\BOOKMARK [2][-]{subsection.102}{Radix Sort Results.}{section.97}% 17
+\BOOKMARK [2][-]{subsection.105}{Parallel Radix Sort.}{section.97}% 18
+\BOOKMARK [2][-]{subsection.108}{Use-Case Guidance.}{section.97}% 19
+\BOOKMARK [1][-]{section.111}{Conclusion.}{}% 20
+\BOOKMARK [1][-]{section.114}{Appendix.}{}% 21
+\BOOKMARK [2][-]{subsection.115}{The array-access analysis of QuickHuskySort.}{section.114}% 22
+\BOOKMARK [2][-]{subsection.117}{Prior comparison-based sorting algorithms.}{section.114}% 23
+\BOOKMARK [2][-]{subsection.120}{Benchmark environments.}{section.114}% 24
+\BOOKMARK [2][-]{subsection.123}{Discussion of coding accuracy.}{section.114}% 25
+\BOOKMARK [2][-]{subsection.124}{Timsort or insertion sort for the cleanup pass.}{section.114}% 26
+\BOOKMARK [2][-]{subsection.127}{Comparison-sort baselines for the numeric and tuple types.}{section.114}% 27
+\BOOKMARK [2][-]{subsection.130}{The cleanup pass as N grows.}{section.114}% 28
+\BOOKMARK [2][-]{subsection.131}{Building permits: the case study in full.}{section.114}% 29
+\BOOKMARK [2][-]{subsection.132}{Why the two Chinese corpora sit at opposite ends of the table.}{section.114}% 30
+\BOOKMARK [2][-]{subsection.133}{Future work: composite keys, and what a library would have to provide.}{section.114}% 31
+\BOOKMARK [2][-]{subsection.134}{Adversarial inputs.}{section.114}% 32
+\BOOKMARK [2][-]{subsection.139}{Handling of partially-sorted arrays.}{section.114}% 33

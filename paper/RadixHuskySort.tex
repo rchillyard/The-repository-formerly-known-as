@@ -852,13 +852,17 @@ Where it was perfect, no inversions remain and the pass is skipped altogether.
 
 \begin{algorithm2e}
 \KwIn{\it{xs} as an array of object X}
-\KwOut{A new \it{Coding} object}
+\KwOut{a \it{Coding}: the codes, and whether they are perfect}
  result = new long[xs.length]\;
- \For{i = 0 to xs.length}{
- result[i] = huskyEncode(xs[i])\;
+ perfect = true\;
+ \For{i = 0 \KwTo xs.length - 1}{
+   result[i] = huskyEncode(xs[i])\;
+   \lIf{perfect}{perfect = perfectFor(xs[i])}
  }
- return new Coding(result, perfect())\;
- \caption{huskyEncode}
+ \Return new Coding(result, perfect)\;
+ \caption{huskyEncode. Perfection depends on the data, not only on the coder, so it is settled as the
+   codes are computed. \textit{perfectFor} tests one element in constant time: a length comparison for
+   a string, the coder's own constant where perfection is data-independent.}
  \label{alg:the_alg2}
 \end{algorithm2e}
 
