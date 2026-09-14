@@ -1293,29 +1293,25 @@ our variant earns its place on large arrays whose ordering the encoding replaces
 
 \section{Conclusion.}
 
-The original idea behind HuskySort, that's to say QuickHuskySort,
-was to shift work from the linearithmic phase of sorting to the linear phase (both the prelude and the postlude)
-and effect an overall reduction in array accesses and thus processing time.
+The original idea behind HuskySort — QuickHuskySort — was to shift work from the linearithmic phase of
+sorting into the linear ones, prelude and postlude, reducing array accesses and so processing time.
 \label{sec:conclusion-dp}%
 This has been demonstrated such that, when sorting objects rather than primitives,
 HuskySort is faster than dual-pivot quicksort wherever the ordering is expensive to evaluate ---
 by 1.4x on \textit{BigInteger} and 1.7x on \textit{BigDecimal} (\S~\ref{sec:comparison-baselines}).
 On \textit{Integer}, \textit{Double} and \textit{Long}, where a comparison costs almost nothing,
 the encoding has nothing to amortise and dual-pivot quicksort is ahead instead, by up to a tenth.
-That is the same criterion which governs every other result in this paper,
-here separating one group of numeric types from another.
 It is faster than Timsort for arrays which are not partially ordered, above a few hundred elements;
 below that, Timsort's own tuned handling of small arrays wins instead.
 It is especially fast for types whose ordering is composite or expensive to evaluate
 and whose keys encode perfectly, where the encoding replaces the whole comparison and no cleanup pass is needed.
-Strings are not reliably that case:
-they are the one domain with a mature specialised literature of its own (\S~\ref{sec:radix}),
-and they are also the most variable, spanning nearly the whole range of our results ---
-including the narrowest margin we report, for Chinese personal names in pinyin order.
+Strings are not reliably that case: the one domain with a mature specialised literature of its own
+(\S~\ref{sec:radix}), and the most variable, spanning nearly the whole range of our results ---
+including our narrowest margin, Chinese personal names in pinyin order.
 
-In the case of RadixHuskySort, the performance improvement is even better for datasets above a few thousand in length.
-Of course, in this case, there was no linearithmic phase, so the time savings come, as explained above,
-from more bit manipulation and fewer calls to \textit{equals}.
+For RadixHuskySort the improvement is larger still above a few thousand elements, and since that
+variant has no linearithmic phase at all, the saving comes from bit manipulation replacing calls to
+\textit{equals}.
 
 These findings are not an artifact of a single machine.
 The same qualitative pattern held on three environments spanning two CPU vendors and three
@@ -1325,15 +1321,21 @@ That run also settled a question the parallel variant's own results had left ope
 (\S~\ref{sec:parallel-radix}): its scaling ceiling past a handful of threads is a property of the
 design --- the sequential histogram-combine once per pass --- not of any machine's mix of core types.
 
-HuskySort's advantage is specific to a kind of workload rather than universal, and needs all of
+HuskySort's advantage is specific to a kind of workload rather than universal, and needs all three of
 the following: an array of at least a few hundred elements, growing to a few thousand before
 RadixHuskySort's per-pass setup cost is repaid (\S~\ref{sec:usecase});
 no expectation of pre-existing order, which favours Timsort's adaptivity instead (\S~\ref{sec:summary});
-a comparison costing more than a machine-word check --- strings, arbitrary-precision numbers
+and a comparison costing more than a machine-word check --- strings, arbitrary-precision numbers
 and multi-field records, as opposed to \textit{int}, \textit{long} or \textit{double},
-where dual-pivot quicksort wins outright;
-and no cores going spare, since \mbox{\textit{Arrays.parallelSort}} would use them
-(\S~\ref{sec:parallel-baseline}).
+where dual-pivot quicksort wins outright.
+
+A fourth condition is about the machine rather than the workload: where cores are free,
+\mbox{\textit{Arrays.parallelSort}} beats serial RadixHuskySort outright (\S~\ref{sec:parallel-baseline}).
+But that moves algorithm and parallelism together, and the two separate: our own variant leads it by
+1.19x at ten million \textit{Long}s, and where it trails, the causes given there are the
+implementation's, not the approach's.
+A parallel proxy-key sort should win wherever the serial one does; that ours does not yet is the
+clearest future work here.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
