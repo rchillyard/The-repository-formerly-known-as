@@ -1200,13 +1200,14 @@ so that size shows the direction rather than settling it.
 That is still well short of linear, and the shortfall is the more interesting number:
 an eightfold increase in threads buys between 1.37x and 1.51x,
 on hardware with no performance/efficiency asymmetry to account for it.
-Two explanations fit, and we cannot separate them without hardware counters.
-Each digit pass scatters across the whole array, so the sort may simply be limited by memory throughput,
-which extra cores do not supply; and each pass's histogram-combine step is sequential,
-running once per synchronization point whatever the thread count,
-so it grows as a share of the total as threads are added.
-The first would be a property of the machine and the second of the design,
-and only the second would survive better hardware.
+Two effects fit, and they are not equally benign.
+Each pass scatters across the whole array, so the sort may be limited by memory throughput, which extra
+cores do not supply: a property of the machine.
+The other belongs to the design --- the histogram-combine between a pass's two phases is sequential and
+costs a step per bucket per chunk, so its work \emph{grows} with the thread count while the parallel
+work shrinks.
+That has a consequence the first lacks: the design should fail wherever buckets times threads approaches
+$N$, and \S~\ref{sec:parallel-baseline} finds exactly that on the permits.
 
 \subsection{Use-Case Guidance.}
 \label{sec:usecase}
