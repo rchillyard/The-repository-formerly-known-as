@@ -1705,6 +1705,24 @@ The same records also supply the cleanup-pass measurement of \S~\ref{sec:pcrit},
 because the encoding for them is perfect and can be declared so ---
 which is what allows the pass to be switched on and off over identical codes.
 
+There is one comparison this case study loses, and it should be met here rather than left to
+\S~\ref{sec:parallel-baseline} alone.
+Given sixteen cores, \mbox{\textit{Arrays.parallelSort}} sorts the full corpus in 13.1\,ms against serial
+RHSort/16's 30.9 --- 2.35x faster, and faster at that size than either parallel husky configuration.
+Our own sort leads it at $N = 32{,}000$ by 1.69x, so the crossover falls between 32,000 and 100,000;
+and since the corpus stops at 198,900 records, real data cannot say whether a second crossover lies
+beyond it.
+Two things follow, and they should not be run together.
+The claim this case study makes is untouched: an encoding that replaces an expensive composite
+comparison pays for itself, and in the very run that the baseline wins, RadixHuskySort is still 4.92x
+faster than the system sort on equal terms.
+What the result bounds is the recommendation.
+Two hundred thousand records give a parallel merge sort ample room to divide, while our own chunking does
+not reach eight threads until the whole corpus and builds a 65,536-entry histogram per chunk per pass at
+this digit width.
+So on a corpus of this size with cores to spare, \mbox{\textit{Arrays.parallelSort}} is the right call,
+and closing that gap is a matter of our implementation rather than of the encoding.
+
 \subsection{Why the two Chinese corpora sit at opposite ends of the table.}
 \label{sec:chinese-coders}
 
