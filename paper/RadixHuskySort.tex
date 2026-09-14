@@ -351,7 +351,8 @@
     RadixHuskySort is faster in every case, by 3.6x to 6.8x at the largest size measured for each.
     The margin is widest where the ordering is expensive to evaluate and the encoding is perfect;
     and, where the encoding is imperfect, we measure directly what the resulting cleanup pass costs.
-    One specialised competitor overtakes us: on English words a tuned MSD radix sort.
+    Two things overtake us: on English words a tuned MSD radix sort, and, where cores are free,
+    the JDK's own parallel sort.
 \end{abstract}
 
 
