@@ -939,3 +939,77 @@ is a defect; all are hardening or generalisation.
 
     Raised by Robin on 2026-09-12, out of the same question that produced request 9: whether a user
     at $n > 1{,}000{,}000$ would realistically reach for the system sort at all.
+
+34. **`ParallelRadixHuskySort`: the per-pass bucket bookkeeping outweighs the data, and the
+    sequential step grows with thread count.** Found 2026-09-14, reviewing the implementation after
+    request 9 showed `Arrays.parallelSort` beating the parallel husky sort on the permits at every
+    size and at $n = 2{,}000{,}000$ on `Long[]`. This is the explanation, and it is arithmetic
+    rather than hypothesis.
+
+    Three costs, all per pass, all sized by `buckets × chunks` rather than by `n`:
+
+    - `Arrays.fill(localCount, 0)` (line 200) clears `chunks × buckets` ints every pass.
+    - `chunkBucketOffset[chunkIndex].clone()` (line 207) **allocates and copies another
+      `buckets`-sized `int[]` per chunk per pass**, inside the timed region — 16.8 MB of garbage
+      for one permits sort.
+    - The `afterHistogram` barrier action (line 173) loops `for b in buckets { for c in chunks }`,
+      single-threaded.
+
+    Measured against the real configurations:
+
+    | | bookkeeping touched | key traffic | sequential combine |
+    | --- | ---: | ---: | ---: |
+    | permits 198,900 @16-bit, 8 threads | **25.2 MB** | 12.7 MB | **2,097,152 iters = 10.5 × n** |
+    | `Long[]` 2,000,000 @11-bit, 8 threads | 1.2 MB | 192 MB | 98,304 iters = 0.05 × n |
+    | `Long[]` 10,000,000 @11-bit, 8 threads | 1.2 MB | 960 MB | 98,304 iters = 0.05 × n |
+
+    So the design is sound while `buckets × chunks ≪ n` and collapses when it is not. At 16 bits
+    with 8 threads that product is 524,288, more than twice the permits corpus. That is the whole
+    of the permits result, and it is why `Long[]` at ten million — 2,048 buckets against ten million
+    elements — is the one configuration we win.
+
+    It also explains the scaling ceiling, and **§6.4 was corrected on 2026-09-14 (`750e29c`)
+    accordingly**: the barrier action is O(`buckets × chunks`), so doubling the threads doubles it
+    (2,048 steps per pass at one chunk, 32,768 at sixteen). That is Amdahl with a serial fraction
+    growing in P, not a fixed cost being unmasked.
+
+    **The fix is a different decomposition, not a tuning pass.** Split on the *most significant*
+    digit first — one parallel histogram, one prefix sum, partition into 2^d buckets — then let each
+    thread LSD-sort whole buckets independently. No per-pass barrier, no shared prefix sum per pass,
+    no merge (the top digit already orders the buckets), and each bucket's count array is small
+    enough to stay in cache. One synchronization point for the whole sort instead of two per pass.
+
+    Two things to know before starting. Bucket sizes are data-dependent, so threads need
+    work-stealing or a second-level split of oversized buckets rather than the static ranges the
+    current code hands out. And the adversarial input of Table `AdversarialBits` — collapsed high
+    bits — is precisely the worst case for an MSD split, since every element lands in one bucket and
+    parallelism goes to zero; that test is already written.
+
+    Smaller, independent of the above: `MIN_CHUNK_SIZE = 1 << 14` means eight threads are not
+    reached below $n = 131{,}072$, which is far too high for a design that starts its threads once;
+    and `Executors.newFixedThreadPool` is called inside `sort()` (line 118), so pool construction is
+    charged to every measurement — `Arrays.parallelSort` uses the common `ForkJoinPool`.
+
+35. **`RadixHuskySort` serial: four small things left on the table.** Same review, 2026-09-14.
+
+    - **`applyPermutation` permutes `longs` as well as `xs`** — an `n`-long array copy plus `n`
+      random reads. No test asserts `getLongs()` is sorted afterwards and no consumer was found on
+      the `RadixHuskySort` path. If it must stay, the sorted keys are already in `biased` after the
+      final pass, so it should be a sequential write rather than a permuted copy.
+    - **`digitBits` never adapts to `n`.** The permits table has /11 ahead of /16 at $n = 32{,}000$
+      (2.61 vs 2.72 ms) and behind it at 198,900 (33.47 vs 30.89). The paper documents the plateau;
+      the code ignores it. Capping buckets at roughly `n/4` would choose correctly, and would fix
+      most of item 34's permits case on its own.
+    - **The final pass writes keys nothing reads** — 8 bytes per element.
+    - **`biased` costs a full extra pass over `n` and an allocation**, when the sign-bias XOR only
+      affects bit 63 and so matters to one pass out of four.
+
+    **One candidate optimization that was measured and mostly does not pay**, recorded so it is not
+    re-proposed: skipping passes above the highest *differing* bit. Measured on the real corpora —
+    English words 60–63 significant bits, Chinese names 62, `Long`/`Double` 64. Only dates benefit
+    (41 bits: 3 passes instead of 4 at 16-bit digits, 4 instead of 6 at 11-bit). `Integer` looks
+    like a 32-bit win but `integerCoder` returns `x.longValue()`, which sign-extends, so its codes
+    differ across all 64 bits; an unsigned-offset coder would halve its passes. Note also that the
+    unconditional `^ Long.MIN_VALUE` makes the naive "highest set bit" test useless — every
+    non-negative code has bit 63 set — so the test must be on the bits that *differ*, which a
+    constant XOR leaves unchanged.
