@@ -1313,13 +1313,12 @@ For RadixHuskySort the improvement is larger still above a few thousand elements
 variant has no linearithmic phase at all, the saving comes from bit manipulation replacing calls to
 \textit{equals}.
 
-These findings are not an artifact of a single machine.
-The same qualitative pattern held on three environments spanning two CPU vendors and three
-architectures (\S~\ref{sec:environments}), the last a 16-core ARM instance with no
-performance/efficiency split to confound the result.
-That run also settled a question the parallel variant's own results had left open
-(\S~\ref{sec:parallel-radix}): its scaling ceiling past a handful of threads is a property of the
-design --- the sequential histogram-combine once per pass --- not of any machine's mix of core types.
+These findings are not an artifact of a single machine: the same qualitative pattern held on three
+environments spanning two CPU vendors and three architectures (\S~\ref{sec:environments}), the last a
+16-core ARM instance with no performance/efficiency split to confound it.
+That run also settled a question the parallel variant had left open (\S~\ref{sec:parallel-radix}): its
+scaling ceiling past a handful of threads is a property of the design --- the sequential
+histogram-combine once per pass --- not of any machine's mix of core types.
 
 HuskySort's advantage is specific to a kind of workload rather than universal, and needs all three of
 the following: an array of at least a few hundred elements, growing to a few thousand before
@@ -1329,13 +1328,11 @@ and a comparison costing more than a machine-word check --- strings, arbitrary-p
 and multi-field records, as opposed to \textit{int}, \textit{long} or \textit{double},
 where dual-pivot quicksort wins outright.
 
-A fourth condition is about the machine rather than the workload: where cores are free,
-\mbox{\textit{Arrays.parallelSort}} beats serial RadixHuskySort outright (\S~\ref{sec:parallel-baseline}).
-But that moves algorithm and parallelism together, and the two separate: our own variant leads it by
-1.19x at ten million \textit{Long}s, and where it trails, the causes given there are the
-implementation's, not the approach's.
-A parallel proxy-key sort should win wherever the serial one does; that ours does not yet is the
-clearest future work here.
+Parallel against parallel, \textit{ParallelRadixHuskySort} leads \mbox{\textit{Arrays.parallelSort}} by
+1.19x at ten million \textit{Long}s, trails it at two million, and on the permits trails its own serial
+form (\S~\ref{sec:parallel-baseline}).
+The causes named there are our implementation's, not the approach's, so a parallel proxy-key sort should
+still win wherever the serial one does; that ours does not yet is the clearest future work here.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
