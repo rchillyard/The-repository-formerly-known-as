@@ -166,11 +166,25 @@ public class StringSortBenchmarks {
      * Arrays.parallelSort is what a performance-conscious Java programmer reaches for at the sizes
      * where this paper's headline claims live, so it is the honest baseline there -- Arrays.sort is
      * the default, not the informed choice. Added 2026-09-12.
+     * <p>
+     * For the chinesenames corpus this sorts by pinyin (NAME_ORDER), as multikeyQuicksort below
+     * already does and as systemSortPinyin does for the serial case. **Corrected 2026-09-16**: it
+     * previously called the no-Comparator parallelSort for every corpus, so on chinesenames it
+     * ordered by raw UTF-16 code point -- a cheaper task, and the wrong one. Comparing a
+     * pinyin-correct sort against it was not a comparison, exactly as request 6 established for the
+     * serial system sort. Code-point order is also not an ordering Chinese text is actually sorted
+     * in: the real alternative to pinyin is stroke order (see item 10), not code point.
+     * <p>
+     * NOTE: chinesenames figures collected under this benchmark's name before 2026-09-16 --- i.e.
+     * request 9's --- measured the code-point ordering and are not comparable with figures collected
+     * after it. The english and chinese corpora are unaffected, their coder supplying no Collator
+     * and natural order being the correct order for them.
      */
     @Benchmark
     public String[] systemSortParallel(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
-        Arrays.parallelSort(copy);
+        if (state.corpus.equals("chinesenames")) Arrays.parallelSort(copy, HuskyCoderChinesePinyin.NAME_ORDER);
+        else Arrays.parallelSort(copy);
         return copy;
     }
 
