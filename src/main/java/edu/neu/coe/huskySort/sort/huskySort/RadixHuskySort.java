@@ -96,7 +96,7 @@ public final class RadixHuskySort<X extends Comparable<X>> extends AbstractHusky
         if (n < 2) return;
         final long[] longs = getHelper().getLongs();
         final int[] permutation = radixSortIndices(longs, from, n, digitBits);
-        applyPermutation(xs, longs, from, n, permutation);
+        applyPermutation(xs, from, n, permutation);
     }
 
     /**
@@ -121,26 +121,44 @@ public final class RadixHuskySort<X extends Comparable<X>> extends AbstractHusky
         final int buckets = 1 << digitBits;
         final int mask = buckets - 1;
 
+        // NOTE: neither "biased" nor "index" is pre-filled. The first pass below reads its keys
+        // straight from "longs", applying the sign bias as it goes, and writes the identity index
+        // as it scatters -- so the two setup passes over n that used to stand here (n reads and n
+        // writes each) are absorbed into a pass that was already reading and writing every element.
         long[] biased = new long[n];
-        for (int i = 0; i < n; i++) biased[i] = longs[from + i] ^ Long.MIN_VALUE;
-
         int[] index = new int[n];
-        for (int i = 0; i < n; i++) index[i] = i;
-
         long[] biasedBuffer = new long[n];
         int[] indexBuffer = new int[n];
         final int[] count = new int[buckets + 1];
 
+        boolean fromSource = true;
         for (int shift = 0; shift < Long.SIZE; shift += digitBits) {
+            // The keys written by the last pass would never be read: only the index is returned.
+            // digitBits is capped at 20, so there are always at least four passes, which is why the
+            // last-pass branch below can safely assume it is not also the first.
+            final boolean lastPass = shift + digitBits >= Long.SIZE;
             Arrays.fill(count, 0);
-            for (int i = 0; i < n; i++) count[(int) ((biased[i] >>> shift) & mask) + 1]++;
+            if (fromSource)
+                for (int i = 0; i < n; i++) count[(int) (((longs[from + i] ^ Long.MIN_VALUE) >>> shift) & mask) + 1]++;
+            else
+                for (int i = 0; i < n; i++) count[(int) ((biased[i] >>> shift) & mask) + 1]++;
             for (int b = 0; b < buckets; b++) count[b + 1] += count[b];
-            for (int i = 0; i < n; i++) {
-                final int b = (int) ((biased[i] >>> shift) & mask);
-                final int pos = count[b]++;
-                biasedBuffer[pos] = biased[i];
-                indexBuffer[pos] = index[i];
-            }
+            if (lastPass)
+                for (int i = 0; i < n; i++) indexBuffer[count[(int) ((biased[i] >>> shift) & mask)]++] = index[i];
+            else if (fromSource)
+                for (int i = 0; i < n; i++) {
+                    final long key = longs[from + i] ^ Long.MIN_VALUE;
+                    final int pos = count[(int) ((key >>> shift) & mask)]++;
+                    biasedBuffer[pos] = key;
+                    indexBuffer[pos] = i;
+                }
+            else
+                for (int i = 0; i < n; i++) {
+                    final int pos = count[(int) ((biased[i] >>> shift) & mask)]++;
+                    biasedBuffer[pos] = biased[i];
+                    indexBuffer[pos] = index[i];
+                }
+            fromSource = false;
             final long[] tempBiased = biased;
             biased = biasedBuffer;
             biasedBuffer = tempBiased;
@@ -152,24 +170,25 @@ public final class RadixHuskySort<X extends Comparable<X>> extends AbstractHusky
     }
 
     /**
-     * Method to apply the given permutation to xs[from..from+n) (and, for consistency, to the
-     * corresponding range of longs) in a single O(N) pass.
+     * Method to apply the given permutation to xs[from..from+n) in a single O(N) pass.
+     * <p>
+     * NOTE: the corresponding range of the helper's long array is deliberately NOT permuted to
+     * match. It used to be, "for consistency", at the cost of an n-long array copy and n random
+     * reads per sort; but nothing reads those longs afterwards. The sorters which do rely on the
+     * longs tracking the payload (IntroHuskySort, DutchHuskySort) keep them in step through
+     * HuskyHelper.swap, which this sorter never calls, and HuskyBucketHelper.loadBuckets recomputes
+     * the coding itself before reading. So after a RadixHuskySort, getLongs() holds the codes in
+     * their original input order rather than sorted order, and is not meaningful.
      *
      * @param xs          the payload array to be permuted in place.
-     * @param longs       the array of longs corresponding to xs (kept in sync for consistency).
      * @param from        the index of the first element to permute.
      * @param n           the number of elements to permute.
      * @param permutation an array of n indices (each relative to "from") such that, for each i,
      *                    the element currently at from + permutation[i] should end up at from + i.
      */
-    private static <Y> void applyPermutation(final Y[] xs, final long[] longs, final int from, final int n, final int[] permutation) {
+    private static <Y> void applyPermutation(final Y[] xs, final int from, final int n, final int[] permutation) {
         final Y[] sourceObjects = Arrays.copyOfRange(xs, from, from + n);
-        final long[] sourceLongs = Arrays.copyOfRange(longs, from, from + n);
-        for (int i = 0; i < n; i++) {
-            final int sourceIndex = permutation[i];
-            xs[from + i] = sourceObjects[sourceIndex];
-            longs[from + i] = sourceLongs[sourceIndex];
-        }
+        for (int i = 0; i < n; i++) xs[from + i] = sourceObjects[permutation[i]];
     }
 
     private final int digitBits;

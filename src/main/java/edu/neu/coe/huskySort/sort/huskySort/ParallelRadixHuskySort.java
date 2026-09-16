@@ -224,7 +224,7 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
         // The automatic width depends on the chunk count, so it can only be settled here.
         final int passDigitBits = digitBits == AUTO_DIGIT_BITS ? chooseDigitBits(n, chunks) : digitBits;
         final int[] permutation = radixSortIndices(longs, from, n, passDigitBits, chunks, EXECUTOR);
-        applyPermutation(xs, longs, from, n, permutation);
+        applyPermutation(xs, from, n, permutation);
     }
 
     /**
@@ -301,6 +301,10 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
                     // Pass 0 has no biased array to read yet: it takes its keys from "longs",
                     // biasing each one as it is read, and supplies the identity index itself.
                     final boolean fromSource = pass == 0;
+                    // The keys written by the last pass would never be read: only the index is
+                    // returned. digitBits is capped at 20, so numPasses is always at least four,
+                    // which is why the last-pass branch below can assume it is not also the first.
+                    final boolean lastPass = pass == numPasses - 1;
                     final long[] biasedIn = state.biased;
                     final int[] localCount = localCounts[chunkIndex];
                     Arrays.fill(localCount, 0);
@@ -318,7 +322,9 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
                     // chunk advancing its own cursors here destroys nothing that is read again.
                     // Cloning cost an allocation and a buckets-sized copy per chunk per pass.
                     final int[] chunkCursor = chunkBucketOffset[chunkIndex];
-                    if (fromSource)
+                    if (lastPass)
+                        for (int i = start; i < end; i++) indexOut[chunkCursor[(int) ((biasedIn[i] >>> shift) & mask)]++] = indexIn[i];
+                    else if (fromSource)
                         for (int i = start; i < end; i++) {
                             final long biased = longs[from + i] ^ Long.MIN_VALUE;
                             final int pos = chunkCursor[(int) ((biased >>> shift) & mask)]++;
@@ -405,27 +411,25 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
     }
 
     /**
-     * Method to apply the given permutation to xs[from..from+n) (and, for consistency, to the
-     * corresponding range of longs) in a single O(N) pass. Not parallelized: this single pass is
-     * cheap relative to the digit passes above, and payload types are arbitrary objects, so a
-     * parallel version would need to reason about safe concurrent writes to an Object[] -- not
-     * worth the complexity for an O(N) pass that already runs once, not once per digit.
+     * Method to apply the given permutation to xs[from..from+n) in a single O(N) pass. Not
+     * parallelized: this single pass is cheap relative to the digit passes above, and payload types
+     * are arbitrary objects, so a parallel version would need to reason about safe concurrent
+     * writes to an Object[] -- not worth the complexity for an O(N) pass that already runs once,
+     * not once per digit.
+     * <p>
+     * NOTE: the helper's long array is deliberately not permuted to match -- see the fuller note on
+     * {@link RadixHuskySort}'s equivalent method. After this sort, getLongs() holds the codes in
+     * their original input order and is not meaningful.
      *
      * @param xs          the payload array to be permuted in place.
-     * @param longs       the array of longs corresponding to xs (kept in sync for consistency).
      * @param from        the index of the first element to permute.
      * @param n           the number of elements to permute.
      * @param permutation an array of n indices (each relative to "from") such that, for each i,
      *                    the element currently at from + permutation[i] should end up at from + i.
      */
-    private static <Y> void applyPermutation(final Y[] xs, final long[] longs, final int from, final int n, final int[] permutation) {
+    private static <Y> void applyPermutation(final Y[] xs, final int from, final int n, final int[] permutation) {
         final Y[] sourceObjects = Arrays.copyOfRange(xs, from, from + n);
-        final long[] sourceLongs = Arrays.copyOfRange(longs, from, from + n);
-        for (int i = 0; i < n; i++) {
-            final int sourceIndex = permutation[i];
-            xs[from + i] = sourceObjects[sourceIndex];
-            longs[from + i] = sourceLongs[sourceIndex];
-        }
+        for (int i = 0; i < n; i++) xs[from + i] = sourceObjects[permutation[i]];
     }
 
     private final int digitBits;
