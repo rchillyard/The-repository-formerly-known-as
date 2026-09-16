@@ -63,47 +63,15 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
 
     /**
      * Pass this as {@code digitBits} to have the digit width derived from n and the chunk count
-     * rather than fixed in advance -- see {@link #chooseDigitBits}. An explicitly-given width is
-     * always honoured exactly, so that a sorter named /16 really does run at 16 bits.
-     */
-    public static final int AUTO_DIGIT_BITS = 0;
-
-    /**
-     * The narrowest digit the automatic choice will pick. Below this the pass count grows faster
-     * than the bookkeeping shrinks: 8 bits is 8 passes, and 4 bits would be 16.
-     */
-    static final int MIN_AUTO_DIGIT_BITS = 8;
-
-    /**
-     * The widest digit the automatic choice will pick. 16 bits already reaches the minimum useful
-     * pass count of four; going wider (20 bits is still ceil(64/20) = 4 passes) buys no passes and
-     * costs sixteen times the buckets.
-     */
-    static final int MAX_AUTO_DIGIT_BITS = 16;
-
-    /**
-     * Method to choose a digit width for which the per-pass bucket bookkeeping stays small
-     * relative to the data it is bookkeeping for.
+     * rather than fixed in advance -- see {@link RadixHuskySort#chooseDigitBits}. An
+     * explicitly-given width is always honoured exactly, so that a sorter named /16 really does run
+     * at 16 bits.
      * <p>
-     * Three of this class's per-pass costs -- clearing each chunk's histogram, the sequential
-     * histogram-combine in the afterHistogram action, and the per-chunk cursor row -- are sized by
-     * {@code buckets × chunks}, not by n. The design is sound while that product is much smaller
-     * than n and collapses when it is not: at 16 bits with 8 chunks the product is 524,288, which
-     * is more than twice the 198,900-record permits corpus, so the sort spends more traffic on
-     * bookkeeping than on keys. This budgets that product at n/4 and takes the widest digit
-     * fitting inside it, since wider digits mean fewer passes over the keys.
-     *
-     * @param n      the number of elements to be sorted.
-     * @param chunks the number of chunks each pass will be split across.
-     * @return a digit width in [MIN_AUTO_DIGIT_BITS, MAX_AUTO_DIGIT_BITS].
+     * The same sentinel as {@link RadixHuskySort#AUTO_DIGIT_BITS}, and the rule behind it lives
+     * there, since it applies to both sorters -- this class's case is just the one where the chunk
+     * count is greater than one.
      */
-    static int chooseDigitBits(final int n, final int chunks) {
-        final int bucketBudget = n / (4 * chunks);
-        // highestOneBit(0) is 0, whose numberOfTrailingZeros is 32, so guard the small-n case
-        // rather than letting it wrap round to an absurdly wide digit.
-        final int widest = bucketBudget < 2 ? MIN_AUTO_DIGIT_BITS : Integer.numberOfTrailingZeros(Integer.highestOneBit(bucketBudget));
-        return Math.max(MIN_AUTO_DIGIT_BITS, Math.min(MAX_AUTO_DIGIT_BITS, widest));
-    }
+    public static final int AUTO_DIGIT_BITS = RadixHuskySort.AUTO_DIGIT_BITS;
 
     /**
      * Primary constructor.
@@ -222,7 +190,7 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
         final long[] longs = getHelper().getLongs();
         final int chunks = Math.max(1, Math.min(parallelism, n / minChunkSize));
         // The automatic width depends on the chunk count, so it can only be settled here.
-        final int passDigitBits = digitBits == AUTO_DIGIT_BITS ? chooseDigitBits(n, chunks) : digitBits;
+        final int passDigitBits = digitBits == AUTO_DIGIT_BITS ? RadixHuskySort.chooseDigitBits(n, chunks) : digitBits;
         final int[] permutation = radixSortIndices(longs, from, n, passDigitBits, chunks, EXECUTOR);
         applyPermutation(xs, from, n, permutation);
     }

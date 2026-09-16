@@ -281,6 +281,17 @@ public class StringSortBenchmarks {
         return new RadixHuskySort<>(11, state.coder, state.config).sort(copy);
     }
 
+    /**
+     * The digit width derived from n rather than fixed -- see TODO.md item 35's second bullet. The
+     * fixed widths above and below are unchanged and still run at exactly the width they name, so
+     * the published digit-width sweep stays reproducible.
+     */
+    @Benchmark
+    public String[] radixHuskySortAuto(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, state.coder, state.config).sort(copy);
+    }
+
     @Benchmark
     public String[] radixHuskySort16(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);

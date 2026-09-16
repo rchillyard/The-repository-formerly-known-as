@@ -1129,7 +1129,39 @@ is a defect; all are hardening or generalisation.
     revealed that this machine --- 8 cores, one permanently held by a lab-monitoring agent, much of
     another by the desktop app --- cannot measure an 8-thread sort at all.
 
-35. **`RadixHuskySort` serial: four small things left on the table.** Same review, 2026-09-14.
+35. ~~**`RadixHuskySort` serial: four small things left on the table.**~~ **ALL FOUR DONE
+    2026-09-16.** Same review, 2026-09-14. Measurement deferred to Yunlu along with request 10 --
+    every one of the four strictly removes work, so none needed a measurement to justify it, but the
+    serial figures are the ones in the paper and the size of the effect is worth knowing. New
+    `radixHuskySortAuto` benchmarks in `PermitSortBenchmarks` and `StringSortBenchmarks` measure the
+    width rule; the other three are not separately observable.
+
+    What was done, bullet by bullet:
+
+    - **The long array is no longer permuted.** Confirmed by inspection that nothing reads it after a
+      radix sort: `IntroHuskySort` and `DutchHuskySort` keep their longs in step through
+      `HuskyHelper.swap`, which neither radix sorter calls; `HuskyBucketHelper.loadBuckets`
+      recomputes the coding itself before reading; no test touches `getLongs()`. Robin's call was to
+      drop the sync outright rather than keep it as the cheap sequential write from `biased`. **So
+      after a radix husky sort, `getLongs()` holds the codes in input order, not sorted order, and
+      is documented as not meaningful** -- a deliberate narrowing of a public method on this path.
+    - **The width now adapts**, via a shared `RadixHuskySort.chooseDigitBits(n, chunks)` -- the
+      serial sorter being the one-chunk case. It reproduces the preference this bullet recorded:
+      /11 ahead of /16 at n = 32,000 and behind it at 198,900, against which the rule picks 12 and
+      15. Explicit widths are still honoured exactly, so the published sweep stays reproducible.
+      The rule lives in `RadixHuskySort` and `ParallelRadixHuskySort` delegates to it, so the
+      dependency runs serial <- parallel and there is one definition rather than two to drift.
+    - **The final pass no longer writes keys**, once the longs are not being permuted: only the
+      index is returned, so those 8 bytes per element had no reader. `digitBits` is capped at 20, so
+      there are always at least four passes, which is what lets the last-pass branch assume it is
+      not also the first.
+    - **`biased` no longer costs a setup pass**: the sign bias and the identity index are folded
+      into the first digit pass, which was already reading and writing every element.
+
+    Note that bullets 1 and 3 described code `ParallelRadixHuskySort` held in identical form, so
+    both were fixed in both places -- this item's heading says "serial", but the defects were not.
+
+    Original text follows.
 
     - **`applyPermutation` permutes `longs` as well as `xs`** — an `n`-long array copy plus `n`
       random reads. No test asserts `getLongs()` is sorted afterwards and no consumer was found on

@@ -81,18 +81,19 @@ public class ParallelStringSortBenchmarks {
     }
 
     /**
-     * The serial sort, as the reference for what parallelising actually buys on strings.
+     * The serial sort at the automatic width, as the reference for what parallelising actually buys
+     * on strings -- the fairest such reference, since the parallel rows below use the automatic
+     * width too, so the difference between them is the parallelism rather than the digit width.
      * <p>
-     * NOTE: at the default {@value RadixHuskySort#DEFAULT_DIGIT_BITS}-bit width, not an automatic
-     * one: {@link ParallelRadixHuskySort#AUTO_DIGIT_BITS} has no counterpart in
-     * {@link RadixHuskySort}, because the automatic choice budgets {@code buckets × chunks} and
-     * the serial sorter has no chunks to budget against. Widening it to a serial equivalent is
-     * TODO.md item 35's second bullet, which is a separate question.
+     * {@link RadixHuskySort} gained its own automatic width when TODO.md item 35's second bullet was
+     * done; the rule is shared, the serial sorter being the one-chunk case of the same bucket
+     * budget. {@code StringSortBenchmarks.radixHuskySortAuto} is the same sort, kept there so the
+     * serial digit-width comparison stays in the class that holds the rest of that sweep.
      */
     @Benchmark
-    public String[] serialRadixHuskySort8(final StringSortBenchmarks.StringState state) {
+    public String[] serialRadixHuskySortAuto(final StringSortBenchmarks.StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
-        return new RadixHuskySort<>(RadixHuskySort.DEFAULT_DIGIT_BITS, state.coder, state.config).sort(copy);
+        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, state.coder, state.config).sort(copy);
     }
 
     // ---------- The thread-count sweep, mirroring ParallelRadixSortBenchmarks' p1/p2/p4/p8 on

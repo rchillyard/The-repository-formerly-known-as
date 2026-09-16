@@ -372,4 +372,55 @@ public class RadixHuskySortTest {
         for (int i = 0; i < n; i++)
             assertEquals("all-same-key input should come out in original order", i, sorted[i].tag);
     }
+
+    // ---------- The automatic digit width (TODO.md item 35, second bullet). ----------
+
+    /**
+     * The serial sorter is the one-chunk case of the shared bucket budget, so it gets a wider digit
+     * than the parallel sorter does at the same n. These are the sizes the permits table uses, whose
+     * recorded preference the rule has to reproduce: /11 ahead of /16 at n = 32,000 and behind it at
+     * 198,900, against which the rule picks 12 and 15.
+     */
+    @Test
+    public void testChooseDigitBitsSerial() {
+        assertEquals("permits 32,000 serial", 12, RadixHuskySort.chooseDigitBits(32_000, 1));
+        assertEquals("permits 198,900 serial", 15, RadixHuskySort.chooseDigitBits(198_900, 1));
+        assertEquals("clamped above", RadixHuskySort.MAX_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(10_000_000, 1));
+        assertEquals("clamped below", RadixHuskySort.MIN_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(10, 1));
+        assertEquals("clamped below at n=0", RadixHuskySort.MIN_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(0, 1));
+    }
+
+    @Test
+    public void testAutoDigitBitsSortsCorrectly() {
+        final Random r = new Random(42);
+        final int n = 20_000;
+        final Long[] xs = new Long[n];
+        for (int i = 0; i < n; i++) xs[i] = r.nextLong();
+        final Long[] expected = Arrays.copyOf(xs, n);
+        Arrays.sort(expected);
+        final RadixHuskySort<Long> sorter = new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config);
+        assertArrayEquals(expected, sorter.sort(Arrays.copyOf(xs, n)));
+    }
+
+    @Test
+    public void testAutoDigitBitsIsStable() {
+        final Random random = new Random(42);
+        final int n = 20_000;
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(50), i);
+        final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>("auto", 0, RadixHuskySort.AUTO_DIGIT_BITS, new TaggedKeyCoder(), Arrays::sort, config);
+        assertStableAndSorted(sorter.sort(xs));
+    }
+
+    /**
+     * An explicitly-given width is honoured exactly, never silently replaced by the automatic one:
+     * the paper's digit-width sweep depends on /16 meaning 16 bits even where the automatic choice
+     * would pick something narrower.
+     */
+    @Test
+    public void testExplicitDigitBitsNotOverridden() {
+        assertEquals("auto would pick 12 here", 12, RadixHuskySort.chooseDigitBits(32_000, 1));
+        assertEquals("RadixHuskySort/16", new RadixHuskySort<>(16, HuskyCoderFactory.longCoder, config).toString());
+        assertEquals("RadixHuskySort/auto", new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config).toString());
+    }
 }

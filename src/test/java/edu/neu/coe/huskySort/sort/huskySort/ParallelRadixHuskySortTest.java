@@ -291,16 +291,16 @@ public class ParallelRadixHuskySortTest {
     public void testChooseDigitBits() {
         // Permits at its full corpus size: 16 bits would put 524,288 bucket slots against 198,900
         // records, which is the case item 34 of TODO.md is about. The budget admits 12.
-        assertEquals("permits 198,900 over 8 chunks", 12, ParallelRadixHuskySort.chooseDigitBits(198_900, 8));
-        assertEquals("permits 100,000 over 8 chunks", 11, ParallelRadixHuskySort.chooseDigitBits(100_000, 8));
+        assertEquals("permits 198,900 over 8 chunks", 12, RadixHuskySort.chooseDigitBits(198_900, 8));
+        assertEquals("permits 100,000 over 8 chunks", 11, RadixHuskySort.chooseDigitBits(100_000, 8));
         // Long[] at ten million is the one configuration where a wide digit is already affordable.
-        assertEquals("Long[] 10,000,000 over 8 chunks", 16, ParallelRadixHuskySort.chooseDigitBits(10_000_000, 8));
+        assertEquals("Long[] 10,000,000 over 8 chunks", 16, RadixHuskySort.chooseDigitBits(10_000_000, 8));
         // Fewer chunks means a bigger share of the budget each.
-        assertEquals("permits 198,900 over 1 chunk", 15, ParallelRadixHuskySort.chooseDigitBits(198_900, 1));
+        assertEquals("permits 198,900 over 1 chunk", 15, RadixHuskySort.chooseDigitBits(198_900, 1));
         // Clamped at both ends, including the degenerate small-n case that must not wrap round.
-        assertEquals("clamped below", ParallelRadixHuskySort.MIN_AUTO_DIGIT_BITS, ParallelRadixHuskySort.chooseDigitBits(10, 64));
-        assertEquals("clamped below at n=0", ParallelRadixHuskySort.MIN_AUTO_DIGIT_BITS, ParallelRadixHuskySort.chooseDigitBits(0, 1));
-        assertEquals("clamped above", ParallelRadixHuskySort.MAX_AUTO_DIGIT_BITS, ParallelRadixHuskySort.chooseDigitBits(Integer.MAX_VALUE, 1));
+        assertEquals("clamped below", RadixHuskySort.MIN_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(10, 64));
+        assertEquals("clamped below at n=0", RadixHuskySort.MIN_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(0, 1));
+        assertEquals("clamped above", RadixHuskySort.MAX_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(Integer.MAX_VALUE, 1));
     }
 
     /**
@@ -342,7 +342,7 @@ public class ParallelRadixHuskySortTest {
      */
     @Test
     public void testExplicitDigitBitsNotOverridden() {
-        assertEquals("auto would pick 12 here", 12, ParallelRadixHuskySort.chooseDigitBits(198_900, 8));
+        assertEquals("auto would pick 12 here", 12, RadixHuskySort.chooseDigitBits(198_900, 8));
         final Random r = new Random(42);
         final int n = 198_900;
         final Long[] xs = new Long[n];

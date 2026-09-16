@@ -207,6 +207,19 @@ public class PermitSortBenchmarks {
         return new RadixHuskySort<>(11, PermitCoder.INSTANCE, state.config).sort(copy);
     }
 
+    /**
+     * The serial sorter with the digit width derived from n rather than fixed (TODO.md item 35,
+     * second bullet). The permits table has /11 ahead of /16 at n = 32,000 and behind it at 198,900;
+     * the rule picks 12 and 15 respectively, so this row is what tests whether choosing per size
+     * beats any single fixed width. Kept alongside the fixed widths, which still run at exactly the
+     * width they name.
+     */
+    @Benchmark
+    public Permit[] radixHuskySortAuto(final PermitState state) {
+        final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, PermitCoder.INSTANCE, state.config).sort(copy);
+    }
+
     @Benchmark
     public Permit[] radixHuskySort16(final PermitState state) {
         final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
