@@ -32,7 +32,8 @@ public final class HelperFactory {
      * @return a ComparisonSortHelper<X></X>
      */
     public static <X extends Comparable<X>> ComparisonSortHelper<X> create(final String description, final int nElements, final boolean instrumented, final Config config) {
-        return instrumented ? new InstrumentedComparisonSortHelper<>(description, nElements, config) : new ComparableSortHelper<>(description, nElements);
+        // NOTE both branches are given the config, so that the cutoff does not depend on whether we are instrumented.
+        return instrumented ? new InstrumentedComparisonSortHelper<>(description, nElements, config) : new ComparableSortHelper<>(description, nElements, config);
     }
 
     /**

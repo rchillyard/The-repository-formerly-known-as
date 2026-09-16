@@ -36,7 +36,10 @@ public class BenchmarkTest {
         assertEquals(nRuns, post);
         assertEquals(nRuns + warmups, run);
         assertEquals(nRuns + warmups, pre);
-        assertEquals(200, x, 10);
+        // NOTE loose for the same reason as TimerTest's tolerances: Thread.sleep may overshoot
+        // without limit on a loaded machine, so a tight bound tests the machine. 15% matches the
+        // sibling assertion in INFO6205, and still catches any fault in the mean's arithmetic.
+        assertEquals(200, x, 30);
     }
 
     private void GoToSleep(long mSecs, int which) {

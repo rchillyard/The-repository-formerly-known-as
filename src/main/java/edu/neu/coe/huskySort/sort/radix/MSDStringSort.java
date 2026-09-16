@@ -18,6 +18,9 @@ public final class MSDStringSort {
     public void sort(final String[] a) {
         final int n = a.length;
         aux = new String[n];
+        // NOTE the alphabet must see the whole input before any of it is bucketed, so that characters
+        // beyond ASCII are given positions in code-point order rather than in order of first encounter.
+        alphabet.prepare(a);
         sort(a, 0, n, 0);
     }
 
@@ -60,7 +63,13 @@ public final class MSDStringSort {
             // Copy back.
             if (hi - lo >= 0) System.arraycopy(aux, 0, a, lo, hi - lo);
             // Recursively sort for each character value.
-            for (int r = 0; r < alphabet.counts(); r++)
+            // NOTE r = 0 is the bucket of strings which have no character at depth d, because
+            // charAt returns 0 once a string is exhausted. Those strings are all equal and there is
+            // nothing at d + 1 to separate them by, so recursing into that bucket makes no progress:
+            // it would recurse until the stack ran out for any 15 or more equal strings, 15 being
+            // the cutoff below which insertion sort would otherwise have taken over.
+            // UnicodeMSDStringSort carries the same guard, as `key != UnicodeCharacter.NullChar`.
+            for (int r = 1; r < alphabet.counts(); r++)
                 sort(a, lo + count[r], lo + count[r + 1], d + 1);
         }
     }
@@ -76,8 +85,28 @@ public final class MSDStringSort {
                 swap(a, j, j - 1);
     }
 
+    /**
+     * Compare v and w from character d onwards, allocating nothing.
+     * <p>
+     * The result agrees with {@code v.substring(d).compareTo(w.substring(d)) < 0} for every d at which
+     * that expression is legal, and is additionally defined for d beyond a string's length, where
+     * substring would throw. Comparing in place matters here because this is a timed baseline against
+     * the HuskySort variants: two String allocations per comparison, over the whole below-cutoff phase,
+     * measures the allocator as much as the algorithm.
+     *
+     * @param v the first String.
+     * @param w the second String.
+     * @param d the number of leading characters known to be equal, and therefore skipped.
+     * @return true if v is less than w.
+     */
     private static boolean less(final String v, final String w, final int d) {
-        return v.substring(d).compareTo(w.substring(d)) < 0;
+        final int vLength = v.length(), wLength = w.length();
+        final int limit = Math.min(vLength, wLength);
+        for (int i = d; i < limit; i++) {
+            final char cv = v.charAt(i), cw = w.charAt(i);
+            if (cv != cw) return cv < cw;
+        }
+        return vLength < wLength;
     }
 
     private static void swap(final Object[] a, final int j, final int i) {

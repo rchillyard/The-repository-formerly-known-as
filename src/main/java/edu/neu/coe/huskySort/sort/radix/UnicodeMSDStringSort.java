@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.radix;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.UnicodeCharacter;
+import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Random;
@@ -49,7 +50,21 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
      * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
      */
     public UnicodeMSDStringSort(final CharacterMap characterMap) {
-        this(characterMap, new BasicCountingSortHelper<>("UnicodeMSDStringSort", 0, new Random()));
+        this(characterMap, (Config) null);
+    }
+
+    /**
+     * Constructor of UnicodeMSDStringSort which takes its cutoff from the given configuration.
+     * <p>
+     * NOTE that this is the constructor a timed benchmark should use. The helper here is
+     * uninstrumented, so without the config the cutoff would silently be the default however the
+     * configuration was set.
+     *
+     * @param characterMap the appropriate character map for the type of unicode strings to be sorted.
+     * @param config       the configuration, from which the cutoff is read; null means "take the default."
+     */
+    public UnicodeMSDStringSort(final CharacterMap characterMap, final Config config) {
+        this(characterMap, new BasicCountingSortHelper<>("UnicodeMSDStringSort", 0, new Random(), config));
     }
 
     /**

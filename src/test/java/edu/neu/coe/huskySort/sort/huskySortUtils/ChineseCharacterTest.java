@@ -28,7 +28,11 @@ public class ChineseCharacterTest {
     @Test
     public void testConvertToPinyin() {
         final String 何欣蔚 = ChineseCharacter.convertToPinyin("何欣蔚");
-        assertEquals("he 2xin 1yu 4", 何欣蔚);
+        // NOTE (2026-08-11, TODO.md item 11): 蔚 is a polyphone (yu4/wei4); pinyin4j's default
+        // is yu4 (this test used to expect "he 2xin 1yu 4"), but the corpus-trained override
+        // table (polyphone_overrides.txt) selects wei4 -- the standard reading for 蔚 in given
+        // names, and the reading Chinese_Names_Corpus.txt's own ordering shows its curator used.
+        assertEquals("he 2xin 1wei 4", 何欣蔚);
     }
 
     @Test

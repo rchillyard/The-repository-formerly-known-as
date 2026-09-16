@@ -81,7 +81,7 @@ public class InsertionSortTest {
     @Test
     public void sort2() throws Exception {
         final Config config = ConfigTest.setupConfig("true", "0", "1", "", "");
-        int n = 100;
+        int n = 128;
         ComparisonSortHelper<Integer> helper = HelperFactory.create("InsertionSort", n, config);
         helper.init(n);
 
@@ -94,10 +94,17 @@ public class InsertionSortTest {
         sorter.postProcess(ys);
         assertTrue(helper.sorted(ys));
         final int compares = (int) statPack.getStatistics(Instrumenter.COMPARES).mean();
-        // NOTE: these are suppoed to match within about 12%.
-        // Since we set a specific seed, this should always succeed.
-        // If we use true random see and this test fails, just increase the delta a little.
-        assertEquals(1.0, 4.0 * compares / n / (n - 1), 0.12);
+        // Binary insertion sort's comparison count converges to lg(n!), not n*lg(n) -- the
+        // latter omits a large constant-factor correction term (Stirling's approximation).
+        // NOTE: lg(n!) is only the ties-free theoretical minimum. With keys drawn from a range
+        // as narrow as nextInt(1000) at n=128, a few duplicate keys are expected, each costing a
+        // handful of extra tie-breaking comparisons (see ComparisonSortHelper.swapIntoSorted).
+        // As with the original (pre-binary-search) version of this assertion, we check the ratio
+        // of actual to expected compares against 1.0, rather than an absolute delta, so the
+        // tolerance scales with n instead of being pinned to one specific n.
+        final double logNminus1 = Utilities.lg(n - 1);
+        final double expectedCompares = logNminus1 * (n - 1) - 1.44 * n + 0.5 * logNminus1 + 1.33;
+        assertEquals(1.0, compares / expectedCompares, 0.12);
         final int inversions = (int) statPack.getStatistics(Instrumenter.INVERSIONS).mean();
         final int fixes = (int) statPack.getStatistics(Instrumenter.FIXES).mean();
         System.out.println(statPack);

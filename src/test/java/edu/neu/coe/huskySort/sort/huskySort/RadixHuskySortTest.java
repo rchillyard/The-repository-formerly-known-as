@@ -1,6 +1,8 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.ComparableSortHelper;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderChinesePinyin;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.util.Config;
 import org.junit.BeforeClass;
@@ -12,6 +14,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -154,6 +157,55 @@ public class RadixHuskySortTest {
         assertArrayEquals(expected, ys);
     }
 
+    /**
+     * Broader sweep than testAdversarialCollapsedHighBits above (TODO.md item 7 / Reviewer 4's
+     * critique that the paper never showed what happens when the encoding has poor entropy):
+     * correctness must hold regardless of how severely the high-order bits collapse, not just
+     * for one arbitrary severity. Sweeps from no collapse (0 fixed bits) to near-total collapse
+     * (63 of 64 bits fixed, only the sign bit varies).
+     */
+    @Test
+    public void testAdversarialCollapsedHighBitsSweep() {
+        final Random r = new Random(101);
+        for (final int fixedHighBits : new int[]{0, 8, 16, 32, 48, 56, 60, 63}) {
+            final long mask = fixedHighBits == 0 ? 0L : (-1L << (64 - fixedHighBits));
+            final long fixedBits = 0x5A5A_5A5A_5A5A_5A5AL & mask;
+            final int N = 2000;
+            final Long[] xs = new Long[N];
+            for (int i = 0; i < N; i++) xs[i] = (r.nextLong() & ~mask) | fixedBits;
+            final Long[] expected = Arrays.copyOf(xs, N);
+            Arrays.sort(expected);
+
+            final RadixHuskySort<Long> sorter = new RadixHuskySort<>(HuskyCoderFactory.longCoder, config);
+            final Long[] ys = sorter.sort(xs);
+            assertArrayEquals("fixedHighBits=" + fixedHighBits, expected, ys);
+        }
+    }
+
+    /**
+     * Strings sharing a long common prefix: a realistic version of Reviewer 4's "poor entropy
+     * in high-order bits" concern, since string husky coders pack characters left-to-right into
+     * the long (most significant first) -- a shared prefix means the leading many bits of every
+     * element's husky code are identical, exactly the adversarial condition the brief asks
+     * about, but arising naturally rather than being artificially constructed.
+     */
+    @Test
+    public void testAdversarialSharedPrefixStrings() {
+        final Random r = new Random(102);
+        for (final int prefixLength : new int[]{0, 5, 10, 20, 40}) {
+            final String prefix = "a".repeat(prefixLength);
+            final int N = 2000;
+            final String[] xs = new String[N];
+            for (int i = 0; i < N; i++) xs[i] = prefix + (r.nextLong() & Long.MAX_VALUE);
+            final String[] expected = Arrays.copyOf(xs, N);
+            Arrays.sort(expected);
+
+            final RadixHuskySort<String> sorter = new RadixHuskySort<>(HuskyCoderFactory.englishCoder, config);
+            final String[] ys = sorter.sort(xs);
+            assertArrayEquals("prefixLength=" + prefixLength, expected, ys);
+        }
+    }
+
     @Test
     public void testAlreadySortedAndReverseSorted() {
         final int N = 1000;
@@ -176,5 +228,148 @@ public class RadixHuskySortTest {
         final RadixHuskySort<String> sorter = new RadixHuskySort<>(HuskyCoderFactory.asciiCoder, config);
         assertArrayEquals(new String[0], sorter.sort(new String[0]));
         assertArrayEquals(new String[]{"one"}, sorter.sort(new String[]{"one"}));
+    }
+
+    /**
+     * Regression test for a real bug found 2026-07-24: RadixHuskySort's convenience
+     * constructor hardcoded Arrays::sort as the cleanup-pass post-sorter, never consulting
+     * HuskyCoder.getCollator() -- so for a Collator-supplying coder (HuskyCoderChinesePinyin,
+     * which always needs the cleanup pass, since it never claims perfect()), the result was
+     * silently sorted by natural (Unicode code point) order instead of the coder's actual
+     * intended order. QuickHuskySort already handled this correctly; RadixHuskySort did not.
+     * No existing test caught this: RadixHuskySortTest never used a Collator-supplying coder,
+     * and HuskyCoderChinesePinyinTest never exercised RadixHuskySort.
+     */
+    @Test
+    public void testChineseNamesUseCollatorNotNaturalOrder() {
+        final String[] xs = {"刘持平", "洪文胜", "樊辉辉", "苏会敏", "高民政", "曹玉德", "袁继鹏", "舒冬梅", "杨腊香", "许凤山", "王广风", "黄锡鸿", "罗庆富", "顾芳芳", "宋雪光", "王诗卉"};
+        final String[] expected = Arrays.copyOf(xs, xs.length);
+        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
+
+        for (final int digitBits : new int[]{8, 11, 16}) {
+            final RadixHuskySort<String> sorter = new RadixHuskySort<>(digitBits, HuskyCoderFactory.chineseEncoderPinyin, config);
+            final String[] actual = sorter.sort(Arrays.copyOf(xs, xs.length));
+            assertArrayEquals("digitBits=" + digitBits, expected, actual);
+        }
+    }
+
+    // ---------- Stability tests (TODO.md item 6) ----------
+    //
+    // LSD radix sort via counting sort is inherently stable: each digit pass is itself a
+    // stable counting sort, and composing stable sorts pass by pass preserves overall
+    // stability. These tests verify that property actually holds for RadixHuskySort, using a
+    // payload type (Tagged) whose comparison/encoding key is deliberately coarse (few distinct
+    // values, heavy duplication) so that stability -- not just "is it sorted" -- is what's
+    // actually being exercised, tracked via a `tag` field (the element's original index) that
+    // has no effect on ordering.
+
+    /**
+     * A key coder that is genuinely "perfect" for Tagged (the encoding matches compareTo
+     * exactly), so no cleanup pass runs -- stability is then purely a property of
+     * RadixHuskySort's own first (and only) pass, not diluted by java.util.Arrays.sort's
+     * already-known stability in a fallback cleanup pass.
+     */
+    private static final class TaggedKeyCoder implements HuskyCoder<Tagged> {
+        @Override
+        public long huskyEncode(final Tagged x) {
+            return x.key;
+        }
+
+        @Override
+        public boolean perfect() {
+            return true;
+        }
+    }
+
+    private static final class Tagged implements Comparable<Tagged> {
+        final long key;
+        final int tag;
+
+        Tagged(final long key, final int tag) {
+            this.key = key;
+            this.tag = tag;
+        }
+
+        @Override
+        public int compareTo(final Tagged other) {
+            return Long.compare(key, other.key);
+        }
+
+        @Override
+        public String toString() {
+            return "Tagged(key=" + key + ", tag=" + tag + ")";
+        }
+    }
+
+    /**
+     * Asserts both that keys are non-decreasing (it actually sorted) and that, within any run
+     * of equal keys, tags appear in ascending order -- since tags are exactly the elements'
+     * original indices, ascending tags within a tied run is precisely "original relative order
+     * preserved", i.e. stability.
+     */
+    private static void assertStableAndSorted(final Tagged[] sorted) {
+        for (int i = 1; i < sorted.length; i++) {
+            assertTrue("not sorted: " + sorted[i - 1] + " should not come after " + sorted[i],
+                    sorted[i - 1].key <= sorted[i].key);
+            if (sorted[i - 1].key == sorted[i].key)
+                assertTrue("stability violated: " + sorted[i - 1] + " should precede " + sorted[i],
+                        sorted[i - 1].tag < sorted[i].tag);
+        }
+    }
+
+    @Test
+    public void testStabilityManyDuplicateKeys() {
+        final int n = 5000;
+        final int numDistinctKeys = 20;
+        final Random random = new Random(123);
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(numDistinctKeys), i);
+
+        final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>(new TaggedKeyCoder(), config);
+        final Tagged[] sorted = sorter.sort(xs);
+
+        assertStableAndSorted(sorted);
+    }
+
+    @Test
+    public void testStabilityAcrossDigitWidths() {
+        final Random random = new Random(321);
+        for (final int digitBits : new int[]{8, 11, 16}) {
+            final int n = 3000;
+            final Tagged[] xs = new Tagged[n];
+            for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(15), i);
+
+            final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>(digitBits, new TaggedKeyCoder(), config);
+            final Tagged[] sorted = sorter.sort(xs);
+            assertStableAndSorted(sorted);
+        }
+    }
+
+    @Test
+    public void testStabilityWithNegativeKeys() {
+        final int n = 4000;
+        final Random random = new Random(55);
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(21) - 10, i); // keys -10..10
+        final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>(new TaggedKeyCoder(), config);
+        final Tagged[] sorted = sorter.sort(xs);
+        assertStableAndSorted(sorted);
+    }
+
+    /**
+     * The strongest possible stability check: every element ties on key, so a stable sort must
+     * leave the array in exactly its original order.
+     */
+    @Test
+    public void testStabilityAllSameKey() {
+        final int n = 500;
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(42L, i);
+
+        final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>(new TaggedKeyCoder(), config);
+        final Tagged[] sorted = sorter.sort(xs);
+
+        for (int i = 0; i < n; i++)
+            assertEquals("all-same-key input should come out in original order", i, sorted[i].tag);
     }
 }

@@ -130,10 +130,17 @@ public class CharacterMapTest {
         final String 王卢城 = "王卢城";
         final UnicodeString u王略 = characterMap.getUnicodeString(王略);// XXX wang2 lu: e4
         final UnicodeString u王卢城 = characterMap.getUnicodeString(王卢城);// XXX wang2 lu2 cheng2
-        final long codeLue4 = 0xB35FA5834000000L;
+        // NOTE: codeLue4 and lue4 updated 2026-08-05: ChineseCharacter.alt() used to leave
+        // pinyin4j's "u:" (u-umlaut) marker as the literal placeholder "lu~e", never converting
+        // it to the actual "ü" character -- a real bug (see HanyuPinyinSyllables and
+        // HuskyCoderChinesePinyin for the same fix applied to the Hanyu-ordinal encoding path).
+        // Fixed to produce "lüe", which changes this test's encoded value too, since it goes
+        // through a plain character-code-based encoder (HuskyCoderFactory.englishCoder), not
+        // HuskyCoderChinesePinyin.
+        final long codeLue4 = 0xB3C960D00000000L;
         final long codeLu2 = 0xA2FBA7832000000L;
         final String wang2 = "wang 2";
-        final String lue4 = "lu~e 4";
+        final String lue4 = "lüe 4";
         final long codeNull = 0L;
         assertEquals(wang2, u王略.charAt(0).alt());
         assertEquals(0xDE1BA7832000000L, u王略.charAt(0).encode());
@@ -150,7 +157,11 @@ public class CharacterMapTest {
         assertEquals(1, u王略.compareTo(u王卢城, 1));
         assertEquals(-1, u王略.compareTo(u王卢城, 2));
         assertEquals(1, characterMap.stringComparator.compare(王略, 王卢城));
-        assertEquals(94, characterMap.stringComparatorPinyin.compare(王略, 王卢城));
+        // NOTE: updated 2026-08-05, same reason as codeLue4 above -- this magnitude depends on
+        // pinyin syllable ordinals, which shifted once HanyuPinyinSyllables gained the 18
+        // previously-missing "-a" syllables and "lü" started resolving to a real ordinal instead
+        // of never matching (see this file's other 2026-08-05 note).
+        assertEquals(135, characterMap.stringComparatorPinyin.compare(王略, 王卢城));
     }
 
     @Test

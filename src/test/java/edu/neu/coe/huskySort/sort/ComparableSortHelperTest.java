@@ -185,7 +185,7 @@ public class ComparableSortHelperTest {
     public void testSwapIntoSorted0() {
         final String[] xs = new String[]{"a", "b", "c"};
         final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
-        helper.swapIntoSorted(xs, 2);
+        helper.swapIntoSorted(xs, 0, 2);
         assertArrayEquals(new String[]{"a", "b", "c"}, xs);
     }
 
@@ -193,7 +193,7 @@ public class ComparableSortHelperTest {
     public void testSwapIntoSorted1() {
         final String[] xs = new String[]{"a", "c", "b"};
         final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
-        helper.swapIntoSorted(xs, 2);
+        helper.swapIntoSorted(xs, 0, 2);
         assertArrayEquals(new String[]{"a", "b", "c"}, xs);
     }
 
@@ -201,7 +201,7 @@ public class ComparableSortHelperTest {
     public void testSwapIntoSorted2() {
         final String[] xs = new String[]{"a", "c", "b"};
         final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
-        helper.swapIntoSorted(xs, 1);
+        helper.swapIntoSorted(xs, 0, 1);
         assertArrayEquals(new String[]{"a", "c", "b"}, xs);
     }
 
@@ -209,7 +209,17 @@ public class ComparableSortHelperTest {
     public void testSwapIntoSorted3() {
         final String[] xs = new String[]{"a", "c", "b"};
         final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
-        helper.swapIntoSorted(xs, 0);
+        helper.swapIntoSorted(xs, 0, 0);
         assertArrayEquals(new String[]{"a", "c", "b"}, xs);
+    }
+
+    @Test
+    public void testSwapIntoSortedNonZeroFrom() {
+        // "z" at index 0 is deliberately out of order relative to the whole array, but must be
+        // left untouched: the sorted partition we're inserting into starts at index 1, not 0.
+        final String[] xs = new String[]{"z", "a", "c", "b"};
+        final ComparisonSortHelper<String> helper = new ComparableSortHelper<>("test");
+        helper.swapIntoSorted(xs, 1, 3);
+        assertArrayEquals(new String[]{"z", "a", "b", "c"}, xs);
     }
 }

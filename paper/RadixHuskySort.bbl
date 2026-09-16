@@ -1,0 +1,120 @@
+\begin{thebibliography}{10}
+
+\bibitem{10.1145/48529.48535}
+{\sc A.~Aggarwal and J.~S. Vitter}, {\em The input/output complexity of sorting
+  and related problems}, Commun. ACM, 31 (1988), pp.~1116--1127,
+  \url{https://doi.org/10.1145/48529.48535}.
+
+\bibitem{DBLP:journals/corr/abs-1805-08612}
+{\sc N.~Auger, V.~Jug{\'{e}}, C.~Nicaud, and C.~Pivoteau}, {\em On the
+  worst-case complexity of timsort}, CoRR, abs/1805.08612 (2018),
+  \url{http://arxiv.org/abs/1805.08612},
+  \url{https://arxiv.org/abs/1805.08612}.
+
+\bibitem{10.1002/spe.4380231105}
+{\sc J.~L. Bentley and M.~D. McIlroy}, {\em Engineering a sort function},
+  Software: Practice and Experience, 23 (1993), pp.~1249--1265,
+  \url{https://doi.org/10.1002/spe.4380231105}.
+
+\bibitem{314161.314321}
+{\sc J.~L. Bentley and R.~Sedgewick}, {\em Fast algorithms for sorting and
+  searching strings}, in Proceedings of the Eighth Annual ACM-SIAM Symposium on
+  Discrete Algorithms, SODA '97, USA, 1997, Society for Industrial and Applied
+  Mathematics, pp.~360--369.
+
+\bibitem{CLRS}
+{\sc T.~H. Cormen, C.~E. Leiserson, R.~L. Rivest, and C.~Stein}, {\em
+  Introduction to Algorithms}, MIT Press, Cambridge, Massachusetts, fourth~ed.,
+  2022.
+\newblock Counting sort is Section 8.2; the radix sort built on it is Section
+  8.3.
+
+\bibitem{sf-building-permits}
+{\sc {DataSF}}, {\em Building permits}.
+\newblock San Francisco open data portal, dataset \texttt{i98e-djp9},
+  \url{https://data.sf.gov/Housing-and-Buildings/Building-Permits/i98e-djp9/about_data},
+  2018.
+\newblock Extract declared as covering 2013-01-01 to 2018-02-25, obtained from
+  a public redistribution on Kaggle
+  (\url{https://www.kaggle.com/datasets/aparnashastry/building-permit-applications-data})
+  licensed under the Open Data Commons Database Contents License (DbCL) v1.0,
+  \url{https://opendatacommons.org/licenses/dbcl/1-0/}.
+
+\bibitem{814600}
+{\sc M.~Frigo, C.~E. Leiserson, H.~Prokop, and S.~Ramachandran}, {\em
+  Cache-oblivious algorithms}, in 40th Annual Symposium on Foundations of
+  Computer Science (Cat. No.99CB37039), 1999, pp.~285--297,
+  \url{https://doi.org/10.1109/SFFCS.1999.814600}.
+
+\bibitem{GOLDHAHN12.327}
+{\sc D.~Goldhahn, T.~Eckart, and U.~Quasthoff}, {\em Building large monolingual
+  dictionaries at the leipzig corpora collection: From 100 to 200 languages},
+  in Proceedings of the Eight International Conference on Language Resources
+  and Evaluation (LREC'12), N.~C.~C. Chair), K.~Choukri, T.~Declerck, M.~U.
+  Do{\u{g}}an, B.~Maegaard, J.~Mariani, A.~Moreno, J.~Odijk, and S.~Piperidis,
+  eds., Istanbul, Turkey, 2012, European Language Resources Association (ELRA).
+\newblock 23-25.
+
+\bibitem{huskysort2020}
+{\sc R.~C. Hillyard, Y.~Liaozheng, and S.~V. K~R}, {\em Huskysort}, CoRR,
+  abs/2012.00866 (2020), \url{https://arxiv.org/abs/2012.00866},
+  \url{https://arxiv.org/abs/2012.00866}.
+
+\bibitem{10.1145/366622.366644}
+{\sc C.~A.~R. Hoare}, {\em Algorithm 64: Quicksort}, Commun. ACM, 4 (1961),
+  p.~321, \url{https://doi.org/10.1145/366622.366644}.
+
+\bibitem{doi:10.1137/1.9781611975994.101}
+{\sc V.~Jug{\'e}}, {\em Adaptive shivers sort: An alternative sorting
+  algorithm}, in Proceedings of the Thirty-First Annual ACM-SIAM Symposium on
+  Discrete Algorithms, SODA '20, USA, 2020, Society for Industrial and Applied
+  Mathematics, pp.~1639--1654,
+  \url{https://doi.org/10.1137/1.9781611975994.101}.
+
+\bibitem{LAMARCA199966}
+{\sc A.~LaMarca and R.~E. Ladner}, {\em The influence of caches on the
+  performance of sorting}, Journal of Algorithms, 31 (1999), pp.~66--104,
+  \url{https://www.sciencedirect.com/science/article/pii/S0196677498909853}.
+
+\bibitem{10.5555/313559.313859}
+{\sc P.~McIlroy}, {\em Optimistic sorting and information theoretic
+  complexity}, in Proceedings of the Fourth Annual ACM-SIAM Symposium on
+  Discrete Algorithms, SODA '93, USA, 1993, Society for Industrial and Applied
+  Mathematics, pp.~467--474.
+
+\bibitem{doi:10.1002}
+{\sc D.~R. Musser}, {\em Introspective sorting and selection algorithms},
+  Software: Practice and Experience, 27 (1997), pp.~983--993,
+  \url{https://doi.org/10.1002/(SICI)1097-024X(199708)27:8<983::AID-SPE117>3.0.CO;2-\#},
+  \url{https://arxiv.org/abs/https://onlinelibrary.wiley.com/doi/pdf/10.1002/}.
+
+\bibitem{Timsort}
+{\sc T.~Peters}, {\em Timsort - Python}, 2002,
+  \url{https://svn.python.org/projects/python/trunk/Objects/listsort.txt}.
+\newblock Retrieved November 3, 2020.
+
+\bibitem{1064546.1180622}
+{\sc R.~Sinha and J.~Zobel}, {\em Cache-conscious sorting of large sets of
+  strings with dynamic tries}, ACM J. Exp. Algorithmics, 9 (2004),
+  \url{https://doi.org/10.1145/1064546.1180622}.
+
+\bibitem{wainshine2020chinesenames}
+{\sc Wainshine}, {\em Chinese-names-corpus}.
+\newblock GitHub repository, commit \texttt{95b1a18}, 2020,
+  \url{https://github.com/wainshine/Chinese-Names-Corpus}.
+
+\bibitem{WildNebel12}
+{\sc S.~Wild and M.~E. Nebel}, {\em Average case analysis of java 7's dual
+  pivot quicksort}, in Algorithms --- ESA 2012, Springer Berlin Heidelberg,
+  2012, \url{https://doi.org/10.1007/978-3-642-33090-2_71}.
+
+\bibitem{Dual-pivot}
+{\sc V.~Yaroslavskiy}, {\em Dual Pivot Quicksort}, 2009,
+  \url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}.
+\newblock Retrieved November 3, 2020.
+
+\bibitem{sort}
+{\sc H.~Zhang, B.~Meng, and Y.~Liang}, {\em Sort race}, CoRR, abs/1609.04471
+  (2016), \url{https://arxiv.org/abs/1609.04471}.
+
+\end{thebibliography}

@@ -204,7 +204,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
     }
 
     private Partition partition(final X[] objects, final long[] longs, final int lo, final int hi) {
-        // CONSIDER merge with partition from QuickHuskySort
+        // CONSIDER merge with partition from DutchHuskySort
         int lt = lo, gt = hi;
         if (longs[lo] > longs[hi]) swap(objects, lo, hi);
         final long v = longs[lo];
@@ -232,7 +232,7 @@ public class IntroHuskySort<X extends Comparable<X>> extends AbstractHuskySort<X
         }
     }
 
-    // CONSIDER: use downHeap of PureHuskySort
+    // CONSIDER: use downHeap of QuickHuskySort
     private void downHeap(final X[] objects, final long[] longs, int i, final int n, final int lo) {
         final long d = longs[lo + i - 1];
         final X od = objects[lo + i - 1];
