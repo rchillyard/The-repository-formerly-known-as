@@ -866,12 +866,13 @@ Where it was perfect, no inversions remain and the pass is skipped altogether.
 
 \section{Implementation.}
 
-%% ANONYMISATION: the real URL names its owner, so it is guarded with the author block. See
-%% "0i. The repository link" in Paper edits pending.md -- the Anonymous GitHub mirror is task 2
-%% on Sai Vineeth's list; when its URL exists, substitute it for the placeholder below and the
-%% review copy can cite the code directly.
+%% ANONYMISATION: the real URL names its owner, so it is guarded with the author block. The blind
+%% branch cites the Anonymous GitHub mirror of a pruned snapshot (source, tests and the JMH harness
+%% only -- no doc/, no paper/, no history); the identified branch keeps the real repository, which
+%% is what the camera-ready wants. See "0i. The repository link" in Paper edits pending.md.
 \ifanonymous
-  The implementation is available in an anonymised repository, linked from the submission site.
+  The implementation, its tests and the benchmark harness are available at
+  \url{https://anonymous.4open.science/r/radix-proxy-key-sort-artifact-D8B1/}.
 \else
   The implementation is available at \url{https://github.com/rchillyard/HuskySort}.
 \fi
