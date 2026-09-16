@@ -2,6 +2,7 @@ package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderChinesePinyin;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import edu.neu.coe.huskySort.util.Config;
 import org.junit.BeforeClass;
@@ -279,5 +280,141 @@ public class ParallelRadixHuskySortTest {
         final ParallelRadixHuskySort<Long> sorter = newSorter(8, 64, HuskyCoderFactory.longCoder);
         final Long[] ys = sorter.sort(Arrays.copyOf(xs, n));
         assertArrayEquals(expected, ys);
+    }
+
+    /**
+     * The automatic digit width budgets buckets x chunks at n/4 and takes the widest digit fitting
+     * inside it, clamped to [8, 16]. These are the real configurations the benchmarks use, so a
+     * regression here would silently change what the auto benchmarks measure.
+     */
+    @Test
+    public void testChooseDigitBits() {
+        // Permits at its full corpus size: 16 bits would put 524,288 bucket slots against 198,900
+        // records, which is the case item 34 of TODO.md is about. The budget admits 12.
+        assertEquals("permits 198,900 over 8 chunks", 12, ParallelRadixHuskySort.chooseDigitBits(198_900, 8));
+        assertEquals("permits 100,000 over 8 chunks", 11, ParallelRadixHuskySort.chooseDigitBits(100_000, 8));
+        // Long[] at ten million is the one configuration where a wide digit is already affordable.
+        assertEquals("Long[] 10,000,000 over 8 chunks", 16, ParallelRadixHuskySort.chooseDigitBits(10_000_000, 8));
+        // Fewer chunks means a bigger share of the budget each.
+        assertEquals("permits 198,900 over 1 chunk", 15, ParallelRadixHuskySort.chooseDigitBits(198_900, 1));
+        // Clamped at both ends, including the degenerate small-n case that must not wrap round.
+        assertEquals("clamped below", ParallelRadixHuskySort.MIN_AUTO_DIGIT_BITS, ParallelRadixHuskySort.chooseDigitBits(10, 64));
+        assertEquals("clamped below at n=0", ParallelRadixHuskySort.MIN_AUTO_DIGIT_BITS, ParallelRadixHuskySort.chooseDigitBits(0, 1));
+        assertEquals("clamped above", ParallelRadixHuskySort.MAX_AUTO_DIGIT_BITS, ParallelRadixHuskySort.chooseDigitBits(Integer.MAX_VALUE, 1));
+    }
+
+    /**
+     * The auto width must sort as correctly as any fixed one, across chunk counts -- including the
+     * negative keys that exercise the sign bias, and duplicate keys that exercise stability.
+     */
+    @Test
+    public void testAutoDigitBitsSortsCorrectly() {
+        final Random r = new Random(42);
+        final int n = 20_000;
+        final Long[] xs = new Long[n];
+        for (int i = 0; i < n; i++) xs[i] = r.nextLong();
+        final Long[] expected = Arrays.copyOf(xs, n);
+        Arrays.sort(expected);
+
+        for (final int parallelism : new int[]{1, 3, 8}) {
+            final ParallelRadixHuskySort<Long> sorter = newSorter(ParallelRadixHuskySort.AUTO_DIGIT_BITS, parallelism, HuskyCoderFactory.longCoder);
+            final Long[] ys = sorter.sort(Arrays.copyOf(xs, n));
+            assertArrayEquals("parallelism=" + parallelism, expected, ys);
+        }
+    }
+
+    @Test
+    public void testAutoDigitBitsIsStable() {
+        final int n = 20_000;
+        for (final int parallelism : new int[]{1, 3, 8}) {
+            final Random random = new Random(42);
+            final Tagged[] xs = new Tagged[n];
+            for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(50), i);
+            final ParallelRadixHuskySort<Tagged> sorter = newSorter(ParallelRadixHuskySort.AUTO_DIGIT_BITS, parallelism, new TaggedKeyCoder());
+            assertStableAndSorted(sorter.sort(xs));
+        }
+    }
+
+    /**
+     * An explicitly-given width is honoured exactly, never silently replaced by the automatic one:
+     * the benchmark labels and the paper's digit-width sweep depend on /16 meaning 16 bits even
+     * where the automatic choice would have picked something narrower.
+     */
+    @Test
+    public void testExplicitDigitBitsNotOverridden() {
+        assertEquals("auto would pick 12 here", 12, ParallelRadixHuskySort.chooseDigitBits(198_900, 8));
+        final Random r = new Random(42);
+        final int n = 198_900;
+        final Long[] xs = new Long[n];
+        for (int i = 0; i < n; i++) xs[i] = r.nextLong();
+        final Long[] expected = Arrays.copyOf(xs, n);
+        Arrays.sort(expected);
+        final ParallelRadixHuskySort<Long> sorter = newSorter(16, 8, HuskyCoderFactory.longCoder);
+        assertEquals("ParallelRadixHuskySort/16", new ParallelRadixHuskySort<>(16, HuskyCoderFactory.longCoder, config).toString());
+        assertArrayEquals(expected, sorter.sort(Arrays.copyOf(xs, n)));
+    }
+
+    /**
+     * A minimum chunk size of 1 lets the chunk count reach "parallelism" even for a small array,
+     * which is how the benchmarks exercise more chunks than the default 16,384-element floor would
+     * ever allow. The sort must stay correct and stable with chunks that small.
+     */
+    @Test
+    public void testSmallMinChunkSizeSortsCorrectlyAndStably() {
+        final int n = 5_000;
+        final Random random = new Random(42);
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(40), i);
+        final ParallelRadixHuskySort<Tagged> sorter = new ParallelRadixHuskySort<>("tiny chunks", 0, 8, 1, new TaggedKeyCoder(), java.util.Arrays::sort, config, 8);
+        assertStableAndSorted(sorter.sort(xs));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMinChunkSizeMustBePositive() {
+        new ParallelRadixHuskySort<Long>("bad", 0, 8, 0, HuskyCoderFactory.longCoder, java.util.Arrays::sort, config, 4);
+    }
+
+    /**
+     * The seven-argument constructor must keep meaning what it did before minChunkSize existed,
+     * since every pre-existing caller still uses it.
+     */
+    @Test
+    public void testSevenArgConstructorDefaultsMinChunkSize() {
+        final int n = 5_000;
+        final Random random = new Random(42);
+        final Long[] xs = new Long[n];
+        for (int i = 0; i < n; i++) xs[i] = random.nextLong();
+        final Long[] expected = Arrays.copyOf(xs, n);
+        Arrays.sort(expected);
+        assertArrayEquals(expected, newSorter(8, 8, HuskyCoderFactory.longCoder).sort(Arrays.copyOf(xs, n)));
+    }
+
+    /**
+     * The same guard RadixHuskySortTest.testChineseNamesUseCollatorNotNaturalOrder provides for the
+     * serial sorter, for the four-argument constructor added so that the string benchmarks (TODO.md
+     * item 33) can name a thread count without also having to name a post-sorter. A caller that
+     * reaches for the primary constructor and passes Arrays::sort gets natural (Unicode code point)
+     * order for a coder whose intended order is pinyin -- silently, since the array does come back
+     * sorted, just by the wrong ordering. HuskyCoderChinesePinyin never claims perfect(), so its
+     * cleanup pass always runs and always decides the final answer.
+     */
+    @Test
+    public void testChineseNamesUseCollatorNotNaturalOrder() {
+        final String[] xs = {"刘持平", "洪文胜", "樊辉辉", "苏会敏", "高民政", "曹玉德", "袁继鹏", "舒冬梅", "杨腊香", "许凤山", "王广风", "黄锡鸿", "罗庆富", "顾芳芳", "宋雪光", "王诗卉"};
+        final String[] expected = Arrays.copyOf(xs, xs.length);
+        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
+
+        for (final int parallelism : new int[]{1, 4, 8}) {
+            for (final int digitBits : new int[]{ParallelRadixHuskySort.AUTO_DIGIT_BITS, 8, 16}) {
+                final ParallelRadixHuskySort<String> sorter = new ParallelRadixHuskySort<>(digitBits, HuskyCoderFactory.chineseEncoderPinyin, config, parallelism);
+                final String[] actual = sorter.sort(Arrays.copyOf(xs, xs.length));
+                assertArrayEquals("digitBits=" + digitBits + ", parallelism=" + parallelism, expected, actual);
+            }
+        }
+    }
+
+    @Test
+    public void testAutoDigitBitsRejectedNowhereAndNamed() {
+        assertEquals("ParallelRadixHuskySort/auto", new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config).toString());
     }
 }
