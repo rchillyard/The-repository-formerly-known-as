@@ -919,7 +919,42 @@ is a defect; all are hardening or generalisation.
     `paper/sample-base.bib` from `HuskySort.bbl` is not mistaken later for the original file. The
     original `.bib` was never committed and BibTeX had been failing silently for some time.
 
-33. **No parallel-versus-parallel comparison on strings.** Request 9 (2026-09-12) asks Yunlu to put
+33. ~~**No parallel-versus-parallel comparison on strings.**~~ **WIRED 2026-09-16**, measurement
+    requested as 10b. `ParallelStringSortBenchmarks` is a new class holding a `p1/p2/p4/p8` sweep on
+    the automatic digit width, fixed-11 at p8, a serial reference and a parallel baseline, over the
+    existing `StringSortBenchmarks.StringState` (reused, not duplicated, so corpora, seed and
+    sampling semantics match the serial numbers exactly). Kept separate from `StringSortBenchmarks`
+    so it can run without re-measuring that class's dozen serial benchmarks. Smoke-tested on
+    `english` and `chinesenames`; the numbers themselves are request 10b, since this machine cannot
+    produce usable parallel figures (see item 34).
+
+    **Found while wiring it, and FIXED 2026-09-16: `StringSortBenchmarks.systemSortParallel` called
+    the no-Comparator `Arrays.parallelSort` for every corpus, including `chinesenames`.** The husky
+    sorts order that corpus by pinyin, so that row compared two different orderings --- the same
+    apples-to-oranges problem `multikeyQuicksort` avoids there by calling `sortByPinyin`, and the
+    same one request 6 existed to fix for the *serial* system sort. It now uses
+    `HuskyCoderChinesePinyin.NAME_ORDER` for that corpus, as does the new class's baseline. Robin's
+    reason for fixing rather than documenting it (2026-09-16): we should never compare a pinyin sort
+    against a system sort that does not use the pinyin comparator, and per Yunlu the code-point
+    ordering is in any case almost never used for Chinese --- where the ordering is not pinyin it is
+    **stroke order**, which is item 10's subject, not code point. So a code-point row is not a
+    baseline a reader would recognise as realistic.
+
+    Consequence to watch: **chinesenames figures collected under the name `systemSortParallel`
+    before 2026-09-16 --- request 9's --- measured code-point order and must not be tabulated
+    alongside figures collected after it.** The english and chinese corpora are unaffected (their
+    coder supplies no Collator, and natural order is the correct order for them).
+
+    One asymmetry left deliberately: the *serial* `systemSort` still sorts chinesenames by code
+    point, with `systemSortPinyin` beside it as the correct-ordering variant, which is how request 6
+    chose to solve it and is the figure actually quoted. The parallel case had no such variant to
+    quote, which is why it was corrected in place instead. If that inconsistency grates, the tidy
+    resolution is to make `systemSort` corpus-aware too and retire `systemSortPinyin` --- but that
+    touches a number already in the abstract and Table `HS_BM`, so it was not done unasked.
+
+    Original text follows.
+
+    Request 9 (2026-09-12) asks Yunlu to put
     `Arrays.parallelSort` beside `ParallelRadixHuskySort` in Table `ParallelRadix`, which settles
     the question on `Long[]` — the type that table measures. It does not settle it on strings,
     because `ParallelRadixHuskySort` is wired into the benchmarks for `Long[]` only:
@@ -945,6 +980,37 @@ is a defect; all are hardening or generalisation.
     request 9 showed `Arrays.parallelSort` beating the parallel husky sort on the permits at every
     size and at $n = 2{,}000{,}000$ on `Long[]`. This is the explanation, and it is arithmetic
     rather than hypothesis.
+
+    **The motivating measurement compared a 15-thread sort against an 8-thread one (found
+    2026-09-16).** Yunlu's 09-13 environment note records that the common `ForkJoinPool` behind
+    `Arrays.parallelSort` had **15 workers on his 16 processors**, and that "no p15/p16 husky row was
+    requested or run" --- every husky row in request 9 was fixed at p4 or p8. So the permits
+    headline, `Arrays.parallelSort` 2.77x faster than p8 (13.1 ± 0.2 against 36.4 ± 0.5), gave the
+    baseline nearly twice the threads. That is very likely most of why his 16-core result and the
+    local 8-core one disagree in *direction*: on eight cores, where p8 and the system sort get
+    comparable resources, the husky sort came out 10--24% ahead on the same corpus.
+
+    A `parallelRadixHuskySortAuto_pAll` row now sizes itself from `availableProcessors()`, as
+    `Arrays.parallelSort` does, and is the row to compare against the system sort; request 10a asks
+    for it. The fixed p4/p8 rows stay for the scaling sweep, where a fixed count is the point. Open
+    question for Yunlu: whether the husky row should match the pool's 15 rather than the machine's
+    16, since `availableProcessors()` reports 16 where the pool runs 15 (and `13 14` under his
+    `kiro.slice` quota).
+
+    **Separately, the local attempt could not measure the effect at all**, because run-to-run drift
+    exceeded it: `systemSortParallel`, a benchmark no edit had
+    touched, scored 5.112 ms and then 3.514 ms at $n = 32{,}000$ across two consecutive runs of the
+    same jar — a 31% swing — and 29.44 then 31.43 at 198,900. The cause was machine contention:
+    `uptime` reported a load average of 46, with a lab-monitoring agent pegging one core and
+    OneDrive, GitKraken and IntelliJ between them taking another core and a half. So the honest
+    statement is that `Arrays.parallelSort` may or may not beat the parallel husky sort on permits;
+    the request-9 run's machine conditions were not recorded, and no local run has yet been clean
+    enough to settle it. Whatever the answer, the `buckets × chunks` costs below are real and worth
+    removing on their own.
+
+    Note also that any future attempt must keep an untouched control benchmark in the *same* JMH
+    invocation as the candidate, and discard the run if the control moves. Comparing two runs
+    against each other on a desktop is not sound at these effect sizes.
 
     Three costs, all per pass, all sized by `buckets × chunks` rather than by `n`:
 
@@ -989,6 +1055,79 @@ is a defect; all are hardening or generalisation.
     reached below $n = 131{,}072$, which is far too high for a design that starts its threads once;
     and `Executors.newFixedThreadPool` is called inside `sort()` (line 118), so pool construction is
     charged to every measurement — `Arrays.parallelSort` uses the common `ForkJoinPool`.
+
+    ### What was done, 2026-09-16
+
+    Four changes landed, each of which strictly removes work, so none needed a measurement to
+    justify it; all are covered by the existing stability and negative-key sweeps.
+
+    - **The `clone()` is gone.** The scatter advances `chunkBucketOffset[chunkIndex]` in place: the
+      `afterHistogram` action rewrites every element of every row before the next scatter reads it,
+      so a chunk destroys nothing that is read again.
+    - **The thread pool is created once and shared** — a cached pool of daemon threads, held
+      statically. Deliberately *not* `ForkJoinPool.commonPool()`: these workers block on a
+      `CyclicBarrier` until every chunk arrives, and the common pool runs only
+      `availableProcessors - 1` threads, so a sort asking for more chunks than that would deadlock
+      with the unscheduled chunks never reaching the barrier. Unbounded also keeps the
+      deliberately-oversized chunk counts in the test sweep working.
+    - **The two setup passes over `n` are folded into pass 0**, which now biases each key as it
+      reads it from `longs` and writes the identity index as it scatters.
+    - **The digit width can be derived from `n` and the chunk count** — `AUTO_DIGIT_BITS` plus
+      `chooseDigitBits`, budgeting `buckets × chunks` at `n/4` and taking the widest digit inside
+      it, clamped to [8, 16]. An explicitly-given width is still honoured exactly, so `/16` really
+      runs at 16 bits and the paper's digit-width sweep stays reproducible; there is a test for that.
+
+    **The automatic width is a measured win** (5 forks, 50 samples, control passed): 11.9% / 11.7% /
+    6.2% faster than fixed-16 at the three permits sizes, non-overlapping at 32,000 and 198,900. So
+    item 35's second bullet was right that capping buckets against `n` would carry the permits case.
+
+    **`MIN_CHUNK_SIZE` is a measured negative, and the suspicion recorded above does not hold.**
+    `minChunkSize` became a constructor parameter so both policies could be measured in one JMH
+    invocation; lowering it from 16,384 to 4,096 gave $n = 100{,}000$ the two chunks it was short of
+    (6 of the 8 requested) and changed nothing, and gave $n = 32{,}000$ seven chunks where it had
+    been running serially, making it **8.9% slower**. The control ($n = 198{,}900$, which reaches 8
+    chunks under either policy) agreed to 1.1%, so the run was sound. The parameter was kept --- it
+    is how the negative was established --- but the default is unchanged. Note that $n = 32{,}000$
+    beats `Arrays.parallelSort` by around 20% *while running entirely serially*, which is worth
+    remembering before attributing any of this sort's advantage to parallelism.
+
+    **Against `Arrays.parallelSort` on permits, on an unsuitable machine:** the automatic width won
+    at 32,000 (23.7%, 20% across two clean runs) and at 198,900 (10.5%, 12.3%), both non-overlapping
+    both times. $n = 100{,}000$ is **unsettled, because the baseline is what is unstable there** ---
+    `Arrays.parallelSort`'s error at that size was ±1.857 and then ±6.996 (48% of its own score)
+    across runs, where at 32,000 and 198,900 it was ±0.070 and ±0.716, and where our own error stayed
+    between ±0.727 and ±1.159 throughout. `Arrays.parallelSort` derives its split granularity from
+    `n` and the common pool's parallelism, so a size dividing awkwardly against 7 workers is the
+    obvious suspect --- and a 16-core machine will behave differently there regardless. Not worth
+    pursuing locally.
+
+    **The MSD redecomposition below was not attempted**, and on this evidence is less clearly
+    necessary than this item assumed: the bookkeeping that motivated it was dominated by the
+    `clone()`, which was one line.
+
+    ### Three measurement traps, all hit on 2026-09-16
+
+    Recorded because two of them are biases rather than noise, and the first may affect figures
+    already in the paper.
+
+    1. **JMH runs a class's methods in lexicographic order.** When load drifts upward across a run,
+       whichever method sorts last is systematically penalised --- and `systemSortParallel` sorts
+       last in `PermitSortBenchmarks`, `StringSortBenchmarks` and `ParallelStringSortBenchmarks`
+       alike. Observed directly: 30.065 ± 3.580 in one run against 22.078 ± 0.605 in another, with
+       the noisy reading being the one where it ran last as load climbed. **Run a baseline and a
+       candidate as a two-method invocation** so they sit adjacent in time.
+    2. **Antivirus scans the freshly-built jar during the next run.** The benchmarks jar is 76 MB and
+       Microsoft Defender was reading it throughout the first benchmark of the following run. Leave
+       several minutes between `mvn package` and measuring. Worse, and self-inflicted: rebuilding
+       the jar *while* a run is in progress swaps it under the live JVM and kills the run with
+       `NoClassDefFoundError` at the results-formatting stage.
+    3. **`-f 1` cannot see a 5--10% effect.** One fork gave ±11 ms on a 29 ms score. Five forks gave
+       ±0.2--1.0 ms. Every figure quoted above is `-f 5 -wi 5 -i 10`.
+
+    And the standing lesson: **keep an untouched control in the same invocation and discard the run
+    if it moves.** A 31% swing in `systemSortParallel` across two runs of an identical jar is what
+    revealed that this machine --- 8 cores, one permanently held by a lab-monitoring agent, much of
+    another by the desktop app --- cannot measure an 8-thread sort at all.
 
 35. **`RadixHuskySort` serial: four small things left on the table.** Same review, 2026-09-14.
 

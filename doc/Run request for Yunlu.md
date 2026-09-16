@@ -9,8 +9,9 @@
 | 5 | The small-N crossover | **done** — PR #63 |
 | 6 | chinesenames against a pinyin-*correct* system sort | **done** — PR #64, `doc/pinyin.json` |
 | 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **done** — PR #64, `doc/adversarial.json` |
-| 8 | cache behaviour of the object-reference swap | **requested 2026-09-09** — see below |
-| 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **requested 2026-09-12** — see below, and unlike 8 this one is wanted before the 15th if at all possible |
+| 8 | cache behaviour of the object-reference swap | **closed, not pursued** — step 0 found no `perf` binary on the instance, so the request was never runnable there |
+| 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
+| 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **requested 2026-09-16** — see below |
 
 **All seven requests are answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -18,10 +19,10 @@ Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseli
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**One new request, number 8**, is set out immediately below. It is not needed for the 15th and
-should not displace anything you are already doing --- it justifies an appendix derivation rather
-than any headline figure. Read step 0 first: it takes thirty seconds and may tell us the whole
-request is impossible on the machine of record, in which case please stop there and say so.
+**Request 10 is the only outstanding one.** Requests 1--7 and 9 are answered; request 8 is closed
+unrun, its step 0 having established that the instance has no `perf` binary. Request 10 is set out
+immediately below, ahead of the answered requests that follow it: part (a) is about twenty minutes
+and bears on a headline claim, and part (b) is optional.
 
 Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, `...2026-09-02.md` and
 `...2026-09-03.md`. What requests 1 and 2 settled is summarised in Appendix A.
@@ -34,6 +35,157 @@ only as qualitative cross-checks, with no figures quoted from them. Your request
 that possible.
 
 Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs acting on.
+
+---
+
+## Request 10 — the optimised ParallelRadixHuskySort
+
+Requested 2026-09-16. **Two parts: 10a is short and is the one that matters; 10b is optional and
+longer.** If you are short of time, do 10a and stop — 10b answers a reviewer question we do not yet
+have, rather than correcting one we have got wrong.
+
+`ParallelRadixHuskySort` was reworked on 2026-09-16. Four changes, each of which strictly removes
+work: a per-chunk-per-pass `int[]` clone is gone; the thread pool is created once and shared instead
+of per `sort()` call; the sign-bias and identity-index setup passes are folded into the first digit
+pass; and the digit width can now be derived from `n` and the chunk count rather than fixed, which is
+what the new `Auto` benchmarks use. The fixed-width benchmarks are unchanged and still run at exactly
+the width they name.
+
+**Why we are asking you rather than measuring it here.** We tried, on Robin's Mac, and could not get
+a usable answer. That machine has 8 cores, one of which is permanently occupied by a
+lab-monitoring agent, and the desktop app running the session takes much of another. Two consecutive
+runs of an *identical* jar gave `systemSortParallel` 5.112 ms and then 3.514 ms at n = 32,000 — a 31%
+swing on code that had not changed. Your machine at load 0.36 on 16 cores is the only place these
+numbers mean anything.
+
+### The thread-count problem your request-9 notes exposed
+
+Before the commands: your 09-13 environment note records that the common `ForkJoinPool` behind
+`Arrays.parallelSort` had **15 workers on your 16 processors**, and that "no p15/p16 husky row was
+requested or run". Every husky row in that request was fixed at p4 or p8.
+
+So request 9's permits headline — `Arrays.parallelSort` 2.77× faster than p8 — compared a 15-thread
+sort against an 8-thread one. That is not a like-for-like comparison, and it is very likely most of
+why your result and Robin's local one disagree so sharply: on his 8-core Mac, p8 and the system sort
+get comparable resources and the husky sort came out 10–24% *ahead* on the same corpus.
+
+A new row, `parallelRadixHuskySortAuto_pAll`, uses `Runtime.getRuntime().availableProcessors()`
+instead of a hardcoded count, so it scales to the machine exactly as `Arrays.parallelSort` does. **It
+is the row to compare against the system sort.** The fixed p4/p8 rows stay, because a fixed count is
+the point for a scaling sweep.
+
+One caveat you are better placed to judge than we are: `availableProcessors()` will report 16 where
+the common pool runs 15, and under your `kiro.slice` quota the probe printed `13 14`. If the husky
+row should match the pool's 15 rather than the machine's 16, say so and we will parameterise it —
+we would rather be one thread generous to the baseline than one short ourselves.
+
+### 10a — permits, the parallel bakeoff (about 20 minutes)
+
+```
+java -jar target/benchmarks.jar "PermitSortBenchmarks.(systemSortParallel|parallelRadixHuskySortAuto_pAll)$" -f 5 -wi 5 -i 10 -rf json -rff permits-auto.json
+```
+
+Deliberately only **two** methods, so that the baseline and the candidate sit next to each other in
+time. Please see the measurement note below for why that matters.
+
+Also please re-run your own `Par.java` probe from 09-13 — the one that printed `15 16` — inside the
+same slice as the benchmark, and send its output with the results. It is what tells us how many
+threads each side actually got. If it is easier to retype than to find:
+
+```
+jshell -q -s - <<'EOF'
+System.out.println(java.util.concurrent.ForkJoinPool.commonPool().getParallelism() + " " + Runtime.getRuntime().availableProcessors());
+/exit
+EOF
+```
+
+If you have time for two more, each as its own invocation rather than added to the command above:
+
+```
+java -jar target/benchmarks.jar "PermitSortBenchmarks.(parallelRadixHuskySort16_p8|parallelRadixHuskySortAuto_p8)$" -f 5 -wi 5 -i 10 -rf json -rff permits-auto-vs-16.json
+java -jar target/benchmarks.jar "PermitSortBenchmarks.(radixHuskySort16|parallelRadixHuskySortAuto_pAll)$" -f 5 -wi 5 -i 10 -rf json -rff permits-parallel-vs-serial.json
+```
+
+The first judges the automatic digit width against the fixed 16 bits. The second answers the most
+damning line in your 09-13 results — that the parallel husky path was slower than its own serial
+radix/16 at every `n` — on a build where the per-pass bookkeeping that probably caused it is gone.
+
+### 10b — strings, parallel against parallel (optional, several hours)
+
+This is the gap request 9 left open. Request 9 settled `Arrays.parallelSort` against us on `Long[]`,
+which is the case where husky coding has *least* to offer, because comparing two `Long`s is cheap.
+The English and Chinese corpora are the opposite extreme, and until now there was no parallel husky
+sort wired into the string benchmarks at all to set against the `systemSortParallel` you measured
+there. A new class, `ParallelStringSortBenchmarks`, supplies one.
+
+The full default matrix is three corpora × three sizes × seven methods, which is a long run. Narrowed
+to the comparison that answers the question:
+
+```
+java -jar target/benchmarks.jar "ParallelStringSortBenchmarks.(systemSortParallel|parallelRadixHuskySortAuto_pAll)$" -p n=1000000 -f 5 -wi 5 -i 10 -rf json -rff strings-parallel.json
+```
+
+That is all three corpora at the largest size, two methods. If it is comfortable, the thread-count
+sweep is the more interesting result, since it shows whether strings scale with cores differently
+from a cheap ordering:
+
+```
+java -jar target/benchmarks.jar "ParallelStringSortBenchmarks.parallelRadixHuskySortAuto_p.$" -p n=1000000 -f 5 -wi 5 -i 10 -rf json -rff strings-parallel-sweep.json
+```
+
+**One correction that affects your request-9 results.** `StringSortBenchmarks.systemSortParallel`
+used to call the no-Comparator `Arrays.parallelSort` for every corpus, so on `chinesenames` it sorted
+by raw UTF-16 code point — a cheaper task, and the wrong one, since the husky sorts order that corpus
+by pinyin. Both that benchmark and the new class's baseline now use
+`HuskyCoderChinesePinyin.NAME_ORDER` for `chinesenames`. You told Robin that the code-point ordering
+is almost never used in practice, and that the alternative to pinyin is stroke order rather than code
+point, which settles it: a code-point row is not a baseline anyone would recognise.
+
+So **the `chinesenames` row of your request-9 `systemSortParallel` measurement should be treated as
+superseded** rather than tabulated beside anything from this request. The `english` and `chinese`
+rows are unaffected — their coder supplies no Collator, and natural order is the right order for
+them. If 10b is more than you have time for, just re-running `chinesenames` for that one benchmark
+would close the gap:
+
+```
+java -jar target/benchmarks.jar "StringSortBenchmarks.systemSortParallel$" -p corpus=chinesenames -f 5 -wi 5 -i 10 -rf json -rff parallelsort-pinyin.json
+```
+
+### The measurement note — please read before running either part
+
+Three things bit us on 2026-09-16, and the third is a bias rather than noise:
+
+1. **JMH runs a class's methods in lexicographic order.** If load drifts upward across a run,
+   whichever method sorts last is systematically penalised — and `systemSortParallel` sorts last in
+   `PermitSortBenchmarks`, `StringSortBenchmarks` and the new class alike. In one of our runs it
+   scored 30.065 ± 3.580 having scored 22.078 ± 0.605 in another. That is why every command above
+   names only two methods. Please don't consolidate them into one invocation.
+2. **Antivirus scanning the freshly-built jar.** The benchmarks jar is 76 MB, and on the Mac
+   Microsoft Defender was scanning it *during the first benchmark of the following run*. If anything
+   equivalent runs on your instance, leave a few minutes between `mvn package` and measuring. At load
+   0.36 you may well have nothing to worry about.
+3. **`-f 1` is not enough here.** At one fork we measured ±11 ms on a 29 ms score, which is useless
+   for a 5–10% effect. Five forks brought it to ±0.2–1.0 ms. Hence `-f 5` throughout.
+
+### The system parameters we would like recorded
+
+The thing that made our own numbers hard to interpret was not having these written down next to them.
+Alongside the JSON, please send:
+
+```
+uptime
+lscpu
+free -h
+uname -r
+java -version
+mvn -v
+```
+
+`uptime` is the one we most want, and ideally **twice — immediately before and immediately after**
+each run. The load average before tells us the machine was quiet to start with; the load average
+after, compared against the core count from `lscpu`, tells us whether the benchmark itself was the
+only thing running. A run that starts at 0.4 and ends at 9 on 16 cores is clean; one that starts at 4
+is not, and we would rather discard it than average it in.
 
 ---
 
