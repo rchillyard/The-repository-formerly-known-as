@@ -25,9 +25,10 @@
 \BOOKMARK [2][-]{subsection.86}{Discussion of coding accuracy.}{section.77}% 25
 \BOOKMARK [2][-]{subsection.87}{Timsort or insertion sort for the cleanup pass.}{section.77}% 26
 \BOOKMARK [2][-]{subsection.90}{Comparison-sort baselines for the numeric and tuple types.}{section.77}% 27
-\BOOKMARK [2][-]{subsection.93}{The cleanup pass as N grows.}{section.77}% 28
-\BOOKMARK [2][-]{subsection.94}{Building permits: the case study in full.}{section.77}% 29
-\BOOKMARK [2][-]{subsection.95}{Why the two Chinese corpora sit at opposite ends of the table.}{section.77}% 30
-\BOOKMARK [2][-]{subsection.96}{Future work: composite keys, and what a library would have to provide.}{section.77}% 31
-\BOOKMARK [2][-]{subsection.97}{Adversarial inputs.}{section.77}% 32
-\BOOKMARK [2][-]{subsection.102}{Handling of partially-sorted arrays.}{section.77}% 33
+\BOOKMARK [2][-]{subsection.93}{Arrays.parallelSort as a parallel baseline.}{section.77}% 28
+\BOOKMARK [2][-]{subsection.98}{The cleanup pass as N grows.}{section.77}% 29
+\BOOKMARK [2][-]{subsection.99}{Building permits: the case study in full.}{section.77}% 30
+\BOOKMARK [2][-]{subsection.100}{Why the two Chinese corpora sit at opposite ends of the table.}{section.77}% 31
+\BOOKMARK [2][-]{subsection.101}{Future work: composite keys, and what a library would have to provide.}{section.77}% 32
+\BOOKMARK [2][-]{subsection.102}{Adversarial inputs.}{section.77}% 33
+\BOOKMARK [2][-]{subsection.107}{Handling of partially-sorted arrays.}{section.77}% 34
