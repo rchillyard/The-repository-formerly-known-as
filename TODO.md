@@ -1588,3 +1588,68 @@ is a defect; all are hardening or generalisation.
     invocation with `PATH="/Library/TeX/texbin:$PATH"` or fix the script. Also note that Table
     `ParallelRadix` is now numbered A.7 while the parallel-baseline *section* is also A.7, separate
     LaTeX counters both reaching the same number; standard, but a reader could trip on it.
+
+40. **The cleanup pass IS well parallelizable, which undercuts item 39's central argument and the
+    conclusion revised on 2026-09-17.** Found 2026-09-17, late, after Robin proposed that the
+    cleanup resists parallelism because "the data elements are NOT independent ... there is a
+    direction of processing such that we cannot treat whole chunks independently."
+
+    ### What is true
+
+    That holds for **insertion sort**: element i's destination depends on 0..i-1 already being
+    ordered, a loop-carried dependence with no chunking available. It does **not** hold for
+    **Timsort**, which is a merge sort, and merge sort is the canonical parallelizable comparison
+    sort --- `Arrays.parallelSort` chunks it exactly that way, Timsorting leaf blocks independently
+    and merging them.
+
+    The counter-argument offered in reply was also wrong, and more instructively. It ran: chunking
+    destroys the global run detection that makes an adaptive sort cheap, since serial Timsort finds
+    one run spanning the whole array and stops, so parallelizing is counterproductive. **The work
+    analysis is right and the time conclusion does not follow, because it omits the division by
+    core count.** Measured, n = 1,000,000 english strings, 8 cores and 7 pool workers:
+
+    | disorder (block shuffle) | natural runs | serial `Arrays.sort` | `Arrays.parallelSort` | ratio |
+    | --- | ---: | ---: | ---: | ---: |
+    | 1 (fully sorted) | 1 | 26,147 us | **14,931 us** | 0.57x |
+    | 2 | 66,784 | 59,027 | **21,215** | 0.36x |
+    | 32 | 431,767 | 114,519 | **35,241** | 0.31x |
+    | 65,536 | 499,852 | 316,435 | **83,809** | 0.26x |
+
+    Parallel wins at every level, **including on an already-sorted array**. The mechanism is exactly
+    the work analysis with the missing division: JDK `Merger` binary-searches a split point for
+    parallelism and then merges element-wise at the base case, without galloping, so on sorted input
+    parallelSort does about 4x the work of serial Timsort (n at the leaves plus ~3n across merge
+    levels, against n comparisons and no moves) and finishes in 4/7 of the time. 4/7 = 0.571 against
+    a measured 0.571.
+
+    ### What it costs us
+
+    All four phases are parallelizable: the digit passes (measured, 1.19x on `Long[]` at 10M), the
+    encoding (a pure function per element), the permutation (an independent scatter under a
+    bijection), and now the cleanup (measured above). **We parallelized one of the four, and not the
+    one with the time in it.** So:
+
+    - **Item 39's central argument is weakened.** "A sort that wins by performing less total work has
+      less work left to distribute across cores" is true as arithmetic but does not bound anything,
+      because our reduced work parallelizes about as well as the baseline's --- our cleanup *is* a
+      parallel comparison sort over the same array.
+    - **The conclusion as revised in `36fa361` asserts more than we know.** It says the serial
+      advantage is "a property of the mechanism rather than a shortcoming of our implementation".
+      That is not established. The sentence it replaced --- "the causes named there are our
+      implementation's, not the approach's, so a parallel proxy-key sort should still win wherever
+      the serial one does" --- was closer to right, though it too asserted more than was measured.
+
+    ### The arithmetic that decides it, and what is still missing
+
+    A fully parallel proxy-key sort beats `Arrays.parallelSort` iff encoding plus digit passes plus
+    permutation costs less than what pre-ordering saves the baseline. From the table above that
+    saving is 83.8 - 14.9 = **68.9 ms** at n = 1,000,000 on this machine. The measured encode is
+    24.3 ms, leaving **44.6 ms** for the passes and the permutation. Six passes over a million
+    elements at 12 bytes is 72 MB of traffic spread over seven workers, which is plausibly inside
+    that budget --- but it is **not measured**, so neither outcome may be claimed.
+
+    **Do not rewrite the conclusion a third time without measuring it.** The claim has now been
+    stated in three mutually inconsistent ways in one day, twice in the repository. What settles it
+    is one benchmark: a variant that parallelizes the encoding and uses `Arrays.parallelSort` as the
+    post-sorter, set against `Arrays.parallelSort` alone. Until that exists, the defensible paper
+    text says what was done (one phase of four) and leaves the approach's parallel ceiling open.
