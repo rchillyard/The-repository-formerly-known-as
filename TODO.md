@@ -1489,3 +1489,61 @@ is a defect; all are hardening or generalisation.
 
     On revision, §A.5 wants: which insertion sort Table `TimvsInsertion` measured, and the fact that
     the choice turns on p and therefore on the coder.
+
+39. **Consider backing off parallel sorting as a feature, and say the benefits are serial.** Raised
+    by Robin 2026-09-17: "What benefits we have are strictly serial, so maybe we should simply
+    acknowledge that and deemphasize the parallel versions." Items 34, 37 and 38 hold the
+    measurements; none of them draws this conclusion, which is the gap this item fills.
+
+    ### The case for it
+
+    The mechanism's advantage and its parallel ceiling are **the same property**. Husky coding wins
+    by moving work out of the linearithmic phase into two linear phases, encode and cleanup, both of
+    which are serial. A sort that wins by doing less total work has less work left to spread across
+    cores. So "the benefits are strictly serial" is not a limitation to confess but the mechanism
+    stated correctly, and it explains both halves of the results at once --- why the serial sort beats
+    `Arrays.sort` and why the parallel one loses to `Arrays.parallelSort`.
+
+    The numbers, all from requests 9 and 10 and item 36:
+
+    - The parallelizable fraction is **0.06** on english and **0.07** on chinesenames; the p1-to-p8
+      sweep buys nothing at all on either. Only chinese, at 0.25, gets anything (1.26x).
+    - The **serial floor** --- encode plus cleanup, untouched by any chunk count --- is **1.11x** of
+      `Arrays.parallelSort`'s entire runtime on english and **1.12x** on chinesenames, on eight
+      cores. Make the digit passes free and infinitely parallel and the sort still loses. On sixteen
+      cores the floor ratio roughly doubles.
+    - The parallel variant wins in exactly **one** measured configuration: `Long[]` at ten million,
+      by 1.19x --- the cheapest comparison in the suite, which is where husky coding has least to
+      offer in the first place. On the permits it never beats its own serial form.
+
+    ### What in the paper would have to change
+
+    - **The conclusion's claim is wrong as written** (line ~1337): "The causes named there are our
+      implementation's, not the approach's, so a parallel proxy-key sort should still win wherever
+      the serial one does". The serial floor is the approach, not the implementation, and no amount
+      of repairing the histogram-combine touches it. This sentence is the one that has to go or be
+      reversed.
+    - **The intro needs qualifying** (lines ~397-403): "Radix sort's independent per-digit
+      counting-sort passes are well suited to parallelization" is true of the passes but they are not
+      where the time goes.
+    - **§6.4 and the abstract are already honest.** §6.4 even predicts its own failure mode ---
+      "the design should fail wherever buckets times threads approaches N" --- which request 10 then
+      confirmed on the permits. The abstract already concedes "where cores are free, the JDK's own
+      parallel sort" overtakes us.
+
+    ### Reframe rather than remove --- recommended, but Robin's call
+
+    Robin's own standing prediction is that the likeliest referee ask is a better
+    parallel-versus-parallel benchmark. Going silent leaves that question unanswered; reporting the
+    negative **with the mechanism** pre-empts it, and a measured negative with an explanation is a
+    stronger section than a hopeful positive. A referee cannot ask "but what about threads?" of a
+    paper that has already shown the serial fraction to be 0.94 and said why.
+
+    There is also a page-budget argument for it: moving §6.4 out of the body and into the appendix
+    beside A.7 frees body space, and the body is at exactly 12.00 pages with no margin, while the
+    appendix is outside the count. Do **not** estimate how much it frees --- the length metric is
+    non-monotonic under float reflow, so it has to be rebuilt and measured.
+
+    Interacts with the four options Robin is weighing for the paper (withdraw / revise now / revise
+    in the author-response phase / leave it): this is a revision of emphasis and one incorrect
+    sentence, not of results, which makes it cheap under options 2 and 3 and impossible under 4.
