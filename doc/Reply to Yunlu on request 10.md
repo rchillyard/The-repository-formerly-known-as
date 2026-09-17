@@ -1,9 +1,5 @@
 # Reply to Yunlu — request 10 (PR #66)
 
-Draft, for posting as a comment on PR #66. Not yet sent.
-
----
-
 Yunlu — thank you, this is the most useful run we have had. Three things in it were
 worth more than the numbers we asked for.
 
