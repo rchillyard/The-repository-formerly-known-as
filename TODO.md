@@ -1228,10 +1228,20 @@ is a defect; all are hardening or generalisation.
     UTF-8 `c3 a9` was decoded as Latin-1 and re-encoded, i.e. **the file is double-encoded**.
     `HuskySortBenchmarkHelper` reads it as UTF-8, which is correct, and faithfully reproduces the
     damage. It is scattered through the file, once per accented character, so it is not a
-    byte-order-mark effect. Repairable by a Latin-1 encode / UTF-8 decode round trip, which would
-    make a narrow coder near-exact --- but that changes the corpus and hence every english figure
-    measured from it, so it is left alone. Unresolved: whether the damage is in the Leipzig
-    distribution or was introduced when the file was added here.
+    byte-order-mark effect.
+
+    **The damage is upstream, in the Leipzig distribution: settled 2026-09-17 and not worth
+    revisiting.** All five files of the `eng-uk_web_2002` package in `src/main/resources` carry the
+    signature (3,675 occurrences of the double-encoded marker in `1M-sentences`, 38 in
+    `10K-sentences`) and **not one clean UTF-8 accented character between them** --- zero `c3 a9` in
+    121 MB of English web text, where a clean corpus would hold thousands. The `10K-sentences` file
+    was then downloaded fresh from
+    `downloads.wortschatz-leipzig.de/corpora/eng-uk_web_2002_10K.tar.gz` and is **byte-identical to
+    ours**, same length and sha256 `475aa01b4c4d97a03d23d7bbe5730a39acae5bdd18ee720f3a6c807304a9d5af`,
+    carrying the same 38 markers. So our copy is pristine; there is nothing to replace it with, and
+    nobody here caused it. Repairable in principle by a Latin-1 encode / UTF-8 decode round trip,
+    which would make a narrow coder near-exact --- but that would depart from the published corpus
+    and change every english figure measured from it, so it is left alone.
 
     The choice must stay **per corpus**: `asciiCoder` would be catastrophic on the Leipzig chinese
     corpus (97.6% of its words are non-ASCII), where `UNICODE_CODER` is already excellent --- 1.03

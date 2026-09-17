@@ -435,9 +435,18 @@ public class RadixHuskySortTest {
      */
     @Test
     public void testEnglishCorpusUnderAsciiCoder() {
-        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt",
+        // The 10K file, not the 1M one the benchmark uses: same Leipzig package, same text, same
+        // mojibake, and 1.2 MB against 121 MB -- loading the large one cost twelve seconds of suite
+        // time to exercise identical code. Verified byte-identical to the Leipzig original
+        // (sha256 475aa01b...), so it is representative and not a trimmed-down copy.
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt",
                 line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
-        assertTrue("the corpus should hold a substantial vocabulary", words.length > 100_000);
+        assertTrue("the corpus should hold a real vocabulary", words.length > 5_000);
+        // The non-ASCII path asciiCoder mis-encodes must actually be exercised, or this test would
+        // pass on a corpus where the coder happened to be exact.
+        boolean sawNonAscii = false;
+        for (final String w : words) for (int i = 0; i < w.length() && !sawNonAscii; i++) if (w.charAt(i) > 127) sawNonAscii = true;
+        assertTrue("the corpus should contain non-ASCII characters for asciiCoder to mis-encode", sawNonAscii);
         final Random random = new Random(42);
         final int n = 20_000;
         final String[] xs = new String[n];

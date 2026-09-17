@@ -10,25 +10,16 @@ import java.util.Collection;
  * NOTE this definition does not assume that X extends Comparable of X.
  * <p>
  * Extends {@link AutoCloseable} so that a sorter can be used in a try-with-resources statement,
- * which is what callers holding an instrumented helper actually need. The inherited {@code close()}
- * is narrowed to throw nothing, since no implementation here has anything to report, and sparing
- * callers a {@code catch (Exception)} is the whole point.
+ * which is what callers holding an instrumented helper actually need. Sub-interfaces narrow the
+ * inherited {@code close()} to throw nothing --- {@link Sort} re-declares it abstract, obliging
+ * every sorter with a helper to say what closing means, and {@link edu.neu.coe.huskySort.sort.radix.TransformingSort}
+ * defaults it to a no-op for the counting sorts, which hold nothing. Narrowing it matters because
+ * {@code AutoCloseable.close()} throws {@code Exception}, and no caller here should need a
+ * {@code catch}.
  *
  * @param <X> the type of the elements to be sorted.
  */
 public interface GenericSort<X> extends AutoCloseable {
-
-    /**
-     * Close this sorter, releasing anything it holds.
-     * <p>
-     * NOTE: defaulted to a no-op rather than left abstract, so that implementations holding no
-     * resources (the counting sorts reached through TransformingSort) need not declare one.
-     * {@link Sort} re-declares it abstract, so every sorter with a helper to close is still obliged
-     * to say what closing means.
-     */
-    @Override
-    default void close() {
-    }
 
     /**
      * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
