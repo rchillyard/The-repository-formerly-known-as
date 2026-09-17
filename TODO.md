@@ -1356,3 +1356,73 @@ is a defect; all are hardening or generalisation.
       run counts differ by 22x across those choices.
     - **The anonymised artifact** would need regenerating with the paper.
     - Nothing here reaches the submitted paper, which corresponds to `master`.
+
+38. **§A.5's cleanup-sort choice was measured against the wrong insertion sort, and the right answer
+    depends on the coder.** Found 2026-09-17, following items 36 and 37.
+
+    ### The wrong algorithm
+
+    The paper writes the cleanup as `k(N + pX)`, which is the cost of **adaptive** insertion sort:
+    scan left from each element, shift the larger ones up, so `(n-1) + X` comparisons and `X` moves.
+    `InsertionSort` in this repository is not that algorithm. Its `sort` calls
+    `ComparisonSortHelper.swapIntoSorted`, which locates each element by **binary search over the
+    whole sorted prefix** --- `n log n` comparisons however nearly ordered the input is. Its own
+    class comment says it "does NOT use the insertion swap mechanism"; what had not been drawn is
+    the consequence, that it cannot exploit the very property the cleanup pass exists to exploit.
+
+    Measured on the english corpus after the radix phase at n = 200,000: binary insertion 44,947 us
+    against Timsort's 9,830, a factor of **4.57**. §A.5 reports Timsort winning "by a factor of four
+    and a half at N = 4,000,000". That correspondence is close enough to suspect strongly that §A.5
+    measured binary insertion, in which case its conclusion is about the wrong algorithm and the
+    design decision resting on it ("that is why step 3 uses the system sort") is unsupported as
+    stated --- though see below, because it may well be right for other reasons.
+
+    `AdaptiveInsertionSort` is added alongside `InsertionSort`, not replacing it: the existing class
+    is used from the benchmarks and several tests, and it is a legitimate algorithm, merely not the
+    one the model describes. It carries a comparator overload as well as the natural-ordering form,
+    because a cleanup pass in the wrong ordering silently produces an array sorted by the wrong
+    thing --- the trap the pinyin coder has sprung twice already.
+    `AdaptiveInsertionSortTest.testComparisonsAreAdaptive` pins the property that matters: exactly
+    n-1 comparisons on an ordered array, exactly n with one inversion.
+
+    ### The right answer depends on the coder, and not monotonically
+
+    `CleanupPassBenchmarks` measures all three cleanups on the array the radix phase actually hands
+    over, parameterised by coder, since p varies by 3 orders of magnitude across them (item 37).
+    A smoke run at n = 200,000 (1 fork, 2 iterations --- indicative only):
+
+    | coder | p | Timsort | adaptive | |
+    | --- | ---: | ---: | ---: | --- |
+    | `englishSaturatingCoder` | 4.7e-7 | **10.8 ms** | 11.9 ms | Timsort by 1.10x |
+    | `UNICODE_CODER` | 1.15e-4 | 29.5 ms | **25.1 ms** | adaptive by 1.18x |
+    | pinyin | 7.0e-4 | **67.8 ms** | 1006.9 ms | **Timsort by 14.8x** |
+
+    Not monotonic in p, which refutes the obvious model-based expectation that a lower p should
+    favour the algorithm whose cost is linear in X. The reason is Timsort's galloping: at p = 4.7e-7
+    the 2,157 runs average 464 elements and are nearly disjoint in key space, so each merge costs
+    about log(464) comparisons rather than 464, leaving Timsort at roughly n comparisons --- the same
+    as adaptive insertion sort, and slightly ahead of it because it shifts no memory. At the other
+    end, pinyin's X is 7 million at this n and adaptive insertion sort pays every one of them as an
+    expensive NAME_ORDER comparison.
+
+    So: **Timsort is the right default and §A.5's conclusion survives**, but not for the reason it
+    gives, and the margin is a coin-flip rather than 4.5x wherever p is small. An adaptive cleanup is
+    worth having available for the middle of the range.
+
+    ### What is not yet known
+
+    The 1.10x and 1.18x margins are from a 1-fork smoke run on a loaded machine and mean little; only
+    the 14.8x pinyin result is large enough to trust as it stands. Hand timing earlier the same day
+    put adaptive **ahead** by 1.12x at n = 200,000 and 1.24x at n = 1,000,000 under the saturating
+    coder, which the smoke run contradicts at 200,000 --- so the small-margin cases are genuinely
+    unresolved and want a proper run:
+
+    ```
+    java -jar target/benchmarks.jar "CleanupPassBenchmarks" -f 5 -wi 5 -i 10 -rf json -rff cleanup.json
+    ```
+
+    Exclude `binaryInsertionCleanup` for the pinyin coder, which it refuses rather than sorting by
+    the wrong ordering.
+
+    On revision, §A.5 wants: which insertion sort Table `TimvsInsertion` measured, and the fact that
+    the choice turns on p and therefore on the coder.
