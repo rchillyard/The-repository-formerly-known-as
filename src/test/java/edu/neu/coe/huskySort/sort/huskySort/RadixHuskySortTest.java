@@ -435,13 +435,17 @@ public class RadixHuskySortTest {
      */
     @Test
     public void testEnglishCorpusUnderAsciiCoder() {
-        // The 10K file, not the 1M one the benchmark uses: same Leipzig package, same text, same
-        // mojibake, and 1.2 MB against 121 MB -- loading the large one cost twelve seconds of suite
-        // time to exercise identical code. Verified byte-identical to the Leipzig original
-        // (sha256 475aa01b...), so it is representative and not a trimmed-down copy.
-        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt",
+        // The 100K file, where the benchmark uses the 1M one. Leipzig ships this corpus at several
+        // sample sizes and each is literally the first n lines of the next (verified by cmp), so
+        // this is the same text, but 12 MB against 121 MB: loading takes 348 ms rather than 4.2 s,
+        // and the whole 1M file cost twelve seconds of suite time to exercise identical code.
+        // The 10K file would be cheaper again (35 ms) but thinner than is comfortable -- 22,865
+        // words against this file's 81,546 and the 1M file's 275,333, and only 27 non-ASCII words
+        // against 181 and 1,228. This is the balance: 0.3 s for a vocabulary big enough that the
+        // mis-encoded and the truncated words are both well represented.
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_100K-sentences.txt",
                 line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
-        assertTrue("the corpus should hold a real vocabulary", words.length > 5_000);
+        assertTrue("the corpus should hold a substantial vocabulary", words.length > 50_000);
         // The non-ASCII path asciiCoder mis-encodes must actually be exercised, or this test would
         // pass on a corpus where the coder happened to be exact.
         boolean sawNonAscii = false;
