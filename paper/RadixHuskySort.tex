@@ -394,10 +394,17 @@ proxy for real cost, motivated by the observation that comparing two heavyweight
 \textit{String}s, say --- touches more memory, and more likely uncached memory, than comparing two
 64-bit primitives.
 
-Radix sort's independent per-digit counting-sort passes are well suited to parallelization across CPU threads,
-a property that is already established for radix sort generally;
-\S~\ref{sec:parallel-radix} describes and benchmarks a parallel variant of RadixHuskySort (\S~\ref{sec:radix}).
-We do not make an equivalent claim for QuickHuskySort's own comparison-based steps:
+Radix sort's independent per-digit counting-sort passes are, taken alone, well suited to
+parallelization across CPU threads, a property already established for radix sort generally, and
+\S~\ref{sec:parallel-radix} describes and benchmarks a parallel variant of RadixHuskySort
+(\S~\ref{sec:radix}).
+Those passes, however, are not where a proxy-key sort spends its time.
+The encoding and the cleanup are both sequential, and on the corpora we measure they dominate; so the
+advantage this paper reports is a serial one, and the parallel variant is offered as a measured
+negative result rather than as a feature.
+\S~\ref{sec:conclusion} says why that is a property of the mechanism and not of our implementation
+of it.
+We do not make even the narrow claim for QuickHuskySort's own comparison-based steps:
 Introsort's partitioning and Timsort's adaptive run-detection are both substantially more data-dependent (less independent) and sequential
 in character than radix sort's fixed per-digit passes,
 so parallelizing them well is a separate, harder problem that this paper does not address.
@@ -425,7 +432,8 @@ And the cost of the cleanup pass, though analysed in terms of the proportion of 
 was never measured: it reports no calculated value for $p_{crit}$.
 The contributions here answer both.
 RadixHuskySort, or RHSort (\S~\ref{sec:radix}), replaces step 2 with a linear-time radix sort on the
-same codes, and we add a parallel variant of it (\S~\ref{sec:parallel-radix});
+same codes; we also parallelize its digit passes, which turns out not to pay and is reported as
+such (\S~\ref{sec:parallel-radix});
 \S~\ref{sec:pcrit} measures what the cleanup pass costs.
 Alongside those, an empirical comparison against the classic string sorts rather than a theoretical
 one (\S~\ref{sec:radix}), and a case study on real rather than generated data
@@ -1019,7 +1027,8 @@ sorter in the table is single-threaded.
 At the larger sizes a practitioner who cared about speed would reach instead for
 \mbox{\textit{Arrays.parallelSort}}, so the serial comparison is the conservative one to draw against
 RadixHuskySort and the generous one to draw against a parallel sorter;
-\S~\ref{sec:parallel-radix} takes up parallelism on its own terms.
+\S~\ref{sec:parallel-baseline} draws the parallel-against-parallel comparison, and
+\S~\ref{sec:parallel-radix} reports what parallelizing our own digit passes does and does not buy.
 Dual-pivot quicksort and a from-scratch quicksort were measured too; they bear on QuickHuskySort
 rather than on RHSort, so they are in \S~\ref{sec:comparison-baselines}.
 
@@ -1147,70 +1156,6 @@ JVM generation.
 We quote no figures from them, since mixing environments within a comparison would rob it of meaning,
 but every ordering reported here holds on all three.
 
-\subsection{Parallel Radix Sort.}
-\label{sec:parallel-radix}
-
-Radix sort's digit passes are natural candidates for parallelization (\S~\ref{sec:radix} above).
-We implemented and benchmarked a parallel variant:
-each pass is split into a configurable number of contiguous chunks, one per worker thread.
-Every chunk first computes its own local per-bucket histogram independently, with no synchronization required;
-a short sequential step then combines those histograms into an exact starting offset, in the output array,
-for every (chunk, bucket) pair — preserving the stability that step 3's cleanup pass, when needed, relies on,
-since a chunk's elements always land after all lower-numbered chunks' elements sharing the same bucket;
-finally, every chunk scatters its own elements into the output arrays independently,
-using only its own precomputed offsets, so no two chunks ever write to the same location.
-
-An initial implementation dispatched the two phases above to a thread pool separately on every pass.
-Measurement showed this repeated dispatch itself contributing a real, non-trivial share of the total cost,
-particularly at more moderate array sizes.
-The overhead was substantially reduced by starting the worker threads once per sort,
-rather than once per phase per pass:
-each thread runs its own loop over every pass, and the two phases synchronize via reused barriers whose associated actions —
-code that runs exactly once per synchronization point, in whichever thread arrives last —
-perform the histogram-combine and buffer-swap steps.
-Table ~\ref{tab:ParallelRadix} reports the result (\textit{Long[]}, 11-bit digits, milliseconds, mean $\pm$ 99.9\% CI).
-
-\begin{table*}
-  \caption{Parallel RHSort:
-serial vs. 1, 2, 4, and 8 worker threads}
-  \label{tab:ParallelRadix}
-  \centering
-  \begin{tabular}{cccccc}
-    \toprule
-    N & Serial & 1 thread & 2 threads & 4 threads & 8 threads \\
-    \midrule
-    2,000,000 & 172.0$\pm$5.7 & 165.2$\pm$2.2 & 140.3$\pm$2.0 & 118.5$\pm$2.4 & 109.3$\pm$1.8 \\
-    10,000,000 & 935.2$\pm$36.9 & 884.5$\pm$21.6 & 731.6$\pm$19.9 & 687.9$\pm$22.1 & 645.3$\pm$20.9 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-The comparison here is against RadixHuskySort's own serial implementation and against itself at other
-thread counts; \S~\ref{sec:parallel-baseline} sets it against \mbox{\textit{Arrays.parallelSort}} on the
-same machine, which is the comparison a practitioner actually faces.
-Isolating parallelism itself, that's to say comparing 1 thread against 4, both paying identical thread-coordination overhead,
-gives a statistically resolved speedup at both sizes: 1.39x at $N=2{,}000{,}000$ and 1.29x at $N=10{,}000{,}000$,
-with non-overlapping confidence intervals in both cases.
-Against the serial implementation the improvement is resolved at both sizes too,
-172.0ms to 118.5ms at $N=2{,}000{,}000$ and 935.2ms to 687.9ms at $N=10{,}000{,}000$.
-Unlike on machine B's eight cores, scaling does not stop at four threads:
-on sixteen uniform cores, eight threads beats four at both sizes,
-reaching 1.51x and 1.37x over a single thread.
-It is resolved at $N=2{,}000{,}000$; at $N=10{,}000{,}000$ the intervals just touch,
-so that size shows the direction rather than settling it.
-
-That is still well short of linear, and the shortfall is the more interesting number:
-an eightfold increase in threads buys between 1.37x and 1.51x,
-on hardware with no performance/efficiency asymmetry to account for it.
-Two effects fit, and they are not equally benign.
-Each pass scatters across the whole array, so the sort may be limited by memory throughput, which extra
-cores do not supply: a property of the machine.
-The other belongs to the design --- the histogram-combine between a pass's two phases is sequential and
-costs a step per bucket per chunk, so its work \emph{grows} with the thread count while the parallel
-work shrinks.
-That has a consequence the first lacks: the design should fail wherever buckets times threads approaches
-$N$, and \S~\ref{sec:parallel-baseline} finds exactly that on the permits.
-
 \subsection{Use-Case Guidance.}
 \label{sec:usecase}
 
@@ -1295,6 +1240,7 @@ Where cores are free and the JDK can compare the key, reach for \mbox{\textit{Ar
 our variant earns its place on large arrays whose ordering the encoding replaces.
 
 \section{Conclusion.}
+\label{sec:conclusion}
 
 The original idea behind HuskySort — QuickHuskySort — was to shift work from the linearithmic phase of
 sorting into the linear ones, prelude and postlude, reducing array accesses and so processing time.
@@ -1331,11 +1277,27 @@ and a comparison costing more than a machine-word check --- strings, arbitrary-p
 and multi-field records, as opposed to \textit{int}, \textit{long} or \textit{double},
 where dual-pivot quicksort wins outright.
 
+\textbf{The advantage this paper reports is a serial one, and that is a property of the mechanism
+rather than a shortcoming of our implementation of it.}
 Parallel against parallel, \textit{ParallelRadixHuskySort} leads \mbox{\textit{Arrays.parallelSort}} by
-1.19x at ten million \textit{Long}s, trails it at two million, and on the permits trails its own serial
+1.19x at ten million \textit{Long}s --- the cheapest comparison we measure, and so the case where
+husky coding has least to offer --- trails it at two million, and on the permits trails its own serial
 form (\S~\ref{sec:parallel-baseline}).
-The causes named there are our implementation's, not the approach's, so a parallel proxy-key sort should
-still win wherever the serial one does; that ours does not yet is the clearest future work here.
+It is tempting to read that as an implementation defect, and we did at first.
+It is not.
+Husky coding earns its advantage by moving work out of the linearithmic phase and into two linear ones,
+the encoding and the cleanup, and both of those are sequential.
+A sort that wins by performing less total work has, by construction, less work left to distribute
+across cores.
+The two facts are the same fact.
+Measured, the parallelizable fraction of the whole sort is 0.06 on English words and 0.07 on Chinese
+names; and the encoding and the cleanup together --- neither of which any thread count touches --- already
+cost more than \mbox{\textit{Arrays.parallelSort}} takes to do the entire job on both of those corpora.
+Making the digit passes free and perfectly parallel would not close that gap.
+Where parallelism is what matters and cores are plentiful, a parallel comparison sort is the right
+tool, and we say so.
+The sequential histogram-combine of \S~\ref{sec:parallel-radix} is a real defect and worth repairing,
+but repairing it would not change this conclusion.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
@@ -1658,6 +1620,73 @@ We have not isolated the three contributions, so this is a reading of the design
 measurement of it.
 The serial result is unaffected throughout: the system sort remains 4.92x slower than serial RHSort/16
 at the full corpus.
+
+%% Moved out of the body (was \S 6.4 under Results and Observations) on 2026-09-17: the
+%% parallel variant is a measured negative result rather than a feature, so it belongs beside
+%% the parallel baseline it loses to, and the body has no page to spare. See TODO.md item 39.
+\subsection{Parallel Radix Sort.}
+\label{sec:parallel-radix}
+
+Radix sort's digit passes are natural candidates for parallelization (\S~\ref{sec:radix} above).
+We implemented and benchmarked a parallel variant:
+each pass is split into a configurable number of contiguous chunks, one per worker thread.
+Every chunk first computes its own local per-bucket histogram independently, with no synchronization required;
+a short sequential step then combines those histograms into an exact starting offset, in the output array,
+for every (chunk, bucket) pair — preserving the stability that step 3's cleanup pass, when needed, relies on,
+since a chunk's elements always land after all lower-numbered chunks' elements sharing the same bucket;
+finally, every chunk scatters its own elements into the output arrays independently,
+using only its own precomputed offsets, so no two chunks ever write to the same location.
+
+An initial implementation dispatched the two phases above to a thread pool separately on every pass.
+Measurement showed this repeated dispatch itself contributing a real, non-trivial share of the total cost,
+particularly at more moderate array sizes.
+The overhead was substantially reduced by starting the worker threads once per sort,
+rather than once per phase per pass:
+each thread runs its own loop over every pass, and the two phases synchronize via reused barriers whose associated actions —
+code that runs exactly once per synchronization point, in whichever thread arrives last —
+perform the histogram-combine and buffer-swap steps.
+Table ~\ref{tab:ParallelRadix} reports the result (\textit{Long[]}, 11-bit digits, milliseconds, mean $\pm$ 99.9\% CI).
+
+\begin{table*}
+  \caption{Parallel RHSort:
+serial vs. 1, 2, 4, and 8 worker threads}
+  \label{tab:ParallelRadix}
+  \centering
+  \begin{tabular}{cccccc}
+    \toprule
+    N & Serial & 1 thread & 2 threads & 4 threads & 8 threads \\
+    \midrule
+    2,000,000 & 172.0$\pm$5.7 & 165.2$\pm$2.2 & 140.3$\pm$2.0 & 118.5$\pm$2.4 & 109.3$\pm$1.8 \\
+    10,000,000 & 935.2$\pm$36.9 & 884.5$\pm$21.6 & 731.6$\pm$19.9 & 687.9$\pm$22.1 & 645.3$\pm$20.9 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+The comparison here is against RadixHuskySort's own serial implementation and against itself at other
+thread counts; \S~\ref{sec:parallel-baseline} sets it against \mbox{\textit{Arrays.parallelSort}} on the
+same machine, which is the comparison a practitioner actually faces.
+Isolating parallelism itself, that's to say comparing 1 thread against 4, both paying identical thread-coordination overhead,
+gives a statistically resolved speedup at both sizes: 1.39x at $N=2{,}000{,}000$ and 1.29x at $N=10{,}000{,}000$,
+with non-overlapping confidence intervals in both cases.
+Against the serial implementation the improvement is resolved at both sizes too,
+172.0ms to 118.5ms at $N=2{,}000{,}000$ and 935.2ms to 687.9ms at $N=10{,}000{,}000$.
+Unlike on machine B's eight cores, scaling does not stop at four threads:
+on sixteen uniform cores, eight threads beats four at both sizes,
+reaching 1.51x and 1.37x over a single thread.
+It is resolved at $N=2{,}000{,}000$; at $N=10{,}000{,}000$ the intervals just touch,
+so that size shows the direction rather than settling it.
+
+That is still well short of linear, and the shortfall is the more interesting number:
+an eightfold increase in threads buys between 1.37x and 1.51x,
+on hardware with no performance/efficiency asymmetry to account for it.
+Two effects fit, and they are not equally benign.
+Each pass scatters across the whole array, so the sort may be limited by memory throughput, which extra
+cores do not supply: a property of the machine.
+The other belongs to the design --- the histogram-combine between a pass's two phases is sequential and
+costs a step per bucket per chunk, so its work \emph{grows} with the thread count while the parallel
+work shrinks.
+That has a consequence the first lacks: the design should fail wherever buckets times threads approaches
+$N$, and \S~\ref{sec:parallel-baseline} finds exactly that on the permits.
 
 \subsection{The cleanup pass as \texorpdfstring{$N$}{N} grows.}
 \label{sec:cleanup-scaling}

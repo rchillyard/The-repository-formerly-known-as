@@ -1547,3 +1547,44 @@ is a defect; all are hardening or generalisation.
     Interacts with the four options Robin is weighing for the paper (withdraw / revise now / revise
     in the author-response phase / leave it): this is a revision of emphasis and one incorrect
     sentence, not of results, which makes it cheap under options 2 and 3 and impossible under 4.
+
+    ### DONE in the paper, 2026-09-17, on the `parallel-redesign` branch
+
+    Robin asked for the revision to be made now so that a camera-ready copy can simply be built if
+    and when the time comes. Four changes to `paper/RadixHuskySort.tex`; **no measured figure was
+    altered**, only what is claimed about the figures and where the material sits.
+
+    1. **The conclusion's incorrect sentence is reversed.** It claimed the parallel shortfall was
+       "our implementation's, not the approach's, so a parallel proxy-key sort should still win
+       wherever the serial one does". It now opens with the positive statement --- the advantage this
+       paper reports is a serial one, and that is a property of the mechanism --- and gives the
+       argument: husky coding earns its advantage by moving work into two linear phases, both
+       sequential, so a sort that wins by performing less total work has less work left to
+       distribute. It cites the measured parallelizable fractions (0.06 English, 0.07 Chinese names)
+       and the serial floor exceeding `Arrays.parallelSort`'s whole runtime, and says plainly that
+       repairing the histogram-combine would not change the conclusion. It also concedes the case
+       where a parallel comparison sort is the right tool.
+    2. **The introduction is qualified.** "Well suited to parallelization" now reads "taken alone,
+       well suited", followed by the point that those passes are not where a proxy-key sort spends
+       its time, and that the parallel variant is offered as a measured negative result rather than
+       as a feature.
+    3. **§6.4 moved out of the body into the appendix**, landing immediately after A.7, the parallel
+       baseline it loses to, so all the parallel material sits together. It is now A.8. A `%%`
+       comment at the move site records why. The contributions list no longer says "we add a parallel
+       variant of it" but that we parallelize the digit passes, "which turns out not to pay and is
+       reported as such".
+    4. A `\label{sec:conclusion}` was added, the conclusion having had none, so the introduction can
+       point forward to the argument.
+
+    **Measured, not estimated** (the length metric being non-monotonic under float reflow): the body
+    was exactly 12.00 pages, with `References` at the very top of page 13 and no margin whatever. It
+    now ends part-way down page 12's **right** column --- `References` begins at yMin 182 of that
+    column --- so roughly four tenths of a page of body space has been freed. All cross-references
+    resolve; the log reports no undefined reference, and the only hardcoded section number anywhere
+    in the source is inside the new explanatory comment.
+
+    Note for whoever builds next: **`paper/build.sh` fails out of the box**, because `pdflatex` is
+    not on the default `PATH` on this machine --- it lives in `/Library/TeX/texbin`. Prefix the
+    invocation with `PATH="/Library/TeX/texbin:$PATH"` or fix the script. Also note that Table
+    `ParallelRadix` is now numbered A.7 while the parallel-baseline *section* is also A.7, separate
+    LaTeX counters both reaching the same number; standard, but a reader could trip on it.
