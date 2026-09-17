@@ -1703,3 +1703,59 @@ is a defect; all are hardening or generalisation.
     `Arrays.parallelSort` does it. If some scheme beat that in some regime, the budget would be a
     floor rather than a fixed figure. The paper already claims neither outcome, and a scheme that has
     not been built does not strengthen that, so the text was left alone.
+
+41. ~~**Parallelize step 1, the encoding, in the parallel sorter.**~~ **DONE 2026-09-17.** Robin:
+    "Step 1 is eminently parallelizable, yet I believe we have relegated it to future work because it
+    just wouldn't make a sufficient difference. However, I think we should do it in our parallel
+    version(s). I can't see a good reason not to." He was right, and the earlier estimate that it
+    "wouldn't make a sufficient difference" was based on the wrong coder's encode cost.
+
+    ### What was done
+
+    `AbstractHuskySort.preSort` is `final`, deliberately, because the three-phase structure must hold
+    for every husky sort; so the coding step became its own `protected doCoding(X[])`, which
+    `preSort` calls and which `ParallelRadixHuskySort` overrides. Every other sorter keeps the
+    sequential form, which is what the published serial figures were measured with and must remain.
+
+    `HuskyHelper.doCoding(array, chunks, executor)` divides the work by **slicing the array and
+    invoking the coder's own array-level encode on each slice**, rather than encoding element by
+    element. That is a correctness point rather than a convenience: a coder decides for itself
+    whether its coding is perfect and may decide per element ---
+    `BaseHuskySequenceCoder` reports perfection only if *every* sequence fits --- so any
+    implementation that bypassed the coder's array method would have to duplicate that reasoning and
+    would silently diverge from it. The slices' verdicts combine with a logical and. Three tests
+    cover it, including one for all-perfect input, which is the only case that distinguishes an "and"
+    from an "or".
+
+    ### Measured, n = 1,000,000 on eight cores
+
+    | corpus / coder | sequential | 2 chunks | 4 chunks | 8 chunks |
+    | --- | ---: | ---: | ---: | ---: |
+    | english / `englishSaturatingCoder` | 72,953 us | 38,303 (1.90x) | 25,852 (2.82x) | **21,002 (3.47x)** |
+    | english / `UNICODE_CODER` | 24,308 us | 15,577 (1.56x) | 12,091 (2.01x) | **9,850 (2.47x)** |
+    | chinesenames / pinyin | 124,506 us | 70,701 (1.76x) | 43,175 (2.88x) | **33,626 (3.70x)** |
+
+    ### Why this matters more than the earlier estimate suggested
+
+    **The saturating coder's encode costs three times the Unicode coder's** --- 72.9 ms against
+    24.3 ms at a million elements, since it processes ten characters rather than four. The "encode is
+    only about a quarter of our own total, so parallelizing it buys little" reasoning in item 40 used
+    the 24.3 ms figure, which belongs to the coder we have just stopped using for english.
+
+    Against the budget item 40 derives --- pre-ordering saves the baseline about 68.9 ms at a million
+    English strings --- a **sequential** saturating encode at 72.9 ms does not fit *at all*.
+    Parallelized to 21.0 ms it fits with some 48 ms left for the digit passes and the permutation. So
+    parallelizing step 1 is not a marginal gain; it is what makes the saturating coder of item 37
+    affordable, and the two changes support each other.
+
+    It also partly answers item 37's open question, though not the way the JMH benchmarks there will:
+    saturating **does** cost real encode time, about 3x, which is a genuine argument against it while
+    the encode is sequential and much less of one once it is not.
+
+    ### Still not parallelized
+
+    Two of four phases now: encoding and digit passes. The permutation remains sequential --- an
+    independent scatter under a bijection, so it is safe in principle, and the existing comment
+    explains it was left alone as one O(N) pass over arbitrary payload objects. The cleanup remains
+    sequential, and item 40 records both that it parallelizes well and why a run-aware scheme
+    probably would not help us.

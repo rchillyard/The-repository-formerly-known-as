@@ -1285,7 +1285,8 @@ form (\S~\ref{sec:parallel-baseline}).
 The reason is specific, and it is worth stating exactly, because it is easy to state too strongly in
 either direction.
 A proxy-key sort has four phases: the encoding, the digit passes, the permutation, and the cleanup.
-We parallelized one of them, the digit passes, and it is not the phase with the time in it.
+We parallelized two of them, the encoding and the digit passes, and the two that remain are between
+them the larger share of the time.
 Measured, the parallelizable fraction of the whole sort is 0.06 on English words and 0.07 on Chinese
 names, so no thread count reaches past roughly a 7\% improvement; and the encoding and the cleanup
 together already cost more than \mbox{\textit{Arrays.parallelSort}} takes to do the entire job on both
@@ -1299,11 +1300,14 @@ expectation --- parallelizes well, \mbox{\textit{Arrays.parallelSort}} beating a
 even on an array already in order, since it performs about four times the work across seven workers.
 So the ceiling reported above bounds this implementation rather than the mechanism.
 Whether a fully parallel proxy-key sort beats a parallel comparison sort is an open question with a
-calculable budget: pre-ordering saves the baseline about 69\,ms at a million English strings, of which
-a measured encoding spends 24\,ms, leaving some 45\,ms for the passes and the permutation.
-We have not measured whether they fit, and so claim neither outcome.
-Parallelizing the remaining three phases, and the sequential histogram-combine of
-\S~\ref{sec:parallel-radix} with them, is the clearest future work here.
+calculable budget: pre-ordering saves the baseline about 69\,ms at a million English strings, and a
+sequential encoding of those strings costs 73\,ms on its own --- so it does not fit until it is
+divided, which is why we divide it.
+Across eight cores the encoding falls to 21\,ms, leaving some 48\,ms for the digit passes and the
+permutation.
+We have not measured whether those fit, and so claim neither outcome.
+Parallelizing the permutation and the cleanup, and repairing the sequential histogram-combine of
+\S~\ref{sec:parallel-radix}, is the clearest future work here.
 Where parallelism is what matters and cores are plentiful, a parallel comparison sort is today the
 right tool, and we say so.
 

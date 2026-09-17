@@ -4,6 +4,7 @@ import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoder;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderChinesePinyin;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyHelper;
 import edu.neu.coe.huskySort.util.Config;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -416,5 +417,89 @@ public class ParallelRadixHuskySortTest {
     @Test
     public void testAutoDigitBitsRejectedNowhereAndNamed() {
         assertEquals("ParallelRadixHuskySort/auto", new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config).toString());
+    }
+
+    // ---------- The parallel coding step (TODO.md item 41). ----------
+
+    /**
+     * The parallel encode must agree with the sequential one exactly -- every code, and the perfect
+     * flag. The flag is the part that could go wrong silently: a coder decides perfection for
+     * itself and may decide it per element, so the slices' verdicts have to be combined with a
+     * logical and rather than taken from any one of them.
+     */
+    @Test
+    public void testParallelCodingAgreesWithSequential() {
+        final java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newCachedThreadPool();
+        try {
+            final Random random = new Random(42);
+            for (final int n : new int[]{1, 2, 17, 1000, 5000}) {
+                final String[] xs = new String[n];
+                // A mixture of short strings, which the ASCII coder encodes perfectly, and long
+                // ones, which it cannot -- so that both verdicts arise, and in both orders.
+                for (int i = 0; i < n; i++) xs[i] = random.nextBoolean() ? "ab" : "abcdefghijklmnop";
+                for (final int chunks : new int[]{1, 2, 3, 8, 64}) {
+                    final HuskyHelper<String> sequential = new HuskyHelper<>("seq", n, HuskyCoderFactory.asciiCoder, java.util.Arrays::sort);
+                    final HuskyHelper<String> parallel = new HuskyHelper<>("par", n, HuskyCoderFactory.asciiCoder, java.util.Arrays::sort);
+                    sequential.doCoding(xs);
+                    parallel.doCoding(xs, chunks, executor);
+                    final String where = "n=" + n + ", chunks=" + chunks;
+                    assertArrayEquals(where, sequential.getCoding().longs, parallel.getCoding().longs);
+                    assertEquals(where + ": perfect flag", sequential.getCoding().perfect, parallel.getCoding().perfect);
+                }
+            }
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    /**
+     * And specifically that a coding which IS perfect is still reported perfect when sliced --- the
+     * failure mode being an "and" mistakenly written as an "or", which only all-perfect input
+     * distinguishes.
+     */
+    @Test
+    public void testParallelCodingPreservesPerfection() {
+        final java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newCachedThreadPool();
+        try {
+            final int n = 2000;
+            final String[] shortOnly = new String[n];
+            for (int i = 0; i < n; i++) shortOnly[i] = "ab";
+            final HuskyHelper<String> sequential = new HuskyHelper<>("seq", n, HuskyCoderFactory.asciiCoder, java.util.Arrays::sort);
+            sequential.doCoding(shortOnly);
+            assertTrue("short strings should encode perfectly under asciiCoder", sequential.getCoding().perfect);
+            for (final int chunks : new int[]{2, 7, 64}) {
+                final HuskyHelper<String> parallel = new HuskyHelper<>("par", n, HuskyCoderFactory.asciiCoder, java.util.Arrays::sort);
+                parallel.doCoding(shortOnly, chunks, executor);
+                assertTrue("chunks=" + chunks + ": perfection must survive slicing", parallel.getCoding().perfect);
+            }
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    /**
+     * End to end: the sorter with its parallel coding must still sort correctly, including for the
+     * pinyin coder whose ordering is not the natural one and whose encode is the expensive one.
+     */
+    @Test
+    public void testSortsCorrectlyWithParallelCoding() {
+        final Random random = new Random(42);
+        final int n = 20_000;
+        final Long[] xs = new Long[n];
+        for (int i = 0; i < n; i++) xs[i] = random.nextLong();
+        final Long[] expected = Arrays.copyOf(xs, n);
+        Arrays.sort(expected);
+        for (final int parallelism : new int[]{1, 3, 8}) {
+            final ParallelRadixHuskySort<Long> sorter = newSorter(ParallelRadixHuskySort.AUTO_DIGIT_BITS, parallelism, HuskyCoderFactory.longCoder);
+            assertArrayEquals("parallelism=" + parallelism, expected, sorter.sort(Arrays.copyOf(xs, n)));
+        }
+
+        final String[] names = {"刘持平", "洪文胜", "樊辉辉", "苏会敏", "高民政", "曹玉德", "袁继鹏", "舒冬梅"};
+        final String[] expectedNames = Arrays.copyOf(names, names.length);
+        Arrays.sort(expectedNames, HuskyCoderChinesePinyin.NAME_ORDER);
+        for (final int parallelism : new int[]{1, 4, 8}) {
+            final ParallelRadixHuskySort<String> sorter = new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.chineseEncoderPinyin, config, parallelism);
+            assertArrayEquals("pinyin, parallelism=" + parallelism, expectedNames, sorter.sort(Arrays.copyOf(names, names.length)));
+        }
     }
 }

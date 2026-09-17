@@ -183,6 +183,27 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
         return thread;
     });
 
+    /**
+     * Encode across the same worker threads the digit passes use, rather than sequentially.
+     * <p>
+     * Encoding is a pure function of each element, so it is the most straightforwardly parallel
+     * phase of the whole sort -- and it is about a quarter of the running time on the corpora
+     * measured, which made leaving it sequential in the parallel variant hard to justify. The chunk
+     * count is the same {@code parallelism} the digit passes are given, subject to
+     * {@link #MIN_CHUNK_SIZE}; note that the array length here is the whole array, whereas the digit
+     * passes see only the range they are asked to sort, so the two counts can differ for a
+     * sub-range sort.
+     * <p>
+     * Every other husky sorter keeps the sequential form in {@link AbstractHuskySort#doCoding},
+     * which is what the published serial figures were measured with.
+     *
+     * @param xs the array to be coded.
+     */
+    @Override
+    protected void doCoding(final X[] xs) {
+        getHelper().doCoding(xs, Math.max(1, Math.min(parallelism, xs.length / MIN_CHUNK_SIZE)), EXECUTOR);
+    }
+
     @Override
     public void sort(final X[] xs, final int from, final int to) {
         final int n = to - from;
