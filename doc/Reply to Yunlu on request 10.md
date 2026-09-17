@@ -1,5 +1,9 @@
 # Reply to Yunlu — request 10 (PR #66)
 
+Draft, for posting as a comment on PR #66. Not yet sent.
+
+---
+
 Yunlu — thank you, this is the most useful run we have had. Three things in it were
 worth more than the numbers we asked for.
 
@@ -34,9 +38,11 @@ measurement at eight threads, and no implementation work reaches past it.
 One distinction we are keeping, because a referee would otherwise push back: the
 method is not "inherently serial". The digit passes parallelize perfectly well —
 which is why the variant wins 1.19× on `Long[]` at ten million — and so, we now find,
-do the encoding and the cleanup. What is true is narrower and less comfortable: **we
-parallelized one phase of four**, and the phase we chose is not the one with the time
-in it. That bounds our implementation, not the mechanism.
+do the encoding and the cleanup. What is true is narrower and less comfortable: at
+the time of your run **we had parallelized one phase of four**, and not the one with
+the time in it. That bounds our implementation rather than the mechanism, which is
+why the paper now claims only the former. Since your run we have added the second —
+see Q2.
 
 On the permits specifically, we are **not** willing to call them serial-encode-bound
 yet. `PermitCoder` is perfect, so there is no cleanup pass there at all, and the
@@ -45,21 +51,42 @@ dominates, but we have not isolated it, and we would rather say so than name it.
 
 **2. Is parallelising `huskyEncode` in scope, or is the variant "radix passes only"?**
 
-Radix passes only. Your 76–90% figure is encode ÷ *baseline* total; the ratio that
-decides whether to parallelize the encode is encode ÷ *our own* total, which is
-**24% / 27% / 28%** for english / chinese / chinesenames. Both are true and they
-answer different questions — we conflated them ourselves earlier in the week.
+**In scope, and now done** — we had this wrong twice before landing on it, so the
+working is worth showing.
 
-So a perfect sixteen-way encode would take english from 289.5 ms to about 224,
-against `Arrays.parallelSort`'s 92.4: still **2.4× behind**. Chinese would reach
-about 41 against 42.4, which is the only case that changes hands. Not worth the
-engineering.
+Your 76–90% figure is encode ÷ *baseline* total. The ratio that decides whether to
+parallelize the encode is encode ÷ *our own* total, and we first computed that as
+**24% / 27% / 28%**, concluding it was not worth the engineering. That was measured
+with `UNICODE_CODER` — the coder we had just stopped using for english. Under
+`englishSaturatingCoder` the encode costs **72.9 ms against the Unicode coder's
+24.3** at a million elements, because it reads ten characters rather than four. Set
+against the roughly 69 ms that pre-ordering saves the baseline, a *sequential*
+saturating encode does not fit at all.
 
-Worth adding why the *cleanup* cannot take up the slack either. Reading the JDK
-source, `Arrays.parallelSort` TimSorts leaf blocks of about `n/(4p)` and then merges
-them **non-adaptively**; on a nearly-sorted array it therefore does strictly more
-work than serial TimSort, which finds one run and stops. Parallelising the cleanup is
-counterproductive exactly where the coder is good — which is where we want to be.
+Parallelized it does. Measured at a million elements on eight cores, eight chunks:
+english under the saturating coder **72.9 → 21.0 ms (3.47×)**, under the Unicode
+coder 24.3 → 9.9 (2.47×), Chinese names under pinyin **124.5 → 33.6 (3.70×)**. That
+leaves some 48 ms for the digit passes and the permutation, where before there was
+nothing. So parallelizing step 1 is not a marginal gain; it is what makes the
+saturating coder affordable at all.
+
+`ParallelRadixHuskySort` therefore parallelizes **two** phases of four as of
+`15cc2ff`. The coding step became an overridable method on `AbstractHuskySort`, so
+every other sorter keeps the sequential form your serial figures were measured with.
+
+We were also wrong about the **cleanup**, in the opposite direction, and you should
+have the correction. We had assumed it could not usefully be parallelized:
+`Arrays.parallelSort` TimSorts leaf blocks and merges them non-adaptively, so on a
+nearly-sorted array it does more work than serial TimSort, which finds one run and
+stops. The work analysis is right; the conclusion was not, because we forgot to
+divide by the core count. Measured on a million English strings, `parallelSort` beats
+serial `Arrays.sort` by **1.75× on an already-sorted array** and by 2.8–3.8× at every
+level of disorder tried — about four times the work over seven workers, finishing in
+4/7 of the time, 0.571 predicted against 0.571 measured.
+
+So the cleanup is well parallelizable too; we simply have not done it. Our parallel
+result bounds our implementation rather than the approach, and the paper now says
+exactly that and no more.
 
 **3. Fifteen against sixteen.**
 
@@ -104,7 +131,9 @@ otherwise have asked. Part (a) is the cleanup-pass benchmarks, about forty minut
 with our predictions stated in advance so a surprise reads as one. Part (b) is the
 full suite again — and we do mean the whole thing, because `RadixHuskySort`'s
 internals moved under every radix row in the suite and not only the string ones, so
-the tables want replacing rather than extending. The commit to record is `f92c269`.
+the tables want replacing rather than extending — and, since the encoding is now
+parallel too, every `ParallelRadixHuskySort` figure from request 10 predates that.
+The commit to record is **`15cc2ff`**, 423 tests passing.
 
 Two of your request-10 conclusions we would like to keep on the record as they stand:
 the permits result, which we now agree with, and the fork bimodality at 198,900,
