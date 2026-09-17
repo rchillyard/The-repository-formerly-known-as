@@ -423,4 +423,30 @@ public class RadixHuskySortTest {
         assertEquals("RadixHuskySort/16", new RadixHuskySort<>(16, HuskyCoderFactory.longCoder, config).toString());
         assertEquals("RadixHuskySort/auto", new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config).toString());
     }
+
+    /**
+     * The Leipzig english corpus under asciiCoder, which StringSortBenchmarks switched to on
+     * 2026-09-17 (TODO.md item 36). asciiCoder masks each character to 7 bits and packs nine of
+     * them, so it mis-encodes the 0.446% of that vocabulary holding a non-ASCII character -- all of
+     * it mojibake -- and truncates the 22.6% longer than nine characters. Neither matters to
+     * correctness, because the coder declares itself imperfect and the cleanup pass therefore runs;
+     * this test is what says so, since the benchmark wiring is not otherwise covered and a coder
+     * swap that silently mis-ordered real words would look exactly like a faster benchmark.
+     */
+    @Test
+    public void testEnglishCorpusUnderAsciiCoder() {
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt",
+                line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+        assertTrue("the corpus should hold a substantial vocabulary", words.length > 100_000);
+        final Random random = new Random(42);
+        final int n = 20_000;
+        final String[] xs = new String[n];
+        for (int i = 0; i < n; i++) xs[i] = words[random.nextInt(words.length)];
+        final String[] expected = Arrays.copyOf(xs, n);
+        Arrays.sort(expected);
+        assertArrayEquals("asciiCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.asciiCoder, config).sort(Arrays.copyOf(xs, n)));
+        // The coder it replaced, so that the swap is shown to be a performance choice rather than a
+        // change of result.
+        assertArrayEquals("UNICODE_CODER", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, AbstractHuskySort.UNICODE_CODER, config).sort(Arrays.copyOf(xs, n)));
+    }
 }

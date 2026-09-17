@@ -1221,8 +1221,17 @@ is a defect; all are hardening or generalisation.
     across all of ASCII, so it survives a corpus containing digits or punctuation); `englishCoder`
     buys a tenth character and 1.8x fewer runs but assumes the 64..127 window.
 
-    Note also that the 0.446% is **mojibake, not text**: `Ã` x1,045 and `Â` x194 are UTF-8 read as
-    Latin-1. Cleaning the corpus would make a narrow coder near-exact.
+    Note also that the 0.446% is **mojibake, not text**, and the corpus file itself is at fault
+    rather than the reader. The affected words are `cafÃ©`, `crÃ¨che`, `ChÃ¢teau`, `SÃ£o`,
+    `BahÃ¡'Ã­` and the like --- `café`, `crèche`, `Château`, `São`, `Bahá'í`. The bytes on disk for
+    the `é` of `AmÃ©lie` are `c3 83 c2 a9`, which is UTF-8 for `Ã` followed by `©`: the original
+    UTF-8 `c3 a9` was decoded as Latin-1 and re-encoded, i.e. **the file is double-encoded**.
+    `HuskySortBenchmarkHelper` reads it as UTF-8, which is correct, and faithfully reproduces the
+    damage. It is scattered through the file, once per accented character, so it is not a
+    byte-order-mark effect. Repairable by a Latin-1 encode / UTF-8 decode round trip, which would
+    make a narrow coder near-exact --- but that changes the corpus and hence every english figure
+    measured from it, so it is left alone. Unresolved: whether the damage is in the Leipzig
+    distribution or was introduced when the file was added here.
 
     The choice must stay **per corpus**: `asciiCoder` would be catastrophic on the Leipzig chinese
     corpus (97.6% of its words are non-ASCII), where `UNICODE_CODER` is already excellent --- 1.03
@@ -1231,15 +1240,17 @@ is a defect; all are hardening or generalisation.
     This bears on the paper's **serial** english figures as well as the parallel ones, since the
     cleanup pass is common to both.
 
-    ### The model
+    ### The model, and what wants clarifying rather than correcting
 
-    `T_3 = k_3 (N + pX)` is exactly right for insertion sort, whose cost genuinely is N plus the
-    number of inversions. It is **wrong for Timsort**, whose cost follows the number of runs --- and
-    step 3 uses the system sort. This corpus shows the two disagreeing in *direction*, not merely in
-    magnitude: switching english from `unicode` to `english` cut runs by 21x while inversions **rose**
-    from 1,151,133 to 3,378,167, and the cleanup nonetheless got ~3x cheaper. The mechanism is that
-    masking to 6 or 7 bits mis-encodes a few characters, so a handful of elements land far from home;
-    each contributes many inversions but only one or two run breaks.
+    `T_3 = k_3 (N + pX)` **was written for insertion sort** (Robin, 2026-09-17), whose cost genuinely
+    is N plus the number of inversions, so it is not wrong --- but step 3 uses Timsort, whose cost
+    follows the number of *runs*, and the paper does not say which sort the term describes. On a
+    revision that is worth one sentence, because the two measures can disagree in **direction**, not
+    merely in magnitude: switching english from `unicode` to `english` cut runs by 21x while
+    inversions **rose** from 1,151,133 to 3,378,167, and the cleanup nonetheless got ~3x cheaper. So
+    a reader who took the term as describing step 3 as implemented would predict the wrong sign. The
+    mechanism is that masking to 6 or 7 bits mis-encodes a few characters, so a handful of elements
+    land far from home; each contributes many inversions but only one or two run breaks.
 
     A related consequence for §A.5, which reports the insertion-sort/Timsort crossover at around
     N = 50,000 without explaining it: insertion sort wins while X < N, and X ≈ N²/(4D) for a corpus

@@ -103,15 +103,10 @@ public class CleanupPassProbe {
      * state the cleanup pass would be handed.
      */
     private static String[] radixPhaseOnly(final String[] xs, final HuskyCoder<String> coder, final Config config) {
-        // NOTE: Sort declares close() but does not implement AutoCloseable, so this cannot be a
-        // try-with-resources.
-        final RadixHuskySort<String> sorter = new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, coder, config);
-        try {
+        try (RadixHuskySort<String> sorter = new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, coder, config)) {
             final String[] result = sorter.preSort(xs, true);
             sorter.sort(result, 0, result.length);
             return result;
-        } finally {
-            sorter.close();
         }
     }
 

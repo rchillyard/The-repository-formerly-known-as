@@ -63,7 +63,20 @@ public class StringSortBenchmarks {
             switch (corpus) {
                 case "english":
                     corpusWords = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", StringSortBenchmarks::getLeipzigWords);
-                    coder = AbstractHuskySort.UNICODE_CODER;
+                    // asciiCoder, not UNICODE_CODER: the Unicode coder packs four 16-bit characters
+                    // and collapses this corpus's 275,333-word vocabulary into 68,512 codes -- four
+                    // words per code -- leaving 365,958 natural runs of mean length 2.7 for the
+                    // cleanup pass to merge at n = 1,000,000. asciiCoder packs nine characters at 7
+                    // bits, resolves the vocabulary almost uniquely (256,993 codes) and leaves
+                    // 30,921 runs, which makes the cleanup roughly three times cheaper. Only 0.446%
+                    // of the vocabulary holds a character outside ASCII at all, and that fraction is
+                    // mojibake rather than text. Both coders are imperfect, so the cleanup pass runs
+                    // and guarantees the ordering either way: this is a performance choice, not a
+                    // correctness one. See TODO.md item 36 and CleanupPassProbe for the counts.
+                    // NOTE: not englishCoder, whose 6-bit mask is order-preserving only within
+                    // 64..127 -- as it happens safe on this corpus, whose extraction regex strips
+                    // digits and punctuation, but a stronger assumption for one more character.
+                    coder = HuskyCoderFactory.asciiCoder;
                     break;
                 case "chinese":
                     corpusWords = HuskySortBenchmarkHelper.getWords("zho-simp-tw_web_2014_10K-sentences.txt", StringSortBenchmarks::getLeipzigWords);
