@@ -1281,3 +1281,78 @@ is a defect; all are hardening or generalisation.
     The 1.40 ties themselves are **item 10**'s stroke-count tiebreak. Both open items now have a
     measured motivation, and item 11 looks like the larger lever. Names are at most 3 characters
     against the pinyin code's 5-character capacity, so there are spare bits for item 10 to use.
+
+37. **The husky coders are not order-preserving, and every string benchmark will need re-running.**
+    Found 2026-09-17 out of item 36. Robin's reading of it: "our husky coders that we've been
+    tacitly assuming were ideal turn out not to be ideal, and for reasons that I should have thought
+    of at the time. I think I was seduced by the idea of making the encoding as fast as possible,
+    without realizing that it had such a negative effect on the cleanup phase."
+
+    ### The defect
+
+    `stringToLong` narrows each character with `& mask`, which is **not monotonic**. A character
+    above the masked width wraps to an arbitrary position inside it, so the code mis-orders the
+    element rather than merely losing resolution on it:
+
+    - `asciiCoder` (7 bits): 'é' is 233 and masks to 105, which is 'i', so "café" encodes as though
+      it were "cafi" and sorts *before* "cafz" when it belongs after. The mojibake form is worse:
+      'Ã' is 195, masking to 67, which is uppercase 'C', so it sorts before every lowercase word.
+    - `englishCoder` (6 bits): worse still, because the wrap is *ambiguous* rather than just wrong.
+      An apostrophe is 39 and masks to 39; 'g' is 103 and also masks to 39. So **`"don't"` and
+      `"dongt"` receive identical codes** --- a coder that cannot distinguish two different words.
+      `HuskyCoderFactoryTest.testApostropheIsNotConfusedWithG` asserts this.
+
+    A husky code's only job is to increase with its argument, so this is a defect in the coders
+    rather than a tuning choice. It matters through the cleanup pass: a mis-ordering puts an element
+    far from home and breaks a run, where a tie leaves the run intact, and Timsort's cost follows
+    runs (item 36).
+
+    ### What was done
+
+    `asciiSaturatingCoder` and `englishSaturatingCoder` are added **alongside** the masking coders,
+    not replacing them --- the originals are used from a dozen tests, `HuskySortHelper`'s
+    `sequenceCoderMap`, `ChineseCharacter` and `HuskySortBenchmark`, and the paper's figures were
+    measured with them. They map a character to `clamp(c - offset, 0, 2^bits - 1)`, which is
+    non-decreasing over every char value: below the window everything ties at the bottom, the window
+    passes through, above it everything ties at the top.
+    `HuskyCoderFactoryTest.testSaturatingCodersAreMonotonic` checks that exhaustively over all
+    65,536 characters, and `testMaskingCodersAreNotMonotonic` asserts the contrast so that it cannot
+    quietly stop being true. `StringSortBenchmarks` now uses `englishSaturatingCoder` for the english
+    and commonwords corpora.
+
+    ### What is NOT yet known, and matters
+
+    **Whether saturating pays on the english corpus is undecided, and Robin's instinct that masking
+    was chosen for encode speed may well be right.** The accounting so far, at n = 1,000,000:
+
+    | | masking (10x6) | saturating (10x6) |
+    | --- | ---: | ---: |
+    | natural runs after the radix phase (exact) | 17,506 | 16,641 (-4.9%) |
+    | cleanup / full sort | 0.064 | 0.066 --- no gain, within noise |
+    | encode | ? | ? |
+
+    So the cleanup gain does not clearly show up on *this* corpus, and any encode cost would make
+    saturating a net loss on it. The encode side could not be measured honestly by hand: two
+    harnesses put the *same* masking arithmetic at 41 ms and 69 ms per million, and english masking
+    at 43 ms and 130 ms, because a call site with four coder implementations measures JIT inlining
+    rather than `&` against `min`. `huskyEncodeOnlyEnglishMasking` and
+    `huskyEncodeOnlyEnglishSaturating` were added to `StringSortBenchmarks` to settle it under JMH.
+
+    Note *why* the gain is invisible here: the Leipzig extraction regex strips digits and
+    punctuation, so this corpus contains no apostrophes and only 0.446% non-ASCII words --- the
+    conditions under which masking is nearly harmless. The defect should cost much more on ordinary
+    English text. A corpus containing punctuation would be the test that shows it, and we do not
+    currently have one wired.
+
+    ### Consequences to plan for
+
+    - **The paper may need revising**, and Robin considers this likely already for other reasons. Any
+      figure measured with a masking coder describes a coder that mis-orders; if a saturating coder
+      is adopted, the english and commonwords figures move. §A.4 on coding accuracy is the natural
+      home for the monotonicity point, and the cleanup term wants the clarification recorded in
+      item 36.
+    - **The string benchmarks will need re-running** whichever way this lands, since the coder for
+      english changed twice today (UNICODE_CODER to asciiCoder to englishSaturatingCoder) and the
+      run counts differ by 22x across those choices.
+    - **The anonymised artifact** would need regenerating with the paper.
+    - Nothing here reaches the submitted paper, which corresponds to `master`.

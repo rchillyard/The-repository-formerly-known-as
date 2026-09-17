@@ -63,20 +63,26 @@ public class StringSortBenchmarks {
             switch (corpus) {
                 case "english":
                     corpusWords = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", StringSortBenchmarks::getLeipzigWords);
-                    // asciiCoder, not UNICODE_CODER: the Unicode coder packs four 16-bit characters
-                    // and collapses this corpus's 275,333-word vocabulary into 68,512 codes -- four
-                    // words per code -- leaving 365,958 natural runs of mean length 2.7 for the
-                    // cleanup pass to merge at n = 1,000,000. asciiCoder packs nine characters at 7
-                    // bits, resolves the vocabulary almost uniquely (256,993 codes) and leaves
-                    // 30,921 runs, which makes the cleanup roughly three times cheaper. Only 0.446%
-                    // of the vocabulary holds a character outside ASCII at all, and that fraction is
-                    // mojibake rather than text. Both coders are imperfect, so the cleanup pass runs
-                    // and guarantees the ordering either way: this is a performance choice, not a
-                    // correctness one. See TODO.md item 36 and CleanupPassProbe for the counts.
-                    // NOTE: not englishCoder, whose 6-bit mask is order-preserving only within
-                    // 64..127 -- as it happens safe on this corpus, whose extraction regex strips
-                    // digits and punctuation, but a stronger assumption for one more character.
-                    coder = HuskyCoderFactory.asciiCoder;
+                    // englishSaturatingCoder, not UNICODE_CODER. Measured natural runs after the
+                    // radix phase at n = 1,000,000 on this corpus, which is what the cleanup pass
+                    // then has to merge and so what its cost follows:
+                    //     UNICODE_CODER          4x16 mask       365,958 runs (mean length 2.7)
+                    //     asciiCoder             9x7  mask        30,921
+                    //     asciiSaturatingCoder   9x7  saturate    30,079
+                    //     englishCoder          10x6  mask        17,506
+                    //     englishSaturatingCoder 10x6 saturate     16,641
+                    // The Unicode coder collapses the 275,333-word vocabulary into 68,512 codes,
+                    // four words per code, because it captures only four characters. The character
+                    // count is the dominant lever and saturation is a smaller free win on top; the
+                    // two together are worth 22x in runs. Saturation is also what makes the tenth
+                    // character safe to take: englishCoder's 6-bit mask is ambiguous outside
+                    // 64..127 -- an apostrophe and 'g' both mask to 39 -- whereas saturating ties
+                    // them at the window edge instead, and a tie costs the cleanup far less than a
+                    // mis-ordering. Every one of these coders is imperfect, so the cleanup pass runs
+                    // and fixes the ordering regardless: this is a performance choice, not a
+                    // correctness one, and RadixHuskySortTest asserts as much against the real
+                    // corpus. See TODO.md items 36 and 37, and CleanupPassProbe for the counts.
+                    coder = HuskyCoderFactory.englishSaturatingCoder;
                     break;
                 case "chinese":
                     corpusWords = HuskySortBenchmarkHelper.getWords("zho-simp-tw_web_2014_10K-sentences.txt", StringSortBenchmarks::getLeipzigWords);
@@ -90,7 +96,10 @@ public class StringSortBenchmarks {
                     break;
                 case "commonwords":
                     corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList);
-                    coder = HuskyCoderFactory.englishCoder;
+                    // The saturating form, for the same reasons as english above -- and common
+                    // words are the corpus most likely to contain an apostrophe, which the masking
+                    // coder cannot distinguish from 'g'.
+                    coder = HuskyCoderFactory.englishSaturatingCoder;
                     break;
                 default:
                     throw new IllegalStateException("unknown corpus: " + corpus);
@@ -142,6 +151,26 @@ public class StringSortBenchmarks {
     @Benchmark
     public long[] huskyEncodeOnly(final StringState state) {
         return state.coder.huskyEncode(state.master).longs;
+    }
+
+    // ---------- Masking against saturating, encode side only (TODO.md item 37). The saturating
+    // coders resolve words the masking ones cannot -- englishCoder gives "don't" and "dongt" the
+    // same code, since an apostrophe and 'g' both mask to 39 -- and leave ~5% fewer runs for the
+    // cleanup pass on the english corpus. What that costs to encode is the other half of the trade
+    // and is NOT yet known: hand-rolled harnesses put masking anywhere between 41 and 130 ms per
+    // million on the same arithmetic, because a call site with four coder implementations measures
+    // JIT inlining rather than "&" against "min". These two benchmarks are the honest way to settle
+    // it. Meaningful for the english and commonwords corpora; on the Chinese ones a 6-bit coder is
+    // the wrong tool and the figures say nothing. ----------
+
+    @Benchmark
+    public long[] huskyEncodeOnlyEnglishMasking(final StringState state) {
+        return HuskyCoderFactory.englishCoder.huskyEncode(state.master).longs;
+    }
+
+    @Benchmark
+    public long[] huskyEncodeOnlyEnglishSaturating(final StringState state) {
+        return HuskyCoderFactory.englishSaturatingCoder.huskyEncode(state.master).longs;
     }
 
     @Benchmark

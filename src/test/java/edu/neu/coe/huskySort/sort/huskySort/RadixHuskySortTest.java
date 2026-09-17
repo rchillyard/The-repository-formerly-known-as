@@ -458,6 +458,10 @@ public class RadixHuskySortTest {
         final String[] expected = Arrays.copyOf(xs, n);
         Arrays.sort(expected);
         assertArrayEquals("asciiCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.asciiCoder, config).sort(Arrays.copyOf(xs, n)));
+        // The coder StringSortBenchmarks actually uses for this corpus, and its masking counterpart.
+        assertArrayEquals("englishSaturatingCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.englishSaturatingCoder, config).sort(Arrays.copyOf(xs, n)));
+        assertArrayEquals("asciiSaturatingCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.asciiSaturatingCoder, config).sort(Arrays.copyOf(xs, n)));
+        assertArrayEquals("englishCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.englishCoder, config).sort(Arrays.copyOf(xs, n)));
         // The coder it replaced, so that the swap is shown to be a performance choice rather than a
         // change of result.
         assertArrayEquals("UNICODE_CODER", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, AbstractHuskySort.UNICODE_CODER, config).sort(Arrays.copyOf(xs, n)));
