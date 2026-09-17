@@ -11,7 +11,7 @@
 | 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **done** — PR #64, `doc/adversarial.json` |
 | 8 | cache behaviour of the object-reference swap | **closed, not pursued** — step 0 found no `perf` binary on the instance, so the request was never runnable there |
 | 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
-| 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **requested 2026-09-16** — see below |
+| 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **answered 2026-09-17** — `doc/Run results from Yunlu 2026-09-17.md` |
 
 **All seven requests are answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -19,10 +19,9 @@ Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseli
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**Request 10 is the only outstanding one.** Requests 1--7 and 9 are answered; request 8 is closed
-unrun, its step 0 having established that the instance has no `perf` binary. Request 10 is set out
-immediately below, ahead of the answered requests that follow it: part (a) is about twenty minutes
-and bears on a headline claim, and part (b) is optional.
+**Request 10 is answered (2026-09-17); nothing is outstanding.** Requests 1--7, 9 and 10 are answered; request 8 is closed
+unrun, its step 0 having established that the instance has no `perf` binary. Request 10's text is kept
+immediately below for reference; its answer is `doc/Run results from Yunlu 2026-09-17.md`.
 
 Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, `...2026-09-02.md` and
 `...2026-09-03.md`. What requests 1 and 2 settled is summarised in Appendix A.
