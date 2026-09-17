@@ -1665,3 +1665,41 @@ is a defect; all are hardening or generalisation.
     inconsistent ways in one day. What settles it is one benchmark: a variant that parallelizes the
     encoding and uses `Arrays.parallelSort` as the post-sorter, set against `Arrays.parallelSort`
     alone. That is the "clearest future work" the conclusion now names.
+
+    ### Future work: a run-aware parallel cleanup, and why it probably does not help us
+
+    Robin's suggestion (2026-09-17) was that Timsort might parallelize on its **runs** rather than on
+    fixed-size blocks. That is a genuinely different scheme from `Arrays.parallelSort`, which splits
+    into blocks of `n/(4p)` floored at 8192, Timsorts each and merges --- chopping a run that spans
+    the whole array into some sixty pieces and then merging them back. Splitting at natural run
+    boundaries instead preserves the adaptivity that fixed blocks destroy: detect runs in parallel
+    (each worker scans its own segment, stitching at the boundaries), then merge the runs.
+
+    The two cost models, with r runs over p workers:
+
+    | input | run-aware | fixed blocks (`parallelSort`) |
+    | --- | --- | --- |
+    | already sorted, r = 1 | `n/p` --- detect, find one run, stop | ~`4n/p` --- every block sorts, then ~3 merge levels |
+    | r runs generally | `(n/p)(1 + log2 r)` | ~`4n/p`, independent of r |
+
+    So run-aware wins while `log2 r < 3`, which is to say roughly **r < 4p** --- fewer natural runs
+    than `parallelSort` would have made blocks. On a sorted array that is about 4x better than
+    `parallelSort` and 7x better than serial Timsort, well beyond the 1.75x measured above.
+
+    **But the regime where it wins barely overlaps with the regime we care about.** With
+    `englishSaturatingCoder`, r is 16,641 at n = 1,000,000, so `log2 r` is about 14 and a run-aware
+    scheme would be roughly 3.75x *worse* than fixed blocks --- merging sixteen thousand small pieces
+    instead of twenty-eight large ones. And where r is small enough for it to win, the cleanup is
+    already cheap enough that nothing is at stake; the permits are the limiting case, r = 1 and no
+    cleanup pass at all, the coding being perfect.
+
+    Which is a compact statement of the whole finding: **the cleanup is either expensive and
+    fragmented, in which case fixed blocking parallelizes it better, or cheap and coherent, in which
+    case there is nothing to parallelize.** Fixed-size blocking is the right choice for the one
+    regime that matters here.
+
+    Consequence for the paper's open question, recorded rather than acted on: the ~45 ms budget the
+    conclusion quotes for passes and permutation assumes the cleanup is parallelized the way
+    `Arrays.parallelSort` does it. If some scheme beat that in some regime, the budget would be a
+    floor rather than a fixed figure. The paper already claims neither outcome, and a scheme that has
+    not been built does not strengthen that, so the text was left alone.
