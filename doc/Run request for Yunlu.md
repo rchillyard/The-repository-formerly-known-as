@@ -11,10 +11,10 @@
 | 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **done** — PR #64, `doc/adversarial.json` |
 | 8 | cache behaviour of the object-reference swap | **closed, not pursued** — step 0 found no `perf` binary on the instance, so the request was never runnable there |
 | 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
-| 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **done 2026-09-17** — PR #66, thank you; the thread-asymmetry hypothesis did not survive |
+| 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **done 2026-09-17** — PR #66, `doc/Run results from Yunlu 2026-09-17.md`; thank you, and the thread-asymmetry hypothesis did not survive |
 | 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **requested 2026-09-17** — see below |
 
-**All seven requests are answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
+**Requests 1 to 7 are all answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
 Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseline now quoted in the
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
@@ -26,8 +26,9 @@ out immediately below, ahead of the answered requests that follow it: part (a) i
 and answers a question we have only smoke-tested, and part (b) is the long one --- essentially
 request 4 again, because the sorter's internals have changed underneath every figure we hold.
 
-Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, `...2026-09-02.md` and
-`...2026-09-03.md`. What requests 1 and 2 settled is summarised in Appendix A.
+Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, and likewise for
+`...2026-09-02`, `...2026-09-03`, `...2026-09-06`, `...2026-09-13` and `...2026-09-17`. What
+requests 1 and 2 settled is summarised in Appendix A.
 
 **What has changed since.** Robin has decided that every figure quoted in the paper should come from
 one machine, and that machine should be yours. The paper currently mixes three: its original
@@ -128,8 +129,10 @@ Same conditions as request 10, please --- two methods per invocation where a bas
 `uptime` before and after each, and the `ForkJoinPool` probe. All of that is set out under request 10
 below and has not changed.
 
-**The commit to record is `15cc2ff`**, branch `parallel-redesign`, which is both the tip and the last
-commit touching `src/`. `mvn -B test` there: 423 tests, 0 failures.
+**The commit to record is `15cc2ff`**, branch `parallel-redesign`. It is the last commit touching
+`src/`; the branch tip is later than it, but only by documentation and by the merge of your PR #66,
+so `git log 15cc2ff..HEAD -- src/` is empty and building from either gives the same jar.
+`mvn -B test` there: 423 tests, 0 failures.
 
 (This supersedes `f92c269`, named here earlier. Since then the encoding phase has been
 parallelized in `ParallelRadixHuskySort` --- about 3.5x at a million elements on eight cores --- so
