@@ -1184,3 +1184,79 @@ is a defect; all are hardening or generalisation.
     unconditional `^ Long.MIN_VALUE` makes the naive "highest set bit" test useless — every
     non-negative code has bit 63 set — so the test must be on the bits that *differ*, which a
     constant XOR leaves unchanged.
+
+36. **The english corpus is encoded with the wrong coder, and the cleanup-cost model is
+    mis-specified.** Found 2026-09-17, following request 10. Both findings come out of
+    `CleanupPassProbe` (`src/test/.../CleanupPassProbe.java`), a `main` rather than a test, which
+    reports exact structural counts plus soft timings; the counts are deterministic and
+    machine-independent, the timings were taken at load 13--19 and are worth about ±30%.
+
+    ### The coder
+
+    `StringSortBenchmarks` gives the Leipzig english corpus `UNICODE_CODER`. That packs four 16-bit
+    characters (`unicodeToLong` fills all 64 bits and then `>>> 1` to clear the sign bit, so it is
+    four characters less one bit --- the `MAX_LENGTH_UNICODE - 1` in the coder's constructor is the
+    declared `perfect()` threshold, not the packing width). `asciiCoder` packs nine characters at 7
+    bits and `englishCoder` ten at 6, and the same class already uses `englishCoder` for the
+    commonwords corpus.
+
+    | coder | distinct codes for 275,333 words | words/code | natural runs at n=1M | mean run | cleanup ÷ full sort |
+    | --- | ---: | ---: | ---: | ---: | ---: |
+    | `unicode` (4x16) | 68,512 | **4.02** | **365,958** | 2.7 | 0.21 |
+    | `ascii` (9x7) | 256,993 | 1.07 | 30,921 | 32.3 | 0.07 |
+    | `english` (10x6) | 265,207 | 1.04 | **17,506** | 57.1 | 0.06--0.09 |
+
+    So the Unicode coder collapses the vocabulary four-to-one, and the resulting 366k runs of mean
+    length 2.7 are what the cleanup pass has to merge. **The serial floor --- encode plus cleanup,
+    the two phases no chunk count touches --- moves from 1.06--1.10x of `Arrays.parallelSort`'s
+    entire runtime to 0.62--0.64x with `asciiCoder`.** That is the difference between "cannot win
+    however well the digit passes parallelise" and "has room to win".
+
+    **The switch is safe and carries no correctness risk.** Only **0.446%** of the english
+    vocabulary contains a character outside ASCII, and the count outside 64..127 is *identical*,
+    which means no word holds a digit, space or sub-64 punctuation --- the Leipzig extraction regex
+    already strips them, so `englishCoder`'s narrower window is as safe here as `asciiCoder`'s. All
+    three coders are imperfect, so the cleanup pass runs and guarantees the result either way; this
+    is purely a performance choice. `asciiCoder` is the more conservative default (order-preserving
+    across all of ASCII, so it survives a corpus containing digits or punctuation); `englishCoder`
+    buys a tenth character and 1.8x fewer runs but assumes the 64..127 window.
+
+    Note also that the 0.446% is **mojibake, not text**: `Ã` x1,045 and `Â` x194 are UTF-8 read as
+    Latin-1. Cleaning the corpus would make a narrow coder near-exact.
+
+    The choice must stay **per corpus**: `asciiCoder` would be catastrophic on the Leipzig chinese
+    corpus (97.6% of its words are non-ASCII), where `UNICODE_CODER` is already excellent --- 1.03
+    words per code, 12,265 runs, cleanup 2.2% of a full sort, serial floor 0.24x.
+
+    This bears on the paper's **serial** english figures as well as the parallel ones, since the
+    cleanup pass is common to both.
+
+    ### The model
+
+    `T_3 = k_3 (N + pX)` is exactly right for insertion sort, whose cost genuinely is N plus the
+    number of inversions. It is **wrong for Timsort**, whose cost follows the number of runs --- and
+    step 3 uses the system sort. This corpus shows the two disagreeing in *direction*, not merely in
+    magnitude: switching english from `unicode` to `english` cut runs by 21x while inversions **rose**
+    from 1,151,133 to 3,378,167, and the cleanup nonetheless got ~3x cheaper. The mechanism is that
+    masking to 6 or 7 bits mis-encodes a few characters, so a handful of elements land far from home;
+    each contributes many inversions but only one or two run breaks.
+
+    A related consequence for §A.5, which reports the insertion-sort/Timsort crossover at around
+    N = 50,000 without explaining it: insertion sort wins while X < N, and X ≈ N²/(4D) for a corpus
+    with D effective code-groups, so the crossover sits at N ≈ 4D. The measured X for english gives
+    D ≈ 8,700 and hence a predicted crossover near 35,000, against the ~50,000 observed. Close
+    enough to be the mechanism, and worth a sentence.
+
+    Measured X/N at n = 200,000, which also answers directly whether the remaining inversions are
+    "few compared with N" as the model assumes: english **5.8**, chinese **0.14**, chinesenames
+    **35**. The assumption holds for chinese alone --- which is the one corpus where the parallel
+    sorter is competitive (1.28x behind) and the only one where threads help.
+
+    ### chinesenames, and items 10 and 11
+
+    1,145,009 distinct names yield 818,114 codes, so 1.40 names per code --- tie groups far too
+    short to explain 162,690 runs of mean length 6.1. The codes must therefore be **mis-ordering**,
+    not merely tying, which points at polyphone characters resolved to the wrong reading: **item 11**.
+    The 1.40 ties themselves are **item 10**'s stroke-count tiebreak. Both open items now have a
+    measured motivation, and item 11 looks like the larger lever. Names are at most 3 characters
+    against the pinyin code's 5-character capacity, so there are spare bits for item 10 to use.
