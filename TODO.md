@@ -1428,6 +1428,31 @@ is a defect; all are hardening or generalisation.
     overruns Timsort's O(n log r) ceiling. The win inside the band reaches 2.6x, and the band is
     wide --- X/n from about 0.07 to about 7.
 
+    **Scope, and why pn works at all.** Robin's observation (2026-09-17) that pn resembles the
+    expected degree in the Erdos-Renyi-Gilbert model is exact rather than analogical: the *permutation
+    graph* of a permutation has an edge per inverted pair, so pn/4 is literally the average degree of
+    the residual inversion graph --- intensive where p alone is not. The two sorts then read different
+    features of that graph: **adaptive insertion sort pays for every edge, Timsort pays only for the
+    descents**, which are the edges between positionally adjacent vertices. Descents saturate at n/2
+    however disordered the array becomes, which is why across the whole sweep above Timsort's time
+    grew 5.7x (9.0 to 51.3 ms) while adaptive's grew 109x (9.5 to 1,038.7 ms).
+
+    That also bounds the rule. **pn is not a sufficient statistic in general.** Two arrays with the
+    same X but different structure, at n = 200,000:
+
+    | structure | X | descents | Timsort | adaptive | winner |
+    | --- | ---: | ---: | ---: | ---: | --- |
+    | union of cliques, block 32 | 1,519,383 | 94,624 | 37,086 us | **33,044 us** | adaptive 1.12x |
+    | 15 long displacements | 1,559,905 | **15** | **8,404 us** | 39,164 us | Timsort 4.66x |
+    | union of cliques, block 8 | 319,684 | 79,821 | 25,603 us | **19,370 us** | adaptive 1.32x |
+    | 4 long displacements | 319,991 | **4** | **8,424 us** | 14,708 us | Timsort 1.75x |
+
+    At equal edge counts Timsort's time varies 4.4x with structure while adaptive's varies 1.19x. So
+    the rule holds **only for the family of arrays husky coding produces** --- a disjoint union of
+    cliques, one per equal-code group --- for which the group-size distribution fixes the edge count
+    and the descent count together, so a single parameter determines both. It is not a general
+    result about sorting nearly-ordered arrays, and should not be written as one.
+
     The crossover is **the same for pinyin as for english at the same n** (3.7--7.7 against
     3.60--7.60) even though a pinyin comparison costs about three times as much. That is expected,
     since both algorithms pay the same per-comparison cost and it cancels, and it means the threshold
