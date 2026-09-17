@@ -150,36 +150,36 @@
 \newlabel{sec:cleanup-choice}{{A.5}{14}{Timsort or insertion sort for the cleanup pass}{subsection.84}{}}
 \newlabel{sec:cleanup-choice@cref}{{[subsection][5][1]A.5}{[1][14][]14}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Timsort or insertion sort for the cleanup pass.}{14}{subsection.84}\protected@file@percent }
-\newlabel{sec:comparison-baselines}{{A.6}{14}{Comparison-sort baselines for the numeric and tuple types}{subsection.87}{}}
-\newlabel{sec:comparison-baselines@cref}{{[subsection][6][1]A.6}{[1][14][]14}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Comparison-sort baselines for the numeric and tuple types.}{14}{subsection.87}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {A.1}{\ignorespaces Prior comparison-based sorting algorithms}}{15}{table.78}\protected@file@percent }
 \newlabel{tab:PriorAlgorithms}{{A.1}{15}{Prior comparison-based sorting algorithms}{table.78}{}}
 \newlabel{tab:PriorAlgorithms@cref}{{[table][1][1]A.1}{[1][14][]15}}
 \@writefile{lot}{\contentsline {table}{\numberline {A.2}{\ignorespaces The three benchmark environments. Machine A supplies the comparison-sort results of \S  \nobreakspace  {}\ref  {sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine of record, every figure quoted in this paper. Machine C's cache geometry is not exposed to the guest, hence the dash; machine B's is given per core cluster, since its two clusters differ and the benchmarks run on the performance cores.}}{15}{table.81}\protected@file@percent }
 \newlabel{tab:SysEnv}{{A.2}{15}{The three benchmark environments. Machine A supplies the comparison-sort results of \S ~\ref {sec:analysis}; machine B the radix-sort and JMH development work; machine C, the machine of record, every figure quoted in this paper. Machine C's cache geometry is not exposed to the guest, hence the dash; machine B's is given per core cluster, since its two clusters differ and the benchmarks run on the performance cores}{table.81}{}}
 \newlabel{tab:SysEnv@cref}{{[table][2][1]A.2}{[1][14][]15}}
-\@writefile{lot}{\contentsline {table}{\numberline {A.3}{\ignorespaces Timsort or insertion sort as the cleanup pass (time in milliseconds)}}{15}{table.85}\protected@file@percent }
-\newlabel{tab:TimvsInsertion}{{A.3}{15}{Timsort or insertion sort as the cleanup pass (time in milliseconds)}{table.85}{}}
-\newlabel{tab:TimvsInsertion@cref}{{[table][3][1]A.3}{[1][14][]15}}
-\newlabel{sec:parallel-baseline}{{A.7}{16}{\texorpdfstring {\textit {Arrays.parallelSort}}{Arrays.parallelSort} as a parallel baseline}{subsection.90}{}}
-\newlabel{sec:parallel-baseline@cref}{{[subsection][7][1]A.7}{[1][16][]16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}\textit  {Arrays.parallelSort} as a parallel baseline.}{16}{subsection.90}\protected@file@percent }
-\newlabel{sec:parallel-radix}{{A.8}{16}{Parallel Radix Sort}{subsection.95}{}}
-\newlabel{sec:parallel-radix@cref}{{[subsection][8][1]A.8}{[1][16][]16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.8}Parallel Radix Sort.}{16}{subsection.95}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {A.4}{\ignorespaces Two further comparison sorts, measured on the same arrays as Table \nobreakspace  {}\ref  {tab:HS_BM} and directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm $ 99.9\% CI; numeric types at $N=500{,}000$). \emph  {Dual-pivot quicksort} is Yaroslavskiy's algorithm transcribed for objects, the JDK applying it only to primitives; \emph  {quicksort (raw)} unboxes each element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass --- and so bounds from below what any husky variant could achieve on these types. It was measured for the numeric types only; the final block is the Permit tuple.}}{17}{table.88}\protected@file@percent }
-\newlabel{tab:ComparisonBaselines}{{A.4}{17}{Two further comparison sorts, measured on the same arrays as Table ~\ref {tab:HS_BM} and directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm $ 99.9\% CI; numeric types at $N=500{,}000$). \emph {Dual-pivot quicksort} is Yaroslavskiy's algorithm transcribed for objects, the JDK applying it only to primitives; \emph {quicksort (raw)} unboxes each element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass --- and so bounds from below what any husky variant could achieve on these types. It was measured for the numeric types only; the final block is the Permit tuple}{table.88}{}}
-\newlabel{tab:ComparisonBaselines@cref}{{[table][4][1]A.4}{[1][16][]17}}
+\newlabel{sec:comparison-baselines}{{A.6}{15}{Comparison-sort baselines for the numeric and tuple types}{subsection.87}{}}
+\newlabel{sec:comparison-baselines@cref}{{[subsection][6][1]A.6}{[1][15][]15}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Comparison-sort baselines for the numeric and tuple types.}{15}{subsection.87}\protected@file@percent }
+\newlabel{sec:parallel-baseline}{{A.7}{15}{\texorpdfstring {\textit {Arrays.parallelSort}}{Arrays.parallelSort} as a parallel baseline}{subsection.90}{}}
+\newlabel{sec:parallel-baseline@cref}{{[subsection][7][1]A.7}{[1][15][]15}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}\textit  {Arrays.parallelSort} as a parallel baseline.}{15}{subsection.90}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {A.3}{\ignorespaces Timsort or insertion sort as the cleanup pass (time in milliseconds)}}{16}{table.85}\protected@file@percent }
+\newlabel{tab:TimvsInsertion}{{A.3}{16}{Timsort or insertion sort as the cleanup pass (time in milliseconds)}{table.85}{}}
+\newlabel{tab:TimvsInsertion@cref}{{[table][3][1]A.3}{[1][15][]16}}
+\@writefile{lot}{\contentsline {table}{\numberline {A.4}{\ignorespaces Two further comparison sorts, measured on the same arrays as Table \nobreakspace  {}\ref  {tab:HS_BM} and directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm $ 99.9\% CI; numeric types at $N=500{,}000$). \emph  {Dual-pivot quicksort} is Yaroslavskiy's algorithm transcribed for objects, the JDK applying it only to primitives; \emph  {quicksort (raw)} unboxes each element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass --- and so bounds from below what any husky variant could achieve on these types. It was measured for the numeric types only; the final block is the Permit tuple.}}{16}{table.88}\protected@file@percent }
+\newlabel{tab:ComparisonBaselines}{{A.4}{16}{Two further comparison sorts, measured on the same arrays as Table ~\ref {tab:HS_BM} and directly comparable with its System sort and QuickHuskySort columns (JMH, ms, mean $\pm $ 99.9\% CI; numeric types at $N=500{,}000$). \emph {Dual-pivot quicksort} is Yaroslavskiy's algorithm transcribed for objects, the JDK applying it only to primitives; \emph {quicksort (raw)} unboxes each element to a primitive and sorts that array with the JDK's primitive sort, discarding the objects rather than permuting them --- no payload to carry, no encoding abstraction and no cleanup pass --- and so bounds from below what any husky variant could achieve on these types. It was measured for the numeric types only; the final block is the Permit tuple}{table.88}{}}
+\newlabel{tab:ComparisonBaselines@cref}{{[table][4][1]A.4}{[1][15][]16}}
 \@writefile{lot}{\contentsline {table}{\numberline {A.5}{\ignorespaces \textit  {ParallelRadixHuskySort} against \mbox  {\textit  {Arrays.parallelSort}} on \textit  {Long[]} (ms, mean $\pm $ 99.9\% CI, 11-bit digits). All columns are from one run, so the husky figures differ slightly from Table \nobreakspace  {}\ref  {tab:ParallelRadix}, which reports a cleaner five-fork run without this baseline. The $p1$ figure at ten million is the row affected by host load and should be read with its interval.}}{17}{table.91}\protected@file@percent }
 \newlabel{tab:ParallelBaseline}{{A.5}{17}{\textit {ParallelRadixHuskySort} against \mbox {\textit {Arrays.parallelSort}} on \textit {Long[]} (ms, mean $\pm $ 99.9\% CI, 11-bit digits). All columns are from one run, so the husky figures differ slightly from Table ~\ref {tab:ParallelRadix}, which reports a cleaner five-fork run without this baseline. The $p1$ figure at ten million is the row affected by host load and should be read with its interval}{table.91}{}}
 \newlabel{tab:ParallelBaseline@cref}{{[table][5][1]A.5}{[1][16][]17}}
 \@writefile{lot}{\contentsline {table}{\numberline {A.6}{\ignorespaces The permits under both parallel sorts (ms, mean $\pm $ 99.9\% CI). RHSort/16 is serial.}}{17}{table.93}\protected@file@percent }
 \newlabel{tab:ParallelPermits}{{A.6}{17}{The permits under both parallel sorts (ms, mean $\pm $ 99.9\% CI). RHSort/16 is serial}{table.93}{}}
 \newlabel{tab:ParallelPermits@cref}{{[table][6][1]A.6}{[1][16][]17}}
-\@writefile{lot}{\contentsline {table}{\numberline {A.7}{\ignorespaces Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads}}{17}{table.96}\protected@file@percent }
-\newlabel{tab:ParallelRadix}{{A.7}{17}{Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads}{table.96}{}}
-\newlabel{tab:ParallelRadix@cref}{{[table][7][1]A.7}{[1][16][]17}}
+\newlabel{sec:parallel-radix}{{A.8}{17}{Parallel Radix Sort}{subsection.95}{}}
+\newlabel{sec:parallel-radix@cref}{{[subsection][8][1]A.8}{[1][17][]17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.8}Parallel Radix Sort.}{17}{subsection.95}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {A.7}{\ignorespaces Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads}}{18}{table.96}\protected@file@percent }
+\newlabel{tab:ParallelRadix}{{A.7}{18}{Parallel RHSort: serial vs. 1, 2, 4, and 8 worker threads}{table.96}{}}
+\newlabel{tab:ParallelRadix@cref}{{[table][7][1]A.7}{[1][17][]18}}
 \newlabel{sec:cleanup-scaling}{{A.9}{18}{The cleanup pass as \texorpdfstring {$N$}{N} grows}{subsection.98}{}}
 \newlabel{sec:cleanup-scaling@cref}{{[subsection][9][1]A.9}{[1][18][]18}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.9}The cleanup pass as $N$ grows.}{18}{subsection.98}\protected@file@percent }

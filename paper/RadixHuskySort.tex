@@ -398,12 +398,12 @@ Radix sort's independent per-digit counting-sort passes are, taken alone, well s
 parallelization across CPU threads, a property already established for radix sort generally, and
 \S~\ref{sec:parallel-radix} describes and benchmarks a parallel variant of RadixHuskySort
 (\S~\ref{sec:radix}).
-Those passes, however, are not where a proxy-key sort spends its time.
-The encoding and the cleanup are both sequential, and on the corpora we measure they dominate; so the
-advantage this paper reports is a serial one, and the parallel variant is offered as a measured
-negative result rather than as a feature.
-\S~\ref{sec:conclusion} says why that is a property of the mechanism and not of our implementation
-of it.
+Those passes, however, are not where a proxy-key sort spends its time: the encoding and the cleanup
+dominate on the corpora we measure, and we did not parallelize either.
+So the advantage demonstrated here is a serial one, and the parallel variant is reported as a measured
+negative result rather than offered as a feature.
+\S~\ref{sec:conclusion} gives the figures, and is careful to distinguish that result --- which bounds
+our implementation --- from any claim about the mechanism, which we do not make.
 We do not make even the narrow claim for QuickHuskySort's own comparison-based steps:
 Introsort's partitioning and Timsort's adaptive run-detection are both substantially more data-dependent (less independent) and sequential
 in character than radix sort's fixed per-digit passes,
@@ -1277,27 +1277,35 @@ and a comparison costing more than a machine-word check --- strings, arbitrary-p
 and multi-field records, as opposed to \textit{int}, \textit{long} or \textit{double},
 where dual-pivot quicksort wins outright.
 
-\textbf{The advantage this paper reports is a serial one, and that is a property of the mechanism
-rather than a shortcoming of our implementation of it.}
+\textbf{The advantage demonstrated here is a serial one.}
 Parallel against parallel, \textit{ParallelRadixHuskySort} leads \mbox{\textit{Arrays.parallelSort}} by
 1.19x at ten million \textit{Long}s --- the cheapest comparison we measure, and so the case where
 husky coding has least to offer --- trails it at two million, and on the permits trails its own serial
 form (\S~\ref{sec:parallel-baseline}).
-It is tempting to read that as an implementation defect, and we did at first.
-It is not.
-Husky coding earns its advantage by moving work out of the linearithmic phase and into two linear ones,
-the encoding and the cleanup, and both of those are sequential.
-A sort that wins by performing less total work has, by construction, less work left to distribute
-across cores.
-The two facts are the same fact.
+The reason is specific, and it is worth stating exactly, because it is easy to state too strongly in
+either direction.
+A proxy-key sort has four phases: the encoding, the digit passes, the permutation, and the cleanup.
+We parallelized one of them, the digit passes, and it is not the phase with the time in it.
 Measured, the parallelizable fraction of the whole sort is 0.06 on English words and 0.07 on Chinese
-names; and the encoding and the cleanup together --- neither of which any thread count touches --- already
-cost more than \mbox{\textit{Arrays.parallelSort}} takes to do the entire job on both of those corpora.
-Making the digit passes free and perfectly parallel would not close that gap.
-Where parallelism is what matters and cores are plentiful, a parallel comparison sort is the right
-tool, and we say so.
-The sequential histogram-combine of \S~\ref{sec:parallel-radix} is a real defect and worth repairing,
-but repairing it would not change this conclusion.
+names, so no thread count reaches past roughly a 7\% improvement; and the encoding and the cleanup
+together already cost more than \mbox{\textit{Arrays.parallelSort}} takes to do the entire job on both
+of those corpora.
+Making the digit passes free and perfectly parallel would therefore not close that gap.
+
+What that does \emph{not} establish is a limit on the approach.
+The other three phases are parallelizable too: the encoding is a pure function of each element, the
+permutation is an independent scatter under a bijection, and the cleanup --- contrary to our own
+expectation --- parallelizes well, \mbox{\textit{Arrays.parallelSort}} beating a serial Timsort by 1.75x
+even on an array already in order, since it performs about four times the work across seven workers.
+So the ceiling reported above bounds this implementation rather than the mechanism.
+Whether a fully parallel proxy-key sort beats a parallel comparison sort is an open question with a
+calculable budget: pre-ordering saves the baseline about 69\,ms at a million English strings, of which
+a measured encoding spends 24\,ms, leaving some 45\,ms for the passes and the permutation.
+We have not measured whether they fit, and so claim neither outcome.
+Parallelizing the remaining three phases, and the sequential histogram-combine of
+\S~\ref{sec:parallel-radix} with them, is the clearest future work here.
+Where parallelism is what matters and cores are plentiful, a parallel comparison sort is today the
+right tool, and we say so.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment

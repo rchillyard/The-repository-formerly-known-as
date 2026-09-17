@@ -1648,8 +1648,20 @@ is a defect; all are hardening or generalisation.
     elements at 12 bytes is 72 MB of traffic spread over seven workers, which is plausibly inside
     that budget --- but it is **not measured**, so neither outcome may be claimed.
 
-    **Do not rewrite the conclusion a third time without measuring it.** The claim has now been
-    stated in three mutually inconsistent ways in one day, twice in the repository. What settles it
-    is one benchmark: a variant that parallelizes the encoding and uses `Arrays.parallelSort` as the
-    post-sorter, set against `Arrays.parallelSort` alone. Until that exists, the defensible paper
-    text says what was done (one phase of four) and leaves the approach's parallel ceiling open.
+    **DONE in the paper, same day.** Robin's call was to rework rather than revert. The conclusion
+    now opens "The advantage demonstrated here is a serial one", names the four phases, says we
+    parallelized one of them and not the one with the time in it, keeps the f = 0.06 figure and the
+    serial-floor comparison --- and then, in a second paragraph, says explicitly that this does *not*
+    establish a limit on the approach: the other three phases are parallelizable, the cleanup
+    measurably so against our own expectation, so the ceiling bounds this implementation rather than
+    the mechanism. It states the open question with its budget (about 69 ms saved by pre-ordering at
+    a million English strings, 24 of which a measured encoding spends, leaving some 45 ms unmeasured)
+    and claims neither outcome. The introduction's forward pointer was corrected to match, since it
+    had promised an argument that no longer exists. Body still inside 12 pages, `References` at
+    yMin 349 of page 12's right column against 182 before the rework and the very top of page 13
+    before any of today's edits; no undefined references.
+
+    **Do not rewrite it a fourth time without measuring.** The claim was stated three mutually
+    inconsistent ways in one day. What settles it is one benchmark: a variant that parallelizes the
+    encoding and uses `Arrays.parallelSort` as the post-sorter, set against `Arrays.parallelSort`
+    alone. That is the "clearest future work" the conclusion now names.
