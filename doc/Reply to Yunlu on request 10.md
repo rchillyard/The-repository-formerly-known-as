@@ -112,19 +112,51 @@ Given Q1, neither earns its run time.
 
 ## What has changed at this end, and what we are asking next
 
-Chasing *where* the time goes turned up three things, all in `TODO.md` items 36–38
-with measurements:
+Chasing *where* the time goes turned into seven `TODO.md` items, 36–42, all with
+measurements. In rough order of how much they matter:
 
-- The english corpus was encoded with `UNICODE_CODER`, which captures four characters
-  where ten were available. Natural runs left for the cleanup at n = 1,000,000 fall
-  from **365,958 to 16,641**, and the residual inversion probability *p* by a factor
-  of **245**.
-- The coders **mask rather than saturate**, which is not monotonic: `englishCoder`
-  gives `"don't"` and `"dongt"` identical codes, and `asciiCoder` sorts `"café"` as
-  though it were `"cafi"`. Saturating variants are added alongside.
-- §A.5 chose Timsort for the cleanup by beating an "insertion sort" that is in fact
-  binary-search insertion, *n* log *n* whatever the input's order — not the *N* + *X*
-  algorithm the paper's own cleanup term describes.
+- **The english corpus had the wrong coder** (item 36). It was encoded with
+  `UNICODE_CODER`, which captures four characters where ten were available, collapsing
+  a 275,333-word vocabulary into 68,512 codes — four words per code. Natural runs left
+  for the cleanup at n = 1,000,000 fall from **365,958 to 16,641**, and the residual
+  inversion probability *p* by a factor of **245**. This is the single largest effect
+  we found, and it bears on the *serial* english figures as much as the parallel ones.
+- **The coders mask rather than saturate** (item 37), which is not monotonic.
+  `englishCoder` gives `"don't"` and `"dongt"` **identical codes** — an apostrophe is
+  39 and `'g'` is 103, and both mask to 39. `asciiCoder` sorts `"café"` as though it
+  were `"cafi"`, seventeen letters early, because `'é'` is 233 and `233 & 0x7F` is 105.
+  Saturating variants are added alongside, monotonicity checked exhaustively over all
+  65,536 char values. Whether saturating *pays* is one of the things 11a and 11b settle.
+- **§A.5 measured the wrong insertion sort** (item 38). It chose Timsort for the
+  cleanup by beating an "insertion sort" that is in fact binary-search insertion,
+  *n* log *n* whatever the input's order — not the *N* + *X* algorithm the paper's own
+  cleanup term describes. An adaptive one is added. Timsort still wins as the default,
+  but the margin is a coin flip where *p* is small rather than the 4.5× reported, and
+  the choice turns out to depend on *p* and therefore on the coder: adaptive wins for
+  roughly `0.2 < pn < 25`. That rule holds only for the union-of-cliques disorder a
+  husky code produces, which we established by building arrays with matched inversion
+  counts and different structure — Timsort's time varied 4.4× at equal *X*.
+- **The cleanup parallelizes well after all** (item 40), which we had wrongly concluded
+  otherwise; the figures are under Q2 above.
+- **The encoding is now parallel** (item 41), two phases of four, `15cc2ff`.
+- **Item 39** records the case for backing off parallel claims in the paper, which has
+  been done — the conclusion is rewritten and §6.4 has moved to the appendix as A.8.
+- **Item 42** records why there is no parallel QuickHuskySort and why we are not
+  building one, since it is the obvious next question. Briefly: it would work, and it
+  has *more* parallel headroom than the radix variant, not less — at a million English
+  words its step 2 and cleanup are about 630 ms against RHSort's 205 — so the variant
+  with the worse serial performance has the better parallel prospect. We are declining
+  it on scope, not on feasibility.
+
+Two corpus notes you may want for your own records. The Leipzig **mojibake is
+upstream, and our copy is pristine**: `cafÃ©`, `crÃ¨che`, `ChÃ¢teau` are in the
+distribution itself, the file is double-encoded (`c3 83 c2 a9` where `c3 a9` was
+meant), and a freshly downloaded `eng-uk_web_2002_10K` is byte-identical to ours,
+sha256 `475aa01b…`. Deleting every affected word — the ceiling on any repair — is
+worth 2.6%, so we are leaving it. And **`StringSortBenchmarks.systemSortParallel`
+sorted `chinesenames` by code point** rather than pinyin, so it was doing a cheaper
+and different job from the husky sorts beside it; it now uses `NAME_ORDER`, which
+supersedes that row of your request-9 results.
 
 **Request 11 is in `doc/Run request for Yunlu.md`** and supersedes what we would
 otherwise have asked. Part (a) is the cleanup-pass benchmarks, about forty minutes,
