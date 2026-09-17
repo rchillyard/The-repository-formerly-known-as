@@ -1759,3 +1759,50 @@ is a defect; all are hardening or generalisation.
     explains it was left alone as one O(N) pass over arbitrary payload objects. The cleanup remains
     sequential, and item 40 records both that it parallelizes well and why a run-aware scheme
     probably would not help us.
+
+42. **There is no parallel QuickHuskySort, and it should stay that way --- but for strategic reasons,
+    not because it would not work.** Robin asked on 2026-09-17 whether such a thing exists. It does
+    not: `ParallelRadixHuskySort` is the only parallel variant in the repository, and the paper
+    declines to attempt another.
+
+    ### It would work, and it has *more* parallel headroom than the radix variant
+
+    Parallelizing QuickHuskySort's step 2 is textbook: partition sequentially, fork the two halves,
+    and after log P levels there are P independent subarrays. The payload-drag swaps that make
+    QuickHuskySort slower than RHSort are safe under that scheme, forked subranges being disjoint.
+    With the `doCoding` hook added in item 41, its encoding would parallelize for free.
+
+    The headroom is the counterintuitive part. From the paper's own figures at n = 1,000,000 on
+    English words:
+
+    | | total | encoding | step 2 + cleanup |
+    | --- | ---: | ---: | ---: |
+    | QuickHuskySort | 697.9 ms | 67.7 (9.7%) | **~630 ms** |
+    | RHSort | 272.7 ms | 67.7 (24.8%) | ~205 ms |
+
+    **QuickHuskySort has about three times the parallelizable work in absolute terms**, its
+    O(n log n) step 2 being a far larger share of a far larger total. Its Amdahl fraction is
+    therefore much more favourable than RHSort's: the variant with the *worse* serial performance has
+    the *better* parallel prospect, because parallelism rewards having work to divide. That is the
+    mirror image of item 39's argument --- "a sort that wins by doing less total work has less left to
+    spread across cores" --- read backwards, and it is worth keeping the pair in view, because
+    together they say the serial win and the parallel prospect trade against each other rather than
+    reinforcing.
+
+    ### Why not to build it
+
+    - It runs against the decision of item 39 to back off parallel claims generally.
+    - The paper deliberately de-emphasises QuickHuskySort as the original idea, RHSort being the
+      headline (see item 21, the renaming).
+    - It is real algorithm work --- parallel quicksort with payload drag, plus the stability and
+      correctness sweep that `ParallelRadixHuskySortTest` needed --- for a variant that is not the
+      contribution.
+
+    ### The paper's existing sentence is fine, with one caution
+
+    The introduction says of QuickHuskySort's comparison-based steps that "parallelizing them well is
+    a separate, harder problem that this paper does not address". That is a **scope** statement and
+    stands. The caution is only that "harder" must not be read as "unsolved": the JDK demonstrably
+    parallelizes Timsort --- `Arrays.parallelSort` *is* that --- and it beats serial Timsort by
+    1.75--3.8x in the measurements of item 40. If a referee presses, the honest answer is "harder,
+    and out of scope", not "not known how".

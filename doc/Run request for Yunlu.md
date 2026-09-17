@@ -128,8 +128,13 @@ Same conditions as request 10, please --- two methods per invocation where a bas
 `uptime` before and after each, and the `ForkJoinPool` probe. All of that is set out under request 10
 below and has not changed.
 
-**The commit to record is `f92c269`**, branch `parallel-redesign`, which is both the tip and the last
-commit touching `src/`. `mvn -B test` there: 420 tests, 0 failures.
+**The commit to record is `15cc2ff`**, branch `parallel-redesign`, which is both the tip and the last
+commit touching `src/`. `mvn -B test` there: 423 tests, 0 failures.
+
+(This supersedes `f92c269`, named here earlier. Since then the encoding phase has been
+parallelized in `ParallelRadixHuskySort` --- about 3.5x at a million elements on eight cores --- so
+**every ParallelRadixHuskySort figure from request 10 predates it**, which is a further reason 11b
+replaces the tables rather than extending them.)
 
 ---
 
