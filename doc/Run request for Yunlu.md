@@ -11,7 +11,8 @@
 | 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **done** — PR #64, `doc/adversarial.json` |
 | 8 | cache behaviour of the object-reference swap | **closed, not pursued** — step 0 found no `perf` binary on the instance, so the request was never runnable there |
 | 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
-| 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **requested 2026-09-16** — see below |
+| 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **done 2026-09-17** — PR #66, thank you; the thread-asymmetry hypothesis did not survive |
+| 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **requested 2026-09-17** — see below |
 
 **All seven requests are answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -19,10 +20,11 @@ Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseli
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**Request 10 is the only outstanding one.** Requests 1--7 and 9 are answered; request 8 is closed
-unrun, its step 0 having established that the instance has no `perf` binary. Request 10 is set out
-immediately below, ahead of the answered requests that follow it: part (a) is about twenty minutes
-and bears on a headline claim, and part (b) is optional.
+**Request 11 is the only outstanding one.** Requests 1--7, 9 and 10 are answered; request 8 is
+closed unrun, its step 0 having established that the instance has no `perf` binary. Request 11 is set
+out immediately below, ahead of the answered requests that follow it: part (a) is about forty minutes
+and answers a question we have only smoke-tested, and part (b) is the long one --- essentially
+request 4 again, because the sorter's internals have changed underneath every figure we hold.
 
 Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, `...2026-09-02.md` and
 `...2026-09-03.md`. What requests 1 and 2 settled is summarised in Appendix A.
@@ -35,6 +37,99 @@ only as qualitative cross-checks, with no figures quoted from them. Your request
 that possible.
 
 Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs acting on.
+
+---
+
+## Request 11 — the cleanup pass, and then everything again
+
+Requested 2026-09-17. Two parts, and **(b) is the one that matters more, though (a) is much cheaper.**
+
+Request 10's answer sent us looking at where the time actually goes, and the answer was not the
+parallelism at all: it is the cleanup pass, step 3. Chasing that turned up two defects in the husky
+coders and one in how the cleanup was chosen, and the upshot is that **most of the figures we hold are
+now measurements of superseded code.**
+
+### What changed since the jar you built for request 10 (`dbb0cad`)
+
+Eight commits, of which these matter to the numbers:
+
+- **`RadixHuskySort` internals** (`0f22d44`, `350c99b`): the helper's long array is no longer
+  permuted at the end (nothing read it); the final digit pass no longer writes keys (nothing read
+  them); the sign-bias and identity-index setup passes are folded into the first digit pass; and the
+  digit width can now be derived from n. **This affects every `RadixHuskySort` row in the suite** ---
+  strings, permits, dates, numerics, tuples, adversarial --- not just the string ones.
+- **`ParallelRadixHuskySort`** (`a6f8eaf`, `0f22d44`): as request 10 already measured, plus the same
+  long-array and final-pass changes.
+- **The english corpus's coder** (`98a4c63`): `StringSortBenchmarks` gave it `UNICODE_CODER`, which
+  packs four 16-bit characters and collapses its 275,333-word vocabulary into 68,512 codes. It now
+  uses `englishSaturatingCoder`, ten characters at 6 bits, which resolves that vocabulary almost
+  uniquely. Natural runs left for the cleanup pass at n = 1,000,000 fall from **365,958 to 16,641**,
+  a factor of 22, and the residual inversion probability p falls by a factor of **245**. Every
+  english row moves, and so does commonwords.
+- **`systemSortParallel` for chinesenames** (`24b16b6`): now sorts by pinyin rather than by raw code
+  point, so it does the same job as the husky sorts it sits beside. Its chinesenames figures from
+  request 9 are superseded.
+
+So: **please treat the string and permits tables as needing complete replacement rather than
+extension.** We would rather re-measure everything on one jar than splice old and new rows.
+
+### 11a — which sort should the cleanup pass use? (about forty minutes)
+
+```
+java -jar target/benchmarks.jar "CleanupPassBenchmarks.(timsortCleanup|adaptiveInsertionCleanup)$" -f 5 -wi 5 -i 10 -rf json -rff cleanup.json
+```
+
+That is 2 methods x 3 coders x 2 sizes. `CleanupPassBenchmarks` times the three candidate cleanup
+sorts on the array the radix phase actually hands over, rather than inferring the cleanup by
+subtracting two whole sorts.
+
+The question: the paper's §A.5 chose Timsort for step 3 on the strength of beating "insertion sort"
+by 4.5x, but the repository's `InsertionSort` locates each element by **binary search over the sorted
+prefix**, so it costs n log n comparisons however nearly ordered its input is --- which is not the
+algorithm the paper's `k(N + pX)` cleanup term describes. A genuinely adaptive insertion sort has
+been added, and on a smoke run it beats Timsort by up to 2.6x in the middle of the range and loses by
+up to 15x at the top of it.
+
+If you have appetite for one more, this adds the binary-search form so the 4.5x can be checked
+directly. It refuses the pinyin coder rather than sorting by the wrong ordering, so exclude that:
+
+```
+java -jar target/benchmarks.jar "CleanupPassBenchmarks.binaryInsertionCleanup$" -p coder=englishSaturating,unicode -f 5 -wi 5 -i 10 -rf json -rff cleanup-binary.json
+```
+
+**What we expect, so that a surprise is visible as a surprise.** The deciding quantity appears to be
+`X/n = pn/4`, where X is the residual inversion count: adaptive should win for roughly
+`0.2 < pn < 25` and Timsort outside it. That predicts adaptive winning for `englishSaturating` at
+n = 1,000,000 (pn/4 = 0.12) and losing at n = 200,000 (0.024), and Timsort winning for `unicode` at
+n = 1,000,000 (28.8) and for `pinyin` at both sizes (35 and 175). If your figures contradict that
+pattern we would much rather know.
+
+### 11b — the full suite again (long, and the one that matters)
+
+Essentially request 4 repeated, for the reasons above. Same invocation as then; the suite took you
+20h30m unattended.
+
+Please add the two new classes, which did not exist at request 4:
+
+```
+java -jar target/benchmarks.jar "ParallelStringSortBenchmarks" -f 5 -wi 5 -i 10 -rf json -rff strings-parallel-full.json
+java -jar target/benchmarks.jar "StringSortBenchmarks.huskyEncodeOnlyEnglish" -f 5 -wi 5 -i 10 -rf json -rff encode-masking-vs-saturating.json
+```
+
+The second settles a question we could not answer by hand: the saturating coders resolve words the
+masking ones cannot, but two hand-rolled harnesses put the **same** masking arithmetic at 41 ms and
+69 ms per million, because a call site with four coder implementations measures JIT inlining rather
+than `&` against `min`. If saturating turns out materially slower to encode, that is a real argument
+against the change and we want it on the record.
+
+### Method, and the commit
+
+Same conditions as request 10, please --- two methods per invocation where a baseline is involved,
+`uptime` before and after each, and the `ForkJoinPool` probe. All of that is set out under request 10
+below and has not changed.
+
+**The commit to record is `f92c269`**, branch `parallel-redesign`, which is both the tip and the last
+commit touching `src/`. `mvn -B test` there: 420 tests, 0 failures.
 
 ---
 

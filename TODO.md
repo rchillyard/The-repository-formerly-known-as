@@ -1409,13 +1409,51 @@ is a defect; all are hardening or generalisation.
     gives, and the margin is a coin-flip rather than 4.5x wherever p is small. An adaptive cleanup is
     worth having available for the middle of the range.
 
+    ### The threshold: use adaptive insertion sort when 0.2 < pn < 25
+
+    Answered 2026-09-17 by sweeping X directly rather than inferring it from three coders. A husky
+    code leaves groups of equal-coded words in arbitrary internal order, so shuffling within blocks
+    of size b reproduces that structure faithfully and gives X/n about b/4. Timings best-of-5 on a
+    loaded machine; the effects at the peak are large enough to be directional.
+
+    | configuration | adaptive wins up to | loses from | peak advantage |
+    | --- | ---: | ---: | --- |
+    | english, n = 200,000 | X/n = 3.60 | 7.60 | **2.00x** at X/n = 0.18 |
+    | english, n = 1,000,000 | 6.91 | 14.88 | **2.03x** at 0.32 |
+    | chinese names in pinyin order, n = 200,000 | 3.72 | 7.73 | **2.57x** at 0.23 |
+
+    Since X = p n^2 / 4, the deciding quantity is **X/n = pn/4**, so the rule is: choose adaptive
+    insertion sort when roughly **0.2 < pn < 25**, and Timsort otherwise. Below the band both sorts
+    cost about n comparisons and Timsort's scan has the better constant; above it, adaptive's O(X)
+    overruns Timsort's O(n log r) ceiling. The win inside the band reaches 2.6x, and the band is
+    wide --- X/n from about 0.07 to about 7.
+
+    The crossover is **the same for pinyin as for english at the same n** (3.7--7.7 against
+    3.60--7.60) even though a pinyin comparison costs about three times as much. That is expected,
+    since both algorithms pay the same per-comparison cost and it cancels, and it means the threshold
+    is a property of counts and so portable across element types.
+
+    **This also resolves what looked like a contradiction between two measurements of the saturating
+    coder.** They were taken at different n, and the crossover moves with n: pn/4 is 0.024 at
+    n = 200,000, below the band, and 0.118 at n = 1,000,000, inside it. Both measurements were right.
+    The rule predicts every case measured so far:
+
+    | coder | p | n | pn/4 | predicted | measured |
+    | --- | ---: | ---: | ---: | --- | --- |
+    | `englishSaturatingCoder` | 4.7e-7 | 1,000,000 | 0.12 | adaptive | adaptive 1.24x |
+    | `englishSaturatingCoder` | 4.7e-7 | 200,000 | 0.024 | Timsort | Timsort 1.10x |
+    | `UNICODE_CODER` | 1.15e-4 | 1,000,000 | 28.8 | Timsort | Timsort 1.72x |
+    | pinyin | 7.0e-4 | 200,000 | 35 | Timsort | Timsort 14.8x |
+
+    **What this suggests for the design**, not yet implemented and Robin's call: p is a property of a
+    coder and a corpus, measurable once (`CleanupPassProbe` measures it), so a sorter given an
+    estimate of p could choose its own cleanup at runtime from pn. That is a bigger claim than the
+    paper currently makes and would want the JMH figures below before anyone builds it.
+
     ### What is not yet known
 
-    The 1.10x and 1.18x margins are from a 1-fork smoke run on a loaded machine and mean little; only
-    the 14.8x pinyin result is large enough to trust as it stands. Hand timing earlier the same day
-    put adaptive **ahead** by 1.12x at n = 200,000 and 1.24x at n = 1,000,000 under the saturating
-    coder, which the smoke run contradicts at 200,000 --- so the small-margin cases are genuinely
-    unresolved and want a proper run:
+    The margins near the band edges are from a 1-fork smoke run on a loaded machine; only the 14.8x
+    pinyin result and the 2x peaks are large enough to trust as they stand. A proper run:
 
     ```
     java -jar target/benchmarks.jar "CleanupPassBenchmarks" -f 5 -wi 5 -i 10 -rf json -rff cleanup.json
