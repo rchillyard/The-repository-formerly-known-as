@@ -12,7 +12,7 @@
 | 8 | cache behaviour of the object-reference swap | **closed, not pursued** — step 0 found no `perf` binary on the instance, so the request was never runnable there |
 | 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
 | 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **done 2026-09-17** — PR #66, `doc/Run results from Yunlu 2026-09-17.md`; thank you, and the thread-asymmetry hypothesis did not survive |
-| 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **requested 2026-09-17** — see below |
+| 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **done 2026-09-21** — `doc/Run results from Yunlu 2026-09-21.md` |
 
 **Requests 1 to 7 are all answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
