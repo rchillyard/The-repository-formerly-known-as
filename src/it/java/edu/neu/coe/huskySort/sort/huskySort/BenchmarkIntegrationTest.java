@@ -84,7 +84,12 @@ public class BenchmarkIntegrationTest {
 //        benchmark.benchmarkStringSortersInstrumented(getWords("eng-uk_web_2002_100K-sentences.txt", line -> getWords(regexLeipzig, line)), 100000, 200, huskyCoder);
 //    }
 
-    private final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+    // NOTE: must match HuskySortBenchmark.REGEX_LEIPZIG. The old form,
+    // "[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)", truncated each sentence at its first
+    // character that was neither a Unicode letter nor ASCII punctuation -- any digit, pound
+    // sign or ideographic full stop -- discarding 15.2% of the english corpus and 51.5% of
+    // the chinese one.
+    private final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(.*)");
     private static Logger logger = new LazyLogger(BenchmarkIntegrationTest.class);
     private static HuskySortBenchmark benchmark;
     private static Config config;

@@ -520,7 +520,31 @@ public final class HuskySortBenchmark {
 
     final static LazyLogger logger = new LazyLogger(HuskySortBenchmark.class);
 
-    final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+    /**
+     * A Leipzig line is {@code <id>\t<sentence>}, so the sentence is simply everything after the
+     * first tab. Taking it in one piece is deliberate: any attempt to validate the sentence inside
+     * this pattern truncates it silently.
+     * <p>
+     * It used to read {@code [~\t]*\t(([\s\p{Punct}，]*\p{L}+)*)}, which required the captured
+     * text to be an alternation of ASCII punctuation and Unicode letters. Java's {@code \p{Punct}}
+     * is POSIX, hence ASCII-only, so the group stopped at the first character that was neither a
+     * Unicode letter nor ASCII punctuation --- and {@code String.split} was then handed only that
+     * prefix. Digits qualified, so did the pound sign, the copyright sign and every non-ASCII dash
+     * or quotation mark. Measured on the corpora of record, 2026-09-22:
+     * <pre>
+     *     eng-uk_web_2002_1M   15.2% of sentence characters discarded; 275,387 -> 304,959 distinct
+     *                          words, 16.39M -> 18.86M tokens
+     *     zho-simp-tw_web_2014 51.5% discarded (the ideographic full stop U+3002 is not ASCII
+     *                          punctuation); 24,215 -> 50,009 distinct, 25,745 -> 56,134 tokens
+     * </pre>
+     * "With Amelie (Cert 15) Jeunet combines the best of his two previous films..." yielded "With
+     * Amelie (Cert"; "The figure size must not exceed A4 or 8.5 x 11in..." yielded "The figure size
+     * must not exceed A". The repair is purely additive --- no word either corpus produced before
+     * is lost --- but it changes every english and chinese string benchmark, so every such figure
+     * measured before this commit is superseded. chinesenames is unaffected: it is loaded by
+     * {@code lineAsList}, not by this pattern.
+     */
+    final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(.*)");
 
     public static final Function<Random, Byte> byteFunction = r -> {
         byte[] bytes = new byte[1];
