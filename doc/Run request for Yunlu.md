@@ -12,7 +12,8 @@
 | 8 | cache behaviour of the object-reference swap | **closed, not pursued** — step 0 found no `perf` binary on the instance, so the request was never runnable there |
 | 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
 | 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **done 2026-09-17** — PR #66, `doc/Run results from Yunlu 2026-09-17.md`; thank you, and the thread-asymmetry hypothesis did not survive |
-| 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **requested 2026-09-17** — see below |
+| 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **done 2026-09-21** — PR #67, `doc/Run results from Yunlu 2026-09-21.md`; thank you, and the withdrawal of your own step-4 figure on convergence grounds was exactly right |
+| 11c | the masking cleanup cells 11a had no parameter for (short) | **requested 2026-09-22** — see below |
 
 **Requests 1 to 7 are all answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -20,11 +21,11 @@ Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseli
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**Request 11 is the only outstanding one.** Requests 1--7, 9 and 10 are answered; request 8 is
-closed unrun, its step 0 having established that the instance has no `perf` binary. Request 11 is set
-out immediately below, ahead of the answered requests that follow it: part (a) is about forty minutes
-and answers a question we have only smoke-tested, and part (b) is the long one --- essentially
-request 4 again, because the sorter's internals have changed underneath every figure we hold.
+**Request 11c is the only outstanding one, and it is a short one.** Requests 1--7 and 9--11 are
+answered; request 8 is closed unrun, its step 0 having established that the instance has no `perf`
+binary. Request 11c is set out immediately below, ahead of the answered requests that follow it. It
+is about thirty-five minutes, it needs no new full suite, and it exists because request 11 answered
+half of a question and then showed us that we had given you no way to run the other half.
 
 Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, and likewise for
 `...2026-09-02`, `...2026-09-03`, `...2026-09-06`, `...2026-09-13` and `...2026-09-17`. What
@@ -41,9 +42,138 @@ Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs a
 
 ---
 
+## Request 11c — the masking cleanup cells, which 11a had no parameter for
+
+Requested 2026-09-22. **One invocation, about thirty-five minutes.** Nothing else is being asked
+for: the corpora are unchanged, the suite is unchanged, and no figure you have already sent is
+superseded by this.
+
+### Why, and what you spotted
+
+Your 11b step 3 measured the encode side of the saturating-coder question and got a clean answer:
+saturating costs 1.7--3.0x the masking encode, +73 to +115 ms per million words. You then wrote,
+correctly, that this "is not a net verdict on the coder: the cleanup saving that saturation buys
+over `englishCoder` was not measured --- `cleanup.json` has no masking-coder cell."
+
+There was no way for you to run it. `CleanupPassBenchmarks` had three coder values and none of them
+was a masking coder. That is fixed in `c5f47d3`, which adds **`englishMasking`** and
+**`asciiMasking`** beside their saturating twins. This request is those cells.
+
+We should also say plainly that we framed the gap badly when we replied to you. We told you the
+saturating coder buys "~5% fewer runs" and implied the cleanup difference was therefore small. The
+run counts are indeed 5% apart --- but the *inversion* counts are **731x** apart, which we had not
+checked. Whether that matters is precisely what is unknown, and it is a more interesting question
+than the one we asked you.
+
+### The invocation
+
+```
+java -jar target/benchmarks.jar "CleanupPassBenchmarks.(timsortCleanup|adaptiveInsertionCleanup)$" -p coder=englishSaturating,englishMasking,asciiSaturating,asciiMasking,unicode -f 5 -wi 5 -i 10 -rf json -rff cleanup-coders.json
+```
+
+2 methods x 5 coders x 2 sizes = 20 rows. Three notes on the shape of it:
+
+- **`pinyin` is deliberately excluded.** It is not part of this question, and in 11a its
+  `adaptiveInsertionCleanup` row at n = 1,000,000 alone was about thirty minutes of your fifty. Its
+  11a figures stand; nothing here supersedes them.
+- **The three 11a coders are re-run rather than reused**, which is the point of putting all five in
+  one invocation. You documented between-invocation shifts of 15--28% on identical code in request
+  11, with 2--4% CIs; this comparison cannot survive that, so every cell it compares must come from
+  the same JMH run. Your 11a numbers then become a free replication.
+- `binaryInsertionCleanup` is not requested. If you want it as a third control it now accepts all
+  five of these coders (it still refuses `pinyin`), and it should be indifferent to the whole
+  question, being n log n whatever the input's order --- but it is another ten rows and we are not
+  asking for them.
+
+### What the cells are
+
+Each masking coder reads the same characters at the same width as its saturating twin and agrees
+with it *exactly* on every character inside the window --- for the english pair that is 64..127,
+which is all of A--Z and a--z. They differ only on words reaching outside it, where the masking form
+wraps the character back into the letter range and the saturating form pins it to the window's edge.
+So the pairs are matched except in the one respect being tested. Structural counts on the english
+corpus at n = 1,000,000:
+
+| coder | runs | mean run | inversions | pn |
+| --- | ---: | ---: | ---: | ---: |
+| `unicode` 4x16 mask | 365,958 | 2.7 | 28,459,608 | 113.84 |
+| `asciiMasking` 9x7 mask | 30,921 | 32.3 | 87,797,452 | 351.19 |
+| `asciiSaturating` 9x7 sat | 30,079 | 33.2 | 235,407 | 0.94 |
+| `englishMasking` 10x6 mask | 17,506 | 57.1 | 85,818,889 | 343.28 |
+| `englishSaturating` 10x6 sat | 16,641 | 60.1 | 117,376 | 0.47 |
+
+Within each pair the runs differ by 3% and 5% while the inversions differ by **373x and 731x**. A
+badly-coded word lands far from home, which costs thousands of inversions but only one extra
+descent. That is what makes these two pairs a discriminator rather than a confirmation: `N log r`
+says the cleanups within a pair are indistinguishable, `N + X` says the masking forms are one to two
+orders worse, and they cannot both be right.
+
+### What we expect, stated in advance so a surprise reads as one
+
+Hand timing on Robin's eight-core Mac, best of four, at n = 1,000,000 and n = 200,000:
+
+| coder | timsort 200k / 1M | adaptive 200k / 1M | adaptive / timsort at 1M |
+| --- | ---: | ---: | ---: |
+| `englishSaturating` | 10.68 / 34.04 | 9.85 / 33.77 | 0.99x |
+| `englishMasking` | 11.32 / 40.84 | 33.50 / 443.99 | **10.87x** |
+| `asciiSaturating` | 11.70 / 43.37 | 10.23 / 41.03 | 0.95x |
+| `asciiMasking` | 11.93 / 49.25 | 32.05 / 459.52 | **9.33x** |
+| `unicode` | 27.00 / 123.55 | 24.92 / 212.80 | 1.72x |
+
+The prediction in one line: **731x the inversions should cost Timsort at most about 1.2x and cost
+adaptive insertion sort about 13x.** More precisely --- masking / saturating for `timsortCleanup`
+between 1.00x and 1.20x at n = 1,000,000 on both pairs (our own repeats of that ratio ranged 1.07x
+to 1.20x, so we do not trust it finer than that), and masking / saturating for
+`adaptiveInsertionCleanup` between 9x and 14x. If Timsort's masking penalty comes out anywhere near
+its inversion ratio we have the cleanup's cost model wrong in the other direction, and we would much
+rather know.
+
+Those two masking adaptive rows at n = 1,000,000 are the slowest new cells at roughly 450 ms/op,
+which is still under a second, so no row here should behave like 11a's pinyin case.
+
+### What turns on it
+
+Two things, which is why it is worth thirty-five minutes.
+
+1. **Whether we keep the coder we changed to.** If the cleanup penalty really is ~1.1x, masking wins
+   the whole sort by roughly 20 ms per million on Robin's machine and, given your encode figures,
+   more like 70--90 ms on yours --- and TODO item 37's change loses on speed and has to be argued on
+   monotonicity instead.
+2. **Whether the paper's cleanup formula is right.** It says the cleanup costs `k(N + pX)`, and
+   calls that "the time to Timsort the element array". `N + pX` is *adaptive insertion sort's* cost.
+   The paper's own algorithm-comparison table already gives Timsort's correct bound, `O(N + N log r)`
+   for r runs, citing Auger et al. --- so the body contradicts the table. If your figures confirm
+   that Timsort follows runs and not inversions, the body is what has to change, and with it the
+   framing of `p_crit`, which is currently defined as a critical inversion *probability*.
+
+### Method and the commit
+
+Same conditions as before, please: `uptime` before and after, the `ForkJoinPool` probe, a quiet
+host, the raw JSON unedited. The two-methods rule does not really apply here --- there is no system
+baseline in this class, and the comparison being made is *within* the invocation, which is why all
+five coders go in one.
+
+**The commit to record is `c5f47d3`**, branch `parallel-redesign` --- "Add the masking cleanup cells
+that request 11 could not measure". It is the last commit touching `src/`; the tip is later but only
+by `TODO.md`, so `git log c5f47d3..HEAD -- src/` is empty. `mvn -B test` there: 423 tests, 0
+failures. The three new cells have been smoke-tested under JMH at `-f 1 -wi 1 -i 2`.
+
+**The corpus has not changed**, and one note in case you wondered, since you have the mojibake in
+your own records. We tried repairing it. Word-by-word repair recovers only 54 of 275,333 words,
+because most of the damaged ones are *truncated* --- `Cliche-acute` mojibakes and then our own word
+splitter drops the trailing non-word character, so the continuation byte is gone. Repairing each
+line before tokenizing does work, and recovers about two thousand words. But it makes our numbers
+slightly *worse*, not better: restoring the real accented characters raises the count of words
+holding a char above 127 from 1,228 to 2,100, and those are exactly the ones a fixed-width coder
+cannot represent. So we are leaving the corpus alone and saying in the paper that we checked.
+
+---
+
 ## Request 11 — the cleanup pass, and then everything again
 
-Requested 2026-09-17. Two parts, and **(b) is the one that matters more, though (a) is much cheaper.**
+Requested 2026-09-17. **Answered 2026-09-21 in PR #67**, both parts, 28 hours of measurement on one
+jar plus three supplements the following night; kept here for the reasoning. Two parts, and **(b) is
+the one that matters more, though (a) is much cheaper.**
 
 Request 10's answer sent us looking at where the time actually goes, and the answer was not the
 parallelism at all: it is the cleanup pass, step 3. Chasing that turned up two defects in the husky

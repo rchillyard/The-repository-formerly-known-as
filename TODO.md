@@ -1889,10 +1889,41 @@ is a defect; all are hardening or generalisation.
     than `englishCoder` (10x6) because a 7-bit mask preserves all printable ASCII. It does preserve
     it --- apostrophes, hyphens and digits all survive `& 0x7F` intact --- **and it does not help**:
     `asciiCoder` carries 87.8M inversions against `englishCoder`'s 85.8M, slightly *more*. What
-    dominates is not punctuation but the characters at or above 128, which neither width preserves,
-    and which the Leipzig corpus's upstream mojibake supplies in quantity (item 36). Punctuation is
-    the visible hazard; the corpus is the invisible one. Worth a sentence, because the intuition is
-    natural and wrong.
+    dominates is not punctuation but the characters at or above 128, which neither width preserves.
+    Punctuation is the visible hazard; the corpus's character repertoire is the invisible one. Worth
+    a sentence, because the intuition is natural and wrong.
+
+    **Repairing the mojibake does not fix this, and makes it slightly worse (measured 2026-09-22).**
+    Robin asked whether repairing the corpus would help, on the reasonable view that the mojibake is
+    an error and testing against a corrected corpus is defensible if declared. It is repairable, and
+    the repair had to be done at the right level to work at all:
+
+    - **Word level fails.** Reversing the double encoding word by word
+      (`new String(w.getBytes(ISO_8859_1), UTF_8)`) repairs only **54 of 275,333** words. The other
+      1,174 affected words are *truncated*: `Cliche-acute` mojibakes to `ClichA-tilde-copyright`,
+      and `HuskySortBenchmark`'s own word splitter then drops the copyright sign as a non-word
+      character, leaving `ClichA-tilde`. The continuation byte is gone, so no byte round-trip can
+      recover it. Part of the damage is our tokenizer's, not Leipzig's.
+    - **Line level works.** Repairing each line *before* tokenizing recovers them: words carrying a
+      mojibake marker fall from 1,228 to 140, the vocabulary grows 275,333 -> 277,310 as split
+      tokens rejoin, and spot checks are correct --- `Nurnberger`, `Cliches`, `Souffles`, `Sieyes`,
+      `Zakynthos` all come back properly accented.
+    - **And it costs us.** Because the repair *restores* genuine accented characters, the count of
+      words holding a char > 127 rises from 1,228 to **2,100**, and those are exactly the words a
+      fixed-width coder cannot represent. At n = 1,000,000 `englishCoder`'s inversions go
+      85,818,889 -> **144,439,968** and `asciiCoder`'s 87,797,452 -> **159,339,824**; runs rise
+      1--2% across every coder; the adaptive cleanup on `englishMasking` goes 419 -> 645 ms. The
+      Timsort cleanup is unchanged within the noise of an eight-core Mac, as the 1--2% run change
+      predicts.
+
+    So the corpus's corruption was, accidentally, making our coders look *better* --- it was
+    replacing accented characters with truncated ASCII-ish ones. **Recommendation: do not repair,
+    and say in the paper that we checked.** One or two sentences forecloses a referee's question,
+    costs nothing, and is more interesting than silence: the mojibake is upstream, our copy is
+    byte-identical to a fresh download (sha256 `475aa01b...`, item 36), a correct repair is
+    available, and applying it moves the Timsort cleanup by less than 2% in the unfavourable
+    direction. That also supersedes the earlier "deleting every affected word is worth 2.6%" ceiling,
+    which measured deletion rather than repair.
 
     ### D. The parallel claims are now too pessimistic --- item 40's precondition is met
 
