@@ -419,6 +419,66 @@ public class ParallelRadixHuskySortTest {
         assertEquals("ParallelRadixHuskySort/auto", new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config).toString());
     }
 
+    // ---------- The opt-in parallel cleanup pass (TODO.md item 40). ----------
+
+    /**
+     * The parallel cleanup must return exactly what the serial one returns. Two ways this could go
+     * wrong and neither would throw: the five-argument constructor could pick the wrong post-sorter
+     * and give a Collator coder natural order (the failure mode the test above guards for the
+     * four-argument constructor), or {@code Arrays.parallelSort} could differ from
+     * {@code Arrays.sort} on equal elements, since stability is what lets the cleanup preserve the
+     * radix phase's work. Both are checked here, on both orderings, at several chunk counts.
+     */
+    @Test
+    public void testParallelCleanupAgreesWithSerialCleanup() {
+        final Random random = new Random(0);
+        final String[] words = new String[20000];
+        for (int i = 0; i < words.length; i++) words[i] = randomWord(random);
+        final String[] expectedNatural = Arrays.copyOf(words, words.length);
+        Arrays.sort(expectedNatural);
+
+        for (final int parallelism : new int[]{1, 2, 8}) {
+            final String[] serial = new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.englishSaturatingCoder, config, parallelism, false).sort(Arrays.copyOf(words, words.length));
+            final String[] parallel = new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.englishSaturatingCoder, config, parallelism, true).sort(Arrays.copyOf(words, words.length));
+            assertArrayEquals("natural order, serial cleanup, p=" + parallelism, expectedNatural, serial);
+            assertArrayEquals("natural order, parallel cleanup, p=" + parallelism, expectedNatural, parallel);
+        }
+    }
+
+    /**
+     * The same for a Collator coder, which is where a wrong post-sorter is silent: the array comes
+     * back sorted either way, just by the wrong ordering.
+     */
+    @Test
+    public void testParallelCleanupUsesCollatorNotNaturalOrder() {
+        final String[] xs = {"刘持平", "洪文胜", "樊辉辉", "苏会敏", "高民政", "曹玉德", "袁继鹏", "舒冬梅", "杨腊香", "许凤山", "王广风", "黄锡鸿", "罗庆富", "顾芳芳", "宋雪光", "王诗卉"};
+        final String[] expected = Arrays.copyOf(xs, xs.length);
+        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
+
+        for (final int parallelism : new int[]{1, 4, 8}) {
+            final ParallelRadixHuskySort<String> sorter = new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.chineseEncoderPinyin, config, parallelism, true);
+            assertArrayEquals("parallelism=" + parallelism, expected, sorter.sort(Arrays.copyOf(xs, xs.length)));
+        }
+    }
+
+    /**
+     * The flag is visible in the sorter's name, so a benchmark row cannot silently be the wrong one.
+     */
+    @Test
+    public void testParallelCleanupIsNamed() {
+        assertEquals("ParallelRadixHuskySort/auto/p4/parallelCleanup",
+                new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config, 4, true).toString());
+        assertEquals("ParallelRadixHuskySort/auto/p4",
+                new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config, 4, false).toString());
+    }
+
+    private static String randomWord(final Random random) {
+        final int length = 1 + random.nextInt(9);
+        final StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) sb.append((char) ('a' + random.nextInt(26)));
+        return sb.toString();
+    }
+
     // ---------- The parallel coding step (TODO.md item 41). ----------
 
     /**

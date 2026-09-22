@@ -217,6 +217,35 @@ public class CleanupPassBenchmarks {
     }
 
     /**
+     * The same Timsort on the common {@link java.util.concurrent.ForkJoinPool}. Paired with
+     * {@link #timsortCleanup} this is the A/B that decides whether
+     * {@link ParallelRadixHuskySort}'s opt-in parallel cleanup should ever become its default, and
+     * --- more useful --- what the rule for choosing between them is.
+     * <p>
+     * It is a real question rather than a formality, because this one can lose. On a nearly ordered
+     * array serial Timsort finds long runs and stops, while {@code parallelSort} still cuts into
+     * about {@code 4p} blocks and pays roughly {@code log(4p)} merge levels: about four times the
+     * work, divided by p. Hand timing on eight cores, one corpus per JVM, put it at 1.04x / 1.87x
+     * on english at n = 200,000 / 1,000,000, <b>0.53x</b> / 1.50x on chinese, and 3.38x / 2.54x on
+     * pinyin --- so it pays in proportion to the work available, and on chinese at n = 200,000 it
+     * is nearly twice as slow as doing nothing.
+     * <p>
+     * The reason this class is the right place to settle it, rather than an end-to-end row, is that
+     * n alone cannot express the rule: chinese and chinesenames at n = 200,000 are the same size
+     * and want opposite answers. What separates them is how much disorder the coder left, which is
+     * exactly what this class parameterises.
+     * <p>
+     * NOTE: {@code Arrays.parallelSort} sorts serially below {@code MIN_ARRAY_SORT_GRAN} (8,192),
+     * so at small n this becomes {@link #timsortCleanup} plus a little overhead, by design.
+     */
+    @Benchmark
+    public String[] parallelTimsortCleanup(final CleanupState state) {
+        final String[] copy = state.copy();
+        Arrays.parallelSort(copy, state.ordering);
+        return copy;
+    }
+
+    /**
      * Adaptive insertion sort: (n-1) + X comparisons and X moves, the algorithm the paper's cleanup
      * term describes.
      */

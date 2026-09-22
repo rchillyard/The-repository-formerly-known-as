@@ -159,4 +159,26 @@ public class ParallelStringSortBenchmarks {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         return new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, state.coder, state.config, parallelism).sort(copy);
     }
+
+    /**
+     * As {@link #parallelRadixHuskySortAuto_pAll}, but with step 3 --- the cleanup --- also on the
+     * common pool, which as of 2026-09-22 is the only phase of the four still serial. Pair it with
+     * {@code parallelRadixHuskySortAuto_pAll} for the end-to-end effect; the per-phase A/B that
+     * explains the effect, and that should decide any default, is
+     * {@code CleanupPassBenchmarks.(timsortCleanup|parallelTimsortCleanup)}.
+     * <p>
+     * Opt-in rather than a new default, because it can lose: hand timing on eight cores put the
+     * cleanup itself at 1.87x on english@1M and 2.54x on pinyin@1M, but <b>0.53x</b> on
+     * chinese@200k, where the cleanup is only ~5 ms and the fork/join overhead exceeds what it
+     * saves. Projected onto the request-11 figures, this row should rescue the two worst cells in
+     * the table --- chinesenames at 200k and 1M, now 0.43x and 0.42x of {@code Arrays.parallelSort}
+     * --- widen english@1M from 1.34x, and regress chinese@200k. Those are projections; this row is
+     * how they get tested.
+     */
+    @Benchmark
+    public String[] parallelRadixHuskySortAuto_pAll_parCleanup(final StringSortBenchmarks.StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, state.coder, state.config,
+                Runtime.getRuntime().availableProcessors(), true).sort(copy);
+    }
 }

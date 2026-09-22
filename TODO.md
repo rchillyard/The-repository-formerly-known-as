@@ -2003,10 +2003,49 @@ is a defect; all are hardening or generalisation.
     not a reversal but a size-and-corpus-dependent claim; the losses are english@200k, chinese@200k,
     chinesenames at all three sizes, `Long[]`@2M.
 
-    The other half of item 40's benchmark --- a `parallelSort` post-sorter --- is still unrun, and
-    is now clearly the highest-value remaining change, because the cleanup is the only serial phase
-    left: it is 50% of the parallel sort at english@200k, 74% at english@1M and **91% at
+    The other half of item 40's benchmark --- a `parallelSort` post-sorter --- is **built as of
+    2026-09-22 and awaiting a run**, opt-in rather than default. The cleanup is the only serial
+    phase left, and it is 50% of the parallel sort at english@200k, 74% at english@1M and **91% at
     chinesenames@1M**, where the pinyin cleanup alone is 506 ms of a 558 ms sort.
+
+    **The speed-up it buys is smaller and more variable than this item first claimed, and the
+    correction matters.** Item 40 records 2.8--3.8x. That figure came from *randomly shuffled*
+    arrays, where `parallelSort`'s leaves do real work. Measured on the hand-over arrays the cleanup
+    actually receives, eight cores, one corpus per JVM:
+
+    ```
+    corpus         n          runs   mean run   serial   parallel   speed-up
+    english      200,000     2,000      100.0    10.82      10.36      1.04x
+    english    1,000,000    16,061       62.3    42.38      22.72      1.87x
+    chinese      200,000     3,107       64.4     4.99       9.38      0.53x  <-- loses
+    chinese    1,000,000    16,790       59.6    12.47       8.34      1.50x
+    chinesenames 200,000    30,462        6.6    70.71      20.93      3.38x
+    chinesenames 1,000,000 162,690        6.1   290.82     114.64      2.54x
+    ```
+
+    So it pays in proportion to the work available and **can go negative**: Robin's original
+    objection --- the elements are not independent, so chunks cannot be processed separately --- is
+    right about the mechanism, and what it costs is a factor, not the whole gain. The dependence
+    lives in the merge, and merging parallelizes; but on a nearly ordered array serial Timsort finds
+    long runs and stops while `parallelSort` still pays about `log(4p)` merge levels over `4p`
+    blocks, so where the cleanup is already cheap the division by p does not cover it.
+
+    Projected onto the request-11 figures --- **projections, not measurements**: chinesenames@200k
+    0.43x -> ~1.2--1.4x and chinesenames@1M 0.42x -> ~0.9--1.2x (the two worst cells in the table,
+    flipping or reaching parity), english@1M 1.34x -> ~1.9x, chinese@1M 1.30x -> ~1.5x,
+    english@200k unchanged at 0.53x, and chinese@200k **regressing** from 0.95x to ~0.6x.
+
+    Hence opt-in. No guard rule is encoded, because n alone cannot express one: chinese and
+    chinesenames at n = 200,000 are the same size and want opposite answers. What separates them is
+    how much disorder the coder left, which is what `CleanupPassBenchmarks` parameterises --- so the
+    rule should come from its new `parallelTimsortCleanup` arm on the machine of record.
+
+    **A deeper reading of the same numbers.** chinesenames gains most because its coder is worst:
+    the radix phase cuts its run count only **3.1x** (500,269 -> 162,690) against english's **62x**,
+    leaving runs of mean length 6.1 where english has 62.3. Parallelizing that cleanup treats a
+    symptom; the cause is the pinyin coder, which is items 10 and 11 --- now quantitatively
+    motivated rather than speculative. Worth a sentence in the paper, because a referee who sees the
+    chinesenames row will ask why it is the weak one.
 
     ### E. The encode, not the cleanup, is the dominant serial term
 

@@ -134,6 +134,76 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
     }
 
     /**
+     * The cleanup pass on the common {@link java.util.concurrent.ForkJoinPool} instead of on the
+     * calling thread: step 3 of four, and as of 2026-09-22 the only one still serial.
+     * <p>
+     * <b>This is opt-in, and deliberately not the default, because it can lose.</b> Robin's
+     * objection when the idea was first raised was that the elements are not independent --- there
+     * is a direction of processing, so whole chunks cannot be treated separately. That is right,
+     * and it is why chop-sort-concatenate does not work; but the dependence is confined to the
+     * merge, and merging parallelizes, which is exactly what {@code Arrays.parallelSort} does
+     * (Timsort the leaves, then merge them in parallel). What the objection correctly predicts is
+     * that the speed-up is badly sublinear and can go negative: on a nearly ordered array serial
+     * Timsort finds long runs and stops, while {@code parallelSort} still cuts into about
+     * {@code 4p} blocks and pays some {@code log(4p)} merge levels --- roughly four times the work,
+     * divided by p. Where the cleanup is already cheap, the division does not cover it.
+     * <p>
+     * Measured on the hand-over arrays themselves, eight cores (seven pool workers), one corpus per
+     * JVM so the comparator call site stays monomorphic --- which matters, an earlier run that
+     * timed all three corpora together read 1.33x where this reads 2.54x:
+     * <pre>
+     *     corpus         n          runs   mean run   serial   parallel   speed-up
+     *     english      200,000     2,000      100.0    10.82      10.36      1.04x
+     *     english    1,000,000    16,061       62.3    42.38      22.72      1.87x
+     *     chinese      200,000     3,107       64.4     4.99       9.38      0.53x   <-- loses
+     *     chinese    1,000,000    16,790       59.6    12.47       8.34      1.50x
+     *     chinesenames 200,000    30,462        6.6    70.71      20.93      3.38x
+     *     chinesenames 1,000,000 162,690        6.1   290.82     114.64      2.54x
+     * </pre>
+     * So it pays in proportion to the work there is to do, and it pays most where the coder has
+     * done worst: chinesenames gains most because its radix phase cuts the run count only 3.1x
+     * (500,269 -> 162,690) against english's 62x. Treating that cell by parallelizing its cleanup
+     * is treating a symptom --- the cause is the pinyin coder, TODO items 10 and 11.
+     * <p>
+     * No guard rule is encoded here, because n alone cannot express one: chinese and chinesenames
+     * at n = 200,000 are the same size and want opposite answers. The rule should come from
+     * {@code CleanupPassBenchmarks.parallelTimsortCleanup} on the machine of record, not from a
+     * threshold guessed on a loaded laptop. Until then the caller chooses.
+     * <p>
+     * NOTE: this uses the common pool, unlike the digit passes, which use {@link #EXECUTOR} for the
+     * reason given there. That is safe --- the cleanup runs after the last barrier, so nothing is
+     * blocked waiting on a worker the common pool has not scheduled --- and it is also the fair
+     * comparison, since {@code Arrays.parallelSort} as a baseline gets the same pool.
+     *
+     * @param huskyCoder the Husky coder, consulted for a Collator exactly as in
+     *                   {@link #defaultPostSorter}.
+     * @return a post-sorter that sorts in parallel, in Collator order where the coder supplies one.
+     */
+    private static <Y extends Comparable<Y>> Consumer<Y[]> parallelPostSorter(final HuskyCoder<Y> huskyCoder) {
+        final Collator collator = huskyCoder.getCollator();
+        return collator == null ? Arrays::parallelSort : xs -> Arrays.parallelSort(xs, collator);
+    }
+
+    /**
+     * As {@link #ParallelRadixHuskySort(int, HuskyCoder, Config, int)}, but choosing whether the
+     * cleanup pass runs in parallel. See {@link #parallelPostSorter} for what that buys and what it
+     * costs; the short version is that it is worth 1.9x to 3.4x where the cleanup is expensive and
+     * about 0.5x where it is cheap, so it is a choice rather than an improvement.
+     *
+     * @param digitBits       the width, in bits, of each digit pass, or {@link #AUTO_DIGIT_BITS}.
+     * @param huskyCoder      the Husky coder.
+     * @param config          the configuration.
+     * @param parallelism     the number of chunks (and worker threads) for each digit pass.
+     * @param parallelCleanup true to run step 3 on the common pool rather than the calling thread.
+     */
+    public ParallelRadixHuskySort(final int digitBits, final HuskyCoder<X> huskyCoder, final Config config, final int parallelism, final boolean parallelCleanup) {
+        this("ParallelRadixHuskySort/" + (digitBits == AUTO_DIGIT_BITS ? "auto" : digitBits) + "/p" + parallelism + (parallelCleanup ? "/parallelCleanup" : ""),
+                0, digitBits, huskyCoder,
+                parallelCleanup ? parallelPostSorter(huskyCoder) : defaultPostSorter(huskyCoder),
+                config, parallelism);
+    }
+
+    /**
      * Secondary constructor taking an explicit chunk count while still deriving the post-sorter
      * from the coder, as the two-argument constructor does -- so that a coder supplying a Collator
      * (e.g. HuskyCoderChinesePinyin) gets a cleanup pass in Collator order rather than natural
