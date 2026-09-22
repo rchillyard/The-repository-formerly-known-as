@@ -129,6 +129,10 @@ public class CleanupPassBenchmarks {
         /**
          * The coder decides p, and p decides the answer, so it is a parameter rather than a
          * constant. "unicode" is what the benchmarks used before 2026-09-17 and is the high-p case;
+         * "chineseUnicode" is the same coder on the <i>chinese</i> corpus rather than the english
+         * one, and is here for the parallel-cleanup question below: it is the only configuration in
+         * the project where the cleanup is both cheap in absolute terms and long-run, which is
+         * where {@code Arrays.parallelSort} loses to {@code Arrays.sort};
          * "englishSaturating" is what they use now and is the low-p one; "pinyin" is the highest-p
          * case in the project, and the one whose cleanup must run in a non-natural ordering.
          * <p>
@@ -138,7 +142,7 @@ public class CleanupPassBenchmarks {
          * make two independent pairs differing by 731x and 373x in inversions while differing by 5%
          * and 3% in runs, which is what discriminates the two cost models. See the class comment.
          */
-        @Param({"englishSaturating", "englishMasking", "asciiSaturating", "asciiMasking", "unicode", "pinyin"})
+        @Param({"englishSaturating", "englishMasking", "asciiSaturating", "asciiMasking", "unicode", "chineseUnicode", "pinyin", "pinyinRank"})
         public String coder;
 
         /**
@@ -175,6 +179,17 @@ public class CleanupPassBenchmarks {
                     break;
                 case "unicode":
                     vocabulary = englishVocabulary();
+                    huskyCoder = AbstractHuskySort.UNICODE_CODER;
+                    ordering = Comparator.naturalOrder();
+                    break;
+                case "pinyinRank":
+                    vocabulary = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
+                    huskyCoder = HuskyCoderFactory.chineseEncoderPinyinRank;
+                    ordering = HuskyCoderChinesePinyin.NAME_ORDER;
+                    break;
+                case "chineseUnicode":
+                    vocabulary = HuskySortBenchmarkHelper.getWords("zho-simp-tw_web_2014_10K-sentences.txt",
+                            line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
                     huskyCoder = AbstractHuskySort.UNICODE_CODER;
                     ordering = Comparator.naturalOrder();
                     break;

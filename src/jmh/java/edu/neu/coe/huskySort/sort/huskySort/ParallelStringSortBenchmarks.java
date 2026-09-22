@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.huskySort;
 
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderChinesePinyin;
+import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.Arrays;
@@ -155,6 +156,27 @@ public class ParallelStringSortBenchmarks {
      * @param parallelism the number of chunks to split each digit pass across.
      * @return the sorted copy.
      */
+    /**
+     * As {@link #parallelRadixHuskySortAuto_pAll}, but with the rank-based pinyin coder, which is
+     * exactly order-preserving for CJK strings of up to four characters and therefore skips the
+     * cleanup pass altogether. chinesenames only -- the rank table covers CJK, not Latin.
+     * <p>
+     * This and {@link #parallelRadixHuskySortAuto_pAll_parCleanup} are two different answers to the
+     * same cell, and they should not both be needed: one parallelizes the cleanup, the other
+     * removes it. If the coder wins, the parallel cleanup is of interest only to corpora that still
+     * have a cleanup worth parallelizing. See TODO.md item 44.
+     */
+    @Benchmark
+    public String[] parallelRadixHuskySortAuto_pAll_pinyinRank(final StringSortBenchmarks.StringState state) {
+        if (!state.corpus.equals("chinesenames"))
+            throw new IllegalStateException("parallelRadixHuskySortAuto_pAll_pinyinRank is meaningful"
+                    + " only for the chinesenames corpus. Use -p corpus=chinesenames.");
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS,
+                HuskyCoderFactory.chineseEncoderPinyinRank, state.config,
+                Runtime.getRuntime().availableProcessors()).sort(copy);
+    }
+
     private static String[] sortAuto(final StringSortBenchmarks.StringState state, final int parallelism) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         return new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS, state.coder, state.config, parallelism).sort(copy);

@@ -193,6 +193,25 @@ public final class HuskyCoderFactory {
     public final static HuskyCoder<String> chineseEncoderPinyin = new HuskyCoderChinesePinyin("Hanyu");
 
     /**
+     * The same pinyin ordering, encoded as one 15-bit rank per character rather than as a 9-bit
+     * syllable plus a 3-bit tone -- four characters in 60 bits, and <b>exactly order-preserving</b>
+     * for any string of at most four CJK characters, where {@link #chineseEncoderPinyin} is not.
+     * <p>
+     * The difference is that the ordinal encoding implements two of the three levels
+     * {@code NAME_ORDER} compares on and drops the third, the code-point tie-break between true
+     * homonyms. On `Chinese_Names_Corpus.txt` that collapses 1,145,009 names into 818,114 codes and
+     * accounts for all of the disorder the cleanup pass then has to remove. Ranking by
+     * {@code pinyinCharacterKey} -- the comparator's own key -- removes it by construction: sorting
+     * the whole corpus by code alone leaves zero descents, against 59,332 per 300,000 names for the
+     * ordinal coder. It also encodes 3.2x faster, one array index against a memoized pinyin4j
+     * lookup. See {@code HuskyCoderChinesePinyin.encodeHanyuRank} and TODO.md item 44.
+     * <p>
+     * Added alongside rather than in place of the ordinal coder, so the two can be measured against
+     * each other before anything switches.
+     */
+    public final static HuskyCoder<String> chineseEncoderPinyinRank = new HuskyCoderChinesePinyin("HanyuRank");
+
+    /**
      * A Husky Coder for Dates.
      */
     public final static HuskyCoder<Date> dateCoder = new HuskyCoder<>() {

@@ -2100,3 +2100,89 @@ is a defect; all are hardening or generalisation.
     verdict on masking versus saturation until the cells committed in `c5f47d3` have been run --- the
     figures in A and B are hand timings on a loaded eight-core Mac, consistent and directionally
     clear, but not JMH on the machine of record.
+
+44. **An exactly order-preserving pinyin coder, and the general principle behind it (2026-09-22).**
+    Robin asked why the Chinese-names coder is the worst in the project, given that names are two or
+    three characters and the coder packs five. The answer is that length was never the constraint,
+    and the diagnosis generalises further than the fix.
+
+    ### The defect: the code implements two levels of an ordering that has three
+
+    `NAME_ORDER` compares each character on **(1)** pinyin syllable ordinal, **(2)** tone, and
+    **(3)** Unicode code point --- the last a tie-break between true homonyms, standing in for the
+    stroke-count data the class comment notes is unavailable. `encodeHanyuOrdinal` packs only (1) at
+    9 bits and (2) at 3. There is no third level, so true homonyms receive byte-identical codes.
+
+    Measured on `Chinese_Names_Corpus.txt` (1,145,009 names; 15.6% of two characters, 84.4% of
+    three; 12 bits each, so 64 bits holds five --- capacity was never near the limit):
+
+    - 1,145,009 distinct names collapse to **818,114 codes**, 1.40 names per code.
+    - Of 162,689 descents left in a shuffled million, **58.6% are ties** (阿滨/阿斌, both *ā bīn*;
+      阿辰/阿晨/阿臣, all *ā chén*) and **41.4% are mis-orderings** --- and those are the same cause
+      one step removed: 阿鹭 against 阿露露, where 鹭 and 露 are both *lù*, so the code ties at
+      character 2 and falls through to a padding zero at character 3, while NAME_ORDER had already
+      decided at character 2 on code point (鹭 U+9E6D against 露 U+9732).
+
+    So 100% of the residual disorder traces to the missing third level. Not to length, not to
+    polyphones (item 11), not to stroke order (item 10).
+
+    ### The fix: rank the character, do not decompose it
+
+    Pack one **rank in pinyin order** per character instead of a syllable and a tone, the rank taken
+    from `pinyinCharacterKey` --- which is the comparator's own key function. CJK Unified Ideographs
+    plus Extension A is U+3400..U+9FFF, 27,648 code points, so a rank needs 15 bits and four
+    characters need 60 of 64.
+
+    | | distinct codes | names/code | NAME_ORDER descents, 300,000 names sorted by code alone | encode, 1M names |
+    | --- | ---: | ---: | ---: | ---: |
+    | `chineseEncoderPinyin` | 818,114 | 1.40 | 59,332 | 133.25 ms |
+    | `chineseEncoderPinyinRank` | 1,145,009 | 1.00 | **0** | **41.20 ms** |
+
+    Zero descents over the entire corpus, so `perfect` is reported and **the cleanup pass does not
+    run**. It is also **3.2x faster to encode**, because `RANK[c - 0x3400]` is one load from a 54 KB
+    `char[]` where `syllableAndToneOf` is a memoized pinyin4j lookup --- a hash, a probe and two
+    dereferences. The table is *indexed, not searched*, so its size costs nothing; and the live
+    working set is smaller still, a few thousand characters with a Zipfian frequency distribution.
+
+    Implemented as a third dialect, `HanyuRank`, alongside the ordinal one rather than in place of
+    it, so the two can be measured against each other before anything switches. Perfection is
+    claimed per element and only when it holds --- at most four characters, every one inside the
+    block --- because claiming it wrongly skips a cleanup that was needed and yields a silently
+    wrong answer. `HuskyCoderChinesePinyinRankTest` asserts the whole-corpus claim directly.
+
+    Rough value: chinesenames@1M is 558 ms of which about 506 is cleanup. Removing it leaves ~52 ms
+    against `Arrays.parallelSort`'s 235 --- some **4.5x**, from 0.42x, the worst cell in the table
+    becoming one of the best. That dwarfs the parallel cleanup of item 40, which got the same cell
+    only to parity; the two are alternative answers to one problem and should not both be needed.
+
+    ### The general principle, which is what the paper should take
+
+    The husky code is a proxy key for a *string*. The rank table is a proxy key for a *character* ---
+    the same trick, nested one level down. And at that level it is **exact**, because the domain is
+    small enough to enumerate.
+
+    That is worth stating as a general result rather than a Chinese special case:
+
+    > Where the alphabet has at most 2^b symbols and their collation order can be precomputed, a
+    > rank table gives an exactly order-preserving b-bit code per symbol, and hence a **perfect**
+    > husky code for any string of at most 64/b symbols.
+
+    It supplies the limiting case of the whole mechanism. A husky coder is normally approximate
+    because it must compress an unbounded domain into 64 bits; when the *per-symbol* domain is
+    enumerable, the compression is lossless and the cleanup pass disappears. Chinese is the case
+    where this pays most --- 27,584 symbols, an expensive collation, and short strings --- but the
+    statement is not about Chinese. It also explains, retrospectively, why the ASCII and english
+    coders are imperfect for a reason that is *not* this: their alphabet is enumerable too, but at
+    one character per 6 or 7 bits they can hold only 9 or 10 characters of an unbounded-length word.
+    The constraint there is string length, which is real; for names it never was.
+
+    ### Not yet done
+
+    - The paper: this is a new subsection, and it interacts with item 43 A (the cleanup cost model)
+      and 43 B (quasi-order-preserving) --- with a perfect coder there is no cleanup term at all,
+      which is the cleanest possible illustration of what `p_crit` is about.
+    - The rank table is built on first use, about 340 ms. It could be precomputed into a resource.
+    - Nothing switches over until Yunlu's numbers arrive: `radixHuskySortAutoPinyinRank` and
+      `parallelRadixHuskySortAuto_pAll_pinyinRank` are the A/B rows, and `pinyinRank` is the
+      CleanupPassBenchmarks cell (where it should show the p = 0 floor --- N-1 comparisons and no
+      moves, the same quantity the permits measure in the paper's \S~`sec:pcrit`).

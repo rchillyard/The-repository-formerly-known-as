@@ -197,6 +197,24 @@ public class StringSortBenchmarks {
         return copy;
     }
 
+    /**
+     * The chinesenames corpus with the rank-based pinyin coder
+     * ({@link HuskyCoderFactory#chineseEncoderPinyinRank}) in place of the ordinal one, which is
+     * the only husky coder in this project that is exactly order-preserving: it reports perfect, so
+     * the cleanup pass is skipped entirely. Pair with {@code radixHuskySortAuto} for the effect.
+     * <p>
+     * Worth a row of its own because that cleanup is where the chinesenames time is: 506 ms of a
+     * 558 ms parallel sort in request 11. See TODO.md item 44.
+     */
+    @Benchmark
+    public String[] radixHuskySortAutoPinyinRank(final StringState state) {
+        if (!state.corpus.equals("chinesenames"))
+            throw new IllegalStateException("radixHuskySortAutoPinyinRank is meaningful only for the"
+                    + " chinesenames corpus: the rank table covers CJK only. Use -p corpus=chinesenames.");
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.chineseEncoderPinyinRank, state.config).sort(copy);
+    }
+
     // ---------- Three-way radix quicksort / multikey quicksort (Bentley and Sedgewick 1997),
     // as a real empirical baseline for the paper's classic string-sorting literature discussion,
     // replacing a purely theoretical comparison. For the chinesenames corpus, sorts by pinyin
