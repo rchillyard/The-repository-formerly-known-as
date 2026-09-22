@@ -29,12 +29,19 @@ import java.util.concurrent.TimeUnit;
  * about 4.5x at n = 200,000 on the english corpus -- which is close to the factor §A.5 reports.
  * <p>
  * Second, the choice depends on p, the residual inversion probability, and p turned out to depend
- * far more on the coder than anyone had assumed. Measured on the english corpus, p is 1.15e-4 with
- * UNICODE_CODER, 3.43e-4 with englishCoder and 4.7e-7 with englishSaturatingCoder -- a factor of
- * 731 between the two english coders -- and p is essentially constant in n, with X = p n^2 / 4
+ * far more on the coder than anyone had assumed. Measured on the english corpus, p is 1.10e-4 with
+ * UNICODE_CODER, 7.21e-4 with englishCoder and 4.4e-7 with englishSaturatingCoder -- a factor of
+ * 1,637 between the two english coders -- and p is essentially constant in n, with X = p n^2 / 4
  * holding across a 16-fold range of n. Since insertion sort costs N + X and Timsort costs roughly
  * N log(runs), which of them wins is a question about the coder as much as about the size. Multiply
- * by n for the pn of a cell: at n = 1,000,000 these are 115, 343 and 0.47 respectively.
+ * by n for the pn of a cell: at n = 1,000,000 these are 110, 721 and 0.44 respectively.
+ * <p>
+ * NOTE: those figures are from the corpus as tokenized after the word-splitter repair of
+ * 2026-09-22. Before it, {@link HuskySortBenchmark#REGEX_LEIPZIG} truncated every sentence at its
+ * first digit or non-ASCII symbol, discarding 15.2% of the english corpus; the same five coders
+ * then read 1.15e-4 / 3.43e-4 / 4.7e-7. The repair roughly doubled both masking coders' inversion
+ * counts, by recovering the accented vocabulary that the truncation had been hiding, and left every
+ * run count within 4%.
  * <p>
  * Hand timing on a loaded machine put adaptive insertion sort ahead of Timsort by 1.12x at
  * n = 200,000 and 1.24x at n = 1,000,000 under the saturating coder, and behind it by 1.72x at
@@ -58,34 +65,45 @@ import java.util.concurrent.TimeUnit;
  * one. Structural counts on the english corpus at n = 1,000,000, from CleanupPassProbe:
  * <pre>
  *                                  runs   mean run       inversions       pn
- *     unicode            4x16 mask    365,958        2.7       28,459,608   113.84
- *     asciiMasking       9x7  mask     30,921       32.3       87,797,452   351.19
- *     asciiSaturating    9x7  sat      30,079       33.2          235,407     0.94
- *     englishMasking    10x6  mask     17,506       57.1       85,818,889   343.28
- *     englishSaturating 10x6  sat      16,641       60.1          117,376     0.47
+ *     unicode            4x16 mask    366,865        2.7       27,535,704   110.14
+ *     asciiMasking       9x7  mask     30,520       32.8      185,161,666   740.65
+ *     asciiSaturating    9x7  sat      29,327       34.1          216,488     0.87
+ *     englishMasking    10x6  mask     17,305       57.8      180,352,275   721.41
+ *     englishSaturating 10x6  sat      16,061       62.3          110,206     0.44
  * </pre>
- * Within each pair the run counts differ by 3% and 5% while the inversion counts differ by 373x and
- * 731x: a badly-coded word lands far from home, which costs thousands of inversions but only one
+ * Within each pair the run counts differ by 4% and 8% while the inversion counts differ by 855x and
+ * 1,637x: a badly-coded word lands far from home, which costs thousands of inversions but only one
  * extra descent. So {@code N log(runs)} predicts the cleanups within a pair are indistinguishable,
- * while {@code N + X} predicts the masking forms are one to two orders worse.
+ * while {@code N + X} predicts the masking forms are three orders worse.
  * <p>
  * Note for anyone tempted by the intuition that a 7-bit mask should be much the safer one because
- * every printable ASCII character survives it intact: it is not, on this corpus. {@code asciiCoder}
- * carries <i>more</i> inversions than {@code englishCoder}, not fewer, because what dominates the
- * count is not punctuation --- which 7 bits do preserve --- but the characters at or above 128,
- * which neither width preserves, and the Leipzig corpus's upstream mojibake supplies those in
- * quantity (TODO item 36). Punctuation is the visible hazard; the invisible one is the corpus.
+ * every printable ASCII character survives it intact: it is not, on this corpus, and the reason is
+ * sharper than it first looks. {@code asciiCoder} carries <i>more</i> inversions than
+ * {@code englishCoder}, not fewer --- and punctuation has nothing to do with either, because
+ * {@link HuskySortBenchmarkHelper#REGEX_STRING_SPLITTER} splits on every non-letter, so no token in
+ * this vocabulary contains an apostrophe, a hyphen or a digit in the first place. The only
+ * characters that reach outside a 6-bit or a 7-bit window are the letters at or above 128, which
+ * neither width preserves, so both coders fail on exactly the same words and the difference between
+ * them is character count against window width, nothing else. The "don't" / "dongt" collision that
+ * motivates saturation elsewhere in this project is real arithmetic but is not exercised by the
+ * english corpus.
  * <p>
- * Predicted before the run, so that a surprise reads as one. Hand timing on an eight-core Mac, 15
- * interleaved reps at n = 1,000,000, gave encode / cleanup / sum in ms of 40.9 / 116.8 / 157.8
- * unicode, 61.2 / 41.0 / 102.2 asciiMasking, 79.5 / 39.4 / 118.9 asciiSaturating, 60.3 / 35.3 /
- * 95.7 englishMasking and 83.1 / 34.3 / 117.4 englishSaturating. That is: cleanup ordered exactly
- * by run count across all five and blind to inversions (87.8M and 235,407 both give ~40 ms), each
- * saturating coder costing some 20 ms of encode to save about 1 ms of cleanup, and the masking
- * forms therefore ahead overall. If JMH agrees, TODO item 37's coder change loses on speed and has
- * to be argued on monotonicity instead. Note that all of this is conditional on Timsort: adaptive
- * insertion sort costs N + X, so on either masking cell it should be of the order of a second, and
- * those {@code adaptiveInsertionCleanup} rows are expected to be the worst english figures here.
+ * Predicted before the run, so that a surprise reads as one. Hand timing on an eight-core Mac at
+ * n = 1,000,000: encode / cleanup / sum in ms of 50.1 / 132.0 / 182.2 unicode, 66.3 / 46.6 / 112.9
+ * asciiMasking, 95.0 / 46.3 / 141.3 asciiSaturating, 70.1 / 41.0 / 111.1 englishMasking and
+ * 93.1 / 43.8 / 136.9 englishSaturating. That is: cleanup ordered by run count across all five and
+ * blind to inversions (185.2M and 216,488 both give ~46 ms), each saturating coder costing some
+ * 25 ms of encode to save nothing measurable in cleanup, and the masking forms therefore ahead
+ * overall. Repeats put masking / saturating for {@code timsortCleanup} anywhere in 0.94x to 1.24x,
+ * so that ratio is not claimed finer than "about one". If JMH agrees, TODO item 37's coder change
+ * loses on speed and has to be argued on monotonicity instead.
+ * <p>
+ * All of it is conditional on Timsort. {@code AdaptiveInsertionSort} costs N + X and is fully
+ * sensitive to the same inversions Timsort ignores: measured on these arrays, adaptive / Timsort is
+ * 1.03x on englishSaturating against <b>19.1x</b> on englishMasking, and 1.03x against 16.4x on the
+ * ascii pair, so masking / saturating for {@code adaptiveInsertionCleanup} should come out near
+ * 20x. The two masking adaptive rows at n = 1,000,000, around 830--890 ms/op, are the slowest cells
+ * in this class outside pinyin.
  * <p>
  * Run it as:
  * <pre>

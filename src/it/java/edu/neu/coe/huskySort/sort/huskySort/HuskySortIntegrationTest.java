@@ -45,7 +45,12 @@ public class HuskySortIntegrationTest {
     @Rule
     public Timeout timeoutBuilder = new ProcessorDependentTimeout(10, TimeUnit.SECONDS, config);
 
-    final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
+    // NOTE: must match HuskySortBenchmark.REGEX_LEIPZIG. The old form,
+    // "[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)", truncated each sentence at its first
+    // character that was neither a Unicode letter nor ASCII punctuation -- any digit, pound
+    // sign or ideographic full stop -- discarding 15.2% of the english corpus and 51.5% of
+    // the chinese one.
+    final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(.*)");
     final MyBenchmark benchmarkHuskySort = new MyBenchmark(new DutchHuskySort<String>(UNICODE_CODER, config), 19.1);
     final MyBenchmark benchmarkQuick3sort = new MyBenchmark(new QuickSort_3way<String>(), 20);
     private static Config config;

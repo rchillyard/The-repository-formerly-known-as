@@ -45,8 +45,10 @@ Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs a
 ## Request 11c — the masking cleanup cells, which 11a had no parameter for
 
 Requested 2026-09-22. **One invocation, about thirty-five minutes.** Nothing else is being asked
-for: the corpora are unchanged, the suite is unchanged, and no figure you have already sent is
-superseded by this.
+for in this request. But please read "The corpus files have not changed, but how we tokenize them
+has", at the end of this section, before you next look at an english or chinese figure: we found
+and fixed a defect in our own word splitter while preparing this, and it supersedes rows you have
+already sent.
 
 ### Why, and what you spotted
 
@@ -61,8 +63,8 @@ was a masking coder. That is fixed in `c5f47d3`, which adds **`englishMasking`**
 
 We should also say plainly that we framed the gap badly when we replied to you. We told you the
 saturating coder buys "~5% fewer runs" and implied the cleanup difference was therefore small. The
-run counts are indeed 5% apart --- but the *inversion* counts are **731x** apart, which we had not
-checked. Whether that matters is precisely what is unknown, and it is a more interesting question
+run counts are indeed within a few per cent --- but the *inversion* counts are **1,637x** apart,
+which we had not checked. Whether that matters is precisely what is unknown, and it is a more interesting question
 than the one we asked you.
 
 ### The invocation
@@ -96,16 +98,16 @@ corpus at n = 1,000,000:
 
 | coder | runs | mean run | inversions | pn |
 | --- | ---: | ---: | ---: | ---: |
-| `unicode` 4x16 mask | 365,958 | 2.7 | 28,459,608 | 113.84 |
-| `asciiMasking` 9x7 mask | 30,921 | 32.3 | 87,797,452 | 351.19 |
-| `asciiSaturating` 9x7 sat | 30,079 | 33.2 | 235,407 | 0.94 |
-| `englishMasking` 10x6 mask | 17,506 | 57.1 | 85,818,889 | 343.28 |
-| `englishSaturating` 10x6 sat | 16,641 | 60.1 | 117,376 | 0.47 |
+| `unicode` 4x16 mask | 366,865 | 2.7 | 27,535,704 | 110.14 |
+| `asciiMasking` 9x7 mask | 30,520 | 32.8 | 185,161,666 | 740.65 |
+| `asciiSaturating` 9x7 sat | 29,327 | 34.1 | 216,488 | 0.87 |
+| `englishMasking` 10x6 mask | 17,305 | 57.8 | 180,352,275 | 721.41 |
+| `englishSaturating` 10x6 sat | 16,061 | 62.3 | 110,206 | 0.44 |
 
-Within each pair the runs differ by 3% and 5% while the inversions differ by **373x and 731x**. A
+Within each pair the runs differ by 4% and 8% while the inversions differ by **855x and 1,637x**. A
 badly-coded word lands far from home, which costs thousands of inversions but only one extra
 descent. That is what makes these two pairs a discriminator rather than a confirmation: `N log r`
-says the cleanups within a pair are indistinguishable, `N + X` says the masking forms are one to two
+says the cleanups within a pair are indistinguishable, `N + X` says the masking forms are three
 orders worse, and they cannot both be right.
 
 ### What we expect, stated in advance so a surprise reads as one
@@ -114,22 +116,22 @@ Hand timing on Robin's eight-core Mac, best of four, at n = 1,000,000 and n = 20
 
 | coder | timsort 200k / 1M | adaptive 200k / 1M | adaptive / timsort at 1M |
 | --- | ---: | ---: | ---: |
-| `englishSaturating` | 10.68 / 34.04 | 9.85 / 33.77 | 0.99x |
-| `englishMasking` | 11.32 / 40.84 | 33.50 / 443.99 | **10.87x** |
-| `asciiSaturating` | 11.70 / 43.37 | 10.23 / 41.03 | 0.95x |
-| `asciiMasking` | 11.93 / 49.25 | 32.05 / 459.52 | **9.33x** |
-| `unicode` | 27.00 / 123.55 | 24.92 / 212.80 | 1.72x |
+| `englishSaturating` | 10.73 / 38.03 | 10.79 / 39.09 | 1.03x |
+| `englishMasking` | 11.18 / 43.51 | 47.84 / 830.89 | **19.10x** |
+| `asciiSaturating` | 12.15 / 43.57 | 10.65 / 45.04 | 1.03x |
+| `asciiMasking` | 15.97 / 54.19 | 57.27 / 888.70 | **16.40x** |
+| `unicode` | 30.35 / 133.25 | 27.83 / 223.66 | 1.68x |
 
-The prediction in one line: **731x the inversions should cost Timsort at most about 1.2x and cost
-adaptive insertion sort about 13x.** More precisely --- masking / saturating for `timsortCleanup`
-between 1.00x and 1.20x at n = 1,000,000 on both pairs (our own repeats of that ratio ranged 1.07x
-to 1.20x, so we do not trust it finer than that), and masking / saturating for
-`adaptiveInsertionCleanup` between 9x and 14x. If Timsort's masking penalty comes out anywhere near
-its inversion ratio we have the cleanup's cost model wrong in the other direction, and we would much
-rather know.
+The prediction in one line: **1,637x the inversions should cost Timsort about nothing and cost
+adaptive insertion sort about 20x.** More precisely --- masking / saturating for `timsortCleanup`
+near 1.0x at n = 1,000,000 on both pairs, and we will not claim it finer than the band 0.94x to
+1.25x, because that is the spread our own repeats of that one ratio produced; and masking /
+saturating for `adaptiveInsertionCleanup` between 15x and 25x. If Timsort's masking penalty comes
+out anywhere near its inversion ratio we have the cleanup's cost model wrong in the other direction,
+and we would much rather know.
 
-Those two masking adaptive rows at n = 1,000,000 are the slowest new cells at roughly 450 ms/op,
-which is still under a second, so no row here should behave like 11a's pinyin case.
+The two masking adaptive rows at n = 1,000,000 are the slowest new cells at roughly 830--890 ms/op,
+still under a second, so no row here should behave like 11a's pinyin case.
 
 ### What turns on it
 
@@ -158,14 +160,44 @@ that request 11 could not measure". It is the last commit touching `src/`; the t
 by `TODO.md`, so `git log c5f47d3..HEAD -- src/` is empty. `mvn -B test` there: 423 tests, 0
 failures. The three new cells have been smoke-tested under JMH at `-f 1 -wi 1 -i 2`.
 
-**The corpus has not changed**, and one note in case you wondered, since you have the mojibake in
-your own records. We tried repairing it. Word-by-word repair recovers only 54 of 275,333 words,
-because most of the damaged ones are *truncated* --- `Cliche-acute` mojibakes and then our own word
-splitter drops the trailing non-word character, so the continuation byte is gone. Repairing each
-line before tokenizing does work, and recovers about two thousand words. But it makes our numbers
-slightly *worse*, not better: restoring the real accented characters raises the count of words
-holding a char above 127 from 1,228 to 2,100, and those are exactly the ones a fixed-width coder
-cannot represent. So we are leaving the corpus alone and saying in the paper that we checked.
+### The corpus files have not changed, but how we tokenize them has
+
+This is the one thing in 11c that is not a pure addition, and you should know about it before you
+read any english or chinese number again.
+
+Chasing the mojibake, we found a defect in our own word splitter. `REGEX_LEIPZIG` read
+`[~\t]*\t(([\s\p{Punct}\uFF0C]*\p{L}+)*)`, which requires the captured sentence to be an
+alternation of ASCII punctuation and Unicode letters. Java's `\p{Punct}` is POSIX, so **ASCII
+only** --- and the group therefore stopped at the first character that was neither a Unicode letter
+nor ASCII punctuation. Digits qualified. So did the pound sign, the copyright sign, and the
+ideographic full stop. Everything after that point in the sentence was silently discarded:
+
+- **english: 15.2% of all sentence characters thrown away.** "With Amelie (Cert 15) Jeunet combines
+  the best of his two previous films..." became "With Amelie (Cert". Distinct words 275,387 ->
+  304,959; tokens 16.39M -> 18.86M.
+- **chinese: 51.5%**, because U+3002 is not ASCII punctuation. Distinct 24,215 -> 50,009.
+
+Fixed in `c5f47d3`'s successor (see the commit below): the line pattern is now `[~\t]*\t(.*)`,
+since a Leipzig line is `<id>\t<sentence>` and any attempt to validate the sentence inside the
+pattern can only truncate it, and the splitter is now `[^\p{L}]+` instead of an enumeration of
+separators that could never be complete. The repair is **purely additive** --- no word either
+corpus produced before is lost --- and the definition of a word is unchanged: letters only, so no
+token contains a digit, apostrophe or hyphen, which was already true before.
+
+**What this costs you.** Every english and chinese row you have ever sent us, including request
+11's, is now a measurement of a corpus we no longer use. We are not asking you to re-run the suite
+in this request --- 11c is 35 minutes and answers a question that does not depend on the old
+figures, because its five cells are all measured against each other inside one invocation. But a
+full re-run is coming, and we would rather tell you now than have you find out from a table.
+chinesenames is unaffected: it loads by a different path.
+
+**On the mojibake itself: we are leaving it.** Repairing it is possible (at line level, before
+tokenizing; word-by-word fails because the splitter has by then dropped the trailing byte) and it
+correctly recovers `Amelie`, `Nurnberger`, `Cliches`, `Cafe`. But it makes our numbers slightly
+*worse*, not better: restoring genuine accented characters raises the count of words holding a
+character above 127 from 1,843 to 2,536, and those are exactly the ones a fixed-width coder cannot
+represent. Run counts move under 3%, so the Timsort cleanup does not move at all. The paper will say
+we checked.
 
 ---
 
