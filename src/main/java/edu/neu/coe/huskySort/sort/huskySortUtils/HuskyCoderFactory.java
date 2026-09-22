@@ -31,6 +31,12 @@ public final class HuskyCoderFactory {
     private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
     private static final int MASK_ASCII = 0x7F;
 
+    /**
+     * The bottom of englishCoder's 6-bit window. A 6-bit slot cannot hold a character code
+     * directly, since the letters start at 'A' = 65; subtracting this brings 64..127 into 0..63.
+     */
+    private static final int OFFSET_ENGLISH = 64;
+
     private static final int BIT_WIDTH_ENGLISH = 6;
     private static final int MAX_LENGTH_ENGLISH = BITS_LONG / BIT_WIDTH_ENGLISH;
     private static final int MASK_ENGLISH = 0x3F;
@@ -107,6 +113,58 @@ public final class HuskyCoderFactory {
     };
 
     /**
+     * A Husky Coder for ASCII Strings which <b>saturates</b> rather than masks.
+     * <p>
+     * {@link #asciiCoder} narrows each character with {@code & 0x7F}, which is not monotonic: a
+     * character above the 7-bit range wraps to an arbitrary position inside it. 'é' is 233, and
+     * {@code 233 & 0x7F} is 105, which is 'i' -- so "café" encodes as though it were "cafi" and
+     * sorts seventeen letters early, before "cafz" instead of after it. The mojibake form is worse:
+     * 'Ã' is 195, masking to 67, which is 'C', so it sorts before every lowercase word.
+     * <p>
+     * Saturating with {@code Math.min(c, 127)} instead puts such a character at the top of the
+     * range, which is its correct position relative to every ASCII character. The residual
+     * imprecision is a <i>tie</i> between two different out-of-range characters rather than a
+     * long-range mis-ordering, and a tie is what the cleanup pass resolves cheaply -- Timsort's cost
+     * follows the number of runs, and a mis-ordering breaks a run where a tie does not.
+     * <p>
+     * Measured on the Leipzig english corpus at n = 1,000,000: 30,079 natural runs after the radix
+     * phase against asciiCoder's 30,921. Small here, because only 0.446% of that vocabulary holds a
+     * non-ASCII character at all, and free -- but it matters much more on text containing
+     * punctuation or any non-Latin content. See TODO.md item 36.
+     */
+    public final static HuskySequenceCoder<String> asciiSaturatingCoder = new BaseHuskySequenceCoder<>("ASCII-saturating", MAX_LENGTH_ASCII) {
+        public long huskyEncode(final String str) {
+            return stringToLongSaturating(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, 0);
+        }
+    };
+
+    /**
+     * A Husky Coder for English Strings which <b>saturates</b> rather than masks, and so is
+     * monotonic over the whole character range.
+     * <p>
+     * {@link #englishCoder} narrows with {@code & 0x3F}, which is order-preserving only within the
+     * 64-character window 64..127. Outside it the wrap-around is not merely imprecise but
+     * ambiguous: an apostrophe is 39 and masks to 39, and 'g' is 103 which also masks to 39, so
+     * "don't" and "dongt" receive identical codes. Real English text is full of apostrophes and
+     * hyphens.
+     * <p>
+     * This coder maps a character to {@code clamp(c - 64, 0, 63)}: everything below the window ties
+     * at the bottom, the window maps through unchanged, and everything above ties at the top. That
+     * is non-decreasing across every char value, so it never mis-orders -- it only ties, which the
+     * cleanup pass fixes locally.
+     * <p>
+     * Measured on the Leipzig english corpus at n = 1,000,000: 16,641 natural runs against
+     * englishCoder's 17,506, and against 30,079 for the nine-character saturating ASCII coder. The
+     * tenth character is worth far more than the saturation, but the saturation is what makes the
+     * tenth character safe to take. See TODO.md item 36.
+     */
+    public final static HuskySequenceCoder<String> englishSaturatingCoder = new BaseHuskySequenceCoder<>("English-saturating", MAX_LENGTH_ENGLISH) {
+        public long huskyEncode(final String str) {
+            return stringToLongSaturating(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, OFFSET_ENGLISH);
+        }
+    };
+
+    /**
      * A Husky Coder for unicode Strings.
      */
     public final static HuskySequenceCoder<String> unicodeCoder = new BaseHuskySequenceCoder<>("Unicode", MAX_LENGTH_UNICODE - 1) {
@@ -133,6 +191,25 @@ public final class HuskyCoderFactory {
      */
 
     public final static HuskyCoder<String> chineseEncoderPinyin = new HuskyCoderChinesePinyin("Hanyu");
+
+    /**
+     * The same pinyin ordering, encoded as one 15-bit rank per character rather than as a 9-bit
+     * syllable plus a 3-bit tone -- four characters in 60 bits, and <b>exactly order-preserving</b>
+     * for any string of at most four CJK characters, where {@link #chineseEncoderPinyin} is not.
+     * <p>
+     * The difference is that the ordinal encoding implements two of the three levels
+     * {@code NAME_ORDER} compares on and drops the third, the code-point tie-break between true
+     * homonyms. On `Chinese_Names_Corpus.txt` that collapses 1,145,009 names into 818,114 codes and
+     * accounts for all of the disorder the cleanup pass then has to remove. Ranking by
+     * {@code pinyinCharacterKey} -- the comparator's own key -- removes it by construction: sorting
+     * the whole corpus by code alone leaves zero descents, against 59,332 per 300,000 names for the
+     * ordinal coder. It also encodes 3.2x faster, one array index against a memoized pinyin4j
+     * lookup. See {@code HuskyCoderChinesePinyin.encodeHanyuRank} and TODO.md item 44.
+     * <p>
+     * Added alongside rather than in place of the ordinal coder, so the two can be measured against
+     * each other before anything switches.
+     */
+    public final static HuskyCoder<String> chineseEncoderPinyinRank = new HuskyCoderChinesePinyin("HanyuRank");
 
     /**
      * A Husky Coder for Dates.
@@ -313,6 +390,30 @@ public final class HuskyCoderFactory {
         // ignore the first two bytes and take the next eight bytes (or however many there are) and then pack them byte by byte into the long.
 //        int startingPos = 2; // We need to account for the BOM
 //        return stringToBytesToLong(str, MAX_LENGTH_UNICODE, StandardCharsets.UTF_16, startingPos) >>> 1;
+    }
+
+    /**
+     * Method to pack the leading characters of str into a long, saturating each character into the
+     * available bits rather than masking it.
+     * <p>
+     * The slot value is {@code clamp(c - offset, 0, 2^bitWidth - 1)}, which is non-decreasing in c.
+     * Masking is not: it wraps an out-of-range character to an arbitrary in-range value, which
+     * mis-orders the element and breaks a run. Saturating ties instead, and ties are cheap for an
+     * adaptive cleanup sort.
+     *
+     * @param str       the String to encode.
+     * @param maxLength the number of characters that fit in a long at this bit width.
+     * @param bitWidth  the number of bits per character.
+     * @param offset    the bottom of the representable window; 0 where the alphabet starts at 0.
+     * @return a long, monotonically non-decreasing with respect to the natural ordering of str.
+     */
+    private static long stringToLongSaturating(final String str, final int maxLength, final int bitWidth, final int offset) {
+        final int ceiling = (1 << bitWidth) - 1;
+        final int length = Math.min(str.length(), maxLength);
+        long result = 0L;
+        for (int i = 0; i < length; i++)
+            result = result << bitWidth | Math.max(0, Math.min(str.charAt(i) - offset, ceiling));
+        return result << bitWidth * (maxLength - length);
     }
 
     private static long stringToLong(final String str, final int maxLength, final int bitWidth, final int mask) {

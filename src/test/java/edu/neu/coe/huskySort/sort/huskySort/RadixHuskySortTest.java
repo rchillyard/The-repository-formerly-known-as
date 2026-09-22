@@ -372,4 +372,98 @@ public class RadixHuskySortTest {
         for (int i = 0; i < n; i++)
             assertEquals("all-same-key input should come out in original order", i, sorted[i].tag);
     }
+
+    // ---------- The automatic digit width (TODO.md item 35, second bullet). ----------
+
+    /**
+     * The serial sorter is the one-chunk case of the shared bucket budget, so it gets a wider digit
+     * than the parallel sorter does at the same n. These are the sizes the permits table uses, whose
+     * recorded preference the rule has to reproduce: /11 ahead of /16 at n = 32,000 and behind it at
+     * 198,900, against which the rule picks 12 and 15.
+     */
+    @Test
+    public void testChooseDigitBitsSerial() {
+        assertEquals("permits 32,000 serial", 12, RadixHuskySort.chooseDigitBits(32_000, 1));
+        assertEquals("permits 198,900 serial", 15, RadixHuskySort.chooseDigitBits(198_900, 1));
+        assertEquals("clamped above", RadixHuskySort.MAX_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(10_000_000, 1));
+        assertEquals("clamped below", RadixHuskySort.MIN_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(10, 1));
+        assertEquals("clamped below at n=0", RadixHuskySort.MIN_AUTO_DIGIT_BITS, RadixHuskySort.chooseDigitBits(0, 1));
+    }
+
+    @Test
+    public void testAutoDigitBitsSortsCorrectly() {
+        final Random r = new Random(42);
+        final int n = 20_000;
+        final Long[] xs = new Long[n];
+        for (int i = 0; i < n; i++) xs[i] = r.nextLong();
+        final Long[] expected = Arrays.copyOf(xs, n);
+        Arrays.sort(expected);
+        final RadixHuskySort<Long> sorter = new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config);
+        assertArrayEquals(expected, sorter.sort(Arrays.copyOf(xs, n)));
+    }
+
+    @Test
+    public void testAutoDigitBitsIsStable() {
+        final Random random = new Random(42);
+        final int n = 20_000;
+        final Tagged[] xs = new Tagged[n];
+        for (int i = 0; i < n; i++) xs[i] = new Tagged(random.nextInt(50), i);
+        final RadixHuskySort<Tagged> sorter = new RadixHuskySort<>("auto", 0, RadixHuskySort.AUTO_DIGIT_BITS, new TaggedKeyCoder(), Arrays::sort, config);
+        assertStableAndSorted(sorter.sort(xs));
+    }
+
+    /**
+     * An explicitly-given width is honoured exactly, never silently replaced by the automatic one:
+     * the paper's digit-width sweep depends on /16 meaning 16 bits even where the automatic choice
+     * would pick something narrower.
+     */
+    @Test
+    public void testExplicitDigitBitsNotOverridden() {
+        assertEquals("auto would pick 12 here", 12, RadixHuskySort.chooseDigitBits(32_000, 1));
+        assertEquals("RadixHuskySort/16", new RadixHuskySort<>(16, HuskyCoderFactory.longCoder, config).toString());
+        assertEquals("RadixHuskySort/auto", new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.longCoder, config).toString());
+    }
+
+    /**
+     * The Leipzig english corpus under asciiCoder, which StringSortBenchmarks switched to on
+     * 2026-09-17 (TODO.md item 36). asciiCoder masks each character to 7 bits and packs nine of
+     * them, so it mis-encodes the 0.446% of that vocabulary holding a non-ASCII character -- all of
+     * it mojibake -- and truncates the 22.6% longer than nine characters. Neither matters to
+     * correctness, because the coder declares itself imperfect and the cleanup pass therefore runs;
+     * this test is what says so, since the benchmark wiring is not otherwise covered and a coder
+     * swap that silently mis-ordered real words would look exactly like a faster benchmark.
+     */
+    @Test
+    public void testEnglishCorpusUnderAsciiCoder() {
+        // The 100K file, where the benchmark uses the 1M one. Leipzig ships this corpus at several
+        // sample sizes and each is literally the first n lines of the next (verified by cmp), so
+        // this is the same text, but 12 MB against 121 MB: loading takes 348 ms rather than 4.2 s,
+        // and the whole 1M file cost twelve seconds of suite time to exercise identical code.
+        // The 10K file would be cheaper again (35 ms) but thinner than is comfortable -- 22,865
+        // words against this file's 81,546 and the 1M file's 275,333, and only 27 non-ASCII words
+        // against 181 and 1,228. This is the balance: 0.3 s for a vocabulary big enough that the
+        // mis-encoded and the truncated words are both well represented.
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_100K-sentences.txt",
+                line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+        assertTrue("the corpus should hold a substantial vocabulary", words.length > 50_000);
+        // The non-ASCII path asciiCoder mis-encodes must actually be exercised, or this test would
+        // pass on a corpus where the coder happened to be exact.
+        boolean sawNonAscii = false;
+        for (final String w : words) for (int i = 0; i < w.length() && !sawNonAscii; i++) if (w.charAt(i) > 127) sawNonAscii = true;
+        assertTrue("the corpus should contain non-ASCII characters for asciiCoder to mis-encode", sawNonAscii);
+        final Random random = new Random(42);
+        final int n = 20_000;
+        final String[] xs = new String[n];
+        for (int i = 0; i < n; i++) xs[i] = words[random.nextInt(words.length)];
+        final String[] expected = Arrays.copyOf(xs, n);
+        Arrays.sort(expected);
+        assertArrayEquals("asciiCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.asciiCoder, config).sort(Arrays.copyOf(xs, n)));
+        // The coder StringSortBenchmarks actually uses for this corpus, and its masking counterpart.
+        assertArrayEquals("englishSaturatingCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.englishSaturatingCoder, config).sort(Arrays.copyOf(xs, n)));
+        assertArrayEquals("asciiSaturatingCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.asciiSaturatingCoder, config).sort(Arrays.copyOf(xs, n)));
+        assertArrayEquals("englishCoder", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.englishCoder, config).sort(Arrays.copyOf(xs, n)));
+        // The coder it replaced, so that the swap is shown to be a performance choice rather than a
+        // change of result.
+        assertArrayEquals("UNICODE_CODER", expected, new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, AbstractHuskySort.UNICODE_CODER, config).sort(Arrays.copyOf(xs, n)));
+    }
 }

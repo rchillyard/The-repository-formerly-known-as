@@ -4,7 +4,14 @@ import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.util.Instrumenter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -348,6 +355,58 @@ public class HuskyHelper<X extends Comparable<X>> implements ComparisonSortHelpe
      */
     public void doCoding(final X[] array) {
         coding = coder.huskyEncode(array);
+    }
+
+    /**
+     * Method to build the coding for array across several threads, for a caller which has threads to
+     * spare. Encoding is a pure function of each element, so it is the most straightforwardly
+     * parallel phase of a husky sort; it is also a quarter of the running time on the corpora
+     * measured, and leaving it sequential in a sorter whose name says "parallel" made little sense.
+     * <p>
+     * NOTE: the work is divided by slicing the array and invoking the coder's <i>own</i>
+     * array-level encode on each slice, rather than by encoding element by element here. That
+     * matters for correctness: a coder decides for itself whether its coding is perfect, and it may
+     * decide per element -- {@link BaseHuskySequenceCoder} reports perfection only if every sequence
+     * is short enough to fit -- so anything that bypassed the coder's own array method would have to
+     * duplicate that reasoning and would silently diverge from it. The slices' verdicts are combined
+     * with a logical and, which is the same answer the sequential form reaches.
+     *
+     * @param array    the array from which we build a long array by encoding.
+     * @param chunks   the number of slices to divide the work into.
+     * @param executor the executor to run the slices on.
+     */
+    public void doCoding(final X[] array, final int chunks, final ExecutorService executor) {
+        if (chunks < 2 || array.length < chunks) {
+            doCoding(array);
+            return;
+        }
+        final List<Callable<Coding>> tasks = new ArrayList<>(chunks);
+        final int baseSize = array.length / chunks;
+        final int remainder = array.length % chunks;
+        int cursor = 0;
+        for (int c = 0; c < chunks; c++) {
+            final int from = cursor;
+            cursor += baseSize + (c < remainder ? 1 : 0);
+            final int to = cursor;
+            tasks.add(() -> coder.huskyEncode(Arrays.copyOfRange(array, from, to)));
+        }
+        final long[] longs = new long[array.length];
+        boolean perfect = true;
+        int at = 0;
+        try {
+            for (final Future<Coding> future : executor.invokeAll(tasks)) {
+                final Coding slice = future.get();
+                System.arraycopy(slice.longs, 0, longs, at, slice.longs.length);
+                at += slice.longs.length;
+                perfect = perfect && slice.perfect;
+            }
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("doCoding: interrupted while encoding", e);
+        } catch (final ExecutionException e) {
+            throw new RuntimeException("doCoding: a slice failed to encode", e.getCause() != null ? e.getCause() : e);
+        }
+        coding = new Coding(longs, perfect);
     }
 
     public Coding getCoding() {

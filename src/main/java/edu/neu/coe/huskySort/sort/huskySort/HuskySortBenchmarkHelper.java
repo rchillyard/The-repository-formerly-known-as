@@ -111,6 +111,22 @@ public final class HuskySortBenchmarkHelper {
     private HuskySortBenchmarkHelper() {
     }
 
-    public static final Pattern REGEX_STRING_SPLITTER = Pattern.compile("[\\s\\p{Punct}\\uFF0C]");
+    /**
+     * Split a sentence into words, a word being a maximal run of Unicode letters.
+     * <p>
+     * This used to read {@code [\s\p{Punct}，]}: whitespace, ASCII punctuation, and the
+     * fullwidth comma named explicitly because it is not ASCII. Enumerating separators that way
+     * cannot be complete --- the ideographic full stop, the en dash and the curly apostrophe were
+     * all missing --- so the complement is used instead. On the text the old
+     * {@link HuskySortBenchmark#REGEX_LEIPZIG} captured, the two are equivalent, since that text
+     * held nothing but letters, whitespace and ASCII punctuation; the {@code +} additionally
+     * collapses runs of separators, which the old form left as empty tokens. The behaviour change
+     * comes from the line pattern, not from here.
+     * <p>
+     * Note that this keeps the existing definition of a word: letters only, so no token contains a
+     * digit, apostrophe or hyphen. Neither did any token before this commit. Admitting them would
+     * be a change of definition rather than a repair, and is not made here.
+     */
+    public static final Pattern REGEX_STRING_SPLITTER = Pattern.compile("[^\\p{L}]+");
     private static final String UTF8_BOM = "\uFEFF";
 }

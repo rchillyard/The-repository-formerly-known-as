@@ -9,22 +9,32 @@
 | 5 | The small-N crossover | **done** — PR #63 |
 | 6 | chinesenames against a pinyin-*correct* system sort | **done** — PR #64, `doc/pinyin.json` |
 | 7 | the adversarial sweep, with the dual-pivot baseline no longer crashing | **done** — PR #64, `doc/adversarial.json` |
-| 8 | cache behaviour of the object-reference swap | **requested 2026-09-09** — see below |
-| 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **requested 2026-09-12** — see below, and unlike 8 this one is wanted before the 15th if at all possible |
+| 8 | cache behaviour of the object-reference swap | **closed, not pursued** — step 0 found no `perf` binary on the instance, so the request was never runnable there |
+| 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
+| 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **done 2026-09-17** — PR #66, `doc/Run results from Yunlu 2026-09-17.md`; thank you, and the thread-asymmetry hypothesis did not survive |
+| 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **done 2026-09-21** — PR #67, `doc/Run results from Yunlu 2026-09-21.md`; thank you, and the withdrawal of your own step-4 figure on convergence grounds was exactly right |
+| 11c | the masking cleanup cells 11a had no parameter for (short) | **requested 2026-09-22** — see below |
+| 11d | the parallel cleanup, and an exactly order-preserving pinyin coder | **requested 2026-09-22** — see below; same jar as 11c |
 
-**All seven requests are answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
+**Requests 1 to 7 are all answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
 Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseline now quoted in the
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**One new request, number 8**, is set out immediately below. It is not needed for the 15th and
-should not displace anything you are already doing --- it justifies an appendix derivation rather
-than any headline figure. Read step 0 first: it takes thirty seconds and may tell us the whole
-request is impossible on the machine of record, in which case please stop there and say so.
+**Requests 11c and 11d are outstanding, and they share a jar.** Requests 1--7 and 9--11 are
+answered; request 8 is closed unrun, its step 0 having established that the instance has no `perf`
+binary. Both new requests are set out immediately below, ahead of the answered ones that follow.
 
-Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, `...2026-09-02.md` and
-`...2026-09-03.md`. What requests 1 and 2 settled is summarised in Appendix A.
+**Please build once, at `d947e77`, and run both.** 11d's commit is two later than the `9bb0385` that
+11c names, but nothing between them changes 11c's cells: `CleanupPassBenchmarks` gained methods and
+coder values, and 11c's command names its coders explicitly, so those rows behave identically. The
+corpora and the tokenization are the same at both commits. 11c is about 35 minutes and 11d about two
+and a half hours; neither needs a full suite, and the full re-run is still to come after them.
+
+Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, and likewise for
+`...2026-09-02`, `...2026-09-03`, `...2026-09-06`, `...2026-09-13` and `...2026-09-17`. What
+requests 1 and 2 settled is summarised in Appendix A.
 
 **What has changed since.** Robin has decided that every figure quoted in the paper should come from
 one machine, and that machine should be yours. The paper currently mixes three: its original
@@ -34,6 +44,552 @@ only as qualitative cross-checks, with no figures quoted from them. Your request
 that possible.
 
 Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs acting on.
+
+---
+
+## Request 11d — two answers to the chinesenames problem, and a rule for choosing
+
+Requested 2026-09-22. **Three invocations, about two and a half hours.** Read the note at the end of
+11c first, about the word-splitter repair, if you have not already: it supersedes every english and
+chinese figure either of us holds, and 11d is measured after it.
+
+### What this is about
+
+Request 11 left `chinesenames` as much the worst cell in the table --- `parallelRadixHuskySortAuto_pAll`
+at 0.43x and 0.42x of `Arrays.parallelSort` at n = 200,000 and 1,000,000. Your own numbers showed why:
+the pinyin cleanup alone is **506 ms of that 558 ms sort**, 91% of it, and it is the one phase of the
+four still running on a single thread.
+
+We have built two different answers, and they are alternatives rather than a pair. **You should
+expect one of them to make the other largely irrelevant**, and 11d is how we find out which.
+
+1. **Parallelize the cleanup** (`Arrays.parallelSort` as the post-sorter). Treats the symptom, works
+   on every corpus, and can lose --- see step A.
+2. **Fix the coder so there is no cleanup.** Treats the cause, works only for Chinese, and looks
+   dramatically better.
+
+The second needs explaining, because it is a real result rather than a tuning change. Robin asked
+why the names coder was the worst in the project, given that Chinese names are two or three
+characters and the coder packs five. Length was never the constraint. `NAME_ORDER` compares each
+character on **syllable**, then **tone**, then **Unicode code point** (a tie-break between true
+homonyms, standing in for stroke order). The encoder packs the first two --- 9 bits and 3 --- and
+**omits the third**. So true homonyms get byte-identical codes, and that single omission accounts
+for all of the residual disorder: of 162,689 descents in a shuffled million, 58.6% are ties (阿滨
+against 阿斌, both *ā bīn*) and the other 41.4% are the same cause one step removed, the code tying
+at character *i* and falling through to a padding zero at *i*+1 where `NAME_ORDER` had already
+decided at *i*.
+
+The fix is to pack **one rank in pinyin order per character** instead of a syllable and a tone,
+taking the rank from `pinyinCharacterKey` --- the comparator's own key function. CJK Unified
+Ideographs plus Extension A is 27,648 code points, so a rank is 15 bits and four characters are 60
+of 64. It is a lookup indexed by the code point, `RANK[c - 0x3400]`, into a 54 KB `char[]`.
+
+| | distinct codes | names/code | descents, 300,000 names sorted by code alone | encode, 1M names |
+| --- | ---: | ---: | ---: | ---: |
+| `chineseEncoderPinyin` | 818,114 | 1.40 | 59,332 | 133.25 ms |
+| `chineseEncoderPinyinRank` | **1,145,009** | **1.00** | **0** | **41.20 ms** |
+
+Zero descents over the entire 1,145,009-name corpus, so the coder reports `perfect` and **the
+cleanup pass does not run at all** --- and it is 3.2x *faster* to encode as well, one array index
+against a memoized pinyin4j lookup. We have checked the end-to-end output element-for-element
+against `Arrays.sort(NAME_ORDER)` on a million names for all five variants below: identical.
+
+### Step A --- the cleanup A/B, which decides whether the parallel cleanup is ever worth it
+
+```
+java -jar target/benchmarks.jar "CleanupPassBenchmarks.(timsortCleanup|parallelTimsortCleanup)$" -f 5 -wi 5 -i 10 -rf json -rff cleanup-parallel.json
+```
+
+2 methods x 8 coders x 2 sizes = 32 rows, about an hour. Two coder values are new since 11c and are
+there specifically for this question: **`chineseUnicode`** (the unicode coder on the *chinese*
+corpus rather than the english one) and **`pinyinRank`**.
+
+`chineseUnicode` earns its place because it is the one configuration we have found where
+parallelizing the cleanup **loses**, and without it this class cannot express the rule. The rule
+cannot be stated in terms of n: `chinese` and `chinesenames` at n = 200,000 are the same size and
+want opposite answers. What separates them is how much work the coder left, which is exactly what
+this class parameterises. `pinyinRank` should show the p = 0 floor --- one run, N-1 comparisons and
+no moves, the same quantity the permits measure in the paper.
+
+### Step B --- the serial claim on chinesenames
+
+```
+java -jar target/benchmarks.jar "StringSortBenchmarks.(radixHuskySortAuto|radixHuskySortAutoPinyinRank|systemSortPinyin)$" -p corpus=chinesenames -r 2s -w 2s -f 5 -wi 5 -i 10 -rf json -rff pinyin-rank-serial.json
+```
+
+3 methods x 3 sizes = 9 rows, about half an hour. `systemSortPinyin` is the fair baseline (code-point
+order is a cheaper and different job). This is the row the paper leads with, so it matters more than
+step C.
+
+### Step C --- end to end, all corpora
+
+```
+java -jar target/benchmarks.jar "ParallelStringSortBenchmarks.(systemSortParallel|parallelRadixHuskySortAuto_pAll|parallelRadixHuskySortAuto_pAll_parCleanup|parallelRadixHuskySortAuto_pAll_pinyinRank)$" -p n=200000,1000000 -r 2s -w 2s -f 5 -wi 5 -i 10 -rf json -rff strings-cleanup.json
+```
+
+24 rows attempted, **20 in the JSON**: `..._pinyinRank` throws for the english and chinese corpora,
+by design, because the rank table covers CJK only. That is the same guard-throw pattern as
+`systemSortPinyin`, and JMH's default `-foe false` logs it and continues; the 4 absent rows cost 20
+fork start-ups. About an hour. n = 32,000 is dropped deliberately --- every parallel row there is
+one chunk, as your Q4 established.
+
+### What we expect, stated in advance so a surprise reads as one
+
+Hand timing on Robin's **eight-core** Mac, best of five, chinesenames. The machine difference matters
+here and is why these are given as absolutes rather than only as ratios: your `systemSortParallel` on
+this corpus is about twice as fast as his (235 ms against 497 at n = 1,000,000), because the baseline
+scales with your sixteen cores, so **the ratios you see should be roughly half of his.**
+
+| n | serial ordinal | serial rank | pAll | pAll parCleanup | pAll pinyinRank | parallelSort | systemSort(pinyin) |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 200,000 | 95.01 | **16.76** | 90.13 | 31.48 | **7.41** | 87.52 | 335.78 |
+| 1,000,000 | 486.10 | **81.85** | 337.90 | 141.32 | **31.48** | 497.04 | 2219.84 |
+
+Predictions, with the halving applied:
+
+- **The rank coder is the headline.** Serial, it should be **4x to 6x** faster than the ordinal coder
+  on chinesenames, and `systemSortPinyin / radixHuskySortAutoPinyinRank` should read somewhere
+  around **15x to 27x** (today's figure is 4.26x). Parallel, `parallelSort / pinyinRank` should be
+  **5x to 9x** on your machine where it is 15.8x on his --- against 0.42x today. If it comes out
+  below 3x on either we have misunderstood something and want to know.
+- **The parallel cleanup is the secondary result** and should be worth **2.4x to 2.9x** on
+  chinesenames, i.e. roughly parity with `Arrays.parallelSort` rather than a win. On the cleanup A/B
+  of step A, expect roughly 1.0x on englishSaturating@200k, 1.9x on englishSaturating@1M, **0.5x ---
+  a loss --- on chineseUnicode@200k**, 1.5x on chineseUnicode@1M, and 2.5x to 3.4x on pinyin.
+- **`pinyinRank` in step A should be near the floor**: one run, so `timsortCleanup` there is just
+  N-1 NAME_ORDER comparisons, and `parallelTimsortCleanup` should be no faster and possibly slower,
+  since there is nothing left to divide.
+
+### Method and the commit
+
+Same conditions as before: `uptime` before and after each step, the `ForkJoinPool` probe, a quiet
+host, raw JSON unedited. The two-methods rule applies to step C, where `systemSortParallel` is a
+baseline and sorts last alphabetically; steps A and B are internal comparisons.
+
+**The commit to record is `d947e77`**, branch `parallel-redesign` --- "Add an exactly
+order-preserving pinyin coder: rank, do not decompose". It is the last commit touching `src/`, so
+`git log d947e77..HEAD -- src/` is empty. `mvn -B test` there: **432 tests, 0 failures**, including
+one that sorts all 1,145,009 names by husky code alone and asserts that `NAME_ORDER` finds no
+descent anywhere. Both new benchmark methods smoke-tested under JMH.
+
+**This is also the jar for 11c**, as noted at the top --- please build once and run both.
+
+---
+
+## Request 11c — the masking cleanup cells, which 11a had no parameter for
+
+Requested 2026-09-22. **One invocation, about thirty-five minutes.** Nothing else is being asked
+for in this request. But please read "The corpus files have not changed, but how we tokenize them
+has", at the end of this section, before you next look at an english or chinese figure: we found
+and fixed a defect in our own word splitter while preparing this, and it supersedes rows you have
+already sent.
+
+### Why, and what you spotted
+
+Your 11b step 3 measured the encode side of the saturating-coder question and got a clean answer:
+saturating costs 1.7--3.0x the masking encode, +73 to +115 ms per million words. You then wrote,
+correctly, that this "is not a net verdict on the coder: the cleanup saving that saturation buys
+over `englishCoder` was not measured --- `cleanup.json` has no masking-coder cell."
+
+There was no way for you to run it. `CleanupPassBenchmarks` had three coder values and none of them
+was a masking coder. That is fixed in `c5f47d3`, which adds **`englishMasking`** and
+**`asciiMasking`** beside their saturating twins. This request is those cells.
+
+We should also say plainly that we framed the gap badly when we replied to you. We told you the
+saturating coder buys "~5% fewer runs" and implied the cleanup difference was therefore small. The
+run counts are indeed within a few per cent --- but the *inversion* counts are **1,637x** apart,
+which we had not checked. Whether that matters is precisely what is unknown, and it is a more interesting question
+than the one we asked you.
+
+### The invocation
+
+```
+java -jar target/benchmarks.jar "CleanupPassBenchmarks.(timsortCleanup|adaptiveInsertionCleanup)$" -p coder=englishSaturating,englishMasking,asciiSaturating,asciiMasking,unicode -f 5 -wi 5 -i 10 -rf json -rff cleanup-coders.json
+```
+
+2 methods x 5 coders x 2 sizes = 20 rows. Three notes on the shape of it:
+
+- **`pinyin` is deliberately excluded.** It is not part of this question, and in 11a its
+  `adaptiveInsertionCleanup` row at n = 1,000,000 alone was about thirty minutes of your fifty. Its
+  11a figures stand; nothing here supersedes them.
+- **The three 11a coders are re-run rather than reused**, which is the point of putting all five in
+  one invocation. You documented between-invocation shifts of 15--28% on identical code in request
+  11, with 2--4% CIs; this comparison cannot survive that, so every cell it compares must come from
+  the same JMH run. Your 11a numbers then become a free replication.
+- `binaryInsertionCleanup` is not requested. If you want it as a third control it now accepts all
+  five of these coders (it still refuses `pinyin`), and it should be indifferent to the whole
+  question, being n log n whatever the input's order --- but it is another ten rows and we are not
+  asking for them.
+
+### What the cells are
+
+Each masking coder reads the same characters at the same width as its saturating twin and agrees
+with it *exactly* on every character inside the window --- for the english pair that is 64..127,
+which is all of A--Z and a--z. They differ only on words reaching outside it, where the masking form
+wraps the character back into the letter range and the saturating form pins it to the window's edge.
+So the pairs are matched except in the one respect being tested. Structural counts on the english
+corpus at n = 1,000,000:
+
+| coder | runs | mean run | inversions | pn |
+| --- | ---: | ---: | ---: | ---: |
+| `unicode` 4x16 mask | 366,865 | 2.7 | 27,535,704 | 110.14 |
+| `asciiMasking` 9x7 mask | 30,520 | 32.8 | 185,161,666 | 740.65 |
+| `asciiSaturating` 9x7 sat | 29,327 | 34.1 | 216,488 | 0.87 |
+| `englishMasking` 10x6 mask | 17,305 | 57.8 | 180,352,275 | 721.41 |
+| `englishSaturating` 10x6 sat | 16,061 | 62.3 | 110,206 | 0.44 |
+
+Within each pair the runs differ by 4% and 8% while the inversions differ by **855x and 1,637x**. A
+badly-coded word lands far from home, which costs thousands of inversions but only one extra
+descent. That is what makes these two pairs a discriminator rather than a confirmation: `N log r`
+says the cleanups within a pair are indistinguishable, `N + X` says the masking forms are three
+orders worse, and they cannot both be right.
+
+### What we expect, stated in advance so a surprise reads as one
+
+Hand timing on Robin's eight-core Mac, best of four, at n = 1,000,000 and n = 200,000:
+
+| coder | timsort 200k / 1M | adaptive 200k / 1M | adaptive / timsort at 1M |
+| --- | ---: | ---: | ---: |
+| `englishSaturating` | 10.73 / 38.03 | 10.79 / 39.09 | 1.03x |
+| `englishMasking` | 11.18 / 43.51 | 47.84 / 830.89 | **19.10x** |
+| `asciiSaturating` | 12.15 / 43.57 | 10.65 / 45.04 | 1.03x |
+| `asciiMasking` | 15.97 / 54.19 | 57.27 / 888.70 | **16.40x** |
+| `unicode` | 30.35 / 133.25 | 27.83 / 223.66 | 1.68x |
+
+The prediction in one line: **1,637x the inversions should cost Timsort about nothing and cost
+adaptive insertion sort about 20x.** More precisely --- masking / saturating for `timsortCleanup`
+near 1.0x at n = 1,000,000 on both pairs, and we will not claim it finer than the band 0.94x to
+1.25x, because that is the spread our own repeats of that one ratio produced; and masking /
+saturating for `adaptiveInsertionCleanup` between 15x and 25x. If Timsort's masking penalty comes
+out anywhere near its inversion ratio we have the cleanup's cost model wrong in the other direction,
+and we would much rather know.
+
+The two masking adaptive rows at n = 1,000,000 are the slowest new cells at roughly 830--890 ms/op,
+still under a second, so no row here should behave like 11a's pinyin case.
+
+### What turns on it
+
+Two things, which is why it is worth thirty-five minutes.
+
+1. **Whether we keep the coder we changed to.** If the cleanup penalty really is ~1.1x, masking wins
+   the whole sort by roughly 20 ms per million on Robin's machine and, given your encode figures,
+   more like 70--90 ms on yours --- and TODO item 37's change loses on speed and has to be argued on
+   monotonicity instead.
+2. **Whether the paper's cleanup formula is right.** It says the cleanup costs `k(N + pX)`, and
+   calls that "the time to Timsort the element array". `N + pX` is *adaptive insertion sort's* cost.
+   The paper's own algorithm-comparison table already gives Timsort's correct bound, `O(N + N log r)`
+   for r runs, citing Auger et al. --- so the body contradicts the table. If your figures confirm
+   that Timsort follows runs and not inversions, the body is what has to change, and with it the
+   framing of `p_crit`, which is currently defined as a critical inversion *probability*.
+
+### Method and the commit
+
+Same conditions as before, please: `uptime` before and after, the `ForkJoinPool` probe, a quiet
+host, the raw JSON unedited. The two-methods rule does not really apply here --- there is no system
+baseline in this class, and the comparison being made is *within* the invocation, which is why all
+five coders go in one.
+
+**The commit to record is `9bb0385`**, branch `parallel-redesign` --- "Fix the word splitter, which
+was discarding 15% of english and 51% of chinese". It is the last commit touching `src/`, so
+`git log 9bb0385..HEAD -- src/` is empty. `mvn -B test` there: 423 tests, 0 failures. The three new
+cleanup cells have been smoke-tested under JMH at `-f 1 -wi 1 -i 2`.
+
+Note that this is **not** the commit that added the cells (`c5f47d3`); it is two later, and the
+difference matters, because `9bb0385` changes the corpus tokenization. Every structural count and
+prediction quoted above is measured at `9bb0385`. If you build from `c5f47d3` the english numbers
+will be systematically different and the two masking cells will look about half as extreme.
+
+### The corpus files have not changed, but how we tokenize them has
+
+This is the one thing in 11c that is not a pure addition, and you should know about it before you
+read any english or chinese number again.
+
+Chasing the mojibake, we found a defect in our own word splitter. `REGEX_LEIPZIG` read
+`[~\t]*\t(([\s\p{Punct}\uFF0C]*\p{L}+)*)`, which requires the captured sentence to be an
+alternation of ASCII punctuation and Unicode letters. Java's `\p{Punct}` is POSIX, so **ASCII
+only** --- and the group therefore stopped at the first character that was neither a Unicode letter
+nor ASCII punctuation. Digits qualified. So did the pound sign, the copyright sign, and the
+ideographic full stop. Everything after that point in the sentence was silently discarded:
+
+- **english: 15.2% of all sentence characters thrown away.** "With Amelie (Cert 15) Jeunet combines
+  the best of his two previous films..." became "With Amelie (Cert". Distinct words 275,387 ->
+  304,959; tokens 16.39M -> 18.86M.
+- **chinese: 51.5%**, because U+3002 is not ASCII punctuation. Distinct 24,215 -> 50,009.
+
+Fixed in `9bb0385` (the commit to record, below): the line pattern is now `[~\t]*\t(.*)`,
+since a Leipzig line is `<id>\t<sentence>` and any attempt to validate the sentence inside the
+pattern can only truncate it, and the splitter is now `[^\p{L}]+` instead of an enumeration of
+separators that could never be complete. The repair is **purely additive** --- no word either
+corpus produced before is lost --- and the definition of a word is unchanged: letters only, so no
+token contains a digit, apostrophe or hyphen, which was already true before.
+
+**What this costs you.** Every english and chinese row you have ever sent us, including request
+11's, is now a measurement of a corpus we no longer use. We are not asking you to re-run the suite
+in this request --- 11c is 35 minutes and answers a question that does not depend on the old
+figures, because its five cells are all measured against each other inside one invocation. But a
+full re-run is coming, and we would rather tell you now than have you find out from a table.
+chinesenames is unaffected: it loads by a different path.
+
+**On the mojibake itself: we are leaving it.** Repairing it is possible (at line level, before
+tokenizing; word-by-word fails because the splitter has by then dropped the trailing byte) and it
+correctly recovers `Amelie`, `Nurnberger`, `Cliches`, `Cafe`. But it makes our numbers slightly
+*worse*, not better: restoring genuine accented characters raises the count of words holding a
+character above 127 from 1,843 to 2,536, and those are exactly the ones a fixed-width coder cannot
+represent. Run counts move under 3%, so the Timsort cleanup does not move at all. The paper will say
+we checked.
+
+---
+
+## Request 11 — the cleanup pass, and then everything again
+
+Requested 2026-09-17. **Answered 2026-09-21 in PR #67**, both parts, 28 hours of measurement on one
+jar plus three supplements the following night; kept here for the reasoning. Two parts, and **(b) is
+the one that matters more, though (a) is much cheaper.**
+
+Request 10's answer sent us looking at where the time actually goes, and the answer was not the
+parallelism at all: it is the cleanup pass, step 3. Chasing that turned up two defects in the husky
+coders and one in how the cleanup was chosen, and the upshot is that **most of the figures we hold are
+now measurements of superseded code.**
+
+### What changed since the jar you built for request 10 (`dbb0cad`)
+
+Eight commits, of which these matter to the numbers:
+
+- **`RadixHuskySort` internals** (`0f22d44`, `350c99b`): the helper's long array is no longer
+  permuted at the end (nothing read it); the final digit pass no longer writes keys (nothing read
+  them); the sign-bias and identity-index setup passes are folded into the first digit pass; and the
+  digit width can now be derived from n. **This affects every `RadixHuskySort` row in the suite** ---
+  strings, permits, dates, numerics, tuples, adversarial --- not just the string ones.
+- **`ParallelRadixHuskySort`** (`a6f8eaf`, `0f22d44`): as request 10 already measured, plus the same
+  long-array and final-pass changes.
+- **The english corpus's coder** (`98a4c63`): `StringSortBenchmarks` gave it `UNICODE_CODER`, which
+  packs four 16-bit characters and collapses its 275,333-word vocabulary into 68,512 codes. It now
+  uses `englishSaturatingCoder`, ten characters at 6 bits, which resolves that vocabulary almost
+  uniquely. Natural runs left for the cleanup pass at n = 1,000,000 fall from **365,958 to 16,641**,
+  a factor of 22, and the residual inversion probability p falls by a factor of **245**. Every
+  english row moves, and so does commonwords.
+- **`systemSortParallel` for chinesenames** (`24b16b6`): now sorts by pinyin rather than by raw code
+  point, so it does the same job as the husky sorts it sits beside. Its chinesenames figures from
+  request 9 are superseded.
+
+So: **please treat the string and permits tables as needing complete replacement rather than
+extension.** We would rather re-measure everything on one jar than splice old and new rows.
+
+### 11a — which sort should the cleanup pass use? (about forty minutes)
+
+```
+java -jar target/benchmarks.jar "CleanupPassBenchmarks.(timsortCleanup|adaptiveInsertionCleanup)$" -f 5 -wi 5 -i 10 -rf json -rff cleanup.json
+```
+
+That is 2 methods x 3 coders x 2 sizes. `CleanupPassBenchmarks` times the three candidate cleanup
+sorts on the array the radix phase actually hands over, rather than inferring the cleanup by
+subtracting two whole sorts.
+
+The question: the paper's §A.5 chose Timsort for step 3 on the strength of beating "insertion sort"
+by 4.5x, but the repository's `InsertionSort` locates each element by **binary search over the sorted
+prefix**, so it costs n log n comparisons however nearly ordered its input is --- which is not the
+algorithm the paper's `k(N + pX)` cleanup term describes. A genuinely adaptive insertion sort has
+been added, and on a smoke run it beats Timsort by up to 2.6x in the middle of the range and loses by
+up to 15x at the top of it.
+
+If you have appetite for one more, this adds the binary-search form so the 4.5x can be checked
+directly. It refuses the pinyin coder rather than sorting by the wrong ordering, so exclude that:
+
+```
+java -jar target/benchmarks.jar "CleanupPassBenchmarks.binaryInsertionCleanup$" -p coder=englishSaturating,unicode -f 5 -wi 5 -i 10 -rf json -rff cleanup-binary.json
+```
+
+**What we expect, so that a surprise is visible as a surprise.** The deciding quantity appears to be
+`X/n = pn/4`, where X is the residual inversion count: adaptive should win for roughly
+`0.2 < pn < 25` and Timsort outside it. That predicts adaptive winning for `englishSaturating` at
+n = 1,000,000 (pn/4 = 0.12) and losing at n = 200,000 (0.024), and Timsort winning for `unicode` at
+n = 1,000,000 (28.8) and for `pinyin` at both sizes (35 and 175). If your figures contradict that
+pattern we would much rather know.
+
+### 11b — the full suite again (long, and the one that matters)
+
+Essentially request 4 repeated, for the reasons above. Same invocation as then; the suite took you
+20h30m unattended.
+
+Please add the two new classes, which did not exist at request 4:
+
+```
+java -jar target/benchmarks.jar "ParallelStringSortBenchmarks" -f 5 -wi 5 -i 10 -rf json -rff strings-parallel-full.json
+java -jar target/benchmarks.jar "StringSortBenchmarks.huskyEncodeOnlyEnglish" -f 5 -wi 5 -i 10 -rf json -rff encode-masking-vs-saturating.json
+```
+
+The second settles a question we could not answer by hand: the saturating coders resolve words the
+masking ones cannot, but two hand-rolled harnesses put the **same** masking arithmetic at 41 ms and
+69 ms per million, because a call site with four coder implementations measures JIT inlining rather
+than `&` against `min`. If saturating turns out materially slower to encode, that is a real argument
+against the change and we want it on the record.
+
+### Method, and the commit
+
+Same conditions as request 10, please --- two methods per invocation where a baseline is involved,
+`uptime` before and after each, and the `ForkJoinPool` probe. All of that is set out under request 10
+below and has not changed.
+
+**The commit to record is `15cc2ff`**, branch `parallel-redesign`. It is the last commit touching
+`src/`; the branch tip is later than it, but only by documentation and by the merge of your PR #66,
+so `git log 15cc2ff..HEAD -- src/` is empty and building from either gives the same jar.
+`mvn -B test` there: 423 tests, 0 failures.
+
+(This supersedes `f92c269`, named here earlier. Since then the encoding phase has been
+parallelized in `ParallelRadixHuskySort` --- about 3.5x at a million elements on eight cores --- so
+**every ParallelRadixHuskySort figure from request 10 predates it**, which is a further reason 11b
+replaces the tables rather than extending them.)
+
+---
+
+## Request 10 — the optimised ParallelRadixHuskySort
+
+Requested 2026-09-16. **Two parts: 10a is short and is the one that matters; 10b is optional and
+longer.** If you are short of time, do 10a and stop — 10b answers a reviewer question we do not yet
+have, rather than correcting one we have got wrong.
+
+`ParallelRadixHuskySort` was reworked on 2026-09-16. Four changes, each of which strictly removes
+work: a per-chunk-per-pass `int[]` clone is gone; the thread pool is created once and shared instead
+of per `sort()` call; the sign-bias and identity-index setup passes are folded into the first digit
+pass; and the digit width can now be derived from `n` and the chunk count rather than fixed, which is
+what the new `Auto` benchmarks use. The fixed-width benchmarks are unchanged and still run at exactly
+the width they name.
+
+**Why we are asking you rather than measuring it here.** We tried, on Robin's Mac, and could not get
+a usable answer. That machine has 8 cores, one of which is permanently occupied by a
+lab-monitoring agent, and the desktop app running the session takes much of another. Two consecutive
+runs of an *identical* jar gave `systemSortParallel` 5.112 ms and then 3.514 ms at n = 32,000 — a 31%
+swing on code that had not changed. Your machine at load 0.36 on 16 cores is the only place these
+numbers mean anything.
+
+### The thread-count problem your request-9 notes exposed
+
+Before the commands: your 09-13 environment note records that the common `ForkJoinPool` behind
+`Arrays.parallelSort` had **15 workers on your 16 processors**, and that "no p15/p16 husky row was
+requested or run". Every husky row in that request was fixed at p4 or p8.
+
+So request 9's permits headline — `Arrays.parallelSort` 2.77× faster than p8 — compared a 15-thread
+sort against an 8-thread one. That is not a like-for-like comparison, and it is very likely most of
+why your result and Robin's local one disagree so sharply: on his 8-core Mac, p8 and the system sort
+get comparable resources and the husky sort came out 10–24% *ahead* on the same corpus.
+
+A new row, `parallelRadixHuskySortAuto_pAll`, uses `Runtime.getRuntime().availableProcessors()`
+instead of a hardcoded count, so it scales to the machine exactly as `Arrays.parallelSort` does. **It
+is the row to compare against the system sort.** The fixed p4/p8 rows stay, because a fixed count is
+the point for a scaling sweep.
+
+One caveat you are better placed to judge than we are: `availableProcessors()` will report 16 where
+the common pool runs 15, and under your `kiro.slice` quota the probe printed `13 14`. If the husky
+row should match the pool's 15 rather than the machine's 16, say so and we will parameterise it —
+we would rather be one thread generous to the baseline than one short ourselves.
+
+### 10a — permits, the parallel bakeoff (about 20 minutes)
+
+```
+java -jar target/benchmarks.jar "PermitSortBenchmarks.(systemSortParallel|parallelRadixHuskySortAuto_pAll)$" -f 5 -wi 5 -i 10 -rf json -rff permits-auto.json
+```
+
+Deliberately only **two** methods, so that the baseline and the candidate sit next to each other in
+time. Please see the measurement note below for why that matters.
+
+Also please re-run your own `Par.java` probe from 09-13 — the one that printed `15 16` — inside the
+same slice as the benchmark, and send its output with the results. It is what tells us how many
+threads each side actually got. If it is easier to retype than to find:
+
+```
+jshell -q -s - <<'EOF'
+System.out.println(java.util.concurrent.ForkJoinPool.commonPool().getParallelism() + " " + Runtime.getRuntime().availableProcessors());
+/exit
+EOF
+```
+
+If you have time for two more, each as its own invocation rather than added to the command above:
+
+```
+java -jar target/benchmarks.jar "PermitSortBenchmarks.(parallelRadixHuskySort16_p8|parallelRadixHuskySortAuto_p8)$" -f 5 -wi 5 -i 10 -rf json -rff permits-auto-vs-16.json
+java -jar target/benchmarks.jar "PermitSortBenchmarks.(radixHuskySort16|parallelRadixHuskySortAuto_pAll)$" -f 5 -wi 5 -i 10 -rf json -rff permits-parallel-vs-serial.json
+```
+
+The first judges the automatic digit width against the fixed 16 bits. The second answers the most
+damning line in your 09-13 results — that the parallel husky path was slower than its own serial
+radix/16 at every `n` — on a build where the per-pass bookkeeping that probably caused it is gone.
+
+### 10b — strings, parallel against parallel (optional, several hours)
+
+This is the gap request 9 left open. Request 9 settled `Arrays.parallelSort` against us on `Long[]`,
+which is the case where husky coding has *least* to offer, because comparing two `Long`s is cheap.
+The English and Chinese corpora are the opposite extreme, and until now there was no parallel husky
+sort wired into the string benchmarks at all to set against the `systemSortParallel` you measured
+there. A new class, `ParallelStringSortBenchmarks`, supplies one.
+
+The full default matrix is three corpora × three sizes × seven methods, which is a long run. Narrowed
+to the comparison that answers the question:
+
+```
+java -jar target/benchmarks.jar "ParallelStringSortBenchmarks.(systemSortParallel|parallelRadixHuskySortAuto_pAll)$" -p n=1000000 -f 5 -wi 5 -i 10 -rf json -rff strings-parallel.json
+```
+
+That is all three corpora at the largest size, two methods. If it is comfortable, the thread-count
+sweep is the more interesting result, since it shows whether strings scale with cores differently
+from a cheap ordering:
+
+```
+java -jar target/benchmarks.jar "ParallelStringSortBenchmarks.parallelRadixHuskySortAuto_p.$" -p n=1000000 -f 5 -wi 5 -i 10 -rf json -rff strings-parallel-sweep.json
+```
+
+**One correction that affects your request-9 results.** `StringSortBenchmarks.systemSortParallel`
+used to call the no-Comparator `Arrays.parallelSort` for every corpus, so on `chinesenames` it sorted
+by raw UTF-16 code point — a cheaper task, and the wrong one, since the husky sorts order that corpus
+by pinyin. Both that benchmark and the new class's baseline now use
+`HuskyCoderChinesePinyin.NAME_ORDER` for `chinesenames`. You told Robin that the code-point ordering
+is almost never used in practice, and that the alternative to pinyin is stroke order rather than code
+point, which settles it: a code-point row is not a baseline anyone would recognise.
+
+So **the `chinesenames` row of your request-9 `systemSortParallel` measurement should be treated as
+superseded** rather than tabulated beside anything from this request. The `english` and `chinese`
+rows are unaffected — their coder supplies no Collator, and natural order is the right order for
+them. If 10b is more than you have time for, just re-running `chinesenames` for that one benchmark
+would close the gap:
+
+```
+java -jar target/benchmarks.jar "StringSortBenchmarks.systemSortParallel$" -p corpus=chinesenames -f 5 -wi 5 -i 10 -rf json -rff parallelsort-pinyin.json
+```
+
+### The measurement note — please read before running either part
+
+Three things bit us on 2026-09-16, and the third is a bias rather than noise:
+
+1. **JMH runs a class's methods in lexicographic order.** If load drifts upward across a run,
+   whichever method sorts last is systematically penalised — and `systemSortParallel` sorts last in
+   `PermitSortBenchmarks`, `StringSortBenchmarks` and the new class alike. In one of our runs it
+   scored 30.065 ± 3.580 having scored 22.078 ± 0.605 in another. That is why every command above
+   names only two methods. Please don't consolidate them into one invocation.
+2. **Antivirus scanning the freshly-built jar.** The benchmarks jar is 76 MB, and on the Mac
+   Microsoft Defender was scanning it *during the first benchmark of the following run*. If anything
+   equivalent runs on your instance, leave a few minutes between `mvn package` and measuring. At load
+   0.36 you may well have nothing to worry about.
+3. **`-f 1` is not enough here.** At one fork we measured ±11 ms on a 29 ms score, which is useless
+   for a 5–10% effect. Five forks brought it to ±0.2–1.0 ms. Hence `-f 5` throughout.
+
+### The system parameters we would like recorded
+
+The thing that made our own numbers hard to interpret was not having these written down next to them.
+Alongside the JSON, please send:
+
+```
+uptime
+lscpu
+free -h
+uname -r
+java -version
+mvn -v
+```
+
+`uptime` is the one we most want, and ideally **twice — immediately before and immediately after**
+each run. The load average before tells us the machine was quiet to start with; the load average
+after, compared against the core count from `lscpu`, tells us whether the benchmark itself was the
+only thing running. A run that starts at 0.4 and ends at 9 on 16 cores is clean; one that starts at 4
+is not, and we would rather discard it than average it in.
 
 ---
 

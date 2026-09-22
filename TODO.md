@@ -919,7 +919,42 @@ is a defect; all are hardening or generalisation.
     `paper/sample-base.bib` from `HuskySort.bbl` is not mistaken later for the original file. The
     original `.bib` was never committed and BibTeX had been failing silently for some time.
 
-33. **No parallel-versus-parallel comparison on strings.** Request 9 (2026-09-12) asks Yunlu to put
+33. ~~**No parallel-versus-parallel comparison on strings.**~~ **WIRED 2026-09-16**, measurement
+    requested as 10b. `ParallelStringSortBenchmarks` is a new class holding a `p1/p2/p4/p8` sweep on
+    the automatic digit width, fixed-11 at p8, a serial reference and a parallel baseline, over the
+    existing `StringSortBenchmarks.StringState` (reused, not duplicated, so corpora, seed and
+    sampling semantics match the serial numbers exactly). Kept separate from `StringSortBenchmarks`
+    so it can run without re-measuring that class's dozen serial benchmarks. Smoke-tested on
+    `english` and `chinesenames`; the numbers themselves are request 10b, since this machine cannot
+    produce usable parallel figures (see item 34).
+
+    **Found while wiring it, and FIXED 2026-09-16: `StringSortBenchmarks.systemSortParallel` called
+    the no-Comparator `Arrays.parallelSort` for every corpus, including `chinesenames`.** The husky
+    sorts order that corpus by pinyin, so that row compared two different orderings --- the same
+    apples-to-oranges problem `multikeyQuicksort` avoids there by calling `sortByPinyin`, and the
+    same one request 6 existed to fix for the *serial* system sort. It now uses
+    `HuskyCoderChinesePinyin.NAME_ORDER` for that corpus, as does the new class's baseline. Robin's
+    reason for fixing rather than documenting it (2026-09-16): we should never compare a pinyin sort
+    against a system sort that does not use the pinyin comparator, and per Yunlu the code-point
+    ordering is in any case almost never used for Chinese --- where the ordering is not pinyin it is
+    **stroke order**, which is item 10's subject, not code point. So a code-point row is not a
+    baseline a reader would recognise as realistic.
+
+    Consequence to watch: **chinesenames figures collected under the name `systemSortParallel`
+    before 2026-09-16 --- request 9's --- measured code-point order and must not be tabulated
+    alongside figures collected after it.** The english and chinese corpora are unaffected (their
+    coder supplies no Collator, and natural order is the correct order for them).
+
+    One asymmetry left deliberately: the *serial* `systemSort` still sorts chinesenames by code
+    point, with `systemSortPinyin` beside it as the correct-ordering variant, which is how request 6
+    chose to solve it and is the figure actually quoted. The parallel case had no such variant to
+    quote, which is why it was corrected in place instead. If that inconsistency grates, the tidy
+    resolution is to make `systemSort` corpus-aware too and retire `systemSortPinyin` --- but that
+    touches a number already in the abstract and Table `HS_BM`, so it was not done unasked.
+
+    Original text follows.
+
+    Request 9 (2026-09-12) asks Yunlu to put
     `Arrays.parallelSort` beside `ParallelRadixHuskySort` in Table `ParallelRadix`, which settles
     the question on `Long[]` — the type that table measures. It does not settle it on strings,
     because `ParallelRadixHuskySort` is wired into the benchmarks for `Long[]` only:
@@ -945,6 +980,37 @@ is a defect; all are hardening or generalisation.
     request 9 showed `Arrays.parallelSort` beating the parallel husky sort on the permits at every
     size and at $n = 2{,}000{,}000$ on `Long[]`. This is the explanation, and it is arithmetic
     rather than hypothesis.
+
+    **The motivating measurement compared a 15-thread sort against an 8-thread one (found
+    2026-09-16).** Yunlu's 09-13 environment note records that the common `ForkJoinPool` behind
+    `Arrays.parallelSort` had **15 workers on his 16 processors**, and that "no p15/p16 husky row was
+    requested or run" --- every husky row in request 9 was fixed at p4 or p8. So the permits
+    headline, `Arrays.parallelSort` 2.77x faster than p8 (13.1 ± 0.2 against 36.4 ± 0.5), gave the
+    baseline nearly twice the threads. That is very likely most of why his 16-core result and the
+    local 8-core one disagree in *direction*: on eight cores, where p8 and the system sort get
+    comparable resources, the husky sort came out 10--24% ahead on the same corpus.
+
+    A `parallelRadixHuskySortAuto_pAll` row now sizes itself from `availableProcessors()`, as
+    `Arrays.parallelSort` does, and is the row to compare against the system sort; request 10a asks
+    for it. The fixed p4/p8 rows stay for the scaling sweep, where a fixed count is the point. Open
+    question for Yunlu: whether the husky row should match the pool's 15 rather than the machine's
+    16, since `availableProcessors()` reports 16 where the pool runs 15 (and `13 14` under his
+    `kiro.slice` quota).
+
+    **Separately, the local attempt could not measure the effect at all**, because run-to-run drift
+    exceeded it: `systemSortParallel`, a benchmark no edit had
+    touched, scored 5.112 ms and then 3.514 ms at $n = 32{,}000$ across two consecutive runs of the
+    same jar — a 31% swing — and 29.44 then 31.43 at 198,900. The cause was machine contention:
+    `uptime` reported a load average of 46, with a lab-monitoring agent pegging one core and
+    OneDrive, GitKraken and IntelliJ between them taking another core and a half. So the honest
+    statement is that `Arrays.parallelSort` may or may not beat the parallel husky sort on permits;
+    the request-9 run's machine conditions were not recorded, and no local run has yet been clean
+    enough to settle it. Whatever the answer, the `buckets × chunks` costs below are real and worth
+    removing on their own.
+
+    Note also that any future attempt must keep an untouched control benchmark in the *same* JMH
+    invocation as the candidate, and discard the run if the control moves. Comparing two runs
+    against each other on a desktop is not sound at these effect sizes.
 
     Three costs, all per pass, all sized by `buckets × chunks` rather than by `n`:
 
@@ -990,7 +1056,112 @@ is a defect; all are hardening or generalisation.
     and `Executors.newFixedThreadPool` is called inside `sort()` (line 118), so pool construction is
     charged to every measurement — `Arrays.parallelSort` uses the common `ForkJoinPool`.
 
-35. **`RadixHuskySort` serial: four small things left on the table.** Same review, 2026-09-14.
+    ### What was done, 2026-09-16
+
+    Four changes landed, each of which strictly removes work, so none needed a measurement to
+    justify it; all are covered by the existing stability and negative-key sweeps.
+
+    - **The `clone()` is gone.** The scatter advances `chunkBucketOffset[chunkIndex]` in place: the
+      `afterHistogram` action rewrites every element of every row before the next scatter reads it,
+      so a chunk destroys nothing that is read again.
+    - **The thread pool is created once and shared** — a cached pool of daemon threads, held
+      statically. Deliberately *not* `ForkJoinPool.commonPool()`: these workers block on a
+      `CyclicBarrier` until every chunk arrives, and the common pool runs only
+      `availableProcessors - 1` threads, so a sort asking for more chunks than that would deadlock
+      with the unscheduled chunks never reaching the barrier. Unbounded also keeps the
+      deliberately-oversized chunk counts in the test sweep working.
+    - **The two setup passes over `n` are folded into pass 0**, which now biases each key as it
+      reads it from `longs` and writes the identity index as it scatters.
+    - **The digit width can be derived from `n` and the chunk count** — `AUTO_DIGIT_BITS` plus
+      `chooseDigitBits`, budgeting `buckets × chunks` at `n/4` and taking the widest digit inside
+      it, clamped to [8, 16]. An explicitly-given width is still honoured exactly, so `/16` really
+      runs at 16 bits and the paper's digit-width sweep stays reproducible; there is a test for that.
+
+    **The automatic width is a measured win** (5 forks, 50 samples, control passed): 11.9% / 11.7% /
+    6.2% faster than fixed-16 at the three permits sizes, non-overlapping at 32,000 and 198,900. So
+    item 35's second bullet was right that capping buckets against `n` would carry the permits case.
+
+    **`MIN_CHUNK_SIZE` is a measured negative, and the suspicion recorded above does not hold.**
+    `minChunkSize` became a constructor parameter so both policies could be measured in one JMH
+    invocation; lowering it from 16,384 to 4,096 gave $n = 100{,}000$ the two chunks it was short of
+    (6 of the 8 requested) and changed nothing, and gave $n = 32{,}000$ seven chunks where it had
+    been running serially, making it **8.9% slower**. The control ($n = 198{,}900$, which reaches 8
+    chunks under either policy) agreed to 1.1%, so the run was sound. The parameter was kept --- it
+    is how the negative was established --- but the default is unchanged. Note that $n = 32{,}000$
+    beats `Arrays.parallelSort` by around 20% *while running entirely serially*, which is worth
+    remembering before attributing any of this sort's advantage to parallelism.
+
+    **Against `Arrays.parallelSort` on permits, on an unsuitable machine:** the automatic width won
+    at 32,000 (23.7%, 20% across two clean runs) and at 198,900 (10.5%, 12.3%), both non-overlapping
+    both times. $n = 100{,}000$ is **unsettled, because the baseline is what is unstable there** ---
+    `Arrays.parallelSort`'s error at that size was ±1.857 and then ±6.996 (48% of its own score)
+    across runs, where at 32,000 and 198,900 it was ±0.070 and ±0.716, and where our own error stayed
+    between ±0.727 and ±1.159 throughout. `Arrays.parallelSort` derives its split granularity from
+    `n` and the common pool's parallelism, so a size dividing awkwardly against 7 workers is the
+    obvious suspect --- and a 16-core machine will behave differently there regardless. Not worth
+    pursuing locally.
+
+    **The MSD redecomposition below was not attempted**, and on this evidence is less clearly
+    necessary than this item assumed: the bookkeeping that motivated it was dominated by the
+    `clone()`, which was one line.
+
+    ### Three measurement traps, all hit on 2026-09-16
+
+    Recorded because two of them are biases rather than noise, and the first may affect figures
+    already in the paper.
+
+    1. **JMH runs a class's methods in lexicographic order.** When load drifts upward across a run,
+       whichever method sorts last is systematically penalised --- and `systemSortParallel` sorts
+       last in `PermitSortBenchmarks`, `StringSortBenchmarks` and `ParallelStringSortBenchmarks`
+       alike. Observed directly: 30.065 ± 3.580 in one run against 22.078 ± 0.605 in another, with
+       the noisy reading being the one where it ran last as load climbed. **Run a baseline and a
+       candidate as a two-method invocation** so they sit adjacent in time.
+    2. **Antivirus scans the freshly-built jar during the next run.** The benchmarks jar is 76 MB and
+       Microsoft Defender was reading it throughout the first benchmark of the following run. Leave
+       several minutes between `mvn package` and measuring. Worse, and self-inflicted: rebuilding
+       the jar *while* a run is in progress swaps it under the live JVM and kills the run with
+       `NoClassDefFoundError` at the results-formatting stage.
+    3. **`-f 1` cannot see a 5--10% effect.** One fork gave ±11 ms on a 29 ms score. Five forks gave
+       ±0.2--1.0 ms. Every figure quoted above is `-f 5 -wi 5 -i 10`.
+
+    And the standing lesson: **keep an untouched control in the same invocation and discard the run
+    if it moves.** A 31% swing in `systemSortParallel` across two runs of an identical jar is what
+    revealed that this machine --- 8 cores, one permanently held by a lab-monitoring agent, much of
+    another by the desktop app --- cannot measure an 8-thread sort at all.
+
+35. ~~**`RadixHuskySort` serial: four small things left on the table.**~~ **ALL FOUR DONE
+    2026-09-16.** Same review, 2026-09-14. Measurement deferred to Yunlu along with request 10 --
+    every one of the four strictly removes work, so none needed a measurement to justify it, but the
+    serial figures are the ones in the paper and the size of the effect is worth knowing. New
+    `radixHuskySortAuto` benchmarks in `PermitSortBenchmarks` and `StringSortBenchmarks` measure the
+    width rule; the other three are not separately observable.
+
+    What was done, bullet by bullet:
+
+    - **The long array is no longer permuted.** Confirmed by inspection that nothing reads it after a
+      radix sort: `IntroHuskySort` and `DutchHuskySort` keep their longs in step through
+      `HuskyHelper.swap`, which neither radix sorter calls; `HuskyBucketHelper.loadBuckets`
+      recomputes the coding itself before reading; no test touches `getLongs()`. Robin's call was to
+      drop the sync outright rather than keep it as the cheap sequential write from `biased`. **So
+      after a radix husky sort, `getLongs()` holds the codes in input order, not sorted order, and
+      is documented as not meaningful** -- a deliberate narrowing of a public method on this path.
+    - **The width now adapts**, via a shared `RadixHuskySort.chooseDigitBits(n, chunks)` -- the
+      serial sorter being the one-chunk case. It reproduces the preference this bullet recorded:
+      /11 ahead of /16 at n = 32,000 and behind it at 198,900, against which the rule picks 12 and
+      15. Explicit widths are still honoured exactly, so the published sweep stays reproducible.
+      The rule lives in `RadixHuskySort` and `ParallelRadixHuskySort` delegates to it, so the
+      dependency runs serial <- parallel and there is one definition rather than two to drift.
+    - **The final pass no longer writes keys**, once the longs are not being permuted: only the
+      index is returned, so those 8 bytes per element had no reader. `digitBits` is capped at 20, so
+      there are always at least four passes, which is what lets the last-pass branch assume it is
+      not also the first.
+    - **`biased` no longer costs a setup pass**: the sign bias and the identity index are folded
+      into the first digit pass, which was already reading and writing every element.
+
+    Note that bullets 1 and 3 described code `ParallelRadixHuskySort` held in identical form, so
+    both were fixed in both places -- this item's heading says "serial", but the defects were not.
+
+    Original text follows.
 
     - **`applyPermutation` permutes `longs` as well as `xs`** — an `n`-long array copy plus `n`
       random reads. No test asserts `getLongs()` is sorted afterwards and no consumer was found on
@@ -1013,3 +1184,1005 @@ is a defect; all are hardening or generalisation.
     unconditional `^ Long.MIN_VALUE` makes the naive "highest set bit" test useless — every
     non-negative code has bit 63 set — so the test must be on the bits that *differ*, which a
     constant XOR leaves unchanged.
+
+36. **The english corpus is encoded with the wrong coder, and the cleanup-cost model is
+    mis-specified.** Found 2026-09-17, following request 10. Both findings come out of
+    `CleanupPassProbe` (`src/test/.../CleanupPassProbe.java`), a `main` rather than a test, which
+    reports exact structural counts plus soft timings; the counts are deterministic and
+    machine-independent, the timings were taken at load 13--19 and are worth about ±30%.
+
+    ### The coder
+
+    `StringSortBenchmarks` gives the Leipzig english corpus `UNICODE_CODER`. That packs four 16-bit
+    characters (`unicodeToLong` fills all 64 bits and then `>>> 1` to clear the sign bit, so it is
+    four characters less one bit --- the `MAX_LENGTH_UNICODE - 1` in the coder's constructor is the
+    declared `perfect()` threshold, not the packing width). `asciiCoder` packs nine characters at 7
+    bits and `englishCoder` ten at 6, and the same class already uses `englishCoder` for the
+    commonwords corpus.
+
+    | coder | distinct codes for 275,333 words | words/code | natural runs at n=1M | mean run | cleanup ÷ full sort |
+    | --- | ---: | ---: | ---: | ---: | ---: |
+    | `unicode` (4x16) | 68,512 | **4.02** | **365,958** | 2.7 | 0.21 |
+    | `ascii` (9x7) | 256,993 | 1.07 | 30,921 | 32.3 | 0.07 |
+    | `english` (10x6) | 265,207 | 1.04 | **17,506** | 57.1 | 0.06--0.09 |
+
+    So the Unicode coder collapses the vocabulary four-to-one, and the resulting 366k runs of mean
+    length 2.7 are what the cleanup pass has to merge. **The serial floor --- encode plus cleanup,
+    the two phases no chunk count touches --- moves from 1.06--1.10x of `Arrays.parallelSort`'s
+    entire runtime to 0.62--0.64x with `asciiCoder`.** That is the difference between "cannot win
+    however well the digit passes parallelise" and "has room to win".
+
+    **The switch is safe and carries no correctness risk.** Only **0.446%** of the english
+    vocabulary contains a character outside ASCII, and the count outside 64..127 is *identical*,
+    which means no word holds a digit, space or sub-64 punctuation --- the Leipzig extraction regex
+    already strips them, so `englishCoder`'s narrower window is as safe here as `asciiCoder`'s. All
+    three coders are imperfect, so the cleanup pass runs and guarantees the result either way; this
+    is purely a performance choice. `asciiCoder` is the more conservative default (order-preserving
+    across all of ASCII, so it survives a corpus containing digits or punctuation); `englishCoder`
+    buys a tenth character and 1.8x fewer runs but assumes the 64..127 window.
+
+    Note also that the 0.446% is **mojibake, not text**, and the corpus file itself is at fault
+    rather than the reader. The affected words are `cafÃ©`, `crÃ¨che`, `ChÃ¢teau`, `SÃ£o`,
+    `BahÃ¡'Ã­` and the like --- `café`, `crèche`, `Château`, `São`, `Bahá'í`. The bytes on disk for
+    the `é` of `AmÃ©lie` are `c3 83 c2 a9`, which is UTF-8 for `Ã` followed by `©`: the original
+    UTF-8 `c3 a9` was decoded as Latin-1 and re-encoded, i.e. **the file is double-encoded**.
+    `HuskySortBenchmarkHelper` reads it as UTF-8, which is correct, and faithfully reproduces the
+    damage. It is scattered through the file, once per accented character, so it is not a
+    byte-order-mark effect.
+
+    **The damage is upstream, in the Leipzig distribution: settled 2026-09-17 and not worth
+    revisiting.** All five files of the `eng-uk_web_2002` package in `src/main/resources` carry the
+    signature (3,675 occurrences of the double-encoded marker in `1M-sentences`, 38 in
+    `10K-sentences`) and **not one clean UTF-8 accented character between them** --- zero `c3 a9` in
+    121 MB of English web text, where a clean corpus would hold thousands. The `10K-sentences` file
+    was then downloaded fresh from
+    `downloads.wortschatz-leipzig.de/corpora/eng-uk_web_2002_10K.tar.gz` and is **byte-identical to
+    ours**, same length and sha256 `475aa01b4c4d97a03d23d7bbe5730a39acae5bdd18ee720f3a6c807304a9d5af`,
+    carrying the same 38 markers. So our copy is pristine; there is nothing to replace it with, and
+    nobody here caused it. Repairable in principle by a Latin-1 encode / UTF-8 decode round trip,
+    which would make a narrow coder near-exact --- but that would depart from the published corpus
+    and change every english figure measured from it, so it is left alone.
+
+    The choice must stay **per corpus**: `asciiCoder` would be catastrophic on the Leipzig chinese
+    corpus (97.6% of its words are non-ASCII), where `UNICODE_CODER` is already excellent --- 1.03
+    words per code, 12,265 runs, cleanup 2.2% of a full sort, serial floor 0.24x.
+
+    This bears on the paper's **serial** english figures as well as the parallel ones, since the
+    cleanup pass is common to both.
+
+    ### The model, and what wants clarifying rather than correcting
+
+    `T_3 = k_3 (N + pX)` **was written for insertion sort** (Robin, 2026-09-17), whose cost genuinely
+    is N plus the number of inversions, so it is not wrong --- but step 3 uses Timsort, whose cost
+    follows the number of *runs*, and the paper does not say which sort the term describes. On a
+    revision that is worth one sentence, because the two measures can disagree in **direction**, not
+    merely in magnitude: switching english from `unicode` to `english` cut runs by 21x while
+    inversions **rose** from 1,151,133 to 3,378,167, and the cleanup nonetheless got ~3x cheaper. So
+    a reader who took the term as describing step 3 as implemented would predict the wrong sign. The
+    mechanism is that masking to 6 or 7 bits mis-encodes a few characters, so a handful of elements
+    land far from home; each contributes many inversions but only one or two run breaks.
+
+    A related consequence for §A.5, which reports the insertion-sort/Timsort crossover at around
+    N = 50,000 without explaining it: insertion sort wins while X < N, and X ≈ N²/(4D) for a corpus
+    with D effective code-groups, so the crossover sits at N ≈ 4D. The measured X for english gives
+    D ≈ 8,700 and hence a predicted crossover near 35,000, against the ~50,000 observed. Close
+    enough to be the mechanism, and worth a sentence.
+
+    Measured X/N at n = 200,000, which also answers directly whether the remaining inversions are
+    "few compared with N" as the model assumes: english **5.8**, chinese **0.14**, chinesenames
+    **35**. The assumption holds for chinese alone --- which is the one corpus where the parallel
+    sorter is competitive (1.28x behind) and the only one where threads help.
+
+    ### chinesenames, and items 10 and 11
+
+    1,145,009 distinct names yield 818,114 codes, so 1.40 names per code --- tie groups far too
+    short to explain 162,690 runs of mean length 6.1. The codes must therefore be **mis-ordering**,
+    not merely tying, which points at polyphone characters resolved to the wrong reading: **item 11**.
+    The 1.40 ties themselves are **item 10**'s stroke-count tiebreak. Both open items now have a
+    measured motivation, and item 11 looks like the larger lever. Names are at most 3 characters
+    against the pinyin code's 5-character capacity, so there are spare bits for item 10 to use.
+
+37. **The husky coders are not order-preserving, and every string benchmark will need re-running.**
+    Found 2026-09-17 out of item 36. Robin's reading of it: "our husky coders that we've been
+    tacitly assuming were ideal turn out not to be ideal, and for reasons that I should have thought
+    of at the time. I think I was seduced by the idea of making the encoding as fast as possible,
+    without realizing that it had such a negative effect on the cleanup phase."
+
+    ### The defect
+
+    `stringToLong` narrows each character with `& mask`, which is **not monotonic**. A character
+    above the masked width wraps to an arbitrary position inside it, so the code mis-orders the
+    element rather than merely losing resolution on it:
+
+    - `asciiCoder` (7 bits): 'é' is 233 and masks to 105, which is 'i', so "café" encodes as though
+      it were "cafi" and sorts *before* "cafz" when it belongs after. The mojibake form is worse:
+      'Ã' is 195, masking to 67, which is uppercase 'C', so it sorts before every lowercase word.
+    - `englishCoder` (6 bits): worse still, because the wrap is *ambiguous* rather than just wrong.
+      An apostrophe is 39 and masks to 39; 'g' is 103 and also masks to 39. So **`"don't"` and
+      `"dongt"` receive identical codes** --- a coder that cannot distinguish two different words.
+      `HuskyCoderFactoryTest.testApostropheIsNotConfusedWithG` asserts this.
+
+    A husky code's only job is to increase with its argument, so this is a defect in the coders
+    rather than a tuning choice. It matters through the cleanup pass: a mis-ordering puts an element
+    far from home and breaks a run, where a tie leaves the run intact, and Timsort's cost follows
+    runs (item 36).
+
+    ### What was done
+
+    `asciiSaturatingCoder` and `englishSaturatingCoder` are added **alongside** the masking coders,
+    not replacing them --- the originals are used from a dozen tests, `HuskySortHelper`'s
+    `sequenceCoderMap`, `ChineseCharacter` and `HuskySortBenchmark`, and the paper's figures were
+    measured with them. They map a character to `clamp(c - offset, 0, 2^bits - 1)`, which is
+    non-decreasing over every char value: below the window everything ties at the bottom, the window
+    passes through, above it everything ties at the top.
+    `HuskyCoderFactoryTest.testSaturatingCodersAreMonotonic` checks that exhaustively over all
+    65,536 characters, and `testMaskingCodersAreNotMonotonic` asserts the contrast so that it cannot
+    quietly stop being true. `StringSortBenchmarks` now uses `englishSaturatingCoder` for the english
+    and commonwords corpora.
+
+    ### What is NOT yet known, and matters
+
+    **Whether saturating pays on the english corpus is undecided, and Robin's instinct that masking
+    was chosen for encode speed may well be right.** The accounting so far, at n = 1,000,000:
+
+    | | masking (10x6) | saturating (10x6) |
+    | --- | ---: | ---: |
+    | natural runs after the radix phase (exact) | 17,506 | 16,641 (-4.9%) |
+    | cleanup / full sort | 0.064 | 0.066 --- no gain, within noise |
+    | encode | ? | ? |
+
+    So the cleanup gain does not clearly show up on *this* corpus, and any encode cost would make
+    saturating a net loss on it. The encode side could not be measured honestly by hand: two
+    harnesses put the *same* masking arithmetic at 41 ms and 69 ms per million, and english masking
+    at 43 ms and 130 ms, because a call site with four coder implementations measures JIT inlining
+    rather than `&` against `min`. `huskyEncodeOnlyEnglishMasking` and
+    `huskyEncodeOnlyEnglishSaturating` were added to `StringSortBenchmarks` to settle it under JMH.
+
+    Note *why* the gain is invisible here: the Leipzig extraction regex strips digits and
+    punctuation, so this corpus contains no apostrophes and only 0.446% non-ASCII words --- the
+    conditions under which masking is nearly harmless. The defect should cost much more on ordinary
+    English text. A corpus containing punctuation would be the test that shows it, and we do not
+    currently have one wired.
+
+    ### Consequences to plan for
+
+    - **The paper may need revising**, and Robin considers this likely already for other reasons. Any
+      figure measured with a masking coder describes a coder that mis-orders; if a saturating coder
+      is adopted, the english and commonwords figures move. §A.4 on coding accuracy is the natural
+      home for the monotonicity point, and the cleanup term wants the clarification recorded in
+      item 36.
+    - **The string benchmarks will need re-running** whichever way this lands, since the coder for
+      english changed twice today (UNICODE_CODER to asciiCoder to englishSaturatingCoder) and the
+      run counts differ by 22x across those choices.
+    - **The anonymised artifact** would need regenerating with the paper.
+    - Nothing here reaches the submitted paper, which corresponds to `master`.
+
+38. **§A.5's cleanup-sort choice was measured against the wrong insertion sort, and the right answer
+    depends on the coder.** Found 2026-09-17, following items 36 and 37.
+
+    ### The wrong algorithm
+
+    The paper writes the cleanup as `k(N + pX)`, which is the cost of **adaptive** insertion sort:
+    scan left from each element, shift the larger ones up, so `(n-1) + X` comparisons and `X` moves.
+    `InsertionSort` in this repository is not that algorithm. Its `sort` calls
+    `ComparisonSortHelper.swapIntoSorted`, which locates each element by **binary search over the
+    whole sorted prefix** --- `n log n` comparisons however nearly ordered the input is. Its own
+    class comment says it "does NOT use the insertion swap mechanism"; what had not been drawn is
+    the consequence, that it cannot exploit the very property the cleanup pass exists to exploit.
+
+    Measured on the english corpus after the radix phase at n = 200,000: binary insertion 44,947 us
+    against Timsort's 9,830, a factor of **4.57**. §A.5 reports Timsort winning "by a factor of four
+    and a half at N = 4,000,000". That correspondence is close enough to suspect strongly that §A.5
+    measured binary insertion, in which case its conclusion is about the wrong algorithm and the
+    design decision resting on it ("that is why step 3 uses the system sort") is unsupported as
+    stated --- though see below, because it may well be right for other reasons.
+
+    `AdaptiveInsertionSort` is added alongside `InsertionSort`, not replacing it: the existing class
+    is used from the benchmarks and several tests, and it is a legitimate algorithm, merely not the
+    one the model describes. It carries a comparator overload as well as the natural-ordering form,
+    because a cleanup pass in the wrong ordering silently produces an array sorted by the wrong
+    thing --- the trap the pinyin coder has sprung twice already.
+    `AdaptiveInsertionSortTest.testComparisonsAreAdaptive` pins the property that matters: exactly
+    n-1 comparisons on an ordered array, exactly n with one inversion.
+
+    ### The right answer depends on the coder, and not monotonically
+
+    `CleanupPassBenchmarks` measures all three cleanups on the array the radix phase actually hands
+    over, parameterised by coder, since p varies by 3 orders of magnitude across them (item 37).
+    A smoke run at n = 200,000 (1 fork, 2 iterations --- indicative only):
+
+    | coder | p | Timsort | adaptive | |
+    | --- | ---: | ---: | ---: | --- |
+    | `englishSaturatingCoder` | 4.7e-7 | **10.8 ms** | 11.9 ms | Timsort by 1.10x |
+    | `UNICODE_CODER` | 1.15e-4 | 29.5 ms | **25.1 ms** | adaptive by 1.18x |
+    | pinyin | 7.0e-4 | **67.8 ms** | 1006.9 ms | **Timsort by 14.8x** |
+
+    Not monotonic in p, which refutes the obvious model-based expectation that a lower p should
+    favour the algorithm whose cost is linear in X. The reason is Timsort's galloping: at p = 4.7e-7
+    the 2,157 runs average 464 elements and are nearly disjoint in key space, so each merge costs
+    about log(464) comparisons rather than 464, leaving Timsort at roughly n comparisons --- the same
+    as adaptive insertion sort, and slightly ahead of it because it shifts no memory. At the other
+    end, pinyin's X is 7 million at this n and adaptive insertion sort pays every one of them as an
+    expensive NAME_ORDER comparison.
+
+    So: **Timsort is the right default and §A.5's conclusion survives**, but not for the reason it
+    gives, and the margin is a coin-flip rather than 4.5x wherever p is small. An adaptive cleanup is
+    worth having available for the middle of the range.
+
+    ### The threshold: use adaptive insertion sort when 0.2 < pn < 25
+
+    Answered 2026-09-17 by sweeping X directly rather than inferring it from three coders. A husky
+    code leaves groups of equal-coded words in arbitrary internal order, so shuffling within blocks
+    of size b reproduces that structure faithfully and gives X/n about b/4. Timings best-of-5 on a
+    loaded machine; the effects at the peak are large enough to be directional.
+
+    | configuration | adaptive wins up to | loses from | peak advantage |
+    | --- | ---: | ---: | --- |
+    | english, n = 200,000 | X/n = 3.60 | 7.60 | **2.00x** at X/n = 0.18 |
+    | english, n = 1,000,000 | 6.91 | 14.88 | **2.03x** at 0.32 |
+    | chinese names in pinyin order, n = 200,000 | 3.72 | 7.73 | **2.57x** at 0.23 |
+
+    Since X = p n^2 / 4, the deciding quantity is **X/n = pn/4**, so the rule is: choose adaptive
+    insertion sort when roughly **0.2 < pn < 25**, and Timsort otherwise. Below the band both sorts
+    cost about n comparisons and Timsort's scan has the better constant; above it, adaptive's O(X)
+    overruns Timsort's O(n log r) ceiling. The win inside the band reaches 2.6x, and the band is
+    wide --- X/n from about 0.07 to about 7.
+
+    **Scope, and why pn works at all.** Robin's observation (2026-09-17) that pn resembles the
+    expected degree in the Erdos-Renyi-Gilbert model is exact rather than analogical: the *permutation
+    graph* of a permutation has an edge per inverted pair, so pn/4 is literally the average degree of
+    the residual inversion graph --- intensive where p alone is not. The two sorts then read different
+    features of that graph: **adaptive insertion sort pays for every edge, Timsort pays only for the
+    descents**, which are the edges between positionally adjacent vertices. Descents saturate at n/2
+    however disordered the array becomes, which is why across the whole sweep above Timsort's time
+    grew 5.7x (9.0 to 51.3 ms) while adaptive's grew 109x (9.5 to 1,038.7 ms).
+
+    That also bounds the rule. **pn is not a sufficient statistic in general.** Two arrays with the
+    same X but different structure, at n = 200,000:
+
+    | structure | X | descents | Timsort | adaptive | winner |
+    | --- | ---: | ---: | ---: | ---: | --- |
+    | union of cliques, block 32 | 1,519,383 | 94,624 | 37,086 us | **33,044 us** | adaptive 1.12x |
+    | 15 long displacements | 1,559,905 | **15** | **8,404 us** | 39,164 us | Timsort 4.66x |
+    | union of cliques, block 8 | 319,684 | 79,821 | 25,603 us | **19,370 us** | adaptive 1.32x |
+    | 4 long displacements | 319,991 | **4** | **8,424 us** | 14,708 us | Timsort 1.75x |
+
+    At equal edge counts Timsort's time varies 4.4x with structure while adaptive's varies 1.19x. So
+    the rule holds **only for the family of arrays husky coding produces** --- a disjoint union of
+    cliques, one per equal-code group --- for which the group-size distribution fixes the edge count
+    and the descent count together, so a single parameter determines both. It is not a general
+    result about sorting nearly-ordered arrays, and should not be written as one.
+
+    The crossover is **the same for pinyin as for english at the same n** (3.7--7.7 against
+    3.60--7.60) even though a pinyin comparison costs about three times as much. That is expected,
+    since both algorithms pay the same per-comparison cost and it cancels, and it means the threshold
+    is a property of counts and so portable across element types.
+
+    **This also resolves what looked like a contradiction between two measurements of the saturating
+    coder.** They were taken at different n, and the crossover moves with n: pn/4 is 0.024 at
+    n = 200,000, below the band, and 0.118 at n = 1,000,000, inside it. Both measurements were right.
+    The rule predicts every case measured so far:
+
+    | coder | p | n | pn/4 | predicted | measured |
+    | --- | ---: | ---: | ---: | --- | --- |
+    | `englishSaturatingCoder` | 4.7e-7 | 1,000,000 | 0.12 | adaptive | adaptive 1.24x |
+    | `englishSaturatingCoder` | 4.7e-7 | 200,000 | 0.024 | Timsort | Timsort 1.10x |
+    | `UNICODE_CODER` | 1.15e-4 | 1,000,000 | 28.8 | Timsort | Timsort 1.72x |
+    | pinyin | 7.0e-4 | 200,000 | 35 | Timsort | Timsort 14.8x |
+
+    **What this suggests for the design**, not yet implemented and Robin's call: p is a property of a
+    coder and a corpus, measurable once (`CleanupPassProbe` measures it), so a sorter given an
+    estimate of p could choose its own cleanup at runtime from pn. That is a bigger claim than the
+    paper currently makes and would want the JMH figures below before anyone builds it.
+
+    ### What is not yet known
+
+    The margins near the band edges are from a 1-fork smoke run on a loaded machine; only the 14.8x
+    pinyin result and the 2x peaks are large enough to trust as they stand. A proper run:
+
+    ```
+    java -jar target/benchmarks.jar "CleanupPassBenchmarks" -f 5 -wi 5 -i 10 -rf json -rff cleanup.json
+    ```
+
+    Exclude `binaryInsertionCleanup` for the pinyin coder, which it refuses rather than sorting by
+    the wrong ordering.
+
+    On revision, §A.5 wants: which insertion sort Table `TimvsInsertion` measured, and the fact that
+    the choice turns on p and therefore on the coder.
+
+39. **Consider backing off parallel sorting as a feature, and say the benefits are serial.** Raised
+    by Robin 2026-09-17: "What benefits we have are strictly serial, so maybe we should simply
+    acknowledge that and deemphasize the parallel versions." Items 34, 37 and 38 hold the
+    measurements; none of them draws this conclusion, which is the gap this item fills.
+
+    ### The case for it
+
+    The mechanism's advantage and its parallel ceiling are **the same property**. Husky coding wins
+    by moving work out of the linearithmic phase into two linear phases, encode and cleanup, both of
+    which are serial. A sort that wins by doing less total work has less work left to spread across
+    cores. So "the benefits are strictly serial" is not a limitation to confess but the mechanism
+    stated correctly, and it explains both halves of the results at once --- why the serial sort beats
+    `Arrays.sort` and why the parallel one loses to `Arrays.parallelSort`.
+
+    The numbers, all from requests 9 and 10 and item 36:
+
+    - The parallelizable fraction is **0.06** on english and **0.07** on chinesenames; the p1-to-p8
+      sweep buys nothing at all on either. Only chinese, at 0.25, gets anything (1.26x).
+    - The **serial floor** --- encode plus cleanup, untouched by any chunk count --- is **1.11x** of
+      `Arrays.parallelSort`'s entire runtime on english and **1.12x** on chinesenames, on eight
+      cores. Make the digit passes free and infinitely parallel and the sort still loses. On sixteen
+      cores the floor ratio roughly doubles.
+    - The parallel variant wins in exactly **one** measured configuration: `Long[]` at ten million,
+      by 1.19x --- the cheapest comparison in the suite, which is where husky coding has least to
+      offer in the first place. On the permits it never beats its own serial form.
+
+    ### What in the paper would have to change
+
+    - **The conclusion's claim is wrong as written** (line ~1337): "The causes named there are our
+      implementation's, not the approach's, so a parallel proxy-key sort should still win wherever
+      the serial one does". The serial floor is the approach, not the implementation, and no amount
+      of repairing the histogram-combine touches it. This sentence is the one that has to go or be
+      reversed.
+    - **The intro needs qualifying** (lines ~397-403): "Radix sort's independent per-digit
+      counting-sort passes are well suited to parallelization" is true of the passes but they are not
+      where the time goes.
+    - **§6.4 and the abstract are already honest.** §6.4 even predicts its own failure mode ---
+      "the design should fail wherever buckets times threads approaches N" --- which request 10 then
+      confirmed on the permits. The abstract already concedes "where cores are free, the JDK's own
+      parallel sort" overtakes us.
+
+    ### Reframe rather than remove --- recommended, but Robin's call
+
+    Robin's own standing prediction is that the likeliest referee ask is a better
+    parallel-versus-parallel benchmark. Going silent leaves that question unanswered; reporting the
+    negative **with the mechanism** pre-empts it, and a measured negative with an explanation is a
+    stronger section than a hopeful positive. A referee cannot ask "but what about threads?" of a
+    paper that has already shown the serial fraction to be 0.94 and said why.
+
+    There is also a page-budget argument for it: moving §6.4 out of the body and into the appendix
+    beside A.7 frees body space, and the body is at exactly 12.00 pages with no margin, while the
+    appendix is outside the count. Do **not** estimate how much it frees --- the length metric is
+    non-monotonic under float reflow, so it has to be rebuilt and measured.
+
+    Interacts with the four options Robin is weighing for the paper (withdraw / revise now / revise
+    in the author-response phase / leave it): this is a revision of emphasis and one incorrect
+    sentence, not of results, which makes it cheap under options 2 and 3 and impossible under 4.
+
+    ### DONE in the paper, 2026-09-17, on the `parallel-redesign` branch
+
+    Robin asked for the revision to be made now so that a camera-ready copy can simply be built if
+    and when the time comes. Four changes to `paper/RadixHuskySort.tex`; **no measured figure was
+    altered**, only what is claimed about the figures and where the material sits.
+
+    1. **The conclusion's incorrect sentence is reversed.** It claimed the parallel shortfall was
+       "our implementation's, not the approach's, so a parallel proxy-key sort should still win
+       wherever the serial one does". It now opens with the positive statement --- the advantage this
+       paper reports is a serial one, and that is a property of the mechanism --- and gives the
+       argument: husky coding earns its advantage by moving work into two linear phases, both
+       sequential, so a sort that wins by performing less total work has less work left to
+       distribute. It cites the measured parallelizable fractions (0.06 English, 0.07 Chinese names)
+       and the serial floor exceeding `Arrays.parallelSort`'s whole runtime, and says plainly that
+       repairing the histogram-combine would not change the conclusion. It also concedes the case
+       where a parallel comparison sort is the right tool.
+    2. **The introduction is qualified.** "Well suited to parallelization" now reads "taken alone,
+       well suited", followed by the point that those passes are not where a proxy-key sort spends
+       its time, and that the parallel variant is offered as a measured negative result rather than
+       as a feature.
+    3. **§6.4 moved out of the body into the appendix**, landing immediately after A.7, the parallel
+       baseline it loses to, so all the parallel material sits together. It is now A.8. A `%%`
+       comment at the move site records why. The contributions list no longer says "we add a parallel
+       variant of it" but that we parallelize the digit passes, "which turns out not to pay and is
+       reported as such".
+    4. A `\label{sec:conclusion}` was added, the conclusion having had none, so the introduction can
+       point forward to the argument.
+
+    **Measured, not estimated** (the length metric being non-monotonic under float reflow): the body
+    was exactly 12.00 pages, with `References` at the very top of page 13 and no margin whatever. It
+    now ends part-way down page 12's **right** column --- `References` begins at yMin 182 of that
+    column --- so roughly four tenths of a page of body space has been freed. All cross-references
+    resolve; the log reports no undefined reference, and the only hardcoded section number anywhere
+    in the source is inside the new explanatory comment.
+
+    Note for whoever builds next: **`paper/build.sh` fails out of the box**, because `pdflatex` is
+    not on the default `PATH` on this machine --- it lives in `/Library/TeX/texbin`. Prefix the
+    invocation with `PATH="/Library/TeX/texbin:$PATH"` or fix the script. Also note that Table
+    `ParallelRadix` is now numbered A.7 while the parallel-baseline *section* is also A.7, separate
+    LaTeX counters both reaching the same number; standard, but a reader could trip on it.
+
+40. **The cleanup pass IS well parallelizable, which undercuts item 39's central argument and the
+    conclusion revised on 2026-09-17.** Found 2026-09-17, late, after Robin proposed that the
+    cleanup resists parallelism because "the data elements are NOT independent ... there is a
+    direction of processing such that we cannot treat whole chunks independently."
+
+    ### What is true
+
+    That holds for **insertion sort**: element i's destination depends on 0..i-1 already being
+    ordered, a loop-carried dependence with no chunking available. It does **not** hold for
+    **Timsort**, which is a merge sort, and merge sort is the canonical parallelizable comparison
+    sort --- `Arrays.parallelSort` chunks it exactly that way, Timsorting leaf blocks independently
+    and merging them.
+
+    The counter-argument offered in reply was also wrong, and more instructively. It ran: chunking
+    destroys the global run detection that makes an adaptive sort cheap, since serial Timsort finds
+    one run spanning the whole array and stops, so parallelizing is counterproductive. **The work
+    analysis is right and the time conclusion does not follow, because it omits the division by
+    core count.** Measured, n = 1,000,000 english strings, 8 cores and 7 pool workers:
+
+    | disorder (block shuffle) | natural runs | serial `Arrays.sort` | `Arrays.parallelSort` | ratio |
+    | --- | ---: | ---: | ---: | ---: |
+    | 1 (fully sorted) | 1 | 26,147 us | **14,931 us** | 0.57x |
+    | 2 | 66,784 | 59,027 | **21,215** | 0.36x |
+    | 32 | 431,767 | 114,519 | **35,241** | 0.31x |
+    | 65,536 | 499,852 | 316,435 | **83,809** | 0.26x |
+
+    Parallel wins at every level, **including on an already-sorted array**. The mechanism is exactly
+    the work analysis with the missing division: JDK `Merger` binary-searches a split point for
+    parallelism and then merges element-wise at the base case, without galloping, so on sorted input
+    parallelSort does about 4x the work of serial Timsort (n at the leaves plus ~3n across merge
+    levels, against n comparisons and no moves) and finishes in 4/7 of the time. 4/7 = 0.571 against
+    a measured 0.571.
+
+    ### What it costs us
+
+    All four phases are parallelizable: the digit passes (measured, 1.19x on `Long[]` at 10M), the
+    encoding (a pure function per element), the permutation (an independent scatter under a
+    bijection), and now the cleanup (measured above). **We parallelized one of the four, and not the
+    one with the time in it.** So:
+
+    - **Item 39's central argument is weakened.** "A sort that wins by performing less total work has
+      less work left to distribute across cores" is true as arithmetic but does not bound anything,
+      because our reduced work parallelizes about as well as the baseline's --- our cleanup *is* a
+      parallel comparison sort over the same array.
+    - **The conclusion as revised in `36fa361` asserts more than we know.** It says the serial
+      advantage is "a property of the mechanism rather than a shortcoming of our implementation".
+      That is not established. The sentence it replaced --- "the causes named there are our
+      implementation's, not the approach's, so a parallel proxy-key sort should still win wherever
+      the serial one does" --- was closer to right, though it too asserted more than was measured.
+
+    ### The arithmetic that decides it, and what is still missing
+
+    A fully parallel proxy-key sort beats `Arrays.parallelSort` iff encoding plus digit passes plus
+    permutation costs less than what pre-ordering saves the baseline. From the table above that
+    saving is 83.8 - 14.9 = **68.9 ms** at n = 1,000,000 on this machine. The measured encode is
+    24.3 ms, leaving **44.6 ms** for the passes and the permutation. Six passes over a million
+    elements at 12 bytes is 72 MB of traffic spread over seven workers, which is plausibly inside
+    that budget --- but it is **not measured**, so neither outcome may be claimed.
+
+    **DONE in the paper, same day.** Robin's call was to rework rather than revert. The conclusion
+    now opens "The advantage demonstrated here is a serial one", names the four phases, says we
+    parallelized one of them and not the one with the time in it, keeps the f = 0.06 figure and the
+    serial-floor comparison --- and then, in a second paragraph, says explicitly that this does *not*
+    establish a limit on the approach: the other three phases are parallelizable, the cleanup
+    measurably so against our own expectation, so the ceiling bounds this implementation rather than
+    the mechanism. It states the open question with its budget (about 69 ms saved by pre-ordering at
+    a million English strings, 24 of which a measured encoding spends, leaving some 45 ms unmeasured)
+    and claims neither outcome. The introduction's forward pointer was corrected to match, since it
+    had promised an argument that no longer exists. Body still inside 12 pages, `References` at
+    yMin 349 of page 12's right column against 182 before the rework and the very top of page 13
+    before any of today's edits; no undefined references.
+
+    **Do not rewrite it a fourth time without measuring.** The claim was stated three mutually
+    inconsistent ways in one day. What settles it is one benchmark: a variant that parallelizes the
+    encoding and uses `Arrays.parallelSort` as the post-sorter, set against `Arrays.parallelSort`
+    alone. That is the "clearest future work" the conclusion now names.
+
+    ### Future work: a run-aware parallel cleanup, and why it probably does not help us
+
+    Robin's suggestion (2026-09-17) was that Timsort might parallelize on its **runs** rather than on
+    fixed-size blocks. That is a genuinely different scheme from `Arrays.parallelSort`, which splits
+    into blocks of `n/(4p)` floored at 8192, Timsorts each and merges --- chopping a run that spans
+    the whole array into some sixty pieces and then merging them back. Splitting at natural run
+    boundaries instead preserves the adaptivity that fixed blocks destroy: detect runs in parallel
+    (each worker scans its own segment, stitching at the boundaries), then merge the runs.
+
+    The two cost models, with r runs over p workers:
+
+    | input | run-aware | fixed blocks (`parallelSort`) |
+    | --- | --- | --- |
+    | already sorted, r = 1 | `n/p` --- detect, find one run, stop | ~`4n/p` --- every block sorts, then ~3 merge levels |
+    | r runs generally | `(n/p)(1 + log2 r)` | ~`4n/p`, independent of r |
+
+    So run-aware wins while `log2 r < 3`, which is to say roughly **r < 4p** --- fewer natural runs
+    than `parallelSort` would have made blocks. On a sorted array that is about 4x better than
+    `parallelSort` and 7x better than serial Timsort, well beyond the 1.75x measured above.
+
+    **But the regime where it wins barely overlaps with the regime we care about.** With
+    `englishSaturatingCoder`, r is 16,641 at n = 1,000,000, so `log2 r` is about 14 and a run-aware
+    scheme would be roughly 3.75x *worse* than fixed blocks --- merging sixteen thousand small pieces
+    instead of twenty-eight large ones. And where r is small enough for it to win, the cleanup is
+    already cheap enough that nothing is at stake; the permits are the limiting case, r = 1 and no
+    cleanup pass at all, the coding being perfect.
+
+    Which is a compact statement of the whole finding: **the cleanup is either expensive and
+    fragmented, in which case fixed blocking parallelizes it better, or cheap and coherent, in which
+    case there is nothing to parallelize.** Fixed-size blocking is the right choice for the one
+    regime that matters here.
+
+    Consequence for the paper's open question, recorded rather than acted on: the ~45 ms budget the
+    conclusion quotes for passes and permutation assumes the cleanup is parallelized the way
+    `Arrays.parallelSort` does it. If some scheme beat that in some regime, the budget would be a
+    floor rather than a fixed figure. The paper already claims neither outcome, and a scheme that has
+    not been built does not strengthen that, so the text was left alone.
+
+41. ~~**Parallelize step 1, the encoding, in the parallel sorter.**~~ **DONE 2026-09-17.** Robin:
+    "Step 1 is eminently parallelizable, yet I believe we have relegated it to future work because it
+    just wouldn't make a sufficient difference. However, I think we should do it in our parallel
+    version(s). I can't see a good reason not to." He was right, and the earlier estimate that it
+    "wouldn't make a sufficient difference" was based on the wrong coder's encode cost.
+
+    ### What was done
+
+    `AbstractHuskySort.preSort` is `final`, deliberately, because the three-phase structure must hold
+    for every husky sort; so the coding step became its own `protected doCoding(X[])`, which
+    `preSort` calls and which `ParallelRadixHuskySort` overrides. Every other sorter keeps the
+    sequential form, which is what the published serial figures were measured with and must remain.
+
+    `HuskyHelper.doCoding(array, chunks, executor)` divides the work by **slicing the array and
+    invoking the coder's own array-level encode on each slice**, rather than encoding element by
+    element. That is a correctness point rather than a convenience: a coder decides for itself
+    whether its coding is perfect and may decide per element ---
+    `BaseHuskySequenceCoder` reports perfection only if *every* sequence fits --- so any
+    implementation that bypassed the coder's array method would have to duplicate that reasoning and
+    would silently diverge from it. The slices' verdicts combine with a logical and. Three tests
+    cover it, including one for all-perfect input, which is the only case that distinguishes an "and"
+    from an "or".
+
+    ### Measured, n = 1,000,000 on eight cores
+
+    | corpus / coder | sequential | 2 chunks | 4 chunks | 8 chunks |
+    | --- | ---: | ---: | ---: | ---: |
+    | english / `englishSaturatingCoder` | 72,953 us | 38,303 (1.90x) | 25,852 (2.82x) | **21,002 (3.47x)** |
+    | english / `UNICODE_CODER` | 24,308 us | 15,577 (1.56x) | 12,091 (2.01x) | **9,850 (2.47x)** |
+    | chinesenames / pinyin | 124,506 us | 70,701 (1.76x) | 43,175 (2.88x) | **33,626 (3.70x)** |
+
+    ### Why this matters more than the earlier estimate suggested
+
+    **The saturating coder's encode costs three times the Unicode coder's** --- 72.9 ms against
+    24.3 ms at a million elements, since it processes ten characters rather than four. The "encode is
+    only about a quarter of our own total, so parallelizing it buys little" reasoning in item 40 used
+    the 24.3 ms figure, which belongs to the coder we have just stopped using for english.
+
+    Against the budget item 40 derives --- pre-ordering saves the baseline about 68.9 ms at a million
+    English strings --- a **sequential** saturating encode at 72.9 ms does not fit *at all*.
+    Parallelized to 21.0 ms it fits with some 48 ms left for the digit passes and the permutation. So
+    parallelizing step 1 is not a marginal gain; it is what makes the saturating coder of item 37
+    affordable, and the two changes support each other.
+
+    It also partly answers item 37's open question, though not the way the JMH benchmarks there will:
+    saturating **does** cost real encode time, about 3x, which is a genuine argument against it while
+    the encode is sequential and much less of one once it is not.
+
+    ### Still not parallelized
+
+    Two of four phases now: encoding and digit passes. The permutation remains sequential --- an
+    independent scatter under a bijection, so it is safe in principle, and the existing comment
+    explains it was left alone as one O(N) pass over arbitrary payload objects. The cleanup remains
+    sequential, and item 40 records both that it parallelizes well and why a run-aware scheme
+    probably would not help us.
+
+42. **There is no parallel QuickHuskySort, and it should stay that way --- but for strategic reasons,
+    not because it would not work.** Robin asked on 2026-09-17 whether such a thing exists. It does
+    not: `ParallelRadixHuskySort` is the only parallel variant in the repository, and the paper
+    declines to attempt another.
+
+    ### It would work, and it has *more* parallel headroom than the radix variant
+
+    Parallelizing QuickHuskySort's step 2 is textbook: partition sequentially, fork the two halves,
+    and after log P levels there are P independent subarrays. The payload-drag swaps that make
+    QuickHuskySort slower than RHSort are safe under that scheme, forked subranges being disjoint.
+    With the `doCoding` hook added in item 41, its encoding would parallelize for free.
+
+    The headroom is the counterintuitive part. From the paper's own figures at n = 1,000,000 on
+    English words:
+
+    | | total | encoding | step 2 + cleanup |
+    | --- | ---: | ---: | ---: |
+    | QuickHuskySort | 697.9 ms | 67.7 (9.7%) | **~630 ms** |
+    | RHSort | 272.7 ms | 67.7 (24.8%) | ~205 ms |
+
+    **QuickHuskySort has about three times the parallelizable work in absolute terms**, its
+    O(n log n) step 2 being a far larger share of a far larger total. Its Amdahl fraction is
+    therefore much more favourable than RHSort's: the variant with the *worse* serial performance has
+    the *better* parallel prospect, because parallelism rewards having work to divide. That is the
+    mirror image of item 39's argument --- "a sort that wins by doing less total work has less left to
+    spread across cores" --- read backwards, and it is worth keeping the pair in view, because
+    together they say the serial win and the parallel prospect trade against each other rather than
+    reinforcing.
+
+    ### Why not to build it
+
+    - It runs against the decision of item 39 to back off parallel claims generally.
+    - The paper deliberately de-emphasises QuickHuskySort as the original idea, RHSort being the
+      headline (see item 21, the renaming).
+    - It is real algorithm work --- parallel quicksort with payload drag, plus the stability and
+      correctness sweep that `ParallelRadixHuskySortTest` needed --- for a variant that is not the
+      contribution.
+
+    ### The paper's existing sentence is fine, with one caution
+
+    The introduction says of QuickHuskySort's comparison-based steps that "parallelizing them well is
+    a separate, harder problem that this paper does not address". That is a **scope** statement and
+    stands. The caution is only that "harder" must not be read as "unsolved": the JDK demonstrably
+    parallelizes Timsort --- `Arrays.parallelSort` *is* that --- and it beats serial Timsort by
+    1.75--3.8x in the measurements of item 40. If a referee presses, the honest answer is "harder,
+    and out of scope", not "not known how".
+
+43. **Consolidated paper-revision checklist (opened 2026-09-22, after Yunlu's request-11 run,
+    PR #67).** Items 36--42 each recorded their own paper consequences as they were found, over
+    about a week, and two of them have since been partly overtaken by measurement. Robin asked for
+    one list. This is it: everything the paper needs, in one place, so that whichever of item 39's
+    four options is chosen the work is already scoped. Nothing here is started.
+
+    ### A. The cleanup cost model is the wrong algorithm's, and the paper already knows it
+
+    \S~`sec:pcrit` says "for Timsort **or insertion sort**, the time to re-sort the array will be
+    $t = k (N + pX)$", then defines $T_3 = k_3 (N + pX)$ as "the time to **Timsort** the element
+    array". $N + pX$ is the *adaptive insertion sort* cost --- N to scan plus one move per remaining
+    inversion. It is not Timsort's. Timsort's cost is $\textbf{O}(N + N \log r)$ for $r$ runs, which
+    **the paper already states correctly** in the algorithm-comparison table, citing Auger et al.:
+    "more precisely $\textbf{O}(N + N \log p)$ for $p$ runs". So the paper contradicts itself
+    between the body and the table, and the body's version is the wrong one. Worse, that table's
+    bound overloads $p$: $p$ is the residual inversion *probability* everywhere else in the paper
+    and the *run count* in that one cell.
+
+    The measurement settling it (2026-09-22, hand timing, english corpus, n = 1,000,000, 15
+    interleaved reps, eight-core Mac --- JMH cells now committed as `c5f47d3` and awaiting a run):
+
+    ```
+                           runs    inversions   timsort(ms)   adaptive(ms)
+    unicode      4x16   366,865    27,535,704         133.3          223.7
+    asciiMasking 9x7     30,520   185,161,666          54.2          888.7
+    asciiSat     9x7     29,327       216,488          43.6           45.0
+    englishMask 10x6     17,305   180,352,275          43.5          830.9
+    englishSat  10x6     16,061       110,206          38.0           39.1
+    ```
+
+    Timsort's cleanup is monotone in run count and **blind to inversions**: 185.2M inversions and
+    216,488 inversions both cost about 46 ms. Two independent coder pairs differing by 855x and
+    1,637x in inversions, and by 4% and 8% in runs, differ by about 1.1x in Timsort time --- against
+    which `AdaptiveInsertionSort`, on the very same arrays, is 16x to 19x slower on the masking
+    member of each pair and level on the saturating one. Same data, same machine, same minute: the
+    two algorithms' costs track different statistics, and only one of them is the statistic the
+    paper's formula uses.
+
+    Consequences, in increasing order of how much they cost to write:
+
+    1. Fix $T_3$ to $k_3 N (1 + \log_2 r)$, or keep both forms and say which algorithm each belongs
+       to. Rename the run count in the comparison table so it is not $p$.
+    2. \S~`sec:pcrit` is then built on the wrong control variable. $p_{crit}$ is defined as a
+       critical *inversion probability*; if the shipped cleanup is Timsort, the quantity that
+       decides whether the method wins is the **run count the coder leaves**, not $p$. The honest
+       rework states both: $p$ governs the cleanup if you use insertion sort, $r$ governs it if you
+       use Timsort, and the paper uses Timsort. This is the largest single piece of writing on this
+       list and it touches the abstract's framing.
+    3. The $T_3$-at-$p=0$ argument (the permits, one full composite comparison per element) is
+       **unaffected and stays** --- at $p = 0$ there is one run and both models agree on $N-1$.
+
+    ### B. Masking versus saturation, and "quasi-order-preserving" as a stated concept
+
+    Robin's call (2026-09-22): this is a genuine discussion point and the paper should have it
+    rather than quietly shipping one coder. The shape of the argument:
+
+    - A husky code does **not** have to be order-preserving. It has to be *quasi* order-preserving:
+      wrong often enough to matter is fine, because step 3 repairs whatever step 2 leaves. The paper
+      currently treats order preservation as the requirement and imperfection as a matter of ties
+      only. Widening that to admit genuinely mis-ordering codes is a small conceptual contribution,
+      and it is what licenses the cheapest coders.
+    - **Masking is the simplest thing that works.** `c & mask` is one instruction and it is exactly
+      order-preserving *inside* the window --- for `englishCoder` every character in 64..127, which
+      is all of A--Z and a--z. Outside the window it wraps, so an apostrophe (39) collides with `g`
+      and `e`-acute (233) sorts as `i`. Quasi, not order-preserving.
+    - **Saturation** (`clamp(c - offset, 0, width-1)`) is monotonic over all 65,536 chars, verified
+      exhaustively, and costs a compare-and-select per character.
+    - The measured trade (above, plus TODO 37): saturation costs roughly 25 ms per million to encode
+      on an eight-core Mac and 1.7--3.0x the masking encode on Yunlu's Graviton, and buys nothing
+      measurable in cleanup. **Masking wins on speed**, and the encode-plus-cleanup figures are
+      111.1 ms masking against 136.9 saturating.
+    - A point that sharpens the discussion and was not obvious: on the english corpus the two coders
+      fail on *exactly the same words*. The word splitter emits letter-only tokens, so no token
+      holds an apostrophe, hyphen or digit, and the only characters reaching outside either window
+      are the letters at or above 128. The "don't" / "dongt" collision is real arithmetic but the
+      corpus never exercises it. Whatever the paper says about masking should therefore be said in
+      terms of the coder's window against the corpus's character repertoire, not in terms of
+      punctuation.
+    - The counter-argument, which is not a speed one: the paper *defines* a husky code as
+      order-preserving, so a headline figure produced by a coder that violates the definition is
+      awkward. Either the definition widens to "quasi", or the slower coder ships. **This is Robin's
+      decision and the paper should show the reader the trade either way.**
+    - The conditional that must be stated: all of this holds **because the cleanup is Timsort**. If
+      the cleanup were adaptive insertion sort, masking's 86M inversions would cost of the order of
+      a second and saturation would be mandatory. Coder choice and cleanup choice are coupled, which
+      is itself worth saying.
+
+    ### C. A caution about which characters actually cause the damage
+
+    Found 2026-09-22 while checking Robin's hypothesis that `asciiCoder` (9x7) would be much safer
+    than `englishCoder` (10x6) because a 7-bit mask preserves all printable ASCII. It does preserve
+    it --- apostrophes, hyphens and digits all survive `& 0x7F` intact --- **and it does not help**:
+    `asciiCoder` carries 87.8M inversions against `englishCoder`'s 85.8M, slightly *more*. What
+    dominates is not punctuation but the characters at or above 128, which neither width preserves.
+    Punctuation is the visible hazard; the corpus's character repertoire is the invisible one. Worth
+    a sentence, because the intuition is natural and wrong.
+
+    **Chasing this found a real defect in our own tokenizer, now fixed --- see the separate note
+    below.** What follows was re-measured afterwards, against the repaired tokenizer.
+
+    **Repairing the mojibake does not help, and costs a little (measured 2026-09-22).** Robin asked
+    whether repairing the corpus would help, on the reasonable view that the mojibake is an error
+    and testing against a corrected corpus is defensible if declared. It is repairable, at line
+    level: repairing each line *before* tokenizing takes words still carrying a mojibake marker from
+    1,843 to 238 and recovers `Amelie`, `Nurnberger`, `Cliches`, `Souffles`, `Cafe`, `fur` properly
+    accented. (Word-by-word repair does not work, because the splitter has by then already dropped
+    the trailing non-letter: `ClichA-tilde-copyright` is left as `ClichA-tilde`, and the
+    continuation byte is gone.)
+
+    But the repair *restores genuine accented characters*, which is exactly what a fixed-width coder
+    cannot represent, so it moves our numbers the wrong way. At n = 1,000,000:
+
+    ```
+                        words>127    runs    inversions   timsort(ms)  adaptive(ms)
+    englishMask  before      1,843  17,305  180,352,275         36.9          841.6
+    englishMask  after       2,536  17,815  187,739,187         37.2          916.9
+    asciiMask    before      1,843  30,520  185,161,666         42.3          921.0
+    asciiMask    after       2,536  31,078  259,115,324         45.4        1,199.0
+    ```
+
+    Runs rise about 3%, so the Timsort cleanup is unchanged within the noise of an eight-core Mac;
+    the masking coders' inversions rise 4% and 40%, and the adaptive cleanup degrades accordingly.
+
+    So the corruption was, accidentally, flattering our coders --- it was replacing accented
+    characters with truncated ASCII-ish ones. **Recommendation: do not repair, and say in the paper
+    that we checked.** One or two sentences forecloses a referee's question and is more interesting
+    than silence: the mojibake is upstream, our copy is byte-identical to a fresh download (sha256
+    `475aa01b...`, item 36), a correct repair exists, and applying it moves the Timsort cleanup by
+    less than the measurement noise, in the unfavourable direction. That supersedes the earlier
+    "deleting every affected word is worth 2.6%" ceiling, which measured deletion rather than repair.
+
+    ### C2. The word splitter was discarding 15% of the english corpus and 51% of the chinese one
+
+    Found 2026-09-22 while establishing why word-level mojibake repair failed, and **fixed the same
+    day** at Robin's instruction ("our tokenizer is wrong. We need to fix that, even if it costs us
+    time"). `HuskySortBenchmark.REGEX_LEIPZIG` read
+
+    ```
+    [~\t]*\t(([\s\p{Punct}\uFF0C]*\p{L}+)*)
+    ```
+
+    which requires the captured sentence to be an alternation of ASCII punctuation and Unicode
+    letters. Java's `\p{Punct}` is POSIX, hence **ASCII-only**, so the group stopped at the first
+    character that was neither a Unicode letter nor ASCII punctuation, and `String.split` was handed
+    only that prefix. Digits qualified; so did the pound sign, the copyright sign, and every
+    non-ASCII dash or quotation mark. The failure was silent and total:
+
+    ```
+    eng-uk_web_2002_1M    15.2% of sentence characters discarded
+                          275,387 -> 304,959 distinct words, 16.39M -> 18.86M tokens
+    zho-simp-tw_web_2014  51.5% discarded (U+3002, the ideographic full stop, is not ASCII punct)
+                          24,215 -> 50,009 distinct, 25,745 -> 56,134 tokens
+    ```
+
+    "With Amelie (Cert 15) Jeunet combines the best of his two previous films..." yielded "With
+    Amelie (Cert". "The figure size must not exceed A4 or 8.5 x 11in..." yielded "The figure size
+    must not exceed A". Every line with a digit in it lost everything from the digit onwards.
+
+    The fix is `[~\t]*\t(.*)` for the line --- a Leipzig line is `<id>\t<sentence>`, so the
+    sentence is simply everything after the first tab, and any attempt to validate it inside the
+    pattern can only truncate it --- together with `[^\p{L}]+` for the splitter, replacing an
+    enumeration of separators that could never be complete. The splitter change is behaviour-neutral
+    on the text the old line pattern captured; the line pattern is the repair. It is **purely
+    additive**: no word either corpus produced before is lost.
+
+    **Consequences.**
+
+    1. Every english and chinese string figure ever measured, by us or by Yunlu, is superseded.
+       chinesenames is not affected (it loads via `lineAsList`). This is a second full-suite re-run,
+       and Robin accepted that cost explicitly.
+    2. It makes the masking coders look *worse*, because the recovered vocabulary is more accented:
+       `englishCoder`'s inversions at n = 1,000,000 go 85,818,889 -> **180,352,275**, `asciiCoder`'s
+       87,797,452 -> **185,161,666**, while every run count moves by less than 4%. The
+       masking-versus-saturation verdict does not change --- Timsort still cannot see it --- but the
+       discrimination in section A is now 1,637x and 855x rather than 731x and 373x, which makes the
+       experiment stronger, not weaker.
+    3. The paper's data-source section must say how the corpus is tokenized, which it currently does
+       not. Given that the bug hid 15% of one corpus and half of the other, "words extracted from
+       the Leipzig sentences" is not a sufficient description.
+    4. It supersedes the claim in section C above that punctuation is not what damages the masking
+       coders "because the mojibake dominates". The truer statement is stronger: the splitter emits
+       letter-only tokens, so **no token contains punctuation or a digit at all**, and the only
+       characters reaching outside a 6- or 7-bit window are letters at or above 128. Both masking
+       coders therefore fail on exactly the same words.
+
+    ### D. The parallel claims are now too pessimistic --- item 40's precondition is met
+
+    Item 40 says "do not rewrite the conclusion a fourth time without measuring" and names the
+    deciding benchmark. Half of it has now been run. With the encode parallel (`15cc2ff`) but the
+    cleanup still serial, `parallelRadixHuskySortAuto_pAll` beats `Arrays.parallelSort` on **8 of 15
+    cells**: english@1M 1.24--1.34x, chinese@1M 1.30x, all three permit sizes 1.13--1.57x,
+    `Long[]`@10M 1.31x, english@32k 1.14x, chinese@32k 1.08x. The conclusion's opening --- "The
+    advantage demonstrated here is a serial one" --- is false for those cells. The replacement is
+    not a reversal but a size-and-corpus-dependent claim; the losses are english@200k, chinese@200k,
+    chinesenames at all three sizes, `Long[]`@2M.
+
+    The other half of item 40's benchmark --- a `parallelSort` post-sorter --- is **built as of
+    2026-09-22 and awaiting a run**, opt-in rather than default. The cleanup is the only serial
+    phase left, and it is 50% of the parallel sort at english@200k, 74% at english@1M and **91% at
+    chinesenames@1M**, where the pinyin cleanup alone is 506 ms of a 558 ms sort.
+
+    **The speed-up it buys is smaller and more variable than this item first claimed, and the
+    correction matters.** Item 40 records 2.8--3.8x. That figure came from *randomly shuffled*
+    arrays, where `parallelSort`'s leaves do real work. Measured on the hand-over arrays the cleanup
+    actually receives, eight cores, one corpus per JVM:
+
+    ```
+    corpus         n          runs   mean run   serial   parallel   speed-up
+    english      200,000     2,000      100.0    10.82      10.36      1.04x
+    english    1,000,000    16,061       62.3    42.38      22.72      1.87x
+    chinese      200,000     3,107       64.4     4.99       9.38      0.53x  <-- loses
+    chinese    1,000,000    16,790       59.6    12.47       8.34      1.50x
+    chinesenames 200,000    30,462        6.6    70.71      20.93      3.38x
+    chinesenames 1,000,000 162,690        6.1   290.82     114.64      2.54x
+    ```
+
+    So it pays in proportion to the work available and **can go negative**: Robin's original
+    objection --- the elements are not independent, so chunks cannot be processed separately --- is
+    right about the mechanism, and what it costs is a factor, not the whole gain. The dependence
+    lives in the merge, and merging parallelizes; but on a nearly ordered array serial Timsort finds
+    long runs and stops while `parallelSort` still pays about `log(4p)` merge levels over `4p`
+    blocks, so where the cleanup is already cheap the division by p does not cover it.
+
+    Projected onto the request-11 figures --- **projections, not measurements**: chinesenames@200k
+    0.43x -> ~1.2--1.4x and chinesenames@1M 0.42x -> ~0.9--1.2x (the two worst cells in the table,
+    flipping or reaching parity), english@1M 1.34x -> ~1.9x, chinese@1M 1.30x -> ~1.5x,
+    english@200k unchanged at 0.53x, and chinese@200k **regressing** from 0.95x to ~0.6x.
+
+    Hence opt-in. No guard rule is encoded, because n alone cannot express one: chinese and
+    chinesenames at n = 200,000 are the same size and want opposite answers. What separates them is
+    how much disorder the coder left, which is what `CleanupPassBenchmarks` parameterises --- so the
+    rule should come from its new `parallelTimsortCleanup` arm on the machine of record.
+
+    **A deeper reading of the same numbers.** chinesenames gains most because its coder is worst:
+    the radix phase cuts its run count only **3.1x** (500,269 -> 162,690) against english's **62x**,
+    leaving runs of mean length 6.1 where english has 62.3. Parallelizing that cleanup treats a
+    symptom; the cause is the pinyin coder, which is items 10 and 11 --- now quantitatively
+    motivated rather than speculative. Worth a sentence in the paper, because a referee who sees the
+    chinesenames row will ask why it is the weak one.
+
+    ### E. The encode, not the cleanup, is the dominant serial term
+
+    Direct phase measurement of the real sorter (2026-09-22, english@1M, saturating coder, eight
+    cores): encode 65 ms (46%), digit passes plus permutation 38 ms (27%), cleanup 38 ms (27%), full
+    serial sort 141 ms. The paper treats $T_1 = k_1 N$ as the cheap term and spends its analysis on
+    $T_2$ and $T_3$. For a ten-character coder $T_1$ is the **largest** of the three. That is worth
+    stating plainly, and it is the motivation for parallelizing step 1 (item 41) rather than an
+    afterthought.
+
+    Caution for anyone reading an earlier draft of this: a "74% cleanup" figure was quoted on
+    2026-09-21 from dividing a *serial* cleanup measurement by a *parallel* total. It is arithmetic
+    about the parallel implementation, not about the algorithm, and it is not a statement that the
+    coding is poor. The serial share is 27%.
+
+    ### F. Tables and figures: replace, do not splice
+
+    - Every english and commonwords string row of requests 4, 9 and 10 is superseded (the corpus
+      changed coder), as is every `RadixHuskySort` / `ParallelRadixHuskySort` row of every earlier
+      request (internals changed), and request 9's chinesenames `systemSortParallel` row (it sorted
+      by code point, not pinyin --- a cheaper and different job from the husky sorts beside it).
+    - **Warm-up**: 35 of 81 english String-class rows in request 11 are unconverged at 2 s
+      iterations. `systemSort / radixHuskySortAuto` reads 3.98x / 2.90x at english 32k / 200k but
+      steady state is about 4.5x / 3.2x --- the paper's ratios would be *understated*. No chinese or
+      chinesenames row is affected. Any english figure in the paper needs the long-warm-up form.
+    - **Label the n = 32,000 parallel rows "1 chunk (serial)"** (Yunlu's Q4, agreed in the reply to
+      request 10, not yet done). At that size `chunks = max(1, min(p, n/16384)) = 1`, so a row
+      labelled `p8` or `pAll` invites exactly the wrong inference. Print chunks, bits and passes per
+      row, since the automatic width varies with size.
+    - \S~A.5's Table `tab:TimvsInsertion` must say **which** insertion sort it measured: it is the
+      binary-search form, confirmed by Yunlu at 5.18x / 4.67x against Timsort on english, which
+      brackets the paper's reported 4.5x. Timsort survives as the default, but the margin against
+      the *adaptive* form is a coin flip at small $p$, not 4.5x, and the crossover is near
+      $pn \approx 12$--$23$ (adaptive wins unicode at n = 20k / 50k / 100k by 0.63x / 0.68x / 0.82x,
+      ties at 200k, loses at 1M). It fails at the window's *lower* edge for a reason worth one
+      sentence: below about one move per element both algorithms are at a scan floor of roughly
+      50--60 ns per string and there is no work left for adaptivity to save.
+
+    ### G. Two smaller things already noted elsewhere, repeated here so the list is complete
+
+    - **Item 36's character-count lever.** The english corpus was encoded with a coder capturing
+      four characters where ten were available, collapsing a 275,333-word vocabulary into 68,512
+      codes. Runs fall 365,958 -> 16,641. The design guidance --- capture as many characters as the
+      width allows, it dominates everything else about the coder --- is worth stating as guidance.
+    - **Item 38's `AdaptiveInsertionSort`** now exists in the repo, so \S~A.5 can name and cite the
+      $N + X$ algorithm rather than gesture at it.
+
+    ### What is NOT on this list
+
+    No new claim that the cleanup parallelizes *in our implementation* (it does not yet); no
+    rewrite of the conclusion beyond what D describes; no parallel QuickHuskySort (item 42); and no
+    verdict on masking versus saturation until the cells committed in `c5f47d3` have been run --- the
+    figures in A and B are hand timings on a loaded eight-core Mac, consistent and directionally
+    clear, but not JMH on the machine of record.
+
+44. **An exactly order-preserving pinyin coder, and the general principle behind it (2026-09-22).**
+    Robin asked why the Chinese-names coder is the worst in the project, given that names are two or
+    three characters and the coder packs five. The answer is that length was never the constraint,
+    and the diagnosis generalises further than the fix.
+
+    ### The defect: the code implements two levels of an ordering that has three
+
+    `NAME_ORDER` compares each character on **(1)** pinyin syllable ordinal, **(2)** tone, and
+    **(3)** Unicode code point --- the last a tie-break between true homonyms, standing in for the
+    stroke-count data the class comment notes is unavailable. `encodeHanyuOrdinal` packs only (1) at
+    9 bits and (2) at 3. There is no third level, so true homonyms receive byte-identical codes.
+
+    Measured on `Chinese_Names_Corpus.txt` (1,145,009 names; 15.6% of two characters, 84.4% of
+    three; 12 bits each, so 64 bits holds five --- capacity was never near the limit):
+
+    - 1,145,009 distinct names collapse to **818,114 codes**, 1.40 names per code.
+    - Of 162,689 descents left in a shuffled million, **58.6% are ties** (阿滨/阿斌, both *ā bīn*;
+      阿辰/阿晨/阿臣, all *ā chén*) and **41.4% are mis-orderings** --- and those are the same cause
+      one step removed: 阿鹭 against 阿露露, where 鹭 and 露 are both *lù*, so the code ties at
+      character 2 and falls through to a padding zero at character 3, while NAME_ORDER had already
+      decided at character 2 on code point (鹭 U+9E6D against 露 U+9732).
+
+    So 100% of the residual disorder traces to the missing third level. Not to length, not to
+    polyphones (item 11), not to stroke order (item 10).
+
+    ### The fix: rank the character, do not decompose it
+
+    Pack one **rank in pinyin order** per character instead of a syllable and a tone, the rank taken
+    from `pinyinCharacterKey` --- which is the comparator's own key function. CJK Unified Ideographs
+    plus Extension A is U+3400..U+9FFF, 27,648 code points, so a rank needs 15 bits and four
+    characters need 60 of 64.
+
+    | | distinct codes | names/code | NAME_ORDER descents, 300,000 names sorted by code alone | encode, 1M names |
+    | --- | ---: | ---: | ---: | ---: |
+    | `chineseEncoderPinyin` | 818,114 | 1.40 | 59,332 | 133.25 ms |
+    | `chineseEncoderPinyinRank` | 1,145,009 | 1.00 | **0** | **41.20 ms** |
+
+    Zero descents over the entire corpus, so `perfect` is reported and **the cleanup pass does not
+    run**. It is also **3.2x faster to encode**, because `RANK[c - 0x3400]` is one load from a 54 KB
+    `char[]` where `syllableAndToneOf` is a memoized pinyin4j lookup --- a hash, a probe and two
+    dereferences. The table is *indexed, not searched*, so its size costs nothing; and the live
+    working set is smaller still, a few thousand characters with a Zipfian frequency distribution.
+
+    Implemented as a third dialect, `HanyuRank`, alongside the ordinal one rather than in place of
+    it, so the two can be measured against each other before anything switches. Perfection is
+    claimed per element and only when it holds --- at most four characters, every one inside the
+    block --- because claiming it wrongly skips a cleanup that was needed and yields a silently
+    wrong answer. `HuskyCoderChinesePinyinRankTest` asserts the whole-corpus claim directly.
+
+    Rough value: chinesenames@1M is 558 ms of which about 506 is cleanup. Removing it leaves ~52 ms
+    against `Arrays.parallelSort`'s 235 --- some **4.5x**, from 0.42x, the worst cell in the table
+    becoming one of the best. That dwarfs the parallel cleanup of item 40, which got the same cell
+    only to parity; the two are alternative answers to one problem and should not both be needed.
+
+    ### The general principle, which is what the paper should take
+
+    The husky code is a proxy key for a *string*. The rank table is a proxy key for a *character* ---
+    the same trick, nested one level down. And at that level it is **exact**, because the domain is
+    small enough to enumerate.
+
+    That is worth stating as a general result rather than a Chinese special case:
+
+    > Where the alphabet has at most 2^b symbols and their collation order can be precomputed, a
+    > rank table gives an exactly order-preserving b-bit code per symbol, and hence a **perfect**
+    > husky code for any string of at most 64/b symbols.
+
+    It supplies the limiting case of the whole mechanism. A husky coder is normally approximate
+    because it must compress an unbounded domain into 64 bits; when the *per-symbol* domain is
+    enumerable, the compression is lossless and the cleanup pass disappears. Chinese is the case
+    where this pays most --- 27,584 symbols, an expensive collation, and short strings --- but the
+    statement is not about Chinese. It also explains, retrospectively, why the ASCII and english
+    coders are imperfect for a reason that is *not* this: their alphabet is enumerable too, but at
+    one character per 6 or 7 bits they can hold only 9 or 10 characters of an unbounded-length word.
+    The constraint there is string length, which is real; for names it never was.
+
+    ### Not yet done
+
+    - The paper: this is a new subsection, and it interacts with item 43 A (the cleanup cost model)
+      and 43 B (quasi-order-preserving) --- with a perfect coder there is no cleanup term at all,
+      which is the cleanest possible illustration of what `p_crit` is about.
+    - The rank table is built on first use, about 340 ms. It could be precomputed into a resource.
+    - Nothing switches over until Yunlu's numbers arrive: `radixHuskySortAutoPinyinRank` and
+      `parallelRadixHuskySortAuto_pAll_pinyinRank` are the A/B rows, and `pinyinRank` is the
+      CleanupPassBenchmarks cell (where it should show the p = 0 floor --- N-1 comparisons and no
+      moves, the same quantity the permits measure in the paper's \S~`sec:pcrit`).

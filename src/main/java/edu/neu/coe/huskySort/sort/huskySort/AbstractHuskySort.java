@@ -32,8 +32,23 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     public final X[] preSort(final X[] xs, final boolean makeCopy) {
         // NOTE: Prepare for first pass where we code to longs and sort according to those.
         final X[] result = super.preSort(xs, makeCopy);
-        huskyHelper.doCoding(result);
+        doCoding(result);
         return result;
+    }
+
+    /**
+     * The coding step of {@link #preSort}, as a method of its own so that a subclass can substitute
+     * a different strategy for it without reopening preSort, whose three-phase structure must stay
+     * fixed for every husky sort.
+     * <p>
+     * {@link ParallelRadixHuskySort} overrides this to encode across several threads; every other
+     * sorter uses the sequential form here, which is what the paper's serial figures were measured
+     * with and must remain.
+     *
+     * @param xs the array to be coded, already copied if a copy was called for.
+     */
+    protected void doCoding(final X[] xs) {
+        huskyHelper.doCoding(xs);
     }
 
     /**
