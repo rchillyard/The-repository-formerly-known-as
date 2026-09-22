@@ -155,10 +155,15 @@ host, the raw JSON unedited. The two-methods rule does not really apply here ---
 baseline in this class, and the comparison being made is *within* the invocation, which is why all
 five coders go in one.
 
-**The commit to record is `c5f47d3`**, branch `parallel-redesign` --- "Add the masking cleanup cells
-that request 11 could not measure". It is the last commit touching `src/`; the tip is later but only
-by `TODO.md`, so `git log c5f47d3..HEAD -- src/` is empty. `mvn -B test` there: 423 tests, 0
-failures. The three new cells have been smoke-tested under JMH at `-f 1 -wi 1 -i 2`.
+**The commit to record is `9bb0385`**, branch `parallel-redesign` --- "Fix the word splitter, which
+was discarding 15% of english and 51% of chinese". It is the last commit touching `src/`, so
+`git log 9bb0385..HEAD -- src/` is empty. `mvn -B test` there: 423 tests, 0 failures. The three new
+cleanup cells have been smoke-tested under JMH at `-f 1 -wi 1 -i 2`.
+
+Note that this is **not** the commit that added the cells (`c5f47d3`); it is two later, and the
+difference matters, because `9bb0385` changes the corpus tokenization. Every structural count and
+prediction quoted above is measured at `9bb0385`. If you build from `c5f47d3` the english numbers
+will be systematically different and the two masking cells will look about half as extreme.
 
 ### The corpus files have not changed, but how we tokenize them has
 
@@ -177,7 +182,7 @@ ideographic full stop. Everything after that point in the sentence was silently 
   304,959; tokens 16.39M -> 18.86M.
 - **chinese: 51.5%**, because U+3002 is not ASCII punctuation. Distinct 24,215 -> 50,009.
 
-Fixed in `c5f47d3`'s successor (see the commit below): the line pattern is now `[~\t]*\t(.*)`,
+Fixed in `9bb0385` (the commit to record, below): the line pattern is now `[~\t]*\t(.*)`,
 since a Leipzig line is `<id>\t<sentence>` and any attempt to validate the sentence inside the
 pattern can only truncate it, and the splitter is now `[^\p{L}]+` instead of an enumeration of
 separators that could never be complete. The repair is **purely additive** --- no word either
