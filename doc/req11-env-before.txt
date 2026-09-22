@@ -1,0 +1,69 @@
+### date
+2026-09-19T21:38:02+00:00
+### uptime
+ 21:38:02 up 14:35, 11 users,  load average: 0.09, 0.18, 0.25
+### lscpu
+Architecture:                            aarch64
+CPU op-mode(s):                          32-bit, 64-bit
+Byte Order:                              Little Endian
+CPU(s):                                  16
+On-line CPU(s) list:                     0-15
+Vendor ID:                               ARM
+Model:                                   1
+Thread(s) per core:                      1
+Core(s) per socket:                      16
+Socket(s):                               1
+Stepping:                                r1p1
+BogoMIPS:                                2100.00
+Flags:                                   fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 sm3 sm4 asimddp sha512 sve asimdfhm dit uscat ilrcpc flagm paca pacg dcpodp svei8mm svebf16 i8mm bf16 dgh rng
+L1d cache:                               1 MiB (16 instances)
+L1i cache:                               1 MiB (16 instances)
+L2 cache:                                16 MiB (16 instances)
+L3 cache:                                32 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-15
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; CSV2, BHB
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Not affected
+### free -h
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi       7.8Gi        15Gi        28Mi       7.7Gi        22Gi
+Swap:           39Gi       2.0Mi        39Gi
+### uname -r
+6.12.103-127.188.amzn2023.aarch64
+### java -version
+openjdk version "21.0.12" 2026-07-21 LTS
+OpenJDK Runtime Environment Corretto-21.0.12.8.1 (build 21.0.12+8-LTS)
+OpenJDK 64-Bit Server VM Corretto-21.0.12.8.1 (build 21.0.12+8-LTS, mixed mode, sharing)
+### mvn -v
+Apache Maven 3.9.16 (2bdd9fddda4b155ebf8000e807eb73fd829a51d5)
+Maven home: /workplace/liaoyunl/husky-sort/tools/apache-maven-3.9.16
+Java version: 21.0.12, vendor: Amazon.com Inc., runtime: /workplace/liaoyunl/husky-sort/tools/amazon-corretto-21.0.12.8.1-linux-aarch64
+Default locale: en, platform encoding: UTF-8
+OS name: "linux", version: "6.12.103-127.188.amzn2023.aarch64", arch: "aarch64", family: "unix"
+### cgroup
+0::/user.slice/user-13252749.slice/user@13252749.service/app.slice/husky-req11-20260919-2138.service
+### nproc
+16
+### git HEAD
+82bcfa8188a2106b7c2dbbc198d6949cdd9b3415
+82bcfa8 Repair what the PR #66 merge cost the request document
+### git src freeze
+15cc2ff
+### jar
+95ccd2c75924ecac33f104d1c2b1ab08467aa538d1548817c922c27779c1d408  /workplace/liaoyunl/husky-sort/prwork/target/benchmarks.jar
+76350880 bytes  mtime 2026-09-18 21:51:40.727018893 +0000
