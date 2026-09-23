@@ -2186,3 +2186,78 @@ is a defect; all are hardening or generalisation.
       `parallelRadixHuskySortAuto_pAll_pinyinRank` are the A/B rows, and `pinyinRank` is the
       CleanupPassBenchmarks cell (where it should show the p = 0 floor --- N-1 comparisons and no
       moves, the same quantity the permits measure in the paper's \S~`sec:pcrit`).
+
+45. **Two latent failures in `src/it`, found 2026-09-23 when Robin enabled it to check a refactor.**
+    Neither is caused by anything recent: running `-Pintegration-test` on `parallel-redesign-Robin`
+    and on `parallel-redesign` gives byte-identical results, 9 tests and 2 errors on both. They have
+    simply been invisible, for the reason in the third bullet.
+
+    ### 45a. `AlphabetTest.getCountIndexUnicode` is written against a contract that no longer exists
+
+    ```
+    SortException: char Ĭ (300) has no position in this alphabet. prepare() must be called with
+    the whole input before sorting, so that characters beyond ASCII can be assigned positions in
+    code-point order.
+    ```
+
+    The test is stale, not the code. `Alphabet` used to assign a bucket position to each non-ASCII
+    character *on first encounter*; that was changed --- correctly, and the reasoning is in
+    `Alphabet.prepare`'s javadoc --- because first-encounter order is not code-point order, so two
+    strings differing first at a non-ASCII character came out in whatever order the input happened
+    to present those characters. `getCountIndex` now refuses rather than guessing. The test still
+    calls it on a fresh `Alphabet` with no `prepare`.
+
+    **The fix is one line, and the test's expectations are already right.** Verified 2026-09-23:
+    after `prepare(new String[]{"Ĭ", "Ɛ", "￿"})` the same three characters map to
+    **256 / 257 / 258**, exactly what the test asserts. So add the `prepare` call and the test
+    passes unchanged otherwise. Worth doing rather than deleting: it is the only direct test of the
+    spare-region mapping, which is the part of `Alphabet` that the monotonicity of
+    `UnicodeMSDStringSort` rests on.
+
+    ### 45b. `BenchmarkIntegrationTest.testStrings10K` and `testStrings100K` cannot fit their timeout
+
+    Both run benchmark-sized workloads under a wall-clock `ProcessorDependentTimeout`, which scales
+    a nominal 10 s down to **7,353 ms** on Robin's machine. Measured by running the same calls with
+    a reduced run count and scaling, 2026-09-23:
+
+    | test | n | runs | needs | budget | over by |
+    | --- | ---: | ---: | ---: | ---: | ---: |
+    | `testStrings10K` | 10,000 | 3,800 | ~24 s | 7.4 s | 3x |
+    | `testStrings100K` | 100,000 | 255 | ~17 s | 7.4 s | 2x |
+
+    This is not the corpus getting bigger: the word-splitter repair of item 43 C2 added 15% of
+    vocabulary, and the two branches time out at 14.0 s and 14.6 s respectively, which is noise.
+    The likelier cause is accumulation --- `benchmarkStringSorters` has gained sorters steadily
+    (the radix family, MSD, the parallel rows) while the run counts and the timeout stayed where
+    they were. The class comment already shows the strain: "you cannot include insertionSort among
+    the sort methods to be used: it WILL time out here."
+
+    Three options, in the order I would consider them:
+
+    1. **Cut the run counts** to what the budget allows --- 3,800 to about 1,000, and 255 to about
+       100. These are correctness-and-smoke tests that happen to be built on the benchmark harness;
+       they do not need statistical power, and nothing reads their timings.
+    2. **Raise the timeout** to 30 s nominal. Honest, but it makes a slow suite slower and only
+       defers the next accumulation.
+    3. **`@Ignore` them**, which is what has effectively happened already, but explicitly and with a
+       reason.
+
+    Option 1 is the one that keeps the coverage. Whichever is chosen, the timeout should be
+    reviewed whenever a sorter is added to `benchmarkStringSorters`.
+
+    ### 45c. Why nobody noticed, which is the part worth fixing
+
+    `src/it/java` is added as a test source by `build-helper`, but only inside the
+    `integration-test` profile, so a normal `mvn test` never compiles it and the six classes there
+    never run --- 432 tests rather than 450.
+
+    **An IDE does compile it**, because it honours the same source root, and writes the classes into
+    `target/test-classes`. A subsequent `mvn test` then picks them up and runs them, since they
+    match surefire's default includes. That is how this surfaced: 450 tests and 3 errors from a
+    tree whose `mvn clean test` is 432 and green. It is a trap worth knowing about, because the
+    same mechanism can make a build look broken that is not, and --- worse --- can make a stale
+    class pass a test that the current source would fail.
+
+    Options: run `-Pintegration-test` in CI so these cannot rot unnoticed; or fold `src/it` into the
+    default build with the slow tests trimmed per 45b. The present arrangement, where the tests
+    exist but run only by accident, is the one arrangement with no upside.
