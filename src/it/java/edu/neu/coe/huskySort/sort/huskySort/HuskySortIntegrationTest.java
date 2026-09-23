@@ -19,10 +19,9 @@ import org.junit.rules.Timeout;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
-import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.generateRandomStringArray;
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.*;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -45,19 +44,13 @@ public class HuskySortIntegrationTest {
     @Rule
     public Timeout timeoutBuilder = new ProcessorDependentTimeout(10, TimeUnit.SECONDS, config);
 
-    // NOTE: must match HuskySortBenchmark.REGEX_LEIPZIG. The old form,
-    // "[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)", truncated each sentence at its first
-    // character that was neither a Unicode letter nor ASCII punctuation -- any digit, pound
-    // sign or ideographic full stop -- discarding 15.2% of the english corpus and 51.5% of
-    // the chinese one.
-    final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(.*)");
     final MyBenchmark benchmarkHuskySort = new MyBenchmark(new DutchHuskySort<String>(UNICODE_CODER, config), 19.1);
     final MyBenchmark benchmarkQuick3sort = new MyBenchmark(new QuickSort_3way<String>(), 20);
     private static Config config;
 
     @Test
     public void testHusky10K() throws Exception {
-        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER));
         final int m = 1900;
         final int n = 10000;
         checkTime(n, benchmarkHuskySort.run(words, n, m));
@@ -65,7 +58,7 @@ public class HuskySortIntegrationTest {
 
     @Test
     public void testHusky31K() throws Exception {
-        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_100K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_100K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER));
         final int m = 200;
         final int n = 31623;
         checkTime(n, benchmarkHuskySort.run(words, n, m));
@@ -73,7 +66,7 @@ public class HuskySortIntegrationTest {
 
     @Ignore // (timeout = 30000)
     public void testHusky100K() throws Exception {
-        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER));
         final int m = 100;
         final int n = 100000;
         checkTime(n, benchmarkHuskySort.run(words, n, m));
@@ -81,7 +74,7 @@ public class HuskySortIntegrationTest {
 
     @Ignore //(timeout = 5000)
     public void testControl10K() throws Exception {
-        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_10K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER));
         final int m = 1000;
         final int n = 10000;
         checkTime(n, benchmarkQuick3sort.run(words, n, m));
@@ -89,7 +82,7 @@ public class HuskySortIntegrationTest {
 
     @Test(timeout = 10000)
     public void testControl31K() throws Exception {
-        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_100K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_100K-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER));
         final int m = 200;
         final int n = 31623;
         checkTime(n, benchmarkQuick3sort.run(words, n, m));
@@ -106,7 +99,7 @@ public class HuskySortIntegrationTest {
 
     @Ignore //(timeout = 30000)
     public void testControl100K() throws Exception {
-        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+        final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER));
         final int m = 100;
         final int n = 100000;
         checkTime(n, benchmarkQuick3sort.run(words, n, m));

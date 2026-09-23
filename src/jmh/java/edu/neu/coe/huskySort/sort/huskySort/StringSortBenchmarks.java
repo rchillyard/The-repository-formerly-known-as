@@ -141,7 +141,7 @@ public class StringSortBenchmarks {
     // (splitLineIntoStrings, REGEX_STRING_SPLITTER, REGEX_LEIPZIG) are package-private/public
     // and reused as-is; only this one-line wrapper needs duplicating.
     private static List<String> getLeipzigWords(final String line) {
-        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmarkHelper.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
     }
 
     // ---------- Encoding-only cost, isolated from any sort (paper resubmission, Phase A item

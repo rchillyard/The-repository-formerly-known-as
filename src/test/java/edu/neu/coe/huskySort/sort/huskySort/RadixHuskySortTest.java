@@ -13,9 +13,9 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Random;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.REGEX_LEIPZIG;
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER;
+import static org.junit.Assert.*;
 
 /**
  * Correctness tests for RadixHuskySort.
@@ -444,7 +444,7 @@ public class RadixHuskySortTest {
         // against 181 and 1,228. This is the balance: 0.3 s for a vocabulary big enough that the
         // mis-encoded and the truncated words are both well represented.
         final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_100K-sentences.txt",
-                line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+                line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER));
         assertTrue("the corpus should hold a substantial vocabulary", words.length > 50_000);
         // The non-ASCII path asciiCoder mis-encodes must actually be exercised, or this test would
         // pass on a corpus where the coder happened to be exact.

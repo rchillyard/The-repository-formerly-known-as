@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     /**
+     * In the paper, this part is referred to as "step 1" or "encoding."
      * Init HuskyHelper and initialize the long array.
      * Make copy if appropriate.
      *
@@ -34,21 +35,6 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
         final X[] result = super.preSort(xs, makeCopy);
         doCoding(result);
         return result;
-    }
-
-    /**
-     * The coding step of {@link #preSort}, as a method of its own so that a subclass can substitute
-     * a different strategy for it without reopening preSort, whose three-phase structure must stay
-     * fixed for every husky sort.
-     * <p>
-     * {@link ParallelRadixHuskySort} overrides this to encode across several threads; every other
-     * sorter uses the sequential form here, which is what the paper's serial figures were measured
-     * with and must remain.
-     *
-     * @param xs the array to be coded, already copied if a copy was called for.
-     */
-    protected void doCoding(final X[] xs) {
-        huskyHelper.doCoding(xs);
     }
 
     /**
@@ -92,6 +78,21 @@ public abstract class AbstractHuskySort<X extends Comparable<X>> extends SortWit
     @Override
     public final String toString() {
         return name;
+    }
+
+    /**
+     * The coding step of {@link #preSort}, as a method of its own so that a subclass can substitute
+     * a different strategy for it without reopening preSort, whose three-phase structure must stay
+     * fixed for every husky sort.
+     * <p>
+     * {@link ParallelRadixHuskySort} overrides this to encode across several threads; every other
+     * sorter uses the sequential form here, which is what the paper's serial figures were measured
+     * with and must remain.
+     *
+     * @param xs the array to be coded, already copied if a copy was called for.
+     */
+    protected void doCoding(final X[] xs) {
+        huskyHelper.doCoding(xs);
     }
 
     /**

@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
 
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.REGEX_LEIPZIG;
+
 /**
  * Structural probe of what the cleanup pass is actually left to do, per corpus.
  * <p>
@@ -284,6 +286,6 @@ public class CleanupPassProbe {
     }
 
     private static java.util.List<String> leipzig(final String line) {
-        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
     }
 }

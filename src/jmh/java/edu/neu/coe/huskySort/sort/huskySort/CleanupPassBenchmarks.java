@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * by n for the pn of a cell: at n = 1,000,000 these are 110, 721 and 0.44 respectively.
  * <p>
  * NOTE: those figures are from the corpus as tokenized after the word-splitter repair of
- * 2026-09-22. Before it, {@link HuskySortBenchmark#REGEX_LEIPZIG} truncated every sentence at its
+ * 2026-09-22. Before it, {@link HuskySortBenchmarkHelper#REGEX_LEIPZIG} truncated every sentence at its
  * first digit or non-ASCII symbol, discarding 15.2% of the english corpus; the same five coders
  * then read 1.15e-4 / 3.43e-4 / 4.7e-7. The repair roughly doubled both masking coders' inversion
  * counts, by recovering the accented vocabulary that the truncation had been hiding, and left every
@@ -189,7 +189,7 @@ public class CleanupPassBenchmarks {
                     break;
                 case "chineseUnicode":
                     vocabulary = HuskySortBenchmarkHelper.getWords("zho-simp-tw_web_2014_10K-sentences.txt",
-                            line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+                            line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmarkHelper.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
                     huskyCoder = AbstractHuskySort.UNICODE_CODER;
                     ordering = Comparator.naturalOrder();
                     break;
@@ -213,7 +213,7 @@ public class CleanupPassBenchmarks {
 
         private static String[] englishVocabulary() {
             return HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt",
-                    line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+                    line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmarkHelper.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
         }
 
         String[] copy() {
