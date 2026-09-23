@@ -2192,7 +2192,7 @@ is a defect; all are hardening or generalisation.
     and on `parallel-redesign` gives byte-identical results, 9 tests and 2 errors on both. They have
     simply been invisible, for the reason in the third bullet.
 
-    ### 45a. `AlphabetTest.getCountIndexUnicode` is written against a contract that no longer exists
+    ### 45a. ~~`AlphabetTest.getCountIndexUnicode` is written against a contract that no longer exists~~ **DONE 2026-09-23**
 
     ```
     SortException: char Ĭ (300) has no position in this alphabet. prepare() must be called with
@@ -2207,10 +2207,10 @@ is a defect; all are hardening or generalisation.
     to present those characters. `getCountIndex` now refuses rather than guessing. The test still
     calls it on a fresh `Alphabet` with no `prepare`.
 
-    **The fix is one line, and the test's expectations are already right.** Verified 2026-09-23:
-    after `prepare(new String[]{"Ĭ", "Ɛ", "￿"})` the same three characters map to
-    **256 / 257 / 258**, exactly what the test asserts. So add the `prepare` call and the test
-    passes unchanged otherwise. Worth doing rather than deleting: it is the only direct test of the
+    **The fix was one line, and the test's expectations were already right.** After
+    `prepare(new String[]{"Ĭ", "Ɛ", "￿"})` the same three characters map to
+    **256 / 257 / 258**, exactly what the test asserts, so the `prepare` call was added and nothing
+    else changed. `AlphabetTest` is 4/4. Worth repairing rather than deleting: it is the only direct test of the
     spare-region mapping, which is the part of `Alphabet` that the monotonicity of
     `UnicodeMSDStringSort` rests on.
 
@@ -2244,6 +2244,26 @@ is a defect; all are hardening or generalisation.
 
     Option 1 is the one that keeps the coverage. Whichever is chosen, the timeout should be
     reviewed whenever a sorter is added to `benchmarkStringSorters`.
+
+    ### 45d. `InstrumentationIsCompleteTest` passes in the suite and fails on its own
+
+    Found while verifying 45a, and **not** one of the two failures this item was opened for. It
+    lives in `src/test`, so it runs in the default build --- where it passes, and the build is
+    432/0. Run it alone, `mvn test -Dtest=InstrumentationIsCompleteTest`, and three of its six
+    methods fail: `quickSort3wayCountsEveryComparison`, `quickSortDualPivotCountsEveryComparison`
+    and `introSortCountsEveryComparison`. Identical on `parallel-redesign`, so it predates
+    everything recent.
+
+    That is order dependence: the test relies on state some earlier test in the suite leaves
+    behind, presumably instrumentation configuration. It also explains why `-Pintegration-test`
+    reports these three --- adding the `src/it` classes perturbs the ordering enough to break the
+    dependency.
+
+    It is the more insidious of the two kinds of problem in this item. A test that fails when run
+    alone is not really testing what it claims: it passes only because of a neighbour, and it will
+    start failing for whoever next reorders the suite, parallelises it, or runs one method from an
+    IDE. Fix by having the class set up its own instrumentation in `@Before` rather than inheriting
+    it. Low urgency, but it should not be left as folklore.
 
     ### 45c. Why nobody noticed, which is the part worth fixing
 
