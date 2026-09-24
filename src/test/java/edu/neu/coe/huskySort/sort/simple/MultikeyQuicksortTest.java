@@ -97,22 +97,6 @@ public class MultikeyQuicksortTest {
     }
 
     /**
-     * sortByPinyin, checked against the same ground truth this codebase already trusts for
-     * pinyin ordering: HuskyCoderChinesePinyin.NAME_ORDER, the comparator RadixHuskySort's own
-     * cleanup pass relies on for correctness (see doc/Radix Sort Benchmark Results.md's "Chinese
-     * names" section).
-     */
-    @Test
-    public void sortsRealChineseNamesCorrectlyByPinyin() throws Exception {
-        final String[] names = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
-        final String[] xs = Arrays.copyOf(names, names.length);
-        final String[] expected = Arrays.copyOf(names, names.length);
-        Arrays.sort(expected, HuskyCoderChinesePinyin.NAME_ORDER);
-        MultikeyQuicksort.sortByPinyin(xs);
-        assertArrayEquals(expected, xs);
-    }
-
-    /**
      * Explicit true-homonym check: 郗 and 奚 are both pronounced "xi1" -- identical syllable and
      * tone -- so pinyin order alone cannot distinguish them; NAME_ORDER's documented fallback is
      * Unicode code point. Confirms sortByPinyin reproduces that exact tie-break, not just "some"

@@ -26,20 +26,6 @@ public class NoSorter<X extends Comparable<X>> extends SortWithHelper<X> {
     public static final String DESCRIPTION = "No sort";
 
     /**
-     * Constructor for NoSorter
-     *
-     * @param N      the number elements we expect to sort.
-     * @param config the configuration.
-     */
-    public NoSorter(final int N, final Config config) {
-        super(DESCRIPTION, N, config);
-    }
-
-    public NoSorter() {
-        this(new ComparableSortHelper<>(DESCRIPTION));
-    }
-
-    /**
      * Constructor for InsertionSort
      *
      * @param helper an explicit instance of ComparisonSortHelper to be used.

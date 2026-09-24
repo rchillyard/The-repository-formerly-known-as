@@ -53,24 +53,6 @@ public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements 
         return new Coding(result, isPerfect);
     }
 
-    /**
-     * NOTE: this implementation of perfect() is never called because perfection is
-     * determined solely by the huskyEncoder(X[]) method.
-     *
-     * @return false.
-     */
-    @Override
-    final public boolean perfect() {
-        return false;
-    }
-
-    @Override
-    final public String toString() {
-        return "BaseHuskySequenceCoder{" +
-                "name='" + name + '\'' +
-                '}';
-    }
-
     private final String name;
     private final int maxLength;
 }

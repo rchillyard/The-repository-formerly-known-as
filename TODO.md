@@ -2309,3 +2309,38 @@ is a defect; all are hardening or generalisation.
     Options: run `-Pintegration-test` in CI so these cannot rot unnoticed; or fold `src/it` into the
     default build with the slow tests trimmed per 45b. The present arrangement, where the tests
     exist but run only by accident, is the one arrangement with no upside.
+
+46. **`HuskyCoder.huskyEncode(byte[])` does not pad, so its codes are not order-preserving across
+    lengths (found 2026-09-24 while writing `GenericCollatorTest`).**
+
+    ```java
+    default long huskyEncode(final byte[] bs) {
+        long result = 0L;
+        for (int i = 0; i < bs.length && i < 7; i++) result = (result << 8) | bs[i] & 0xFF;
+        return result;                       // <-- no trailing shift
+    }
+    ```
+
+    A two-byte array lands in the low sixteen bits while a seven-byte array fills the long, so a
+    short key always codes below a longer one whatever the bytes say: `"b"` is `0x62` and `"ab"` is
+    `0x6162`, so `"b"` codes first although `"ab"` sorts first. Among equal-length keys the codes
+    are exactly order-preserving, which is what makes the omission easy to miss.
+
+    Compare `HuskyCoderFactory.stringToLong`, which computes `padding = maxLength - length` and ends
+    with `result <<= bitWidth * padding` for precisely this reason. The byte-array path never got
+    the same treatment, and its javadoc --- "a long which is based on the first seven of the given
+    bytes" --- does not mention the bias.
+
+    **The fix is one line**, `result <<= 8 * (7 - Math.min(bs.length, 7));`, and it would strictly
+    improve the encoding: fewer inversions for the cleanup pass, no cost at encode time.
+
+    **Not done, deliberately.** It is a quality defect rather than a correctness one --- an
+    imperfect code is legal and the cleanup pass repairs the order --- and it is dormant: the only
+    production user of the path is `HuskyCoderFactory.chineseEncoderCollator`, via
+    `SequenceEncoder_Collator`, which appears in tests and in `HuskySortHelper`'s name map and in no
+    benchmark at all. So no figure in the paper moves either way. Changing a coder's output while
+    Yunlu has a frozen jar is also the wrong moment.
+
+    `GenericCollatorTest.huskyCodesAreNotOrderPreservingAcrossKeyLengths` asserts the defect, so the
+    test will fail when it is fixed. That is intended: the fix should arrive with a decision about
+    which figures are re-measured, not by surprise.

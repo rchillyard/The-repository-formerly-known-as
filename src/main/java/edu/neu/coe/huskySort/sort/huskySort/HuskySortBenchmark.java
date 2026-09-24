@@ -33,6 +33,9 @@ import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.englis
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static edu.neu.coe.huskySort.util.Utilities.*;
 
+/**
+ * NOTE Much of this class is not unit-tested.
+ */
 public final class HuskySortBenchmark {
 
     public HuskySortBenchmark(final Config config) {

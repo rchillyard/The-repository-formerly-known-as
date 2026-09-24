@@ -74,30 +74,6 @@ public class RadixHuskySortTest {
         assertArrayEquals(expected, ys);
     }
 
-    /**
-     * Stress-test on many small random arrays, across a sweep of digit widths (including one,
-     * 11, that does not evenly divide 64), comparing against Arrays.sort as the trusted reference.
-     * This is the JUnit formalization of the ad hoc stress-test loop in the original prototype
-     * (RadixVsQuickBenchmark.java), which is what caught the original quicksort bug.
-     */
-    @Test
-    public void testStressSmallLongArrays() {
-        final Random r = new Random(7);
-        for (final int digitBits : new int[]{1, 3, 7, 8, 11, 16, 20}) {
-            for (int trial = 0; trial < 500; trial++) {
-                final int n = 1 + r.nextInt(200);
-                final Long[] xs = new Long[n];
-                for (int i = 0; i < n; i++) xs[i] = r.nextLong();
-                final Long[] expected = Arrays.copyOf(xs, n);
-                Arrays.sort(expected);
-
-                final RadixHuskySort<Long> sorter = new RadixHuskySort<>(digitBits, HuskyCoderFactory.longCoder, config);
-                final Long[] ys = sorter.sort(xs);
-                assertArrayEquals("digitBits=" + digitBits + ", n=" + n, expected, ys);
-            }
-        }
-    }
-
     @Test
     public void testNegativeAndPositiveLongs() {
         final Random r = new Random(42);

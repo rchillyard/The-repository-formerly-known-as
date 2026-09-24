@@ -28,10 +28,24 @@ public final class MSDStringSort {
         alphabet.reset();
     }
 
+    /**
+     * Retrieves the {@link Alphabet} instance associated with this MSDStringSort.
+     * TESTME unused.
+     *
+     * @return the alphabet used for character-to-bucket mapping in the sorting process.
+     */
     public Alphabet getAlphabet() {
         return alphabet;
     }
 
+    /**
+     * Sets the cutoff value for invoking insertion sort during the MSD String Sort process.
+     * This value determines the threshold below which the MSD sort switches to a simpler sorting algorithm,
+     * typically for improved performance on small subarrays.
+     * TESTME unused.
+     *
+     * @param cutoff the size threshold below which insertion sort will be used.
+     */
     public static void setCutoff(final int cutoff) {
         MSDStringSort.cutoff = cutoff;
     }

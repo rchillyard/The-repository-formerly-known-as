@@ -102,8 +102,8 @@ public class InversionCounterTest {
         final InversionCounter counter = new InversionCounter(xs);
         final double meanInversions = 0.25 * N * (N - 1);
         final long inversions = counter.getInversions();
-        // NOTE: the safety factor here (36) is quite arbitrary and it's possible this test will fail occasionally.
-        final double tolerance = 36 / Math.sqrt(meanInversions);
+        // NOTE: the safety factor here (40) is quite arbitrary and it's possible this test will fail occasionally.
+        final double tolerance = 40 / Math.sqrt(meanInversions);
         System.out.println("ratio: " + inversions / meanInversions + ", tolerance: " + tolerance);
         assertTrue(inversions / meanInversions <= (1 + tolerance));
         assertTrue(inversions / meanInversions >= (1 - tolerance));

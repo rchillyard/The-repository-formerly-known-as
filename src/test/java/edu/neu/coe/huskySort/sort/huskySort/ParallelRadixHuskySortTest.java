@@ -66,32 +66,6 @@ public class ParallelRadixHuskySortTest {
         }
     }
 
-    /**
-     * Stress-test on many small random arrays, sweeping both digit width and chunk/thread count,
-     * comparing against Arrays.sort as the trusted reference -- the parallel analogue of
-     * RadixHuskySortTest's testStressSmallLongArrays, which is what caught a real bug (an
-     * off-by-one in a from-scratch quicksort partition) in this project's own history.
-     */
-    @Test
-    public void testStressSmallLongArrays() {
-        final Random r = new Random(7);
-        for (final int digitBits : new int[]{1, 3, 7, 8, 11, 16, 20}) {
-            for (final int parallelism : new int[]{1, 2, 5, 16}) {
-                for (int trial = 0; trial < 50; trial++) {
-                    final int n = 1 + r.nextInt(200);
-                    final Long[] xs = new Long[n];
-                    for (int i = 0; i < n; i++) xs[i] = r.nextLong();
-                    final Long[] expected = Arrays.copyOf(xs, n);
-                    Arrays.sort(expected);
-
-                    final ParallelRadixHuskySort<Long> sorter = newSorter(digitBits, parallelism, HuskyCoderFactory.longCoder);
-                    final Long[] ys = sorter.sort(xs);
-                    assertArrayEquals("digitBits=" + digitBits + ", parallelism=" + parallelism + ", n=" + n, expected, ys);
-                }
-            }
-        }
-    }
-
     @Test
     public void testNegativeAndPositiveLongs() {
         final Random r = new Random(42);

@@ -153,6 +153,7 @@ public final class PureDualPivotQuicksort {
             }
         }
 
+        // TESTME the remainder of this method is untested.
         // Check special cases
         // Implementation note: variable "right" is increased by 1.
         if (run[count] == right++) { // The last run contains one element

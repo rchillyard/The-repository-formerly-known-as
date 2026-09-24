@@ -384,6 +384,16 @@ public class HuskyCoderChinesePinyin implements HuskyCoder<String> {
         SYLLABLE_TONE_CACHE.clear();
     }
 
+    /**
+     * Encodes the given string into a BoPoMoFo representation as a long value.
+     * The method utilizes the ChineseCharacter utility to process the input string and convert
+     * it into its BoPoMoFo encoding based on specified bit-shifting and lookup rules.
+     *
+     * TESTME not currently used.
+     *
+     * @param s the input string to be encoded, must consist of Chinese characters.
+     * @return a long value representing the BoPoMoFo encoding of the input string.
+     */
     private static long encodeBoPoMoFo(final String s) {
         final Long[] codes = ChineseCharacter.parsePinyin(Long.class, ChineseCharacter.convertToPinyin(s), s.length(), xs -> {
             long result = 0L;

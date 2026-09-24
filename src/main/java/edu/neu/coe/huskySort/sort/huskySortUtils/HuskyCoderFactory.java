@@ -370,7 +370,13 @@ public final class HuskyCoderFactory {
         return x -> x.movePointRight(scale).longValue();
     }
 
-    // CONSIDER making this private
+    /**
+     * Converts a given ASCII string to a long value using a specific encoding scheme.
+     * The method processes the string to pack its characters into a long representation.
+     *
+     * @param str the input ASCII string to be converted
+     * @return the long representation of the input string
+     */
     public static long asciiToLong(final String str) {
         // CONSIDER an alternative coding scheme which would use str.getBytes(Charset.forName("ISO-8859-1"));
         // and then pack the first 8 bytes into the long.
@@ -379,11 +385,26 @@ public final class HuskyCoderFactory {
         return stringToLong(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, MASK_ASCII);
     }
 
+    /**
+     * Converts a UTF-8 encoded string into its corresponding long representation.
+     *
+     * @param str the input string to be converted, encoded in UTF-8
+     * @return the long representation of the UTF-8 encoded string
+     */
     static long utf8ToLong(final String str) {
         // TODO Need to test that the mask value is correct. I think it might not be.
         return longArrayToLong(toUTF8Array(str), MAX_LENGTH_UTF8, BIT_WIDTH_UTF8, MASK_UTF8) >>> 1;
     }
 
+    /**
+     * Converts a given Unicode string into a long value by encoding its characters
+     * into a bit-packed representation with predefined parameters for Unicode strings.
+     * This encoding ensures that the resulting long represents the input string
+     * in a space-efficient manner.
+     *
+     * @param str the input string to be converted, assumed to be a Unicode string.
+     * @return a long value representing the encoded form of the input string.
+     */
     private static long unicodeToLong(final String str) {
         return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
         // CONSIDER an alternative coding scheme which would use str.getBytes(Charset.forName("UTF-16"));
@@ -416,6 +437,17 @@ public final class HuskyCoderFactory {
         return result << bitWidth * (maxLength - length);
     }
 
+    /**
+     * Converts a given string into a long value by encoding its characters into a bit-packed representation.
+     * Each character is left-shifted and masked as specified by the bitWidth and mask parameters.
+     * Remaining bits are zero-padded to fill the size of the long.
+     *
+     * @param str       the input string to be encoded.
+     * @param maxLength the maximum number of characters from the string to be encoded.
+     * @param bitWidth  the number of bits allocated for each character in the resulting packed long.
+     * @param mask      the bitmask applied to each character before packing.
+     * @return a long value representing the packed and encoded form of the input string.
+     */
     private static long stringToLong(final String str, final int maxLength, final int bitWidth, final int mask) {
         final int length = Math.min(str.length(), maxLength);
         final int padding = maxLength - length;
@@ -452,12 +484,34 @@ public final class HuskyCoderFactory {
 //        }
 //    }
 
-    // NOTE: this method seems considerably slower than stringToLong, even though it uses a Java library function (getBytes)
+    /**
+     * Converts a given String to a long value by first encoding it into a byte array
+     * using the specified character set and then mapping the resulting bytes to a long.
+     * NOTE: this method seems considerably slower than stringToLong, even though it uses a Java library function (getBytes)
+     *
+     * @param str        the input string to be converted.
+     * @param maxLength  the maximum number of characters of the string to be considered.
+     * @param charSet    the character set to use for encoding the string into bytes.
+     * @param startingPos the starting position in the byte array from which to begin mapping to a long.
+     * @return a long value derived from the encoded byte representation of the input string.
+     */
     private static long stringToBytesToLong(final String str, final int maxLength, final Charset charSet, final int startingPos) {
         final byte[] bytes = str.substring(0, Math.min(maxLength, str.length())).getBytes(charSet);
         return bytesToLong(startingPos, bytes);
     }
 
+    /**
+     * Converts a sequence of bytes starting at a given position into a long value.
+     * The conversion process reads up to the number of bytes that fit in a long
+     * (determined by BYTES_LONG), and any remaining space in the long is left-shifted
+     * and zero-padded.
+     *
+     * TESTME not currently used.
+     *
+     * @param startingPos the starting index in the byte array to begin converting.
+     * @param bytes the byte array from which the long value is derived.
+     * @return the long value resulting from the mapping of the specified bytes.
+     */
     static long bytesToLong(final int startingPos, final byte[] bytes) {
         int bytesIndex = startingPos;
         int resultIndex = 0;
@@ -468,10 +522,28 @@ public final class HuskyCoderFactory {
         return result;
     }
 
+    /**
+     * Converts an English string to a long value by encoding its characters into a bit-packed representation.
+     * The method utilizes the stringToLong function with predefined parameters specific to English character sets.
+     *
+     * @param str the input string containing English characters to be converted.
+     * @return a long value representing the encoded form of the input string.
+     */
     private static long englishToLong(final String str) {
         return stringToLong(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, MASK_ENGLISH);
     }
 
+    /**
+     * Converts a given array of long integers into a single long value by packing the elements
+     * into a bit-wise representation. Each element in the array is shifted and masked as specified
+     * by the bit width and mask parameters. Remaining bits are zero-padded to fill the size of the long.
+     *
+     * @param xs        the input array of long integers to be packed.
+     * @param maxLength the maximum number of elements from the array to be considered.
+     * @param bitWidth  the number of bits allocated for each element in the resulting packed long.
+     * @param mask      the bitmask to apply to each element before packing.
+     * @return a long value representing the packed version of the input array.
+     */
     @SuppressWarnings("SameParameterValue")
     private static long longArrayToLong(final long[] xs, final int maxLength, final int bitWidth, final int mask) {
         final int length = Math.min(xs.length, maxLength);
@@ -484,6 +556,12 @@ public final class HuskyCoderFactory {
         return result;
     }
 
+    /**
+     * Converts the given string into an array of UTF-8 encoded long values.
+     *
+     * @param str the input string to be converted.
+     * @return an array of long values representing the UTF-8 encoded bytes of the input string.
+     */
     private static long[] toUTF8Array(final String str) {
         final int length = str.length();
         final LongBuffer byteBuffer = LongBuffer.allocate(length << 2);
