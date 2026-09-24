@@ -2255,25 +2255,43 @@ is a defect; all are hardening or generalisation.
     added to `benchmarkStringSorters` --- one sorter at a time is how a passing test became a
     failing one.
 
-    ### 45d. `InstrumentationIsCompleteTest` passes in the suite and fails on its own
+    ### 45d. ~~`InstrumentationIsCompleteTest` passes in the suite and fails on its own~~ **DONE 2026-09-24**
 
-    Found while verifying 45a, and **not** one of the two failures this item was opened for. It
-    lives in `src/test`, so it runs in the default build --- where it passes, and the build is
-    432/0. Run it alone, `mvn test -Dtest=InstrumentationIsCompleteTest`, and three of its six
-    methods fail: `quickSort3wayCountsEveryComparison`, `quickSortDualPivotCountsEveryComparison`
-    and `introSortCountsEveryComparison`. Identical on `parallel-redesign`, so it predates
-    everything recent.
+    **The first diagnosis recorded here was wrong and is corrected below.** It said order
+    dependence --- that the test relied on state a neighbour left behind. It does not. The real
+    cause is the same mechanism as 45c, one layer over: a contaminated *resource*, not a stale
+    class, and it is a good deal nastier than order dependence because a clean build hides it.
 
-    That is order dependence: the test relies on state some earlier test in the suite leaves
-    behind, presumably instrumentation configuration. It also explains why `-Pintegration-test`
-    reports these three --- adding the `src/it` classes perturbs the ordering enough to break the
-    dependency.
+    `src/it/resources/config.ini` and `src/test/resources/config.ini` are different files, and the
+    integration-test profile adds the former as a test resource, so it is copied **over** the latter
+    into `target/test-classes/config.ini` --- where it then stays. Among the differences:
+    `src/test` has `fixes = false`, `src/it` has `fixes = true`.
 
-    It is the more insidious of the two kinds of problem in this item. A test that fails when run
-    alone is not really testing what it claims: it passes only because of a neighbour, and it will
-    start failing for whoever next reorders the suite, parallelises it, or runs one method from an
-    IDE. Fix by having the class set up its own instrumentation in `@Before` rather than inheriting
-    it. Low urgency, but it should not be left as folklore.
+    That matters because with `fixes` on the instrumented Helper counts inversions fixed, and doing
+    so *compares*. Those comparisons go through `Counted.compareTo` like every other, so they land
+    in the test's `actual` while never reaching the StatPack's `COMPARES`. The test then reports
+    comparisons "made but not counted" that the sort never made, and the three sorts that swap most
+    --- `QuickSort_3way`, `QuickSort_DualPivot`, `IntroSort` --- fail. The `@BeforeClass` pinned
+    `compares`, `swaps` and `hits` but inherited `fixes`.
+
+    Demonstrated end to end, 2026-09-24:
+
+    ```
+    mvn clean test -Dtest=InstrumentationIsCompleteTest   6/6 pass, fixes = false
+    mvn -Pintegration-test test                           target/test-classes/config.ini <- src/it
+    mvn test -Dtest=InstrumentationIsCompleteTest         3 of 6 fail, fixes = true
+    ```
+
+    **Fixed** by pinning `fixes = false` alongside the three settings already pinned --- one line,
+    and the right one, because a test that declares the instrumentation it depends on cannot be
+    contaminated by whatever else has written to the classpath. Verified by contaminating
+    deliberately and re-running: 6/6. With this and 45a and 45b done, `-Pintegration-test` is
+    **450/0** and the normal build is 432/0; both green together for the first time.
+
+    The lesson is 45c's, sharpened. A stale class is at least visible in a diff of `target`; a
+    stale *config* silently changes what the code under test does. And the failure mode is
+    perfectly calibrated to waste time: it appears only after someone runs the integration profile,
+    disappears on `mvn clean test`, and therefore reads as flakiness.
 
     ### 45c. Why nobody noticed, which is the part worth fixing
 
