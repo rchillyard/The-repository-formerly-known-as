@@ -2214,7 +2214,7 @@ is a defect; all are hardening or generalisation.
     spare-region mapping, which is the part of `Alphabet` that the monotonicity of
     `UnicodeMSDStringSort` rests on.
 
-    ### 45b. `BenchmarkIntegrationTest.testStrings10K` and `testStrings100K` cannot fit their timeout
+    ### 45b. ~~`BenchmarkIntegrationTest.testStrings10K` and `testStrings100K` cannot fit their timeout~~ **DONE 2026-09-24**
 
     Both run benchmark-sized workloads under a wall-clock `ProcessorDependentTimeout`, which scales
     a nominal 10 s down to **7,353 ms** on Robin's machine. Measured by running the same calls with
@@ -2242,8 +2242,18 @@ is a defect; all are hardening or generalisation.
     3. **`@Ignore` them**, which is what has effectively happened already, but explicitly and with a
        reason.
 
-    Option 1 is the one that keeps the coverage. Whichever is chosen, the timeout should be
-    reviewed whenever a sorter is added to `benchmarkStringSorters`.
+    **Done 2026-09-24, by option 1.** 3,800 runs -> 500 and 255 -> 50. Measured after the change:
+    `testStrings10K` 1.21 s (16.5% of the 7,353 ms budget) and `testStrings100K` 2.04 s (27.8%),
+    the whole class 3.565 s, 5/5 green. The reduction is deliberately more than arithmetic requires,
+    because the budget on an unlisted machine is a flat 10 s with no guarantee that machine is fast,
+    and because the next sorter added will eat into it. `testStrings10KInstrumented` was left alone
+    at 950 runs: it measures 0.106 s, 1.4% of budget, so it was never near the limit.
+
+    The reasoning for option 1 over the other two: nothing reads the timings these tests print, so
+    the run count was buying statistical power that no one spends. A note to that effect is now on
+    `testStrings10K`, together with the instruction to re-check the budget whenever a sorter is
+    added to `benchmarkStringSorters` --- one sorter at a time is how a passing test became a
+    failing one.
 
     ### 45d. `InstrumentationIsCompleteTest` passes in the suite and fails on its own
 

@@ -46,10 +46,26 @@ public class BenchmarkIntegrationTest {
     @Rule
     public Timeout timeoutBuilder = new ProcessorDependentTimeout(10, TimeUnit.SECONDS, config);
 
+    /**
+     * NOTE on the run count, reduced from 3,800 to 500 on 2026-09-24 (TODO.md item 45b).
+     * <p>
+     * This is a smoke test wearing a benchmark's clothes: it exists to show that
+     * {@code benchmarkStringSorters} runs end to end without throwing, and nothing reads the
+     * timings it prints. The run count therefore buys statistical power nobody spends, and it has
+     * to fit inside {@link #timeoutBuilder}, which is 10 s divided by a hardcoded per-processor
+     * factor -- 7,353 ms on an M1, and 10 s on any machine not in that table. At 3,800 runs this
+     * needed about 24 s and had been failing unnoticed, because {@code src/it} does not compile in
+     * a normal build (item 45c). At 500 runs it takes **1.21 s**, 16.5% of the budget here, and
+     * {@code testStrings100K} at 50 runs takes 2.04 s, 27.8% -- comfortably inside even the
+     * smallest budget the table can produce, with room for a slower or noisier CI machine.
+     * <p>
+     * If you add a sorter to {@code benchmarkStringSorters}, re-check this: the last few additions
+     * are what turned a passing test into a failing one, one sorter at a time.
+     */
     @Test
     public void testStrings10K() throws Exception {
         String corpus = "eng-uk_web_2002_10K-sentences.txt";
-        benchmark.benchmarkStringSorters(corpus, getWordsLeipzig(corpus), 10000, 3800, huskyCoder);
+        benchmark.benchmarkStringSorters(corpus, getWordsLeipzig(corpus), 10000, 500, huskyCoder);
     }
 
     private final static String[] getWordsLeipzig(String s) throws FileNotFoundException {
@@ -59,8 +75,9 @@ public class BenchmarkIntegrationTest {
     @Test
     public void testStrings100K() throws Exception {
         // NOTE: you cannot include insertionSort among the sort methods to be used: it WILL time out here.
+        // Run count reduced from 255 to 50 on 2026-09-24; see testStrings10K for the reasoning.
         String corpus = "eng-uk_web_2002_100K-sentences.txt";
-        benchmark.benchmarkStringSorters(corpus, getWordsLeipzig(corpus), 100000, 255, huskyCoder);
+        benchmark.benchmarkStringSorters(corpus, getWordsLeipzig(corpus), 100000, 50, huskyCoder);
     }
 
     @Test
