@@ -37,16 +37,29 @@ public interface HuskyCoder<X> {
 
 
     /**
-     * Encode a byte array as a long.
-     * Only the first 7 elements of the array are encoded.
+     * Encode a byte array as a long, most significant byte first, using the first 7 bytes and
+     * padding on the right with zeroes.
+     * <p>
+     * The padding is what makes the result order-preserving across arrays of <i>different</i>
+     * length, and it was missing until 2026-09-24 (TODO.md item 46). Without it a short array
+     * landed in the low bits and so always coded below a longer one whatever the bytes said:
+     * {@code "b"} is {@code 0x62} and {@code "ab"} is {@code 0x6162}, so {@code "b"} coded first
+     * although {@code "ab"} sorts first. {@link HuskyCoderFactory}'s {@code stringToLong} has
+     * always shifted by {@code bitWidth * padding} at the end for exactly this reason; this path
+     * never did.
+     * <p>
+     * Seven bytes rather than eight because the eighth would run into the sign bit. Arrays longer
+     * than seven bytes are truncated, which is a genuine loss of information and is why
+     * {@link #huskyEncode(CollationKey[])} reports such a coding imperfect.
      *
      * @param bs the byte array to encode.
-     * @return a long which is based on the first seven of the given bytes.
+     * @return a long based on the first seven of the given bytes, left-aligned.
      */
     default long huskyEncode(final byte[] bs) {
+        final int n = Math.min(bs.length, 7);
         long result = 0L;
-        for (int i = 0; i < bs.length && i < 7; i++) result = (result << 8) | bs[i] & 0xFF;
-        return result;
+        for (int i = 0; i < n; i++) result = (result << 8) | bs[i] & 0xFF;
+        return result << 8 * (7 - n);
     }
 
     /**

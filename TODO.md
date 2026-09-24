@@ -2310,8 +2310,8 @@ is a defect; all are hardening or generalisation.
     default build with the slow tests trimmed per 45b. The present arrangement, where the tests
     exist but run only by accident, is the one arrangement with no upside.
 
-46. **`HuskyCoder.huskyEncode(byte[])` does not pad, so its codes are not order-preserving across
-    lengths (found 2026-09-24 while writing `GenericCollatorTest`).**
+46. ~~**`HuskyCoder.huskyEncode(byte[])` does not pad, so its codes are not order-preserving across
+    lengths**~~ **DONE 2026-09-24**, together with `GenericCollator.English`.
 
     ```java
     default long huskyEncode(final byte[] bs) {
@@ -2334,13 +2334,47 @@ is a defect; all are hardening or generalisation.
     **The fix is one line**, `result <<= 8 * (7 - Math.min(bs.length, 7));`, and it would strictly
     improve the encoding: fewer inversions for the cleanup pass, no cost at encode time.
 
-    **Not done, deliberately.** It is a quality defect rather than a correctness one --- an
-    imperfect code is legal and the cleanup pass repairs the order --- and it is dormant: the only
-    production user of the path is `HuskyCoderFactory.chineseEncoderCollator`, via
-    `SequenceEncoder_Collator`, which appears in tests and in `HuskySortHelper`'s name map and in no
-    benchmark at all. So no figure in the paper moves either way. Changing a coder's output while
-    Yunlu has a frozen jar is also the wrong moment.
+    **Done**, on Robin's instruction --- "I'd like things to work the way they sound". Safe to do
+    now for the reason that made it safe to defer: the only production user of the path is
+    `HuskyCoderFactory.chineseEncoderCollator`, via `SequenceEncoder_Collator`, which appears in
+    tests and in `HuskySortHelper`'s name map and in **no benchmark at all**, so no figure in the
+    paper moves and Yunlu's frozen jar is unaffected. Verified by grep before changing anything.
 
-    `GenericCollatorTest.huskyCodesAreNotOrderPreservingAcrossKeyLengths` asserts the defect, so the
-    test will fail when it is fixed. That is intended: the fix should arrive with a decision about
-    which figures are re-measured, not by surprise.
+    ### And `GenericCollator.English`, which was the same complaint one level up
+
+    The class defined `English` as a collator whose key compared by `String.compareTo`, so it put
+    "Banana" before "apple" where `Collator.getInstance(ENGLISH)` does the reverse. The name said
+    one thing and the code did another. Now:
+
+    - **`English`** is `new GenericCollator<>(Collator.getInstance(Locale.ENGLISH))` --- genuinely
+      English, and its key bytes compare in collation order, so a husky code taken from them does
+      too. Collation keys are longer than their source, so expect `perfect` to be false for all but
+      the shortest strings; that is honest, and the cleanup pass is what makes the order exact.
+    - **`CodePointOrder`** is the old behaviour under a name that describes it, with
+      `CollationKeyEnglish` renamed to `CollationKeyCodePoint`. Worth keeping rather than deleting:
+      UTF-8 preserves code-point order, so its bytes compare as its keys do, and code-point order is
+      what the rest of this project's string sorts use as their natural order.
+
+    One thing found while making that change, and **an initial claim about it that was wrong**.
+    `Collator` is mutable internally --- `RuleBasedCollator` reuses its iterators and buffers rather
+    than reallocating them --- and the first note here said that made it unsafe to share. It does
+    not. Both `compare` and `getCollationKey` are declared `synchronized`, deliberately, and the
+    JDK source says why in as many words: "the objects persist anyway to avoid wasting extra
+    creation time. compare() and getCollationKey() are synchronized to ensure thread safety with
+    this scheme."
+
+    So it is correct under concurrency, and the real cost is **contention**: every caller of a
+    shared instance serializes on one monitor, which is a poor default for a `public static` field
+    in a project that has a parallel sorter. The `Collator` constructor therefore gives each thread
+    its own clone via a `ThreadLocal`, which is the documented way out ---
+    `RuleBasedCollator.clone` exists for it and uses a private copy constructor because, as it
+    notes, "This is faster."
+
+    The accompanying test is named for what it actually checks: that a cloned collator yields keys
+    identical to the original's. It would have passed before the change as well, which is worth
+    stating rather than hiding, since a test that cannot fail for the reason you claim is not
+    evidence for that reason.
+
+    `GenericCollatorTest` now has 14 tests including
+    `huskyCodesAreOrderPreservingAcrossKeyLengths`, the regression test for the padding. Unit suite
+    453/0, integration 475/0.
