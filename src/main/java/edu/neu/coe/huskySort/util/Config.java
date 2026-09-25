@@ -129,7 +129,10 @@ public class Config {
      */
     public String getString(final String sectionName, final String optionName, final String defaultValue) {
         final String s = get(sectionName, optionName, defaultValue);
-        if (s.isEmpty()) return defaultValue;
+        // NOTE the null test is not redundant: get returns null for an unset option when the
+        // default is itself null, and testing isEmpty() on that threw (TODO.md item 47). The
+        // siblings above have always guarded this way; this one did not.
+        if (s == null || s.isEmpty()) return defaultValue;
         return s;
     }
 

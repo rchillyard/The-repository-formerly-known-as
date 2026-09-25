@@ -2379,7 +2379,7 @@ is a defect; all are hardening or generalisation.
     `huskyCodesAreOrderPreservingAcrossKeyLengths`, the regression test for the padding. Unit suite
     453/0, integration 475/0.
 
-47. **`Config.getString` throws on a null default where `get` does not (found 2026-09-24).** It was
+47. ~~**`Config.getString` throws on a null default where `get` does not**~~ **DONE 2026-09-24.** It was
     one of three public methods with no references anywhere, turned up while checking the TESTME
     sweep, and writing its test exposed the asymmetry.
 
@@ -2396,6 +2396,13 @@ is a defect; all are hardening or generalisation.
     `getLong` and `getDouble` all write `if (s == null || s.isEmpty())`, so this is an inconsistency
     within one family rather than a considered choice.
 
-    **The fix is one line**, adding `s == null ||`, and `ConfigTest.testGetString` asserts the
-    current behaviour so the fix will announce itself. Not done here only because the ask was for
-    tests; the method has no callers, so nothing is at risk either way.
+    **Fixed** by adding `s == null ||`, which is what the siblings do, so `getString` now agrees
+    with `get`: a null default comes back as null rather than throwing.
+    `ConfigTest.testGetString` asserts the new behaviour at three points --- a null default with an
+    absent key, with an empty value, and `get` itself for comparison. Note that the last of those
+    needs `(String) null`: an unadorned `null` matches both `get(Object, Object, String)` and
+    `get(Object, Object, Class<T>)`, which is why `Config` casts the same way internally.
+
+    No caller is affected, the method having none. It is worth having correct anyway: the next
+    person to reach for the typed getter should not have to discover that one member of the family
+    handles an absent option differently from the other three.

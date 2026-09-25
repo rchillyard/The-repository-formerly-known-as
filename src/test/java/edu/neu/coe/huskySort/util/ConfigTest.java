@@ -18,11 +18,10 @@ public class ConfigTest {
      * {@code get(section, option, default)} it delegates to is that it maps an empty result onto
      * the default as well as an absent one.
      * <p>
-     * NOTE the last case. {@code getString} throws on a null default where {@code get} returns null
-     * quite happily, because it tests {@code s.isEmpty()} without a null guard --- and its siblings
-     * {@code getInt}, {@code getLong} and {@code getDouble} all write {@code s == null ||} first.
-     * It is asserted here rather than papered over, so that fixing it (one line) is a deliberate act
-     * and this test is what tells you it has been fixed.
+     * NOTE the last case is the regression test for TODO.md item 47. {@code getString} used to
+     * throw on a null default, because it tested {@code s.isEmpty()} without a null guard where its
+     * siblings {@code getInt}, {@code getLong} and {@code getDouble} all write {@code s == null ||}
+     * first. It now agrees with {@code get}, which returns null for an unset option quite happily.
      */
     @Test
     public void testGetString() throws IOException {
@@ -34,12 +33,9 @@ public class ConfigTest {
         assertEquals("an absent key yields the default", "D", config.getString("x", "absent", "D"));
         assertEquals("an absent section yields the default", "D", config.getString("nosuch", "absent", "D"));
         assertEquals("an empty default is returned as itself", "", config.getString("x", "absent", ""));
-        try {
-            config.getString("x", "absent", null);
-            fail("getString with a null default currently throws; get(x, absent, null) does not");
-        } catch (final NullPointerException e) {
-            // expected: see the note above.
-        }
+        assertNull("a null default comes back as null, as it does from get", config.getString("x", "absent", null));
+        assertNull("and likewise for an option whose value is empty", config.getString("x", "empty", null));
+        assertNull("get itself has always behaved this way", config.get("x", "absent", (String) null));
     }
 
     @Test
