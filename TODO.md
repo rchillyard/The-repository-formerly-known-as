@@ -2378,3 +2378,24 @@ is a defect; all are hardening or generalisation.
     `GenericCollatorTest` now has 14 tests including
     `huskyCodesAreOrderPreservingAcrossKeyLengths`, the regression test for the padding. Unit suite
     453/0, integration 475/0.
+
+47. **`Config.getString` throws on a null default where `get` does not (found 2026-09-24).** It was
+    one of three public methods with no references anywhere, turned up while checking the TESTME
+    sweep, and writing its test exposed the asymmetry.
+
+    ```java
+    public String getString(final String sectionName, final String optionName, final String defaultValue) {
+        final String s = get(sectionName, optionName, defaultValue);
+        if (s.isEmpty()) return defaultValue;        // <-- NPE when s is null
+        return s;
+    }
+    ```
+
+    `get(section, option, null)` returns null quite happily --- `ConfigTest` asserts exactly that ---
+    so `getString(section, option, null)` throws a NullPointerException. Its siblings `getInt`,
+    `getLong` and `getDouble` all write `if (s == null || s.isEmpty())`, so this is an inconsistency
+    within one family rather than a considered choice.
+
+    **The fix is one line**, adding `s == null ||`, and `ConfigTest.testGetString` asserts the
+    current behaviour so the fix will announce itself. Not done here only because the ask was for
+    tests; the method has no callers, so nothing is at risk either way.
