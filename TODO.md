@@ -439,8 +439,8 @@ Robin asked Claude Chat for a venue recommendation previously and didn't get one
     as the cache-friendliness issue — added a short explanatory clause to
     `paper/HuskySort.tex` covering the mechanism and tying it to the `perfect()` cutoff.
 
-18. **Cite the "quicksort is cache-friendly" claim** (§Why Huskysort Works, near where it used
-    to be line 598). **DONE 2026-07-31.** Robin asked whether this bare assertion needed
+18. ~~**Cite the "quicksort is cache-friendly" claim** (§Why Huskysort Works, near where it used
+    to be line 598).~~ **DONE 2026-07-31.** Robin asked whether this bare assertion needed
     justification; recommended against reusing the Bentley & McIlroy citation for it (that paper
     is about partitioning robustness, not cache behavior — would have been a citation mismatch).
     Added the actual standard reference instead: LaMarca and Ladner, "The Influence of Caches on
@@ -1282,7 +1282,9 @@ is a defect; all are hardening or generalisation.
     measured motivation, and item 11 looks like the larger lever. Names are at most 3 characters
     against the pinyin code's 5-character capacity, so there are spare bits for item 10 to use.
 
-37. **The husky coders are not order-preserving, and every string benchmark will need re-running.**
+37. ~~**The husky coders are not order-preserving, and every string benchmark will need
+    re-running.**~~ **RESOLVED 2026-09-28 by reversal** --- the observation stands, the remedy did
+    not. Masking is the default again; see the blockquote below.
     Found 2026-09-17 out of item 36. Robin's reading of it: "our husky coders that we've been
     tacitly assuming were ideal turn out not to be ideal, and for reasons that I should have thought
     of at the time. I think I was seduced by the idea of making the encoding as fast as possible,
@@ -2123,7 +2125,9 @@ is a defect; all are hardening or generalisation.
     figures in A and B are hand timings on a loaded eight-core Mac, consistent and directionally
     clear, but not JMH on the machine of record.
 
-44. **An exactly order-preserving pinyin coder, and the general principle behind it (2026-09-22).**
+44. ~~**An exactly order-preserving pinyin coder, and the general principle behind it.**~~
+    **DONE 2026-09-22, measured by Yunlu 2026-09-27, adopted as the chinesenames default
+    2026-09-28.** What remains is the paper subsection, which is tracked in item 43.
     Robin asked why the Chinese-names coder is the worst in the project, given that names are two or
     three characters and the coder packs five. The answer is that length was never the constraint,
     and the diagnosis generalises further than the fix.
@@ -2232,7 +2236,12 @@ is a defect; all are hardening or generalisation.
     - Every chinesenames figure in the paper is superseded by the coder change; 11d supplies the
       new ones for the cells it covers, and the next full suite supplies the rest.
 
-45. **Two latent failures in `src/it`, found 2026-09-23 when Robin enabled it to check a refactor.**
+45. ~~**Two latent failures in `src/it`, found 2026-09-23 when Robin enabled it to check a
+    refactor.**~~ **45a, 45b and 45d all DONE 2026-09-23/24**; `-Pintegration-test` and the default
+    build are green together for the first time. **45c remains open** and is a policy question
+    rather than a defect: whether to run `-Pintegration-test` in CI, or fold `src/it` into the
+    default build. Nothing rots while it is undecided, but the present arrangement --- tests that
+    exist and run only by accident --- is the one option with no upside.
     Neither is caused by anything recent: running `-Pintegration-test` on `parallel-redesign-Robin`
     and on `parallel-redesign` gives byte-identical results, 9 tests and 2 errors on both. They have
     simply been invisible, for the reason in the third bullet.
