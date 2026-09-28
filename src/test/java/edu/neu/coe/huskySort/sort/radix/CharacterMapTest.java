@@ -18,6 +18,20 @@ public class CharacterMapTest {
         characterMap = new CharacterMap(ChineseCharacter::new);
     }
 
+    /**
+     * The dialect is carried but never read back anywhere in the project, so nothing else would
+     * notice if the two constructors disagreed about it. Both are checked: the explicit one must
+     * return what it was given, and the convenience one must default to Hanyu, which is the
+     * assumption {@link ChineseCharacter} makes elsewhere.
+     */
+    @Test
+    public void testGetDialect() {
+        assertEquals("the convenience constructor defaults to Hanyu", "Hanyu", characterMap.getDialect());
+        assertEquals("bopomofo", new CharacterMap(ChineseCharacter::new, "bopomofo", null).getDialect());
+        assertEquals("an initial value must not disturb the dialect", "Hanyu",
+                new CharacterMap(ChineseCharacter::new, "Hanyu", '阿').getDialect());
+    }
+
     @Test
     public void testGet() {
         final String x = "阿朝";

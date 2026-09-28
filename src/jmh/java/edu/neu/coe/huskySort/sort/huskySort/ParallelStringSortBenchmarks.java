@@ -157,23 +157,28 @@ public class ParallelStringSortBenchmarks {
      * @return the sorted copy.
      */
     /**
-     * As {@link #parallelRadixHuskySortAuto_pAll}, but with the rank-based pinyin coder, which is
-     * exactly order-preserving for CJK strings of up to four characters and therefore skips the
-     * cleanup pass altogether. chinesenames only -- the rank table covers CJK, not Latin.
+     * As {@link #parallelRadixHuskySortAuto_pAll}, but with the <b>ordinal</b> pinyin coder, which
+     * was the default until 2026-09-28. chinesenames only, that being the corpus whose order is
+     * pinyin.
      * <p>
-     * This and {@link #parallelRadixHuskySortAuto_pAll_parCleanup} are two different answers to the
-     * same cell, and they should not both be needed: one parallelizes the cleanup, the other
-     * removes it. If the coder wins, the parallel cleanup is of interest only to corpora that still
-     * have a cleanup worth parallelizing. See TODO.md item 44.
+     * The two were the other way round in request 11d, where the default was ordinal and the
+     * variant was {@code ..._pinyinRank}. To line up with that data: 11d's
+     * {@code parallelRadixHuskySortAuto_pAll_pinyinRank} is this suite's
+     * {@code parallelRadixHuskySortAuto_pAll}, and 11d's {@code ..._pAll} is this row.
+     * <p>
+     * 11d settled which of the two answers to this cell was worth having.
+     * {@link #parallelRadixHuskySortAuto_pAll_parCleanup} parallelizes the cleanup; the rank coder
+     * removes it. The coder won by 3.03--3.09x, so the parallel cleanup is now of interest only to
+     * corpora that still have a cleanup worth parallelizing. See TODO.md item 44.
      */
     @Benchmark
-    public String[] parallelRadixHuskySortAuto_pAll_pinyinRank(final StringSortBenchmarks.StringState state) {
+    public String[] parallelRadixHuskySortAuto_pAll_pinyinOrdinal(final StringSortBenchmarks.StringState state) {
         if (!state.corpus.equals("chinesenames"))
-            throw new IllegalStateException("parallelRadixHuskySortAuto_pAll_pinyinRank is meaningful"
-                    + " only for the chinesenames corpus. Use -p corpus=chinesenames.");
+            throw new IllegalStateException("parallelRadixHuskySortAuto_pAll_pinyinOrdinal is meaningful"
+                    + " only for the chinesenames corpus, whose order is pinyin. Use -p corpus=chinesenames.");
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         return new ParallelRadixHuskySort<>(ParallelRadixHuskySort.AUTO_DIGIT_BITS,
-                HuskyCoderFactory.chineseEncoderPinyinRank, state.config,
+                HuskyCoderFactory.chineseEncoderPinyin, state.config,
                 Runtime.getRuntime().availableProcessors()).sort(copy);
     }
 

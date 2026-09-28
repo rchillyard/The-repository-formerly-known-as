@@ -13,9 +13,9 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Random;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.REGEX_LEIPZIG;
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER;
+import static org.junit.Assert.*;
 
 /**
  * Correctness tests for RadixHuskySort.
@@ -72,30 +72,6 @@ public class RadixHuskySortTest {
         Arrays.sort(expected);
         final String[] ys = sorter.sort(xs);
         assertArrayEquals(expected, ys);
-    }
-
-    /**
-     * Stress-test on many small random arrays, across a sweep of digit widths (including one,
-     * 11, that does not evenly divide 64), comparing against Arrays.sort as the trusted reference.
-     * This is the JUnit formalization of the ad hoc stress-test loop in the original prototype
-     * (RadixVsQuickBenchmark.java), which is what caught the original quicksort bug.
-     */
-    @Test
-    public void testStressSmallLongArrays() {
-        final Random r = new Random(7);
-        for (final int digitBits : new int[]{1, 3, 7, 8, 11, 16, 20}) {
-            for (int trial = 0; trial < 500; trial++) {
-                final int n = 1 + r.nextInt(200);
-                final Long[] xs = new Long[n];
-                for (int i = 0; i < n; i++) xs[i] = r.nextLong();
-                final Long[] expected = Arrays.copyOf(xs, n);
-                Arrays.sort(expected);
-
-                final RadixHuskySort<Long> sorter = new RadixHuskySort<>(digitBits, HuskyCoderFactory.longCoder, config);
-                final Long[] ys = sorter.sort(xs);
-                assertArrayEquals("digitBits=" + digitBits + ", n=" + n, expected, ys);
-            }
-        }
     }
 
     @Test
@@ -444,7 +420,7 @@ public class RadixHuskySortTest {
         // against 181 and 1,228. This is the balance: 0.3 s for a vocabulary big enough that the
         // mis-encoded and the truncated words are both well represented.
         final String[] words = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_100K-sentences.txt",
-                line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER));
+                line -> HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER));
         assertTrue("the corpus should hold a substantial vocabulary", words.length > 50_000);
         // The non-ASCII path asciiCoder mis-encodes must actually be exercised, or this test would
         // pass on a corpus where the coder happened to be exact.

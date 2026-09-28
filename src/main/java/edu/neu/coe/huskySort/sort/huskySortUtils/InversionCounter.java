@@ -13,7 +13,6 @@ import java.util.Arrays;
  * array comes back as it went in.
  */
 @SuppressWarnings("rawtypes")
-
 public class InversionCounter {
     private final Comparable[] arr;
 
@@ -21,6 +20,14 @@ public class InversionCounter {
         this.arr = arr;
     }
 
+    /**
+     * Calculates and returns the number of inversions in the array provided at the time of object creation.
+     * An inversion is any pair of indices (i, j) such that i < j and arr[i] > arr[j].
+     * The method uses a modified merge sort algorithm to count inversions efficiently.
+     * The input array remains unmodified during the process.
+     *
+     * @return the number of inversions present in the array as a long value.
+     */
     public long getInversions() {
         // NOTE the copy. _inversionsRecursive is a merge sort which counts as it
         // merges, so it SORTS what it is given -- and this class is called
@@ -93,5 +100,4 @@ public class InversionCounter {
 
         return result;
     }
-
 }

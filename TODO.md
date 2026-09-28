@@ -1288,6 +1288,24 @@ is a defect; all are hardening or generalisation.
     of at the time. I think I was seduced by the idea of making the encoding as fast as possible,
     without realizing that it had such a negative effect on the cleanup phase."
 
+    > **REVERSED 2026-09-28.** The saturating coders stay in the codebase and stay tested, but
+    > `StringSortBenchmarks` is back on `englishCoder` (masking) for english and commonwords. Both
+    > grounds this item switched on failed when measured. **(i)** The cleanup does not care: Yunlu's
+    > 11c put 1,637x the inversions at 1.06x of `timsortCleanup`, because Timsort's cost follows
+    > runs and the two run counts are 7% apart --- so the "a tie costs the cleanup far less than a
+    > mis-ordering" argument, though true in kind, is worth about nothing. **(ii)** Saturating is
+    > not order-preserving either, only monotonic per character; a tie at the window edge lets the
+    > next character decide, so "NÂº" sorts before "NÃ" and encodes above it (item 48). What is left
+    > is the encode cost, and masking is **73.8 ms per million words ahead**. The one ground that
+    > survived measurement points the other way from the one this item was decided on.
+    >
+    > What this item got permanently right is item 36's half: **ten characters instead of four**, a
+    > 21x reduction in runs. That was always the dominant lever and is untouched. Saturation was the
+    > "smaller free win on top", and it was neither free nor a win.
+    >
+    > Note also that masking and saturating have the *same* 64..127 window, so since item 48 they
+    > report perfection identically; the switch changes speed, not correctness.
+
     ### The defect
 
     `stringToLong` narrows each character with `& mask`, which is **not monotonic**. A character
@@ -1315,9 +1333,10 @@ is a defect; all are hardening or generalisation.
     measured with them. They map a character to `clamp(c - offset, 0, 2^bits - 1)`, which is
     non-decreasing over every char value: below the window everything ties at the bottom, the window
     passes through, above it everything ties at the top.
-    `HuskyCoderFactoryTest.testSaturatingCodersAreMonotonic` checks that exhaustively over all
-    65,536 characters, and `testMaskingCodersAreNotMonotonic` asserts the contrast so that it cannot
-    quietly stop being true. `StringSortBenchmarks` now uses `englishSaturatingCoder` for the english
+    `HuskyCoderFactoryTest.testSaturatingCodersArePerCharacterMonotonic` checks that exhaustively
+    over all 65,536 characters, and `testMaskingCodersAreNotPerCharacterMonotonic` asserts the
+    contrast so that it cannot quietly stop being true. **NOTE per character: the property does not
+    extend to strings, which this entry originally failed to say --- see item 48.** `StringSortBenchmarks` now uses `englishSaturatingCoder` for the english
     and commonwords corpora.
 
     ### What is NOT yet known, and matters
@@ -1873,7 +1892,10 @@ is a defect; all are hardening or generalisation.
       is all of A--Z and a--z. Outside the window it wraps, so an apostrophe (39) collides with `g`
       and `e`-acute (233) sorts as `i`. Quasi, not order-preserving.
     - **Saturation** (`clamp(c - offset, 0, width-1)`) is monotonic over all 65,536 chars, verified
-      exhaustively, and costs a compare-and-select per character.
+      exhaustively, and costs a compare-and-select per character. **But per character only** --- on
+      strings it is not, because a tie at one position lets the next decide (item 48). The honest
+      claim is that an out-of-window character costs a tie rather than a mis-ordering, which is
+      cheaper for Timsort but is not exactness.
     - The measured trade (above, plus TODO 37): saturation costs roughly 25 ms per million to encode
       on an eight-core Mac and 1.7--3.0x the masking encode on Yunlu's Graviton, and buys nothing
       measurable in cleanup. **Masking wins on speed**, and the encode-plus-cleanup figures are
@@ -2176,13 +2198,320 @@ is a defect; all are hardening or generalisation.
     one character per 6 or 7 bits they can hold only 9 or 10 characters of an unbounded-length word.
     The constraint there is string length, which is real; for names it never was.
 
-    ### Not yet done
+    ### Measured, and adopted as the default --- 2026-09-28
+
+    Yunlu's request 11d (PR #69) confirmed it on the machine of record, inside every predicted band:
+
+    | | n = 200,000 | n = 1,000,000 |
+    | --- | ---: | ---: |
+    | serial, rank vs ordinal | **4.18x** | **4.43x** |
+    | serial, rank vs `systemSortPinyin` | **15.21x** | **18.51x** |
+    | parallel, rank vs `Arrays.parallelSort` | **5.72x** | **6.79x** |
+    | parallel, rank vs the parallel cleanup | 3.09x | 3.03x |
+
+    where the ordinal coder stood at **0.43x** of `Arrays.parallelSort` at both sizes. The last row
+    is the one that settles item 40's question for this corpus: parallelizing the cleanup and
+    removing it were two answers to the same cell, and removing it wins by three times.
+
+    **`chineseEncoderPinyinRank` is now the default for chinesenames**, in
+    `StringSortBenchmarks.StringState` (which feeds the parallel suite too) and in the legacy
+    `HuskySortBenchmark`. The ordinal coder is kept as the comparison row under an honest name ---
+    `radixHuskySortAutoPinyinOrdinal` and `parallelRadixHuskySortAuto_pAll_pinyinOrdinal` --- since
+    the paper needs both numbers and that row is the measurement justifying the change.
+
+    **Mapping to request 11d's data**, whose roles were the reverse: 11d's `...PinyinRank` is this
+    suite's default row, and 11d's default is this suite's `...PinyinOrdinal` row. Both Javadocs say
+    so, because a table spliced the wrong way round here would be badly misleading.
+
+    ### Still not done
 
     - The paper: this is a new subsection, and it interacts with item 43 A (the cleanup cost model)
       and 43 B (quasi-order-preserving) --- with a perfect coder there is no cleanup term at all,
       which is the cleanest possible illustration of what `p_crit` is about.
     - The rank table is built on first use, about 340 ms. It could be precomputed into a resource.
-    - Nothing switches over until Yunlu's numbers arrive: `radixHuskySortAutoPinyinRank` and
-      `parallelRadixHuskySortAuto_pAll_pinyinRank` are the A/B rows, and `pinyinRank` is the
-      CleanupPassBenchmarks cell (where it should show the p = 0 floor --- N-1 comparisons and no
-      moves, the same quantity the permits measure in the paper's \S~`sec:pcrit`).
+    - Every chinesenames figure in the paper is superseded by the coder change; 11d supplies the
+      new ones for the cells it covers, and the next full suite supplies the rest.
+
+45. **Two latent failures in `src/it`, found 2026-09-23 when Robin enabled it to check a refactor.**
+    Neither is caused by anything recent: running `-Pintegration-test` on `parallel-redesign-Robin`
+    and on `parallel-redesign` gives byte-identical results, 9 tests and 2 errors on both. They have
+    simply been invisible, for the reason in the third bullet.
+
+    ### 45a. ~~`AlphabetTest.getCountIndexUnicode` is written against a contract that no longer exists~~ **DONE 2026-09-23**
+
+    ```
+    SortException: char Ĭ (300) has no position in this alphabet. prepare() must be called with
+    the whole input before sorting, so that characters beyond ASCII can be assigned positions in
+    code-point order.
+    ```
+
+    The test is stale, not the code. `Alphabet` used to assign a bucket position to each non-ASCII
+    character *on first encounter*; that was changed --- correctly, and the reasoning is in
+    `Alphabet.prepare`'s javadoc --- because first-encounter order is not code-point order, so two
+    strings differing first at a non-ASCII character came out in whatever order the input happened
+    to present those characters. `getCountIndex` now refuses rather than guessing. The test still
+    calls it on a fresh `Alphabet` with no `prepare`.
+
+    **The fix was one line, and the test's expectations were already right.** After
+    `prepare(new String[]{"Ĭ", "Ɛ", "￿"})` the same three characters map to
+    **256 / 257 / 258**, exactly what the test asserts, so the `prepare` call was added and nothing
+    else changed. `AlphabetTest` is 4/4. Worth repairing rather than deleting: it is the only direct test of the
+    spare-region mapping, which is the part of `Alphabet` that the monotonicity of
+    `UnicodeMSDStringSort` rests on.
+
+    ### 45b. ~~`BenchmarkIntegrationTest.testStrings10K` and `testStrings100K` cannot fit their timeout~~ **DONE 2026-09-24**
+
+    Both run benchmark-sized workloads under a wall-clock `ProcessorDependentTimeout`, which scales
+    a nominal 10 s down to **7,353 ms** on Robin's machine. Measured by running the same calls with
+    a reduced run count and scaling, 2026-09-23:
+
+    | test | n | runs | needs | budget | over by |
+    | --- | ---: | ---: | ---: | ---: | ---: |
+    | `testStrings10K` | 10,000 | 3,800 | ~24 s | 7.4 s | 3x |
+    | `testStrings100K` | 100,000 | 255 | ~17 s | 7.4 s | 2x |
+
+    This is not the corpus getting bigger: the word-splitter repair of item 43 C2 added 15% of
+    vocabulary, and the two branches time out at 14.0 s and 14.6 s respectively, which is noise.
+    The likelier cause is accumulation --- `benchmarkStringSorters` has gained sorters steadily
+    (the radix family, MSD, the parallel rows) while the run counts and the timeout stayed where
+    they were. The class comment already shows the strain: "you cannot include insertionSort among
+    the sort methods to be used: it WILL time out here."
+
+    Three options, in the order I would consider them:
+
+    1. **Cut the run counts** to what the budget allows --- 3,800 to about 1,000, and 255 to about
+       100. These are correctness-and-smoke tests that happen to be built on the benchmark harness;
+       they do not need statistical power, and nothing reads their timings.
+    2. **Raise the timeout** to 30 s nominal. Honest, but it makes a slow suite slower and only
+       defers the next accumulation.
+    3. **`@Ignore` them**, which is what has effectively happened already, but explicitly and with a
+       reason.
+
+    **Done 2026-09-24, by option 1.** 3,800 runs -> 500 and 255 -> 50. Measured after the change:
+    `testStrings10K` 1.21 s (16.5% of the 7,353 ms budget) and `testStrings100K` 2.04 s (27.8%),
+    the whole class 3.565 s, 5/5 green. The reduction is deliberately more than arithmetic requires,
+    because the budget on an unlisted machine is a flat 10 s with no guarantee that machine is fast,
+    and because the next sorter added will eat into it. `testStrings10KInstrumented` was left alone
+    at 950 runs: it measures 0.106 s, 1.4% of budget, so it was never near the limit.
+
+    The reasoning for option 1 over the other two: nothing reads the timings these tests print, so
+    the run count was buying statistical power that no one spends. A note to that effect is now on
+    `testStrings10K`, together with the instruction to re-check the budget whenever a sorter is
+    added to `benchmarkStringSorters` --- one sorter at a time is how a passing test became a
+    failing one.
+
+    ### 45d. ~~`InstrumentationIsCompleteTest` passes in the suite and fails on its own~~ **DONE 2026-09-24**
+
+    **The first diagnosis recorded here was wrong and is corrected below.** It said order
+    dependence --- that the test relied on state a neighbour left behind. It does not. The real
+    cause is the same mechanism as 45c, one layer over: a contaminated *resource*, not a stale
+    class, and it is a good deal nastier than order dependence because a clean build hides it.
+
+    `src/it/resources/config.ini` and `src/test/resources/config.ini` are different files, and the
+    integration-test profile adds the former as a test resource, so it is copied **over** the latter
+    into `target/test-classes/config.ini` --- where it then stays. Among the differences:
+    `src/test` has `fixes = false`, `src/it` has `fixes = true`.
+
+    That matters because with `fixes` on the instrumented Helper counts inversions fixed, and doing
+    so *compares*. Those comparisons go through `Counted.compareTo` like every other, so they land
+    in the test's `actual` while never reaching the StatPack's `COMPARES`. The test then reports
+    comparisons "made but not counted" that the sort never made, and the three sorts that swap most
+    --- `QuickSort_3way`, `QuickSort_DualPivot`, `IntroSort` --- fail. The `@BeforeClass` pinned
+    `compares`, `swaps` and `hits` but inherited `fixes`.
+
+    Demonstrated end to end, 2026-09-24:
+
+    ```
+    mvn clean test -Dtest=InstrumentationIsCompleteTest   6/6 pass, fixes = false
+    mvn -Pintegration-test test                           target/test-classes/config.ini <- src/it
+    mvn test -Dtest=InstrumentationIsCompleteTest         3 of 6 fail, fixes = true
+    ```
+
+    **Fixed** by pinning `fixes = false` alongside the three settings already pinned --- one line,
+    and the right one, because a test that declares the instrumentation it depends on cannot be
+    contaminated by whatever else has written to the classpath. Verified by contaminating
+    deliberately and re-running: 6/6. With this and 45a and 45b done, `-Pintegration-test` is
+    **450/0** and the normal build is 432/0; both green together for the first time.
+
+    The lesson is 45c's, sharpened. A stale class is at least visible in a diff of `target`; a
+    stale *config* silently changes what the code under test does. And the failure mode is
+    perfectly calibrated to waste time: it appears only after someone runs the integration profile,
+    disappears on `mvn clean test`, and therefore reads as flakiness.
+
+    ### 45c. Why nobody noticed, which is the part worth fixing
+
+    `src/it/java` is added as a test source by `build-helper`, but only inside the
+    `integration-test` profile, so a normal `mvn test` never compiles it and the six classes there
+    never run --- 432 tests rather than 450.
+
+    **An IDE does compile it**, because it honours the same source root, and writes the classes into
+    `target/test-classes`. A subsequent `mvn test` then picks them up and runs them, since they
+    match surefire's default includes. That is how this surfaced: 450 tests and 3 errors from a
+    tree whose `mvn clean test` is 432 and green. It is a trap worth knowing about, because the
+    same mechanism can make a build look broken that is not, and --- worse --- can make a stale
+    class pass a test that the current source would fail.
+
+    Options: run `-Pintegration-test` in CI so these cannot rot unnoticed; or fold `src/it` into the
+    default build with the slow tests trimmed per 45b. The present arrangement, where the tests
+    exist but run only by accident, is the one arrangement with no upside.
+
+46. ~~**`HuskyCoder.huskyEncode(byte[])` does not pad, so its codes are not order-preserving across
+    lengths**~~ **DONE 2026-09-24**, together with `GenericCollator.English`.
+
+    ```java
+    default long huskyEncode(final byte[] bs) {
+        long result = 0L;
+        for (int i = 0; i < bs.length && i < 7; i++) result = (result << 8) | bs[i] & 0xFF;
+        return result;                       // <-- no trailing shift
+    }
+    ```
+
+    A two-byte array lands in the low sixteen bits while a seven-byte array fills the long, so a
+    short key always codes below a longer one whatever the bytes say: `"b"` is `0x62` and `"ab"` is
+    `0x6162`, so `"b"` codes first although `"ab"` sorts first. Among equal-length keys the codes
+    are exactly order-preserving, which is what makes the omission easy to miss.
+
+    Compare `HuskyCoderFactory.stringToLong`, which computes `padding = maxLength - length` and ends
+    with `result <<= bitWidth * padding` for precisely this reason. The byte-array path never got
+    the same treatment, and its javadoc --- "a long which is based on the first seven of the given
+    bytes" --- does not mention the bias.
+
+    **The fix is one line**, `result <<= 8 * (7 - Math.min(bs.length, 7));`, and it would strictly
+    improve the encoding: fewer inversions for the cleanup pass, no cost at encode time.
+
+    **Done**, on Robin's instruction --- "I'd like things to work the way they sound". Safe to do
+    now for the reason that made it safe to defer: the only production user of the path is
+    `HuskyCoderFactory.chineseEncoderCollator`, via `SequenceEncoder_Collator`, which appears in
+    tests and in `HuskySortHelper`'s name map and in **no benchmark at all**, so no figure in the
+    paper moves and Yunlu's frozen jar is unaffected. Verified by grep before changing anything.
+
+    ### And `GenericCollator.English`, which was the same complaint one level up
+
+    The class defined `English` as a collator whose key compared by `String.compareTo`, so it put
+    "Banana" before "apple" where `Collator.getInstance(ENGLISH)` does the reverse. The name said
+    one thing and the code did another. Now:
+
+    - **`English`** is `new GenericCollator<>(Collator.getInstance(Locale.ENGLISH))` --- genuinely
+      English, and its key bytes compare in collation order, so a husky code taken from them does
+      too. Collation keys are longer than their source, so expect `perfect` to be false for all but
+      the shortest strings; that is honest, and the cleanup pass is what makes the order exact.
+    - **`CodePointOrder`** is the old behaviour under a name that describes it, with
+      `CollationKeyEnglish` renamed to `CollationKeyCodePoint`. Worth keeping rather than deleting:
+      UTF-8 preserves code-point order, so its bytes compare as its keys do, and code-point order is
+      what the rest of this project's string sorts use as their natural order.
+
+    One thing found while making that change, and **an initial claim about it that was wrong**.
+    `Collator` is mutable internally --- `RuleBasedCollator` reuses its iterators and buffers rather
+    than reallocating them --- and the first note here said that made it unsafe to share. It does
+    not. Both `compare` and `getCollationKey` are declared `synchronized`, deliberately, and the
+    JDK source says why in as many words: "the objects persist anyway to avoid wasting extra
+    creation time. compare() and getCollationKey() are synchronized to ensure thread safety with
+    this scheme."
+
+    So it is correct under concurrency, and the real cost is **contention**: every caller of a
+    shared instance serializes on one monitor, which is a poor default for a `public static` field
+    in a project that has a parallel sorter. The `Collator` constructor therefore gives each thread
+    its own clone via a `ThreadLocal`, which is the documented way out ---
+    `RuleBasedCollator.clone` exists for it and uses a private copy constructor because, as it
+    notes, "This is faster."
+
+    The accompanying test is named for what it actually checks: that a cloned collator yields keys
+    identical to the original's. It would have passed before the change as well, which is worth
+    stating rather than hiding, since a test that cannot fail for the reason you claim is not
+    evidence for that reason.
+
+    `GenericCollatorTest` now has 14 tests including
+    `huskyCodesAreOrderPreservingAcrossKeyLengths`, the regression test for the padding. Unit suite
+    453/0, integration 475/0.
+
+47. ~~**`Config.getString` throws on a null default where `get` does not**~~ **DONE 2026-09-24.** It was
+    one of three public methods with no references anywhere, turned up while checking the TESTME
+    sweep, and writing its test exposed the asymmetry.
+
+    ```java
+    public String getString(final String sectionName, final String optionName, final String defaultValue) {
+        final String s = get(sectionName, optionName, defaultValue);
+        if (s.isEmpty()) return defaultValue;        // <-- NPE when s is null
+        return s;
+    }
+    ```
+
+    `get(section, option, null)` returns null quite happily --- `ConfigTest` asserts exactly that ---
+    so `getString(section, option, null)` throws a NullPointerException. Its siblings `getInt`,
+    `getLong` and `getDouble` all write `if (s == null || s.isEmpty())`, so this is an inconsistency
+    within one family rather than a considered choice.
+
+    **Fixed** by adding `s == null ||`, which is what the siblings do, so `getString` now agrees
+    with `get`: a null default comes back as null rather than throwing.
+    `ConfigTest.testGetString` asserts the new behaviour at three points --- a null default with an
+    absent key, with an empty value, and `get` itself for comparison. Note that the last of those
+    needs `(String) null`: an unadorned `null` matches both `get(Object, Object, String)` and
+    `get(Object, Object, Class<T>)`, which is why `Config` casts the same way internally.
+
+    No caller is affected, the method having none. It is worth having correct anyway: the next
+    person to reach for the typed getter should not have to discover that one member of the family
+    handles an absent option differently from the other three.
+
+48. ~~**The `perfect` flag trusts word length alone, so a narrowing coder can return an unsorted
+    array**~~ **DONE 2026-09-28.** Found by Yunlu in request 11c/11d (PR #69), reproduced here
+    before fixing. The only one of his three findings that produces a wrong answer rather than a
+    misleading comment.
+
+    `BaseHuskySequenceCoder.huskyEncode(X[])` set its `perfect` flag from `perfectForLength` and
+    nothing else. Length is necessary but not sufficient: the ASCII coders narrow each character to
+    7 bits and the English ones to 6, so a character outside that window is not represented
+    faithfully however short the word is. When every word in an array was short, the coding claimed
+    perfection, `AbstractHuskySort.postSort` skipped the cleanup, and the sort returned an array
+    that was not sorted:
+
+    ```
+    englishSaturatingCoder on {"cafÿ", "café", "cafa", "cafz"}
+        perfect = true   result [cafa, cafz, cafÿ, café]   should be [cafa, cafz, café, cafÿ]
+    ```
+
+    because U+00E9 and U+00FF both saturate to 63 and the codes tie. All four narrowing coders are
+    affected, masking and saturating alike. `unicodeCoder` is not: it keeps a whole 16-bit character
+    per slot, so it has no window to fall outside of and length really is its only limit.
+
+    **Fixed** by giving `BaseHuskySequenceCoder` an overridable `exactlyEncodable(X)`, defaulting to
+    the old length test, which the array encoder now calls instead. The four narrowing coders
+    override it to add `charactersWithin(x, lo, hi)` --- 0..127 for the ASCII pair, 64..127 for the
+    English pair. `unicodeCoder` inherits the default unchanged.
+
+    **No measurable cost.** The check short-circuits on the first element that fails, and the length
+    test is evaluated first, so a single over-long word ends it. On the english corpus at
+    n = 1,000,000 the first word longer than ten characters sits at index 2, and
+    `huskyEncode(String[])` measures within noise of a bare per-element loop (−0.5 to +1.7 ms on
+    60--90 ms).
+
+    **Why it survived.** No benchmark array is short enough throughout to trigger it --- every
+    corpus holds long words, so `perfect` was already false for the wrong reason. It would have
+    bitten the first user with a dictionary of short accented words.
+
+    ### The other two findings from the same report --- **both DONE 2026-09-28**
+
+    - ~~**The saturating coders' Javadoc overstates monotonicity.**~~ The per-character map is
+      monotonic and was checked exhaustively over all 65,536 chars; the map on *strings* is not,
+      because saturation ties at the window edge and a tie at character *i* lets character *i+1*
+      decide: "NÂº" sorts before "NÃ" but codes above it. The wording was mine.
+      **Corrected** in both saturating coders' Javadoc, which now say "per character" and explain
+      why the distinction is not pedantry. `testSaturatingCodersAreMonotonic` is renamed
+      `testSaturatingCodersArePerCharacterMonotonic`, and a new
+      `testSaturatingCodersAreNotMonotonicOnStrings` asserts Yunlu's counterexample so the claim
+      cannot drift back.
+
+      **It matters beyond the wording.** The case for preferring saturation over masking rested on
+      it, and 11c independently puts masking **73.8 ms per million ahead** on the serial components.
+      Both grounds pointed the same way, and **item 37 was duly reversed on 2026-09-28**: english
+      and commonwords are back on `englishCoder`. What
+      saturation still buys is that an out-of-window character costs a *tie* rather than a
+      mis-ordering, and a tie does not break a Timsort run --- real, but much smaller than
+      "order-preserving", and `CleanupPassBenchmarks`'s class comment now says so.
+    - ~~**`CleanupPassBenchmarks.binaryInsertionCleanup`'s guard misses `pinyinRank`.**~~ It tested
+      `coder.equals("pinyin")`, so the cell added for item 44 fell straight through and would have
+      sorted in code-point order against a pinyin-ordered corpus --- a plausible-looking number for
+      the wrong algorithm. Mine, introduced with the cell; no requested row ran it.
+      **Fixed** by testing `state.ordering != Comparator.naturalOrder()` instead of the coder's
+      name. That cannot go stale the same way: a future cell needing a Collator is refused for what
+      it is rather than for what it is called. Verified that the guard now fires for both `pinyin`
+      and `pinyinRank` and still lets the natural-order cells through.
