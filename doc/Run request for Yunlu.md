@@ -13,8 +13,8 @@
 | 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
 | 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **done 2026-09-17** — PR #66, `doc/Run results from Yunlu 2026-09-17.md`; thank you, and the thread-asymmetry hypothesis did not survive |
 | 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **done 2026-09-21** — PR #67, `doc/Run results from Yunlu 2026-09-21.md`; thank you, and the withdrawal of your own step-4 figure on convergence grounds was exactly right |
-| 11c | the masking cleanup cells 11a had no parameter for (short) | **requested 2026-09-22** — see below |
-| 11d | the parallel cleanup, and an exactly order-preserving pinyin coder | **requested 2026-09-22** — see below; same jar as 11c |
+| 11c | the masking cleanup cells 11a had no parameter for (short) | **done 2026-09-27** — `doc/Run results from Yunlu 2026-09-27.md` |
+| 11d | the parallel cleanup, and an exactly order-preserving pinyin coder | **done 2026-09-27** — `doc/Run results from Yunlu 2026-09-27.md`, same jar as 11c; the full-suite re-run is in the same file and its appendix |
 
 **Requests 1 to 7 are all answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
