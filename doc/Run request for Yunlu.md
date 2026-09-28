@@ -160,9 +160,14 @@ Same conditions as always: `uptime` before and after each invocation, the `ForkJ
 quiet host, raw JSON unedited. The two-methods rule cannot apply to a whole-class run; as before, the
 baselines sort last alphabetically and we read the ratios with that in mind.
 
-**The commit to record is `d8958bf`**, branch `parallel-redesign-Robin` --- "Revert item 37: masking
-is the default english coder again". It is the last commit touching `src/`. `mvn -B test` there: 465
-tests, 0 failures; `-Pintegration-test` 487, 0 failures.
+**The commit to record is `d8958bf`**, branch `parallel-redesign` --- "Revert item 37: masking is
+the default english coder again". It is the last commit touching `src/`, so `git log d8958bf..HEAD --
+src/` is empty and the branch tip builds the same jar. `mvn -B test` there: 465 tests, 0 failures;
+`-Pintegration-test` 487, 0 failures.
+
+NOTE that `d8958bf` reached `parallel-redesign` only on 2026-09-28, in the merge that also brought
+your PR #69 results together with the fixes they prompted. If you fetched before that you will not
+see it, so please fetch again rather than building whatever `parallel-redesign` was last time.
 
 ---
 
