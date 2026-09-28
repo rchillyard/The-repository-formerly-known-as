@@ -2406,3 +2406,53 @@ is a defect; all are hardening or generalisation.
     No caller is affected, the method having none. It is worth having correct anyway: the next
     person to reach for the typed getter should not have to discover that one member of the family
     handles an absent option differently from the other three.
+
+48. ~~**The `perfect` flag trusts word length alone, so a narrowing coder can return an unsorted
+    array**~~ **DONE 2026-09-28.** Found by Yunlu in request 11c/11d (PR #69), reproduced here
+    before fixing. The only one of his three findings that produces a wrong answer rather than a
+    misleading comment.
+
+    `BaseHuskySequenceCoder.huskyEncode(X[])` set its `perfect` flag from `perfectForLength` and
+    nothing else. Length is necessary but not sufficient: the ASCII coders narrow each character to
+    7 bits and the English ones to 6, so a character outside that window is not represented
+    faithfully however short the word is. When every word in an array was short, the coding claimed
+    perfection, `AbstractHuskySort.postSort` skipped the cleanup, and the sort returned an array
+    that was not sorted:
+
+    ```
+    englishSaturatingCoder on {"cafÿ", "café", "cafa", "cafz"}
+        perfect = true   result [cafa, cafz, cafÿ, café]   should be [cafa, cafz, café, cafÿ]
+    ```
+
+    because U+00E9 and U+00FF both saturate to 63 and the codes tie. All four narrowing coders are
+    affected, masking and saturating alike. `unicodeCoder` is not: it keeps a whole 16-bit character
+    per slot, so it has no window to fall outside of and length really is its only limit.
+
+    **Fixed** by giving `BaseHuskySequenceCoder` an overridable `exactlyEncodable(X)`, defaulting to
+    the old length test, which the array encoder now calls instead. The four narrowing coders
+    override it to add `charactersWithin(x, lo, hi)` --- 0..127 for the ASCII pair, 64..127 for the
+    English pair. `unicodeCoder` inherits the default unchanged.
+
+    **No measurable cost.** The check short-circuits on the first element that fails, and the length
+    test is evaluated first, so a single over-long word ends it. On the english corpus at
+    n = 1,000,000 the first word longer than ten characters sits at index 2, and
+    `huskyEncode(String[])` measures within noise of a bare per-element loop (−0.5 to +1.7 ms on
+    60--90 ms).
+
+    **Why it survived.** No benchmark array is short enough throughout to trigger it --- every
+    corpus holds long words, so `perfect` was already false for the wrong reason. It would have
+    bitten the first user with a dictionary of short accented words.
+
+    ### Two related findings from the same report, not yet done
+
+    - **The saturating coders' Javadoc overstates monotonicity** (`HuskyCoderFactory:142-154`,
+      `:408`). The per-character map is monotonic and was checked exhaustively over all 65,536
+      chars; the map on *strings* is not, because saturation ties at the window edge and a tie at
+      character *i* lets character *i+1* decide: "NÂº" sorts before "NÃ" but codes above it. The
+      wording is mine and needs correcting --- and it matters beyond wording, since the case for
+      preferring saturation over masking rested on it. 11c also puts masking 73.8 ms per million
+      ahead on the serial components, so that decision now wants revisiting on both grounds.
+    - **`CleanupPassBenchmarks.binaryInsertionCleanup`'s guard misses `pinyinRank`** (`:285`). It
+      tests `coder.equals("pinyin")`, so the cell added for item 44 would sort in code-point order
+      rather than `NAME_ORDER` and silently measure the wrong thing. No requested row runs it. Mine,
+      introduced with the cell.

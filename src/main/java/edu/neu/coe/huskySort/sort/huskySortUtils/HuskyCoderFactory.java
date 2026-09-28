@@ -85,6 +85,16 @@ public final class HuskyCoderFactory {
             return asciiToLong(str);
         }
 
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Seven bits hold 0..127 faithfully; {@code & 0x7F} wraps anything above into that range,
+         * which is a mis-ordering rather than a tie.
+         */
+        @Override
+        protected boolean exactlyEncodable(final String x) {
+            return super.exactlyEncodable(x) && charactersWithin(x, (char) 0, (char) 0x7F);
+        }
     };
 
     /**
@@ -109,6 +119,17 @@ public final class HuskyCoderFactory {
          */
         public long huskyEncode(final String str) {
             return englishToLong(str);
+        }
+
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Six bits hold 64..127 faithfully; {@code & 0x3F} wraps everything else into that range,
+         * which is why an apostrophe and 'g' collide.
+         */
+        @Override
+        protected boolean exactlyEncodable(final String x) {
+            return super.exactlyEncodable(x) && charactersWithin(x, (char) OFFSET_ENGLISH, (char) 0x7F);
         }
     };
 
@@ -136,6 +157,16 @@ public final class HuskyCoderFactory {
         public long huskyEncode(final String str) {
             return stringToLongSaturating(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, 0);
         }
+
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Seven bits hold 0..127 faithfully; anything above saturates to 127 and ties with it.
+         */
+        @Override
+        protected boolean exactlyEncodable(final String x) {
+            return super.exactlyEncodable(x) && charactersWithin(x, (char) 0, (char) 0x7F);
+        }
     };
 
     /**
@@ -161,6 +192,16 @@ public final class HuskyCoderFactory {
     public final static HuskySequenceCoder<String> englishSaturatingCoder = new BaseHuskySequenceCoder<>("English-saturating", MAX_LENGTH_ENGLISH) {
         public long huskyEncode(final String str) {
             return stringToLongSaturating(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, OFFSET_ENGLISH);
+        }
+
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Six bits hold 64..127 faithfully; below saturates to 0 and above to 63, either way a tie. This is also why the string map is not monotonic even though the per-character one is: "N\u00c2\u00ba" sorts before "N\u00c3" but codes above it.
+         */
+        @Override
+        protected boolean exactlyEncodable(final String x) {
+            return super.exactlyEncodable(x) && charactersWithin(x, (char) OFFSET_ENGLISH, (char) 0x7F);
         }
     };
 
