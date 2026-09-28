@@ -305,7 +305,7 @@ public final class HuskySortBenchmark {
             final boolean quickhuskysortwithinsertionsort = isConfigBenchmarkStringSorter("quickhuskysortwithinsertionsort");
             final boolean preSorted = false;
             final String s2 = ") words from " + corpus;
-            final HuskyCoder<String> coder = HuskyCoderFactory.chineseEncoderPinyin;
+            final HuskyCoder<String> coder = HuskyCoderFactory.chineseEncoderPinyinRank;
             final QuickHuskySort<String> quickHuskySort = new QuickHuskySort<>(coder, preSorted, quickhuskysortwithinsertionsort);
             final String s1 = "QuickHuskySort" + (quickhuskysortwithinsertionsort ? " with insertion sort" : "");
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, s1, s2), null, quickHuskySort::sort, null);
@@ -338,7 +338,7 @@ public final class HuskySortBenchmark {
             final boolean quickhuskysortwithinsertionsort = isConfigBenchmarkStringSorter("quickhuskysortwithinsertionsort");
             final boolean preSorted = false;
             final String s2 = ") words from " + corpus;
-            final HuskyCoder<String> huskyCoder = HuskyCoderFactory.chineseEncoderPinyin;
+            final HuskyCoder<String> huskyCoder = HuskyCoderFactory.chineseEncoderPinyinRank;
             final QuickHuskySort<String> quickHuskySort = new QuickHuskySort<>(huskyCoder, preSorted, quickhuskysortwithinsertionsort);
             final String s1 = "QuickHuskySort" + (quickhuskysortwithinsertionsort ? " with insertion sort" : "");
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, s1, s2), null, quickHuskySort::sort, null);

@@ -91,8 +91,24 @@ public class StringSortBenchmarks {
                 case "chinesenames":
                     // Chinese personal names, ordered by pinyin (TODO.md item 4) rather than
                     // the Unicode coder used for the Leipzig "chinese" corpus above.
+                    //
+                    // chineseEncoderPinyinRank, not chineseEncoderPinyin, since 2026-09-28. The
+                    // ordinal coder packs a 9-bit syllable and a 3-bit tone, which is two of the
+                    // three levels NAME_ORDER compares on; it omits the code-point tie-break, and
+                    // that omission accounted for ALL of the disorder its cleanup pass then had to
+                    // remove. The rank coder packs one 15-bit rank in pinyin order instead --
+                    // derived from the comparator's own key -- and is exactly order-preserving for
+                    // any name of at most four CJK characters, which is every name in this corpus.
+                    //
+                    // Yunlu measured it in request 11d (PR #69): serial 4.18x / 4.43x faster than
+                    // the ordinal coder at n = 200,000 / 1,000,000, and 15.21x / 18.51x faster than
+                    // systemSortPinyin; in parallel 5.72x / 6.79x faster than Arrays.parallelSort
+                    // where the ordinal coder was 0.43x. It reports perfect, so the cleanup pass
+                    // does not run at all. See TODO.md item 44.
+                    //
+                    // radixHuskySortAutoPinyinOrdinal below keeps the old coder as the comparison.
                     corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
-                    coder = HuskyCoderFactory.chineseEncoderPinyin;
+                    coder = HuskyCoderFactory.chineseEncoderPinyinRank;
                     break;
                 case "commonwords":
                     corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList);
@@ -198,21 +214,25 @@ public class StringSortBenchmarks {
     }
 
     /**
-     * The chinesenames corpus with the rank-based pinyin coder
-     * ({@link HuskyCoderFactory#chineseEncoderPinyinRank}) in place of the ordinal one, which is
-     * the only husky coder in this project that is exactly order-preserving: it reports perfect, so
-     * the cleanup pass is skipped entirely. Pair with {@code radixHuskySortAuto} for the effect.
+     * The chinesenames corpus with the <b>ordinal</b> pinyin coder
+     * ({@link HuskyCoderFactory#chineseEncoderPinyin}), which was the default until 2026-09-28.
+     * Pair with {@code radixHuskySortAuto}, now the rank coder, for the before-and-after.
      * <p>
-     * Worth a row of its own because that cleanup is where the chinesenames time is: 506 ms of a
-     * 558 ms parallel sort in request 11. See TODO.md item 44.
+     * The roles of this row and the default are the reverse of what they were in request 11d, where
+     * the default was ordinal and the variant was named {@code ...PinyinRank}. To line this suite up
+     * with that data: 11d's {@code radixHuskySortAutoPinyinRank} is this suite's
+     * {@code radixHuskySortAuto}, and 11d's {@code radixHuskySortAuto} is this row.
+     * <p>
+     * Kept rather than deleted because it is the measurement that justifies the change, and because
+     * the paper needs both numbers. See TODO.md item 44.
      */
     @Benchmark
-    public String[] radixHuskySortAutoPinyinRank(final StringState state) {
+    public String[] radixHuskySortAutoPinyinOrdinal(final StringState state) {
         if (!state.corpus.equals("chinesenames"))
-            throw new IllegalStateException("radixHuskySortAutoPinyinRank is meaningful only for the"
-                    + " chinesenames corpus: the rank table covers CJK only. Use -p corpus=chinesenames.");
+            throw new IllegalStateException("radixHuskySortAutoPinyinOrdinal is meaningful only for the"
+                    + " chinesenames corpus, whose order is pinyin. Use -p corpus=chinesenames.");
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
-        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.chineseEncoderPinyinRank, state.config).sort(copy);
+        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.chineseEncoderPinyin, state.config).sort(copy);
     }
 
     // ---------- Three-way radix quicksort / multikey quicksort (Bentley and Sedgewick 1997),

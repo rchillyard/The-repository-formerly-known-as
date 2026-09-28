@@ -2180,16 +2180,39 @@ is a defect; all are hardening or generalisation.
     one character per 6 or 7 bits they can hold only 9 or 10 characters of an unbounded-length word.
     The constraint there is string length, which is real; for names it never was.
 
-    ### Not yet done
+    ### Measured, and adopted as the default --- 2026-09-28
+
+    Yunlu's request 11d (PR #69) confirmed it on the machine of record, inside every predicted band:
+
+    | | n = 200,000 | n = 1,000,000 |
+    | --- | ---: | ---: |
+    | serial, rank vs ordinal | **4.18x** | **4.43x** |
+    | serial, rank vs `systemSortPinyin` | **15.21x** | **18.51x** |
+    | parallel, rank vs `Arrays.parallelSort` | **5.72x** | **6.79x** |
+    | parallel, rank vs the parallel cleanup | 3.09x | 3.03x |
+
+    where the ordinal coder stood at **0.43x** of `Arrays.parallelSort` at both sizes. The last row
+    is the one that settles item 40's question for this corpus: parallelizing the cleanup and
+    removing it were two answers to the same cell, and removing it wins by three times.
+
+    **`chineseEncoderPinyinRank` is now the default for chinesenames**, in
+    `StringSortBenchmarks.StringState` (which feeds the parallel suite too) and in the legacy
+    `HuskySortBenchmark`. The ordinal coder is kept as the comparison row under an honest name ---
+    `radixHuskySortAutoPinyinOrdinal` and `parallelRadixHuskySortAuto_pAll_pinyinOrdinal` --- since
+    the paper needs both numbers and that row is the measurement justifying the change.
+
+    **Mapping to request 11d's data**, whose roles were the reverse: 11d's `...PinyinRank` is this
+    suite's default row, and 11d's default is this suite's `...PinyinOrdinal` row. Both Javadocs say
+    so, because a table spliced the wrong way round here would be badly misleading.
+
+    ### Still not done
 
     - The paper: this is a new subsection, and it interacts with item 43 A (the cleanup cost model)
       and 43 B (quasi-order-preserving) --- with a perfect coder there is no cleanup term at all,
       which is the cleanest possible illustration of what `p_crit` is about.
     - The rank table is built on first use, about 340 ms. It could be precomputed into a resource.
-    - Nothing switches over until Yunlu's numbers arrive: `radixHuskySortAutoPinyinRank` and
-      `parallelRadixHuskySortAuto_pAll_pinyinRank` are the A/B rows, and `pinyinRank` is the
-      CleanupPassBenchmarks cell (where it should show the p = 0 floor --- N-1 comparisons and no
-      moves, the same quantity the permits measure in the paper's \S~`sec:pcrit`).
+    - Every chinesenames figure in the paper is superseded by the coder change; 11d supplies the
+      new ones for the cells it covers, and the next full suite supplies the rest.
 
 45. **Two latent failures in `src/it`, found 2026-09-23 when Robin enabled it to check a refactor.**
     Neither is caused by anything recent: running `-Pintegration-test` on `parallel-redesign-Robin`
