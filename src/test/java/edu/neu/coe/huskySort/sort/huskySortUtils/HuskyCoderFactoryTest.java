@@ -426,9 +426,14 @@ public class HuskyCoderFactoryTest {
      * Exhaustive over every char value: encoding a one-character String must be non-decreasing in
      * that character. This is the whole point of saturating instead of masking, and it is cheap
      * enough to check for all 65,536 of them rather than sampling.
+     * <p>
+     * NOTE the name says <i>per character</i> deliberately. This property does not extend to
+     * strings, and it used to be described as though it did --- see
+     * {@link #testSaturatingCodersAreNotMonotonicOnStrings} immediately below, which is the
+     * counterexample.
      */
     @Test
-    public void testSaturatingCodersAreMonotonic() {
+    public void testSaturatingCodersArePerCharacterMonotonic() {
         for (final HuskySequenceCoder<String> coder : Arrays.asList(HuskyCoderFactory.asciiSaturatingCoder, HuskyCoderFactory.englishSaturatingCoder)) {
             long previous = Long.MIN_VALUE;
             for (int c = 0; c <= Character.MAX_VALUE; c++) {
@@ -441,12 +446,32 @@ public class HuskyCoderFactoryTest {
     }
 
     /**
+     * Per-character monotonicity does not give monotonicity on strings, and the gap is where the
+     * saturating coders' reputation was overstated. Saturation ties every out-of-window character
+     * at the edge of the window, and a tie at position i lets position i+1 decide -- which is a
+     * comparison the strings themselves would never have reached.
+     * <p>
+     * Yunlu's counterexample from PR #69, asserted here so the claim cannot drift back: TODO.md
+     * item 48.
+     */
+    @Test
+    public void testSaturatingCodersAreNotMonotonicOnStrings() {
+        final String x = "N\u00c2\u00ba", y = "N\u00c3";
+        Assert.assertTrue("the strings order this way", x.compareTo(y) < 0);
+        for (final HuskySequenceCoder<String> coder : Arrays.asList(
+                HuskyCoderFactory.asciiSaturatingCoder, HuskyCoderFactory.englishSaturatingCoder))
+            Assert.assertTrue(coder.name() + " encodes them the other way round, both out-of-window"
+                            + " characters having saturated to the same value",
+                    coder.huskyEncode(x) > coder.huskyEncode(y));
+    }
+
+    /**
      * The contrast, asserted so that it cannot quietly stop being true. If someone repairs the
      * masking coders, this test fails and says so -- at which point the saturating coders are
      * redundant and should go, rather than sitting alongside duplicating them.
      */
     @Test
-    public void testMaskingCodersAreNotMonotonic() {
+    public void testMaskingCodersAreNotPerCharacterMonotonic() {
         for (final HuskySequenceCoder<String> coder : Arrays.asList(HuskyCoderFactory.asciiCoder, HuskyCoderFactory.englishCoder)) {
             boolean decreased = false;
             long previous = Long.MIN_VALUE;

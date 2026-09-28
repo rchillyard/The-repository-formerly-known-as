@@ -134,7 +134,9 @@ public final class HuskyCoderFactory {
     };
 
     /**
-     * A Husky Coder for ASCII Strings which <b>saturates</b> rather than masks.
+     * A Husky Coder for ASCII Strings which <b>saturates</b> rather than masks, and so is monotonic
+     * <b>per character</b> -- but not on strings; see {@link #englishSaturatingCoder} for why the
+     * distinction matters.
      * <p>
      * {@link #asciiCoder} narrows each character with {@code & 0x7F}, which is not monotonic: a
      * character above the 7-bit range wraps to an arbitrary position inside it. 'é' is 233, and
@@ -171,7 +173,24 @@ public final class HuskyCoderFactory {
 
     /**
      * A Husky Coder for English Strings which <b>saturates</b> rather than masks, and so is
-     * monotonic over the whole character range.
+     * monotonic <b>per character</b> over the whole character range.
+     * <p>
+     * <b>Per character, not per string, and the difference is not pedantry.</b> Saturation maps
+     * everything below the window to 0 and everything above it to 63, so two out-of-window
+     * characters tie --- and a tie at position <i>i</i> lets position <i>i+1</i> decide, which a
+     * correct comparison of the strings would never reach. Hence "N\u00c2\u00ba" sorts before
+     * "N\u00c3" but encodes above it: \u00c2 and \u00c3 both saturate to 63, so the codes agree at
+     * position 1 and the third character of the first string breaks the tie the wrong way. Yunlu
+     * found this in PR #69; this Javadoc previously said "monotonic over the whole character range"
+     * without the qualification, and {@code HuskyCoderFactoryTest} checked only the per-character
+     * property, so nothing contradicted it. See TODO.md item 48.
+     * <p>
+     * What saturation still buys over masking is real but narrower than that wording suggested: an
+     * out-of-window character produces a <i>tie</i> rather than a long-range mis-ordering, and a tie
+     * costs the cleanup pass far less --- Timsort's cost follows the number of runs, and a
+     * mis-ordering breaks a run where a tie does not. It is not, however, an exactness guarantee,
+     * which is why {@link BaseHuskySequenceCoder#exactlyEncodable} refuses to call such a string
+     * perfectly encoded.
      * <p>
      * {@link #englishCoder} narrows with {@code & 0x3F}, which is order-preserving only within the
      * 64-character window 64..127. Outside it the wrap-around is not merely imprecise but

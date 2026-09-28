@@ -1315,9 +1315,10 @@ is a defect; all are hardening or generalisation.
     measured with them. They map a character to `clamp(c - offset, 0, 2^bits - 1)`, which is
     non-decreasing over every char value: below the window everything ties at the bottom, the window
     passes through, above it everything ties at the top.
-    `HuskyCoderFactoryTest.testSaturatingCodersAreMonotonic` checks that exhaustively over all
-    65,536 characters, and `testMaskingCodersAreNotMonotonic` asserts the contrast so that it cannot
-    quietly stop being true. `StringSortBenchmarks` now uses `englishSaturatingCoder` for the english
+    `HuskyCoderFactoryTest.testSaturatingCodersArePerCharacterMonotonic` checks that exhaustively
+    over all 65,536 characters, and `testMaskingCodersAreNotPerCharacterMonotonic` asserts the
+    contrast so that it cannot quietly stop being true. **NOTE per character: the property does not
+    extend to strings, which this entry originally failed to say --- see item 48.** `StringSortBenchmarks` now uses `englishSaturatingCoder` for the english
     and commonwords corpora.
 
     ### What is NOT yet known, and matters
@@ -1873,7 +1874,10 @@ is a defect; all are hardening or generalisation.
       is all of A--Z and a--z. Outside the window it wraps, so an apostrophe (39) collides with `g`
       and `e`-acute (233) sorts as `i`. Quasi, not order-preserving.
     - **Saturation** (`clamp(c - offset, 0, width-1)`) is monotonic over all 65,536 chars, verified
-      exhaustively, and costs a compare-and-select per character.
+      exhaustively, and costs a compare-and-select per character. **But per character only** --- on
+      strings it is not, because a tie at one position lets the next decide (item 48). The honest
+      claim is that an out-of-window character costs a tie rather than a mis-ordering, which is
+      cheaper for Timsort but is not exactness.
     - The measured trade (above, plus TODO 37): saturation costs roughly 25 ms per million to encode
       on an eight-core Mac and 1.7--3.0x the masking encode on Yunlu's Graviton, and buys nothing
       measurable in cleanup. **Masking wins on speed**, and the encode-plus-cleanup figures are
@@ -2443,16 +2447,29 @@ is a defect; all are hardening or generalisation.
     corpus holds long words, so `perfect` was already false for the wrong reason. It would have
     bitten the first user with a dictionary of short accented words.
 
-    ### Two related findings from the same report, not yet done
+    ### The other two findings from the same report --- **both DONE 2026-09-28**
 
-    - **The saturating coders' Javadoc overstates monotonicity** (`HuskyCoderFactory:142-154`,
-      `:408`). The per-character map is monotonic and was checked exhaustively over all 65,536
-      chars; the map on *strings* is not, because saturation ties at the window edge and a tie at
-      character *i* lets character *i+1* decide: "NÂº" sorts before "NÃ" but codes above it. The
-      wording is mine and needs correcting --- and it matters beyond wording, since the case for
-      preferring saturation over masking rested on it. 11c also puts masking 73.8 ms per million
-      ahead on the serial components, so that decision now wants revisiting on both grounds.
-    - **`CleanupPassBenchmarks.binaryInsertionCleanup`'s guard misses `pinyinRank`** (`:285`). It
-      tests `coder.equals("pinyin")`, so the cell added for item 44 would sort in code-point order
-      rather than `NAME_ORDER` and silently measure the wrong thing. No requested row runs it. Mine,
-      introduced with the cell.
+    - ~~**The saturating coders' Javadoc overstates monotonicity.**~~ The per-character map is
+      monotonic and was checked exhaustively over all 65,536 chars; the map on *strings* is not,
+      because saturation ties at the window edge and a tie at character *i* lets character *i+1*
+      decide: "NÂº" sorts before "NÃ" but codes above it. The wording was mine.
+      **Corrected** in both saturating coders' Javadoc, which now say "per character" and explain
+      why the distinction is not pedantry. `testSaturatingCodersAreMonotonic` is renamed
+      `testSaturatingCodersArePerCharacterMonotonic`, and a new
+      `testSaturatingCodersAreNotMonotonicOnStrings` asserts Yunlu's counterexample so the claim
+      cannot drift back.
+
+      **It matters beyond the wording.** The case for preferring saturation over masking rested on
+      it, and 11c independently puts masking **73.8 ms per million ahead** on the serial components.
+      Both grounds now point the same way, so item 37's coder change should be revisited. What
+      saturation still buys is that an out-of-window character costs a *tie* rather than a
+      mis-ordering, and a tie does not break a Timsort run --- real, but much smaller than
+      "order-preserving", and `CleanupPassBenchmarks`'s class comment now says so.
+    - ~~**`CleanupPassBenchmarks.binaryInsertionCleanup`'s guard misses `pinyinRank`.**~~ It tested
+      `coder.equals("pinyin")`, so the cell added for item 44 fell straight through and would have
+      sorted in code-point order against a pinyin-ordered corpus --- a plausible-looking number for
+      the wrong algorithm. Mine, introduced with the cell; no requested row ran it.
+      **Fixed** by testing `state.ordering != Comparator.naturalOrder()` instead of the coder's
+      name. That cannot go stale the same way: a future cell needing a Collator is refused for what
+      it is rather than for what it is called. Verified that the guard now fires for both `pinyin`
+      and `pinyinRank` and still lets the natural-order cells through.

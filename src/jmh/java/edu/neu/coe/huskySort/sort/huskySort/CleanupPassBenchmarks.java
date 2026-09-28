@@ -98,6 +98,14 @@ import java.util.concurrent.TimeUnit;
  * so that ratio is not claimed finer than "about one". If JMH agrees, TODO item 37's coder change
  * loses on speed and has to be argued on monotonicity instead.
  * <p>
+ * <b>Both halves of that have now landed, and they point the same way.</b> Yunlu's 11c put masking
+ * 73.8 ms per million ahead on the serial components, so the speed argument goes against
+ * saturation; and the monotonicity argument it was to fall back on turns out to be weaker than
+ * stated, because saturation is monotonic per character but not on strings ("N-circumflex-ordinal"
+ * sorts before "N-tilde" and encodes above it --- TODO.md item 48). What saturation still buys is
+ * that an out-of-window character produces a tie rather than a mis-ordering, and a tie does not
+ * break a Timsort run. That is a real but much smaller claim than "order-preserving".
+ * <p>
  * All of it is conditional on Timsort. {@code AdaptiveInsertionSort} costs N + X and is fully
  * sensitive to the same inversions Timsort ignores: measured on these arrays, adaptive / Timsort is
  * 1.03x on englishSaturating against <b>19.1x</b> on englishMasking, and 1.03x against 16.4x on the
@@ -277,14 +285,24 @@ public class CleanupPassBenchmarks {
      * gap between it and the adaptive form is the point.
      * <p>
      * NOTE: natural ordering only, since it sorts through the Comparable interface, so it is
-     * meaningless for the pinyin case and is skipped there rather than quietly sorting by the wrong
-     * ordering.
+     * meaningless for any cell whose ordering is not the natural one and is skipped there rather
+     * than quietly sorting by the wrong one.
+     * <p>
+     * The guard tests {@link CleanupState#ordering} rather than the coder's name. It used to read
+     * {@code state.coder.equals("pinyin")}, which stopped catching anything once {@code pinyinRank}
+     * was added for TODO.md item 44: that name is not equal to "pinyin", so the guard fell through
+     * and the row would have measured a code-point sort against a corpus whose order is pinyin ---
+     * a plausible-looking number for the wrong algorithm. Yunlu caught it in PR #69 before any
+     * requested row ran it. Testing the ordering cannot go stale the same way: a future cell that
+     * needs a Collator is refused because of what it is, not because of what it is called.
      */
     @Benchmark
     public String[] binaryInsertionCleanup(final CleanupState state) {
-        if (state.coder.equals("pinyin"))
-            throw new IllegalStateException("binaryInsertionCleanup sorts by natural ordering, which is not the pinyin ordering."
-                    + " Exclude it with a benchmark regex, or use -p coder=englishSaturating,englishMasking,asciiSaturating,asciiMasking,unicode.");
+        // NOTE Comparator.naturalOrder() is a singleton, so identity is the right test here.
+        if (state.ordering != Comparator.naturalOrder())
+            throw new IllegalStateException("binaryInsertionCleanup sorts through Comparable, which is not the ordering"
+                    + " for coder=" + state.coder + ". Exclude it with a benchmark regex, or name only the"
+                    + " natural-order coders: -p coder=englishSaturating,englishMasking,asciiSaturating,asciiMasking,unicode,chineseUnicode.");
         final String[] copy = state.copy();
         InsertionSort.mutatingInsertionSort(copy);
         return copy;
