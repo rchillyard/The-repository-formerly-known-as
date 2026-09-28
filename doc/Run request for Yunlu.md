@@ -13,8 +13,9 @@
 | 9 | `Arrays.parallelSort` as a baseline: strings, `Long[]`, and the permits | **done 2026-09-13** — `doc/Run results from Yunlu 2026-09-13.md` |
 | 10 | the optimised `ParallelRadixHuskySort`, on permits (short) and on strings (optional, longer) | **done 2026-09-17** — PR #66, `doc/Run results from Yunlu 2026-09-17.md`; thank you, and the thread-asymmetry hypothesis did not survive |
 | 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **done 2026-09-21** — PR #67, `doc/Run results from Yunlu 2026-09-21.md`; thank you, and the withdrawal of your own step-4 figure on convergence grounds was exactly right |
-| 11c | the masking cleanup cells 11a had no parameter for (short) | **requested 2026-09-22** — see below |
-| 11d | the parallel cleanup, and an exactly order-preserving pinyin coder | **requested 2026-09-22** — see below; same jar as 11c |
+| 11c | the masking cleanup cells 11a had no parameter for (short) | **done 2026-09-28** — PR #69, with 11d and the full suite; `doc/Run results from Yunlu 2026-09-27.md` |
+| 11d | the parallel cleanup, and an exactly order-preserving pinyin coder | **done 2026-09-28** — PR #69, with 11c and the full suite |
+| 12 | the string classes again, both coder decisions having been made | **requested 2026-09-28** — see below |
 
 **Requests 1 to 7 are all answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -22,7 +23,14 @@ Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseli
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**Requests 11c and 11d are outstanding, and they share a jar.** Requests 1--7 and 9--11 are
+**Request 12 is the only outstanding one.** Requests 11c and 11d were answered together in PR #69,
+along with a full suite we had asked you to hold off on --- thank you, and as it turned out you were
+right to run it: it already contains the rows that settle the Chinese-names question, so nothing
+there needs measuring again.
+
+<details><summary>Superseded preamble for 11c and 11d (both now done)</summary>
+
+**Requests 11c and 11d shared a jar.** Requests 1--7 and 9--11 are
 answered; request 8 is closed unrun, its step 0 having established that the instance has no `perf`
 binary. Both new requests are set out immediately below, ahead of the answered ones that follow.
 
@@ -31,6 +39,8 @@ binary. Both new requests are set out immediately below, ahead of the answered o
 coder values, and 11c's command names its coders explicitly, so those rows behave identically. The
 corpora and the tokenization are the same at both commits. 11c is about 35 minutes and 11d about two
 and a half hours; neither needs a full suite, and the full re-run is still to come after them.
+
+</details>
 
 Your results are merged as `doc/Run results from Yunlu 2026-09-01.md`, and likewise for
 `...2026-09-02`, `...2026-09-03`, `...2026-09-06`, `...2026-09-13` and `...2026-09-17`. What
@@ -44,6 +54,115 @@ only as qualitative cross-checks, with no figures quoted from them. Your request
 that possible.
 
 Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs acting on.
+
+---
+
+## Request 12 — the string classes again, both coder decisions having been made
+
+Requested 2026-09-28. **Two options, and the short one is not much worse than the long one.** Please
+pick whichever suits your machine time; we have a mild preference for A but B is strictly more
+useful if the hours are free.
+
+### Why anything at all
+
+Your 11c and 11d settled two questions, and we have acted on both. Each changes a default coder, so
+the rows that used those coders no longer describe the code we ship.
+
+- **chinesenames now uses the rank coder.** 11d put it 4.18x / 4.43x ahead of the ordinal coder
+  serially and 5.72x / 6.79x ahead of `Arrays.parallelSort` in parallel, where the ordinal coder
+  stood at 0.43x. `chineseEncoderPinyinRank` is now the default in `StringSortBenchmarks.StringState`.
+- **english is back on the masking coder.** 11c put masking 73.8 ms per million words ahead, and
+  showed that the monotonicity argument for saturating --- the other reason we had switched --- does
+  not hold at string level. So `englishCoder` is the default again, reverting a change made on
+  2026-09-17.
+
+**Only the second of those needs measuring.** The chinesenames numbers already exist, in your own
+full suite: `radixHuskySortAutoPinyinRank` and `parallelRadixHuskySortAuto_pAll_pinyinRank` are the
+new default under their old names. Making them the default is a relabelling of rows you have already
+run at full rigour. For english there is no equivalent --- only `huskyEncodeOnlyEnglishMasking`,
+which is encode-only --- so the whole-sort figures have never been measured with the coder we now
+ship. By subtraction from your own rows they should move by about a quarter, which is too much to
+publish as arithmetic.
+
+### Option A --- the two string classes (about 13.5 hours)
+
+```
+java -jar target/benchmarks.jar "StringSortBenchmarks" -r 2s -w 2s -f 5 -wi 5 -i 10 -rf json -rff req12-StringSortBenchmarks.json
+java -jar target/benchmarks.jar "ParallelStringSortBenchmarks" -r 2s -w 2s -f 5 -wi 5 -i 10 -rf json -rff req12-ParallelStringSortBenchmarks.json
+```
+
+Your own timings for these two classes in the 11cd suite were 9 h 36 min and 3 h 53 min.
+
+All three corpora, not english alone, even though english is the only one whose numbers change. The
+reason is splicing: if english came from this run and chinesenames from the last, the paper's main
+table would compare rows measured a week apart, and you have twice shown us between-invocation
+shifts large enough to matter. Running the classes whole makes each table internally consistent,
+which costs about eight hours more than english alone and removes a caveat we would otherwise have
+to print.
+
+### Option B --- the full suite (about 28 hours), if the machine time is free
+
+Same eight per-class invocations as last time. **Nothing outside the two string classes is affected
+by either coder change** --- Permit, Numeric, Date, Tuple, ParallelRadix keep their own coders, and
+Adversarial names `englishCoder` explicitly and always did --- so this buys no new information. What
+it does buy is that every row in the paper comes from one dataset on one jar, with no "measured in a
+different run" footnote anywhere. If you were going to run the suite anyway, do this instead of A
+and ignore A entirely.
+
+### **Please read this before comparing anything by row name**
+
+Two rows have swapped meaning, and their names no longer mean what they meant in your 11cd data.
+
+| this run | 11cd | what it is |
+| --- | --- | --- |
+| `radixHuskySortAuto` chinesenames | `radixHuskySortAutoPinyinRank` | the rank coder, now the default |
+| `radixHuskySortAutoPinyinOrdinal` | `radixHuskySortAuto` chinesenames | the ordinal coder, now the variant |
+| `parallelRadixHuskySortAuto_pAll` chinesenames | `..._pAll_pinyinRank` | the rank coder, now the default |
+| `parallelRadixHuskySortAuto_pAll_pinyinOrdinal` | `..._pAll` chinesenames | the ordinal coder, now the variant |
+
+A table spliced the wrong way round here would report a 6.8x win as a 0.43x loss, and the row names
+alone give no warning. It applies to chinesenames only.
+
+### What we expect, stated in advance so a surprise reads as one
+
+**english should get faster by about a quarter**, this being the whole point of the run. From your
+own 11cd rows, `radixHuskySortAuto` on english: 4.56 -> about 3.35 at n = 32,000, 62.15 -> 45.43 at
+200,000, 279.84 -> 202.44 at 1,000,000, i.e. 26--28%. That is the encode saving (1.20 / 16.72 / 77.40
+ms) less a small cleanup cost, masking's cleanup being 1.06x saturating's. Every english husky row
+should move the same way; `systemSort`, `systemSortParallel`, `insertionSort`, `msdStringSort` and
+`multikeyQuicksort` use no coder and should not move at all.
+
+**chinesenames should reproduce your 11cd rows exactly, under the new names.** Serial: the new
+default should land on 2.84 / 35.87 / 173.34 and `...PinyinOrdinal` on 24.41 / 155.02 / 765.83.
+Parallel: the new `pAll` on 3.08 / 8.19 / 33.97 and `..._pAll_pinyinOrdinal` on 24.53 / 113.03 /
+561.97. If either pair disagrees beyond drift, the rename has gone wrong somewhere and we would
+rather find out from you than from a table.
+
+**chinese should not move at all.** It keeps `UNICODE_CODER`. `radixHuskySortAuto` 2.35 / 14.85 /
+69.62 and `pAll` 3.16 / 10.04 / 39.95 are the figures to reproduce.
+
+### Also changed since your jar, though none of it should move a timing
+
+- **`perfect` now requires the characters to fit, not just the word length** (your finding 3 --- thank
+  you, it was returning unsorted arrays). No corpus is short enough throughout for this to have
+  applied, so no row should change; the check short-circuits on the first over-long word and
+  measures free.
+- **`binaryInsertionCleanup`'s guard now tests the ordering rather than the coder's name** (your
+  finding 2), so it refuses `pinyinRank` as well as `pinyin`. Not in either option above.
+- **The saturating coders' Javadoc no longer claims string-level monotonicity** (your finding 1).
+  Comment only.
+- `REGEX_LEIPZIG` moved from `HuskySortBenchmark` to `HuskySortBenchmarkHelper`. Pure relocation ---
+  we checked the vocabulary counts are identical either side.
+
+### Method and the commit
+
+Same conditions as always: `uptime` before and after each invocation, the `ForkJoinPool` probe, a
+quiet host, raw JSON unedited. The two-methods rule cannot apply to a whole-class run; as before, the
+baselines sort last alphabetically and we read the ratios with that in mind.
+
+**The commit to record is `d8958bf`**, branch `parallel-redesign-Robin` --- "Revert item 37: masking
+is the default english coder again". It is the last commit touching `src/`. `mvn -B test` there: 465
+tests, 0 failures; `-Pintegration-test` 487, 0 failures.
 
 ---
 
