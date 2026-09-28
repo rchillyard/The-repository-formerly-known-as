@@ -32,22 +32,6 @@ import static org.junit.Assert.assertEquals;
 public class PureDualPivotQuicksortDepthTest {
 
     /**
-     * The adversarial shape itself, at every setting the appendix reports. Before the guard, the last
-     * two threw StackOverflowError.
-     */
-    @Test
-    public void survivesCollapsedHighBits() {
-        final Random random = new Random(11);
-        for (final int fixedHighBits : new int[]{0, 16, 32, 48, 56, 60, 63}) {
-            final long mask = fixedHighBits == 0 ? 0L : (-1L << (64 - fixedHighBits));
-            final long fixed = 0x5A5A_5A5A_5A5A_5A5AL & mask;
-            final Long[] xs = new Long[200_000];
-            for (int i = 0; i < xs.length; i++) xs[i] = (random.nextLong() & ~mask) | fixed;
-            assertSortsLikeTheJdk(xs, "fixedHighBits=" + fixedHighBits);
-        }
-    }
-
-    /**
      * The guard must not disturb the ordinary path, which is what the rest of the paper measures.
      */
     @Test
@@ -99,7 +83,7 @@ public class PureDualPivotQuicksortDepthTest {
         assertEquals(xs.length, actual.length);
     }
 
-    private static <X extends Comparable<X>> void assertSortsLikeTheJdk(final X[] xs, final String what) {
+    static <X extends Comparable<X>> void assertSortsLikeTheJdk(final X[] xs, final String what) {
         final X[] expected = xs.clone();
         Arrays.sort(expected);
         final X[] actual = xs.clone();

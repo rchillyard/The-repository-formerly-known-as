@@ -31,6 +31,12 @@ public final class HuskyCoderFactory {
     private static final int MAX_LENGTH_ASCII = BITS_LONG / BIT_WIDTH_ASCII;
     private static final int MASK_ASCII = 0x7F;
 
+    /**
+     * The bottom of englishCoder's 6-bit window. A 6-bit slot cannot hold a character code
+     * directly, since the letters start at 'A' = 65; subtracting this brings 64..127 into 0..63.
+     */
+    private static final int OFFSET_ENGLISH = 64;
+
     private static final int BIT_WIDTH_ENGLISH = 6;
     private static final int MAX_LENGTH_ENGLISH = BITS_LONG / BIT_WIDTH_ENGLISH;
     private static final int MASK_ENGLISH = 0x3F;
@@ -79,6 +85,16 @@ public final class HuskyCoderFactory {
             return asciiToLong(str);
         }
 
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Seven bits hold 0..127 faithfully; {@code & 0x7F} wraps anything above into that range,
+         * which is a mis-ordering rather than a tie.
+         */
+        @Override
+        protected boolean exactlyEncodable(final String x) {
+            return super.exactlyEncodable(x) && charactersWithin(x, (char) 0, (char) 0x7F);
+        }
     };
 
     /**
@@ -103,6 +119,108 @@ public final class HuskyCoderFactory {
          */
         public long huskyEncode(final String str) {
             return englishToLong(str);
+        }
+
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Six bits hold 64..127 faithfully; {@code & 0x3F} wraps everything else into that range,
+         * which is why an apostrophe and 'g' collide.
+         */
+        @Override
+        protected boolean exactlyEncodable(final String x) {
+            return super.exactlyEncodable(x) && charactersWithin(x, (char) OFFSET_ENGLISH, (char) 0x7F);
+        }
+    };
+
+    /**
+     * A Husky Coder for ASCII Strings which <b>saturates</b> rather than masks, and so is monotonic
+     * <b>per character</b> -- but not on strings; see {@link #englishSaturatingCoder} for why the
+     * distinction matters.
+     * <p>
+     * {@link #asciiCoder} narrows each character with {@code & 0x7F}, which is not monotonic: a
+     * character above the 7-bit range wraps to an arbitrary position inside it. 'é' is 233, and
+     * {@code 233 & 0x7F} is 105, which is 'i' -- so "café" encodes as though it were "cafi" and
+     * sorts seventeen letters early, before "cafz" instead of after it. The mojibake form is worse:
+     * 'Ã' is 195, masking to 67, which is 'C', so it sorts before every lowercase word.
+     * <p>
+     * Saturating with {@code Math.min(c, 127)} instead puts such a character at the top of the
+     * range, which is its correct position relative to every ASCII character. The residual
+     * imprecision is a <i>tie</i> between two different out-of-range characters rather than a
+     * long-range mis-ordering, and a tie is what the cleanup pass resolves cheaply -- Timsort's cost
+     * follows the number of runs, and a mis-ordering breaks a run where a tie does not.
+     * <p>
+     * Measured on the Leipzig english corpus at n = 1,000,000: 30,079 natural runs after the radix
+     * phase against asciiCoder's 30,921. Small here, because only 0.446% of that vocabulary holds a
+     * non-ASCII character at all, and free -- but it matters much more on text containing
+     * punctuation or any non-Latin content. See TODO.md item 36.
+     */
+    public final static HuskySequenceCoder<String> asciiSaturatingCoder = new BaseHuskySequenceCoder<>("ASCII-saturating", MAX_LENGTH_ASCII) {
+        public long huskyEncode(final String str) {
+            return stringToLongSaturating(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, 0);
+        }
+
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Seven bits hold 0..127 faithfully; anything above saturates to 127 and ties with it.
+         */
+        @Override
+        protected boolean exactlyEncodable(final String x) {
+            return super.exactlyEncodable(x) && charactersWithin(x, (char) 0, (char) 0x7F);
+        }
+    };
+
+    /**
+     * A Husky Coder for English Strings which <b>saturates</b> rather than masks, and so is
+     * monotonic <b>per character</b> over the whole character range.
+     * <p>
+     * <b>Per character, not per string, and the difference is not pedantry.</b> Saturation maps
+     * everything below the window to 0 and everything above it to 63, so two out-of-window
+     * characters tie --- and a tie at position <i>i</i> lets position <i>i+1</i> decide, which a
+     * correct comparison of the strings would never reach. Hence "N\u00c2\u00ba" sorts before
+     * "N\u00c3" but encodes above it: \u00c2 and \u00c3 both saturate to 63, so the codes agree at
+     * position 1 and the third character of the first string breaks the tie the wrong way. Yunlu
+     * found this in PR #69; this Javadoc previously said "monotonic over the whole character range"
+     * without the qualification, and {@code HuskyCoderFactoryTest} checked only the per-character
+     * property, so nothing contradicted it. See TODO.md item 48.
+     * <p>
+     * What saturation still buys over masking is real but narrower than that wording suggested: an
+     * out-of-window character produces a <i>tie</i> rather than a long-range mis-ordering, and a tie
+     * costs the cleanup pass far less --- Timsort's cost follows the number of runs, and a
+     * mis-ordering breaks a run where a tie does not. It is not, however, an exactness guarantee,
+     * which is why {@link BaseHuskySequenceCoder#exactlyEncodable} refuses to call such a string
+     * perfectly encoded.
+     * <p>
+     * {@link #englishCoder} narrows with {@code & 0x3F}, which is order-preserving only within the
+     * 64-character window 64..127. Outside it the wrap-around is not merely imprecise but
+     * ambiguous: an apostrophe is 39 and masks to 39, and 'g' is 103 which also masks to 39, so
+     * "don't" and "dongt" receive identical codes. Real English text is full of apostrophes and
+     * hyphens.
+     * <p>
+     * This coder maps a character to {@code clamp(c - 64, 0, 63)}: everything below the window ties
+     * at the bottom, the window maps through unchanged, and everything above ties at the top. That
+     * is non-decreasing across every char value, so it never mis-orders -- it only ties, which the
+     * cleanup pass fixes locally.
+     * <p>
+     * Measured on the Leipzig english corpus at n = 1,000,000: 16,641 natural runs against
+     * englishCoder's 17,506, and against 30,079 for the nine-character saturating ASCII coder. The
+     * tenth character is worth far more than the saturation, but the saturation is what makes the
+     * tenth character safe to take. See TODO.md item 36.
+     */
+    public final static HuskySequenceCoder<String> englishSaturatingCoder = new BaseHuskySequenceCoder<>("English-saturating", MAX_LENGTH_ENGLISH) {
+        public long huskyEncode(final String str) {
+            return stringToLongSaturating(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, OFFSET_ENGLISH);
+        }
+
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Six bits hold 64..127 faithfully; below saturates to 0 and above to 63, either way a tie. This is also why the string map is not monotonic even though the per-character one is: "N\u00c2\u00ba" sorts before "N\u00c3" but codes above it.
+         */
+        @Override
+        protected boolean exactlyEncodable(final String x) {
+            return super.exactlyEncodable(x) && charactersWithin(x, (char) OFFSET_ENGLISH, (char) 0x7F);
         }
     };
 
@@ -133,6 +251,25 @@ public final class HuskyCoderFactory {
      */
 
     public final static HuskyCoder<String> chineseEncoderPinyin = new HuskyCoderChinesePinyin("Hanyu");
+
+    /**
+     * The same pinyin ordering, encoded as one 15-bit rank per character rather than as a 9-bit
+     * syllable plus a 3-bit tone -- four characters in 60 bits, and <b>exactly order-preserving</b>
+     * for any string of at most four CJK characters, where {@link #chineseEncoderPinyin} is not.
+     * <p>
+     * The difference is that the ordinal encoding implements two of the three levels
+     * {@code NAME_ORDER} compares on and drops the third, the code-point tie-break between true
+     * homonyms. On `Chinese_Names_Corpus.txt` that collapses 1,145,009 names into 818,114 codes and
+     * accounts for all of the disorder the cleanup pass then has to remove. Ranking by
+     * {@code pinyinCharacterKey} -- the comparator's own key -- removes it by construction: sorting
+     * the whole corpus by code alone leaves zero descents, against 59,332 per 300,000 names for the
+     * ordinal coder. It also encodes 3.2x faster, one array index against a memoized pinyin4j
+     * lookup. See {@code HuskyCoderChinesePinyin.encodeHanyuRank} and TODO.md item 44.
+     * <p>
+     * Added alongside rather than in place of the ordinal coder, so the two can be measured against
+     * each other before anything switches.
+     */
+    public final static HuskyCoder<String> chineseEncoderPinyinRank = new HuskyCoderChinesePinyin("HanyuRank");
 
     /**
      * A Husky Coder for Dates.
@@ -293,7 +430,13 @@ public final class HuskyCoderFactory {
         return x -> x.movePointRight(scale).longValue();
     }
 
-    // CONSIDER making this private
+    /**
+     * Converts a given ASCII string to a long value using a specific encoding scheme.
+     * The method processes the string to pack its characters into a long representation.
+     *
+     * @param str the input ASCII string to be converted
+     * @return the long representation of the input string
+     */
     public static long asciiToLong(final String str) {
         // CONSIDER an alternative coding scheme which would use str.getBytes(Charset.forName("ISO-8859-1"));
         // and then pack the first 8 bytes into the long.
@@ -302,11 +445,26 @@ public final class HuskyCoderFactory {
         return stringToLong(str, MAX_LENGTH_ASCII, BIT_WIDTH_ASCII, MASK_ASCII);
     }
 
+    /**
+     * Converts a UTF-8 encoded string into its corresponding long representation.
+     *
+     * @param str the input string to be converted, encoded in UTF-8
+     * @return the long representation of the UTF-8 encoded string
+     */
     static long utf8ToLong(final String str) {
         // TODO Need to test that the mask value is correct. I think it might not be.
         return longArrayToLong(toUTF8Array(str), MAX_LENGTH_UTF8, BIT_WIDTH_UTF8, MASK_UTF8) >>> 1;
     }
 
+    /**
+     * Converts a given Unicode string into a long value by encoding its characters
+     * into a bit-packed representation with predefined parameters for Unicode strings.
+     * This encoding ensures that the resulting long represents the input string
+     * in a space-efficient manner.
+     *
+     * @param str the input string to be converted, assumed to be a Unicode string.
+     * @return a long value representing the encoded form of the input string.
+     */
     private static long unicodeToLong(final String str) {
         return stringToLong(str, MAX_LENGTH_UNICODE, BIT_WIDTH_UNICODE, MASK_UNICODE) >>> 1;
         // CONSIDER an alternative coding scheme which would use str.getBytes(Charset.forName("UTF-16"));
@@ -315,6 +473,41 @@ public final class HuskyCoderFactory {
 //        return stringToBytesToLong(str, MAX_LENGTH_UNICODE, StandardCharsets.UTF_16, startingPos) >>> 1;
     }
 
+    /**
+     * Method to pack the leading characters of str into a long, saturating each character into the
+     * available bits rather than masking it.
+     * <p>
+     * The slot value is {@code clamp(c - offset, 0, 2^bitWidth - 1)}, which is non-decreasing in c.
+     * Masking is not: it wraps an out-of-range character to an arbitrary in-range value, which
+     * mis-orders the element and breaks a run. Saturating ties instead, and ties are cheap for an
+     * adaptive cleanup sort.
+     *
+     * @param str       the String to encode.
+     * @param maxLength the number of characters that fit in a long at this bit width.
+     * @param bitWidth  the number of bits per character.
+     * @param offset    the bottom of the representable window; 0 where the alphabet starts at 0.
+     * @return a long, monotonically non-decreasing with respect to the natural ordering of str.
+     */
+    private static long stringToLongSaturating(final String str, final int maxLength, final int bitWidth, final int offset) {
+        final int ceiling = (1 << bitWidth) - 1;
+        final int length = Math.min(str.length(), maxLength);
+        long result = 0L;
+        for (int i = 0; i < length; i++)
+            result = result << bitWidth | Math.max(0, Math.min(str.charAt(i) - offset, ceiling));
+        return result << bitWidth * (maxLength - length);
+    }
+
+    /**
+     * Converts a given string into a long value by encoding its characters into a bit-packed representation.
+     * Each character is left-shifted and masked as specified by the bitWidth and mask parameters.
+     * Remaining bits are zero-padded to fill the size of the long.
+     *
+     * @param str       the input string to be encoded.
+     * @param maxLength the maximum number of characters from the string to be encoded.
+     * @param bitWidth  the number of bits allocated for each character in the resulting packed long.
+     * @param mask      the bitmask applied to each character before packing.
+     * @return a long value representing the packed and encoded form of the input string.
+     */
     private static long stringToLong(final String str, final int maxLength, final int bitWidth, final int mask) {
         final int length = Math.min(str.length(), maxLength);
         final int padding = maxLength - length;
@@ -351,12 +544,34 @@ public final class HuskyCoderFactory {
 //        }
 //    }
 
-    // NOTE: this method seems considerably slower than stringToLong, even though it uses a Java library function (getBytes)
+    /**
+     * Converts a given String to a long value by first encoding it into a byte array
+     * using the specified character set and then mapping the resulting bytes to a long.
+     * NOTE: this method seems considerably slower than stringToLong, even though it uses a Java library function (getBytes)
+     *
+     * @param str        the input string to be converted.
+     * @param maxLength  the maximum number of characters of the string to be considered.
+     * @param charSet    the character set to use for encoding the string into bytes.
+     * @param startingPos the starting position in the byte array from which to begin mapping to a long.
+     * @return a long value derived from the encoded byte representation of the input string.
+     */
     private static long stringToBytesToLong(final String str, final int maxLength, final Charset charSet, final int startingPos) {
         final byte[] bytes = str.substring(0, Math.min(maxLength, str.length())).getBytes(charSet);
         return bytesToLong(startingPos, bytes);
     }
 
+    /**
+     * Converts a sequence of bytes starting at a given position into a long value.
+     * The conversion process reads up to the number of bytes that fit in a long
+     * (determined by BYTES_LONG), and any remaining space in the long is left-shifted
+     * and zero-padded.
+     *
+     * TESTME not currently used.
+     *
+     * @param startingPos the starting index in the byte array to begin converting.
+     * @param bytes the byte array from which the long value is derived.
+     * @return the long value resulting from the mapping of the specified bytes.
+     */
     static long bytesToLong(final int startingPos, final byte[] bytes) {
         int bytesIndex = startingPos;
         int resultIndex = 0;
@@ -367,10 +582,28 @@ public final class HuskyCoderFactory {
         return result;
     }
 
+    /**
+     * Converts an English string to a long value by encoding its characters into a bit-packed representation.
+     * The method utilizes the stringToLong function with predefined parameters specific to English character sets.
+     *
+     * @param str the input string containing English characters to be converted.
+     * @return a long value representing the encoded form of the input string.
+     */
     private static long englishToLong(final String str) {
         return stringToLong(str, MAX_LENGTH_ENGLISH, BIT_WIDTH_ENGLISH, MASK_ENGLISH);
     }
 
+    /**
+     * Converts a given array of long integers into a single long value by packing the elements
+     * into a bit-wise representation. Each element in the array is shifted and masked as specified
+     * by the bit width and mask parameters. Remaining bits are zero-padded to fill the size of the long.
+     *
+     * @param xs        the input array of long integers to be packed.
+     * @param maxLength the maximum number of elements from the array to be considered.
+     * @param bitWidth  the number of bits allocated for each element in the resulting packed long.
+     * @param mask      the bitmask to apply to each element before packing.
+     * @return a long value representing the packed version of the input array.
+     */
     @SuppressWarnings("SameParameterValue")
     private static long longArrayToLong(final long[] xs, final int maxLength, final int bitWidth, final int mask) {
         final int length = Math.min(xs.length, maxLength);
@@ -383,6 +616,12 @@ public final class HuskyCoderFactory {
         return result;
     }
 
+    /**
+     * Converts the given string into an array of UTF-8 encoded long values.
+     *
+     * @param str the input string to be converted.
+     * @return an array of long values representing the UTF-8 encoded bytes of the input string.
+     */
     private static long[] toUTF8Array(final String str) {
         final int length = str.length();
         final LongBuffer byteBuffer = LongBuffer.allocate(length << 2);

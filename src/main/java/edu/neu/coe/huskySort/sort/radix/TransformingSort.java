@@ -1,6 +1,7 @@
 package edu.neu.coe.huskySort.sort.radix;
 
 import edu.neu.coe.huskySort.sort.GenericSort;
+import edu.neu.coe.huskySort.sort.Sort;
 import edu.neu.coe.huskySort.sort.Sorter;
 
 /**
@@ -17,5 +18,19 @@ public interface TransformingSort<X extends Comparable<X>, T> extends GenericSor
      * @return the Helper.
      */
     TransformingHelper<X, T> getHelper();
+
+    /**
+     * Close this sorter, releasing anything it holds -- which, for the counting sorts reached
+     * through this interface, is nothing.
+     * <p>
+     * NOTE: a no-op default, rather than abstract, so that those sorts need not declare a close()
+     * they have no use for. This is the narrowing of {@code AutoCloseable.close()} for the
+     * transforming branch of the hierarchy; the branch under {@link edu.neu.coe.huskySort.sort.Sort}
+     * re-declares it abstract instead, so every sorter that does hold a helper is still obliged to
+     * say what closing means.
+     */
+    @Override
+    default void close() {
+    }
 
 }

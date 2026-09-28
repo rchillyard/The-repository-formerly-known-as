@@ -17,29 +17,6 @@ import java.util.Arrays;
 public class MergeHuskySort<X extends Comparable<X>> {
 
     /**
-     * TEST me.
-     *
-     * @param args a set of Strings corresponding to command-line arguments.
-     */
-    public static void main(final String[] args) {
-
-        final int N = 50000;
-        final int m = 10000;
-        final boolean preSorted = args.length > 0 && Boolean.parseBoolean(args[0]);
-        final String inputOrder = preSorted ? "ordered" : "random";
-        logger.info("MergeHuskySort: sorting " + N + " " + inputOrder + " alphabetic ASCII words " + m + " times");
-        final MergeHuskySort<String> sorter = new MergeHuskySort<>(HuskyCoderFactory.asciiCoder);
-        for (int i = 0; i < m; i++)
-            if (preSorted)
-                // This should take about 20 seconds
-                sorter.sort(getAlphaBetaArrayOrdered(N));
-            else
-                // This should take about 2 minutes
-                sorter.sort(HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9));
-        logger.info("Finished");
-    }
-
-    /**
      * The main sort method.
      * This version of merge sort has three improvements over the basic HuskySort/MergeSort scheme:
      * <ul>
@@ -72,6 +49,27 @@ public class MergeHuskySort<X extends Comparable<X>> {
      */
     public MergeHuskySort(final HuskyCoder<X> huskyCoder) {
         this.huskyCoder = huskyCoder;
+    }
+
+    /**
+     *
+     * @param args a set of Strings corresponding to command-line arguments.
+     */
+    public static void main(final String[] args) {
+        final int N = 50000;
+        final int m = 10000;
+        final boolean preSorted = args.length > 0 && Boolean.parseBoolean(args[0]);
+        final String inputOrder = preSorted ? "ordered" : "random";
+        logger.info("MergeHuskySort: sorting " + N + " " + inputOrder + " alphabetic ASCII words " + m + " times");
+        final MergeHuskySort<String> sorter = new MergeHuskySort<>(HuskyCoderFactory.asciiCoder);
+        for (int i = 0; i < m; i++)
+            if (preSorted)
+                // This should take about 20 seconds
+                sorter.sort(getAlphaBetaArrayOrdered(N));
+            else
+                // This should take about 2 minutes
+                sorter.sort(HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9));
+        logger.info("Finished");
     }
 
     private static final int cutoff = 8;

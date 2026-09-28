@@ -5,6 +5,14 @@ import edu.neu.coe.huskySort.sort.SortException;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Represents an alphabet that maps characters to radix-based bucket indices
+ * for sorting purposes. This class supports extended-ASCII and some Unicode
+ * characters, depending on the specified radix.
+ *
+ * The alphabet is designed to facilitate radix sorting, ensuring that
+ * character-to-bucket mappings are monotonic in code-point order when needed.
+ */
 public class Alphabet {
 
     public int getCountLength() {
