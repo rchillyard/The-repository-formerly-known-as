@@ -1288,6 +1288,24 @@ is a defect; all are hardening or generalisation.
     of at the time. I think I was seduced by the idea of making the encoding as fast as possible,
     without realizing that it had such a negative effect on the cleanup phase."
 
+    > **REVERSED 2026-09-28.** The saturating coders stay in the codebase and stay tested, but
+    > `StringSortBenchmarks` is back on `englishCoder` (masking) for english and commonwords. Both
+    > grounds this item switched on failed when measured. **(i)** The cleanup does not care: Yunlu's
+    > 11c put 1,637x the inversions at 1.06x of `timsortCleanup`, because Timsort's cost follows
+    > runs and the two run counts are 7% apart --- so the "a tie costs the cleanup far less than a
+    > mis-ordering" argument, though true in kind, is worth about nothing. **(ii)** Saturating is
+    > not order-preserving either, only monotonic per character; a tie at the window edge lets the
+    > next character decide, so "NÂº" sorts before "NÃ" and encodes above it (item 48). What is left
+    > is the encode cost, and masking is **73.8 ms per million words ahead**. The one ground that
+    > survived measurement points the other way from the one this item was decided on.
+    >
+    > What this item got permanently right is item 36's half: **ten characters instead of four**, a
+    > 21x reduction in runs. That was always the dominant lever and is untouched. Saturation was the
+    > "smaller free win on top", and it was neither free nor a win.
+    >
+    > Note also that masking and saturating have the *same* 64..127 window, so since item 48 they
+    > report perfection identically; the switch changes speed, not correctness.
+
     ### The defect
 
     `stringToLong` narrows each character with `& mask`, which is **not monotonic**. A character
@@ -2484,7 +2502,8 @@ is a defect; all are hardening or generalisation.
 
       **It matters beyond the wording.** The case for preferring saturation over masking rested on
       it, and 11c independently puts masking **73.8 ms per million ahead** on the serial components.
-      Both grounds now point the same way, so item 37's coder change should be revisited. What
+      Both grounds pointed the same way, and **item 37 was duly reversed on 2026-09-28**: english
+      and commonwords are back on `englishCoder`. What
       saturation still buys is that an out-of-window character costs a *tie* rather than a
       mis-ordering, and a tie does not break a Timsort run --- real, but much smaller than
       "order-preserving", and `CleanupPassBenchmarks`'s class comment now says so.

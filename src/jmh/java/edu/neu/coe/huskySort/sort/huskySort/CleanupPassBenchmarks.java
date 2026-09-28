@@ -141,8 +141,10 @@ public class CleanupPassBenchmarks {
          * one, and is here for the parallel-cleanup question below: it is the only configuration in
          * the project where the cleanup is both cheap in absolute terms and long-run, which is
          * where {@code Arrays.parallelSort} loses to {@code Arrays.sort};
-         * "englishSaturating" is what they use now and is the low-p one; "pinyin" is the highest-p
-         * case in the project, and the one whose cleanup must run in a non-natural ordering.
+         * "englishMasking" is what the benchmarks use now, since 2026-09-28, and "englishSaturating"
+         * is the low-p one it was chosen over; "pinyin" is the highest-p case in the project, and
+         * the one whose cleanup must run in a non-natural ordering --- though it too is no longer
+         * the default, "pinyinRank" having replaced it for chinesenames.
          * <p>
          * "englishMasking" and "asciiMasking" are the masking twins of "englishSaturating" and
          * "asciiSaturating" -- the same characters at the same width, narrowed with {@code &} rather

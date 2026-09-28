@@ -63,26 +63,45 @@ public class StringSortBenchmarks {
             switch (corpus) {
                 case "english":
                     corpusWords = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", StringSortBenchmarks::getLeipzigWords);
-                    // englishSaturatingCoder, not UNICODE_CODER. Measured natural runs after the
-                    // radix phase at n = 1,000,000 on this corpus, which is what the cleanup pass
-                    // then has to merge and so what its cost follows:
-                    //     UNICODE_CODER          4x16 mask       365,958 runs (mean length 2.7)
-                    //     asciiCoder             9x7  mask        30,921
-                    //     asciiSaturatingCoder   9x7  saturate    30,079
-                    //     englishCoder          10x6  mask        17,506
-                    //     englishSaturatingCoder 10x6 saturate     16,641
-                    // The Unicode coder collapses the 275,333-word vocabulary into 68,512 codes,
-                    // four words per code, because it captures only four characters. The character
-                    // count is the dominant lever and saturation is a smaller free win on top; the
-                    // two together are worth 22x in runs. Saturation is also what makes the tenth
-                    // character safe to take: englishCoder's 6-bit mask is ambiguous outside
-                    // 64..127 -- an apostrophe and 'g' both mask to 39 -- whereas saturating ties
-                    // them at the window edge instead, and a tie costs the cleanup far less than a
-                    // mis-ordering. Every one of these coders is imperfect, so the cleanup pass runs
-                    // and fixes the ordering regardless: this is a performance choice, not a
-                    // correctness one, and RadixHuskySortTest asserts as much against the real
-                    // corpus. See TODO.md items 36 and 37, and CleanupPassProbe for the counts.
-                    coder = HuskyCoderFactory.englishSaturatingCoder;
+                    // englishCoder: ten characters at six bits, masking. Two separate decisions
+                    // are packed into that, and they were taken eleven days apart.
+                    //
+                    // FIRST, ten characters rather than UNICODE_CODER's four. This is the dominant
+                    // lever and is not in doubt. Natural runs after the radix phase at
+                    // n = 1,000,000, which is what the cleanup pass has to merge and so what its
+                    // cost follows:
+                    //     UNICODE_CODER          4x16 mask      366,865 runs (mean length 2.7)
+                    //     asciiMasking           9x7  mask       30,520
+                    //     asciiSaturating        9x7  saturate   29,327
+                    //     englishMasking        10x6  mask       17,305
+                    //     englishSaturating     10x6  saturate   16,061
+                    // The Unicode coder captures only four characters, so it collapses a
+                    // 304,905-word vocabulary into 75,181 codes. Four characters against ten is
+                    // worth 21x in runs. See TODO.md item 36.
+                    //
+                    // SECOND, masking rather than saturating -- reverted on 2026-09-28, having been
+                    // the other way since item 37. Both narrow to the same 64..127 window, so they
+                    // differ only on the 1,843 words of this corpus (0.604%) that reach outside it,
+                    // every one of them by holding a non-ASCII letter: this corpus has no
+                    // apostrophes, hyphens or digits at all, the word splitter emitting letter-only
+                    // tokens. Item 37 chose saturating on the grounds that it is order-preserving
+                    // where masking is not, and that a tie costs the cleanup less than a
+                    // mis-ordering. Yunlu's requests 11c and 11d (PR #69) undid both grounds:
+                    //   - the cleanup does not care. 1,637x the inversions cost timsortCleanup
+                    //     1.06x, because Timsort's cost follows runs and the two run counts are 7%
+                    //     apart. The tie-versus-mis-ordering distinction is real and almost free.
+                    //   - saturating is not order-preserving either, only monotonic per character.
+                    //     Saturation ties at the window edge, and a tie at position i lets position
+                    //     i+1 decide: "NÂº" sorts before "NÃ" and encodes above it.
+                    // What remains is the encode cost, and there masking is 73.8 ms per million
+                    // words ahead on the serial components. So the choice is now made on the one
+                    // ground that survived measurement. See TODO.md items 37, 44 and 48.
+                    //
+                    // Every one of these coders is imperfect on this corpus -- 0.604% of it lies
+                    // outside the window -- so the cleanup pass runs and fixes the ordering
+                    // regardless. This is a performance choice, not a correctness one, and
+                    // RadixHuskySortTest asserts as much against the real corpus.
+                    coder = HuskyCoderFactory.englishCoder;
                     break;
                 case "chinese":
                     corpusWords = HuskySortBenchmarkHelper.getWords("zho-simp-tw_web_2014_10K-sentences.txt", StringSortBenchmarks::getLeipzigWords);
@@ -112,10 +131,17 @@ public class StringSortBenchmarks {
                     break;
                 case "commonwords":
                     corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList);
-                    // The saturating form, for the same reasons as english above -- and common
-                    // words are the corpus most likely to contain an apostrophe, which the masking
-                    // coder cannot distinguish from 'g'.
-                    coder = HuskyCoderFactory.englishSaturatingCoder;
+                    // Masking, for the same reasons as english above, reverted 2026-09-28.
+                    //
+                    // This corpus loads through lineAsList rather than the letter-only word
+                    // splitter, so unlike english it CAN hold punctuation -- and the comment here
+                    // used to justify saturating on exactly that ground, an apostrophe being
+                    // indistinguishable from 'g' under a 6-bit mask. Counted: 6 of its 2,998 words
+                    // reach outside the 64..127 window, one apostrophe and five hyphens, and none
+                    // holds a character above 127. So the hazard is real and it affects six words;
+                    // against that, masking encodes materially faster and the cleanup pass fixes
+                    // the six either way.
+                    coder = HuskyCoderFactory.englishCoder;
                     break;
                 default:
                     throw new IllegalStateException("unknown corpus: " + corpus);
