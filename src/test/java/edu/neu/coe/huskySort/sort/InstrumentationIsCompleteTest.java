@@ -183,12 +183,30 @@ public class InstrumentationIsCompleteTest {
                 0, Math.round(helper.getStatPack().mean(Instrumenter.COMPARES)));
     }
 
+    /**
+     * Every instrumentation setting this test depends on is pinned here rather than inherited,
+     * including the ones it wants switched <i>off</i>.
+     * <p>
+     * NOTE {@code fixes} is not decoration. With it on, the instrumented Helper counts inversions
+     * fixed, and doing so compares --- through {@link Counted#compareTo}, like everything else, so
+     * those comparisons land in {@code actual} while never reaching the StatPack's COMPARES. The
+     * test then reports comparisons "made but not counted" that the sort never made, and
+     * {@code QuickSort_3way}, {@code QuickSort_DualPivot} and {@code IntroSort} fail.
+     * <p>
+     * It used to be inherited, and {@code src/test/resources/config.ini} has {@code fixes = false},
+     * so it passed. But {@code src/it/resources/config.ini} has {@code fixes = true}, and the
+     * integration-test profile copies that over the top into {@code target/test-classes}, where it
+     * stays. So a plain {@code mvn test} run after a {@code -Pintegration-test} run failed three of
+     * these six, and a {@code mvn clean test} passed --- which looks exactly like flakiness and is
+     * not. See TODO.md item 45d.
+     */
     @BeforeClass
     public static void beforeClass() throws IOException {
         config = Config.load(ConfigTest.class).copy("helper", "instrument", "true")
                 .copy("instrumenting", "compares", "true")
                 .copy("instrumenting", "swaps", "true")
-                .copy("instrumenting", "hits", "true");
+                .copy("instrumenting", "hits", "true")
+                .copy("instrumenting", "fixes", "false");
     }
 
     private static Config config;

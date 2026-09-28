@@ -417,4 +417,172 @@ public class HuskyCoderFactoryTest {
 
     public static final long lllMax = 0x7FFFFFFFFFFFFFFFL;
     public static final long lllMin = 0x8000000000000000L;
+
+    // ---------- The saturating coders (TODO.md item 36/37). The property that matters is
+    // monotonicity: a husky code is only useful insofar as it increases with its argument, and the
+    // masking coders break that for characters outside the bits they narrow to. ----------
+
+    /**
+     * Exhaustive over every char value: encoding a one-character String must be non-decreasing in
+     * that character. This is the whole point of saturating instead of masking, and it is cheap
+     * enough to check for all 65,536 of them rather than sampling.
+     * <p>
+     * NOTE the name says <i>per character</i> deliberately. This property does not extend to
+     * strings, and it used to be described as though it did --- see
+     * {@link #testSaturatingCodersAreNotMonotonicOnStrings} immediately below, which is the
+     * counterexample.
+     */
+    @Test
+    public void testSaturatingCodersArePerCharacterMonotonic() {
+        for (final HuskySequenceCoder<String> coder : Arrays.asList(HuskyCoderFactory.asciiSaturatingCoder, HuskyCoderFactory.englishSaturatingCoder)) {
+            long previous = Long.MIN_VALUE;
+            for (int c = 0; c <= Character.MAX_VALUE; c++) {
+                final long code = coder.huskyEncode(String.valueOf((char) c));
+                Assert.assertTrue(coder.name() + " must not decrease at char " + c + ": " + code + " follows " + previous,
+                        code >= previous);
+                previous = code;
+            }
+        }
+    }
+
+    /**
+     * Per-character monotonicity does not give monotonicity on strings, and the gap is where the
+     * saturating coders' reputation was overstated. Saturation ties every out-of-window character
+     * at the edge of the window, and a tie at position i lets position i+1 decide -- which is a
+     * comparison the strings themselves would never have reached.
+     * <p>
+     * Yunlu's counterexample from PR #69, asserted here so the claim cannot drift back: TODO.md
+     * item 48.
+     */
+    @Test
+    public void testSaturatingCodersAreNotMonotonicOnStrings() {
+        final String x = "N\u00c2\u00ba", y = "N\u00c3";
+        Assert.assertTrue("the strings order this way", x.compareTo(y) < 0);
+        for (final HuskySequenceCoder<String> coder : Arrays.asList(
+                HuskyCoderFactory.asciiSaturatingCoder, HuskyCoderFactory.englishSaturatingCoder))
+            Assert.assertTrue(coder.name() + " encodes them the other way round, both out-of-window"
+                            + " characters having saturated to the same value",
+                    coder.huskyEncode(x) > coder.huskyEncode(y));
+    }
+
+    /**
+     * The contrast, asserted so that it cannot quietly stop being true. If someone repairs the
+     * masking coders, this test fails and says so -- at which point the saturating coders are
+     * redundant and should go, rather than sitting alongside duplicating them.
+     */
+    @Test
+    public void testMaskingCodersAreNotPerCharacterMonotonic() {
+        for (final HuskySequenceCoder<String> coder : Arrays.asList(HuskyCoderFactory.asciiCoder, HuskyCoderFactory.englishCoder)) {
+            boolean decreased = false;
+            long previous = Long.MIN_VALUE;
+            for (int c = 0; c <= Character.MAX_VALUE && !decreased; c++) {
+                final long code = coder.huskyEncode(String.valueOf((char) c));
+                if (code < previous) decreased = true;
+                previous = code;
+            }
+            Assert.assertTrue(coder.name() + " is expected to lose monotonicity outside the bits it masks to", decreased);
+        }
+    }
+
+    /**
+     * The worked example: 'e' with an acute accent is 233, so "cafe-acute" belongs after "cafz" in
+     * natural String order. Masking to 7 bits turns 233 into 105, which is 'i', so the masking coder
+     * places it seventeen letters early; saturating puts it at the top of the range, where it
+     * belongs relative to every ASCII character. The mojibake form actually present in the Leipzig
+     * corpus is worse still: 'A' with a tilde is 195, masking to 67, which is uppercase 'C', so it
+     * sorts before every lowercase word.
+     */
+    @Test
+    public void testAccentedWordPlacement() {
+        final String cafeAcute = "caf\u00e9";
+        final String cafeMojibake = "caf\u00c3\u00a9";
+        Assert.assertTrue("truth: the accented form follows cafz", cafeAcute.compareTo("cafz") > 0);
+
+        Assert.assertTrue("masking places the accented form before cafz",
+                HuskyCoderFactory.asciiCoder.huskyEncode(cafeAcute) < HuskyCoderFactory.asciiCoder.huskyEncode("cafz"));
+        Assert.assertTrue("saturating places it after cafz, as the ordering requires",
+                HuskyCoderFactory.asciiSaturatingCoder.huskyEncode(cafeAcute) > HuskyCoderFactory.asciiSaturatingCoder.huskyEncode("cafz"));
+
+        Assert.assertTrue("masking places the mojibake form before cafa",
+                HuskyCoderFactory.asciiCoder.huskyEncode(cafeMojibake) < HuskyCoderFactory.asciiCoder.huskyEncode("cafa"));
+        Assert.assertTrue("saturating places the mojibake form after cafa",
+                HuskyCoderFactory.asciiSaturatingCoder.huskyEncode(cafeMojibake) > HuskyCoderFactory.asciiSaturatingCoder.huskyEncode("cafa"));
+    }
+
+    /**
+     * englishCoder's 6-bit mask cannot tell an apostrophe from a 'g': 39 and 103 both mask to 39.
+     * The saturating form ties the apostrophe at the bottom of its window instead, which is wrong
+     * only to the extent of a tie, and never confuses it with a letter.
+     */
+    @Test
+    public void testApostropheIsNotConfusedWithG() {
+        Assert.assertEquals("the masking coder cannot distinguish them",
+                HuskyCoderFactory.englishCoder.huskyEncode("don't"), HuskyCoderFactory.englishCoder.huskyEncode("dongt"));
+        Assert.assertNotEquals("the saturating coder must distinguish them",
+                HuskyCoderFactory.englishSaturatingCoder.huskyEncode("don't"), HuskyCoderFactory.englishSaturatingCoder.huskyEncode("dongt"));
+        Assert.assertTrue("and must order them as the natural ordering does",
+                "don't".compareTo("dongt") < 0
+                        && HuskyCoderFactory.englishSaturatingCoder.huskyEncode("don't") < HuskyCoderFactory.englishSaturatingCoder.huskyEncode("dongt"));
+    }
+
+    /**
+     * The saturating coders must still declare themselves imperfect for strings longer than they can
+     * hold, since the cleanup pass is what guarantees the final ordering.
+     */
+    @Test
+    public void testSaturatingCodersDeclareImperfectionByLength() {
+        Assert.assertTrue("nine characters fit the ASCII coder", HuskyCoderFactory.asciiSaturatingCoder.perfectForLength(9));
+        Assert.assertFalse("ten do not", HuskyCoderFactory.asciiSaturatingCoder.perfectForLength(10));
+        Assert.assertTrue("ten characters fit the English coder", HuskyCoderFactory.englishSaturatingCoder.perfectForLength(10));
+        Assert.assertFalse("eleven do not", HuskyCoderFactory.englishSaturatingCoder.perfectForLength(11));
+    }
+
+    // ---------- Array-level perfection: TODO.md item 48, found by Yunlu in request 11c/11d. ----------
+
+    /**
+     * A narrowing coder must not report an array perfect merely because every word is short. It
+     * used to, and the consequence was not a slow sort but a <b>wrong</b> one: the husky sort skips
+     * its cleanup pass when the coding says perfect, so an array of short words containing a
+     * character outside the coder's window came back unsorted.
+     * <p>
+     * Here {@code \u00e9} and {@code \u00ff} both saturate to 63 under the English coder and both
+     * mask into the letter range, so their codes tie or invert while the strings differ.
+     */
+    @Test
+    public void testPerfectRequiresTheCharactersToFitAsWellAsTheLength() {
+        final String[] shortButOutOfWindow = {"caf\u00ff", "caf\u00e9", "cafa", "cafz"};
+        for (final HuskySequenceCoder<String> coder : List.of(
+                HuskyCoderFactory.englishSaturatingCoder, HuskyCoderFactory.asciiSaturatingCoder,
+                HuskyCoderFactory.englishCoder, HuskyCoderFactory.asciiCoder))
+            Assert.assertFalse(coder.name() + " cannot encode a character outside its window exactly",
+                    coder.huskyEncode(shortButOutOfWindow).perfect);
+    }
+
+    /**
+     * The converse: perfection must still be reported where it genuinely holds, or every sort pays
+     * for a cleanup pass it does not need.
+     */
+    @Test
+    public void testPerfectIsStillReportedWhenItHolds() {
+        Assert.assertTrue("lower-case ASCII is inside the English window",
+                HuskyCoderFactory.englishSaturatingCoder.huskyEncode(new String[]{"cafa", "cafz", "abcdefghij"}).perfect);
+        Assert.assertTrue("digits are outside the English window but inside the ASCII one",
+                HuskyCoderFactory.asciiSaturatingCoder.huskyEncode(new String[]{"caf4", "caf9"}).perfect);
+        Assert.assertFalse("digits are below the English window, so they tie at zero",
+                HuskyCoderFactory.englishSaturatingCoder.huskyEncode(new String[]{"caf4", "caf9"}).perfect);
+        Assert.assertFalse("one word too long is enough to spoil it",
+                HuskyCoderFactory.englishSaturatingCoder.huskyEncode(new String[]{"cafa", "abcdefghijk"}).perfect);
+    }
+
+    /**
+     * {@code unicodeCoder} keeps a whole 16-bit character per slot, so it has no window to fall
+     * outside of and length really is its only limit. It must not be made pessimistic by the fix.
+     */
+    @Test
+    public void testUnicodeCoderIsUnaffectedHavingNoWindow() {
+        Assert.assertTrue("any three characters at all, from any script",
+                HuskyCoderFactory.unicodeCoder.huskyEncode(new String[]{"\u4e2d\u6587", "c\u00e9", "\uffff"}).perfect);
+        Assert.assertFalse("four is one too many -- its limit is three, not four, because the code is shifted right one bit",
+                HuskyCoderFactory.unicodeCoder.huskyEncode(new String[]{"caf\u00e9"}).perfect);
+    }
 }
