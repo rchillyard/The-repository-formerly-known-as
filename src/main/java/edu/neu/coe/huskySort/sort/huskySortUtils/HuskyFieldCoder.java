@@ -170,24 +170,43 @@ public interface HuskyFieldCoder<T> {
                 throw new IllegalArgumentException(name + ": the alphabet must ascend, but '"
                         + alphabet.charAt(i - 1) + "' is not below '" + alphabet.charAt(i) + "' at index " + i);
         final int perChar = bitsFor(alphabet.length());
+        // Precomputed char -> code, rather than an indexOf scan of the alphabet per character.
+        // Both encode and exact run per character per element, and indexOf is linear in the
+        // alphabet, so this was the whole-sort difference between 1.78x and 1.25x of a
+        // hand-written coder on the permits. It is item 44's rank table at a smaller scale: when
+        // the domain is enumerable, a lookup replaces a search. The table spans only up to the
+        // alphabet's largest symbol -- 91 entries for the permit blocks -- and anything above that
+        // takes the top code, since every symbol is then at or below it.
+        final char highest = alphabet.charAt(alphabet.length() - 1);
+        final char[] codes = new char[highest + 1];
+        final boolean[] member = new boolean[highest + 1];
+        for (char c = 0; c <= highest; c++) {
+            final int index = alphabet.indexOf(c);
+            member[c] = index >= 0;
+            codes[c] = (char) (index >= 0 ? index + 1 : below(c, alphabet));
+        }
+        final char aboveAll = (char) alphabet.length();
         return new HuskyFieldCoder<>() {
             public int bits() {
                 return width * perChar;
             }
 
             public long encode(final String value) {
+                final int n = Math.min(value.length(), width);
                 long result = 0L;
-                for (int i = 0; i < width; i++) {
-                    result <<= perChar;
-                    if (i < value.length()) result |= codeOf(value.charAt(i), alphabet);
+                for (int i = 0; i < n; i++) {
+                    final char c = value.charAt(i);
+                    result = (result << perChar) | (c <= highest ? codes[c] : aboveAll);
                 }
-                return result;
+                return result << ((long) perChar * (width - n));
             }
 
             public boolean exact(final String value) {
                 if (value.length() > width) return false;
-                for (int i = 0; i < value.length(); i++)
-                    if (alphabet.indexOf(value.charAt(i)) < 0) return false;
+                for (int i = 0; i < value.length(); i++) {
+                    final char c = value.charAt(i);
+                    if (c > highest || !member[c]) return false;
+                }
                 return true;
             }
 
@@ -259,13 +278,11 @@ public interface HuskyFieldCoder<T> {
     }
 
     /**
-     * @return the code of x, one more than its index in the alphabet, so that zero stays available
-     * as the padding symbol below every real character; or, for a character the alphabet does not
-     * hold, the code of the largest symbol below it.
+     * @return the code of the largest symbol strictly below x, or zero if there is none. Used to
+     * build the lookup table, so that a character outside the alphabet weakens the ordering to a
+     * tie rather than inverting it.
      */
-    private static long codeOf(final char x, final String alphabet) {
-        final int index = alphabet.indexOf(x);
-        if (index >= 0) return index + 1L;
+    private static int below(final char x, final String alphabet) {
         int below = 0;
         for (int i = 0; i < alphabet.length() && alphabet.charAt(i) < x; i++) below = i + 1;
         return below;

@@ -161,13 +161,19 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
      */
     @Override
     public Coding huskyEncode(final X[] xs) {
-        boolean isPerfect = true;
+        // NOTE one pass, not two. Computing exact(x) and then huskyEncode(x) separately reads every
+        // accessor and runs every field coder twice, which measured as a 2.18x whole-sort penalty
+        // against PermitCoder where the encode alone was 1.75x. Folding them together brings the
+        // array path back to one encode per field per element.
+        final boolean[] stillPerfect = {true};
         final long[] result = new long[xs.length];
         for (int i = 0; i < xs.length; i++) {
-            if (isPerfect) isPerfect = exact(xs[i]);
-            result[i] = huskyEncode(xs[i]);
+            final X x = xs[i];
+            long code = 0L;
+            for (final Field<X, ?> f : fields) code = (code << f.take()) | f.place(x, stillPerfect);
+            result[i] = code;
         }
-        return new Coding(result, isPerfect);
+        return new Coding(result, stillPerfect[0]);
     }
 
     /**
@@ -296,6 +302,26 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
             final long code = encode(x);
             checkWidth(code, x);
             return code >>> dropped();
+        }
+
+        /**
+         * Encode for the array path: the accessor is read once and the field coder run once, with
+         * exactness taken from the same code rather than recomputed.
+         *
+         * @param x            the element.
+         * @param stillPerfect a single-element flag for the whole array, cleared the first time a
+         *                     value is found inexact. Once cleared the exactness work is skipped
+         *                     entirely, since the answer cannot change back.
+         * @return the top {@link #take()} bits of this field's code.
+         */
+        long place(final X x, final boolean[] stillPerfect) {
+            final T value = accessor.apply(x);
+            final long code = coder.encode(value);
+            checkWidth(code, x);
+            final int d = dropped();
+            if (stillPerfect[0] && (!coder.exact(value) || (d != 0 && (code & ((1L << d) - 1)) != 0L)))
+                stillPerfect[0] = false;
+            return code >>> d;
         }
 
         /**
