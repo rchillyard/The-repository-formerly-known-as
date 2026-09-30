@@ -196,6 +196,65 @@ public class Config {
     // CONSIDER: sort these out.
     public static final String HELPER = "helper";
     public static final String INSTRUMENT = BaseHelper.INSTRUMENT;
+    public static final String CUTOFF = "cutoff";
+
+    /**
+     * The cutoff to use when none is configured, which is what both {@code ComparisonSortHelper}
+     * and {@code CountingSortHelper} return from their default {@code getCutoff()}.
+     */
+    public static final int CUTOFF_DEFAULT = 7;
+
+    /**
+     * Should a range of {@code n} elements be split further, or has it reached the cutoff?
+     * <p>
+     * This is the one place the cutoff comparison is written. Every recursive sort here asks the
+     * same question and, before 2026-09-30, each answered it in its own words:
+     * {@code to <= lo + getCutoff()}, {@code hi < lo + cutoff}, {@code n < getCutoff()},
+     * {@code hi - lo < CUTOFF}. Two of those were off by one, and one of them ended every sort
+     * in {@code StackOverflowError} when its cutoff was set to 0 -- which is exactly the kind of
+     * thing that stops being possible once there is only one spelling of the test.
+     * <p>
+     * The convention: <b>a cutoff of k means ranges of up to k elements stop</b>. So we recurse
+     * when {@code n > k}, which is {@code to > from + cutoff} written in terms of the size.
+     * <p>
+     * NOTE the {@link Math#max}. A cutoff of 0 or less would let a range of one element recurse,
+     * and a one-element range splits into an empty half and itself, so the recursion never ends.
+     * The four helpers guard against that individually by reading
+     * {@code (cutoff >= 1) ? cutoff : default}; applying the floor here as well means no caller
+     * can produce an infinite recursion by forgetting. It deliberately does <i>not</i> substitute
+     * {@link #CUTOFF_DEFAULT}, because the right default differs by sort --- {@code MSDStringSort}
+     * uses 15 --- and a caller that wants 0 to mean "use my default" resolves that first.
+     *
+     * @param n      the size of the range, that is {@code to - from}.
+     * @param cutoff the cutoff in force.
+     * @return true if the range should be split further; false if it has reached the cutoff.
+     */
+    public static boolean shouldRecurse(final int n, final int cutoff) {
+        return n > Math.max(cutoff, 1);
+    }
+
+    /**
+     * As {@link #shouldRecurse(int, int)}, taking the cutoff from a configuration.
+     *
+     * @param n      the size of the range, that is {@code to - from}.
+     * @param config the configuration to read {@code helper.cutoff} from (may be null).
+     * @return true if the range should be split further; false if it has reached the cutoff.
+     */
+    public static boolean shouldRecurse(final int n, final Config config) {
+        return shouldRecurse(n, getCutoff(config));
+    }
+
+    /**
+     * @param config the configuration (may be null).
+     * @return the configured {@code helper.cutoff}, with 0 or less meaning "unset" and so
+     * yielding {@link #CUTOFF_DEFAULT}. This is the resolution the four helpers apply; it is
+     * here too so that a caller holding only a Config gets the same answer. NOTE config.ini
+     * leaves {@code cutoff} empty, which reads as 0, so this is the ordinary path.
+     */
+    public static int getCutoff(final Config config) {
+        final int cutoff = config == null ? 0 : config.getInt(HELPER, CUTOFF, 0);
+        return cutoff >= 1 ? cutoff : CUTOFF_DEFAULT;
+    }
 
     /**
      * Method to load the appropriate configuration.

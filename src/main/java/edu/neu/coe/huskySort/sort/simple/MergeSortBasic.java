@@ -5,6 +5,7 @@ import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
+import static edu.neu.coe.huskySort.util.Config.shouldRecurse;
 
 /**
  * Class to implement Merge Sort.
@@ -38,7 +39,7 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      */
     public void sort(final X[] xs, final int from, final int to) {
         @SuppressWarnings("UnnecessaryLocalVariable") final int lo = from;
-        if (to <= lo + getHelper().getCutoff()) {
+        if (!shouldRecurse(to - lo, getHelper().getCutoff())) {
             insertionSort.sort(xs, from, to);
             return;
         }

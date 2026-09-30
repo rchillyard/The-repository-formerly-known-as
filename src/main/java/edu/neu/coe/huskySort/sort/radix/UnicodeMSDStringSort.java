@@ -5,6 +5,7 @@ import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Random;
+import static edu.neu.coe.huskySort.util.Config.shouldRecurse;
 
 /**
  * Class to implement Most significant digit string sort (a radix sort) for UnicodeCharacters with custom collation mechanisms.
@@ -86,12 +87,10 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
         // XXX if there are fewer than two elements, we return immediately because xs is already sorted.
         if (n < 2) return;
         // XXX if there is a small number of elements, we switch to insertion sort.
-        // NOTE "<=", the convention throughout both this project and INFO6205: a cutoff of k
-        // means ranges of up to k elements go to insertion sort. Written with "<" until
-        // 2026-09-30, so the effective cutoff was one less than the value configured. Safe either
-        // way here -- n is at least 2 by the test above, and getCutoff() is at least 1 -- but the
-        // form should be the same everywhere, since that is what makes an odd one visible.
-        if (n <= helper.getCutoff()) insertionSort(xs, from, to, d);
+        // NOTE Config.shouldRecurse is the one place the cutoff comparison is written. This
+        // read "n < helper.getCutoff()" until 2026-09-30, so the effective cutoff was one less
+        // than the value configured.
+        if (!shouldRecurse(n, helper.getCutoff())) insertionSort(xs, from, to, d);
         else {
             // CONSIDER is this the correct place to allocate aux?
             final UnicodeString[] aux = new UnicodeString[n];

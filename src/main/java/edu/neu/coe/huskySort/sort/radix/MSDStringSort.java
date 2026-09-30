@@ -1,5 +1,7 @@
 package edu.neu.coe.huskySort.sort.radix;
 
+import static edu.neu.coe.huskySort.util.Config.shouldRecurse;
+
 
 /**
  * Class to implement Most significant digit string sort (a radix sort).
@@ -68,11 +70,10 @@ public final class MSDStringSort {
     private void sort(final String[] a, final int lo, final int hi, final int d) {
         assert lo >= 0 : "lo " + lo + " is negative";
         assert hi <= a.length : "hi " + hi + " is out of bounds: " + a.length;
-        // NOTE "<=" rather than "<", which is the convention throughout both this project and
-        // INFO6205: a cutoff of k means ranges of up to k elements go to insertion sort. Written
-        // with "<" until 2026-09-30, so the effective cutoff was one less than the value set --
-        // 14 rather than the 15 declared below.
-        if (hi <= lo + cutoff) insertionSort(a, lo, hi, d);
+        // NOTE Config.shouldRecurse is the one place the cutoff comparison is written. This
+        // read "hi < lo + cutoff" until 2026-09-30, so the effective cutoff was one less than
+        // the value set -- 14 rather than the 15 declared below.
+        if (!shouldRecurse(hi - lo, cutoff)) insertionSort(a, lo, hi, d);
         else {
             final int countLength = alphabet.getCountLength();
             final int[] count = new int[countLength];

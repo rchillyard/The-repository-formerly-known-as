@@ -2938,13 +2938,38 @@ is a defect; all are hardening or generalisation.
     mutable, and choosing it is the point of that exercise, so it now splits only with at least
     two elements.
 
-    ### One left for Robin
+    ### The `- 1` in INFO6205's QuickSort: dropped
 
-    `QuickSort:104` is correct in form but `Math.max(getHelper().cutoff() - 1, 3)` makes its
+    Robin's decision, 2026-09-30. `Math.max(getHelper().cutoff() - 1, 3)` made that sort's
     effective cutoff one less than `MergeSort`'s for the same configuration --- 19 against 20 at
-    the default. The `- 1` is not needed for the reason its comment gave: `Math.max(..., 3)`
-    already lets a cutoff of 1 disable the mechanism, since `n <= 3` is handled above. (The
-    comment also said 0 gives a default of 7; not since `CUTOFF_DEFAULT` became 20.) Dropping it
-    aligns the two sorts but moves `QuickSort_ClassicTest.testSortWithInstrumenting5a` from
-    12,189 compares to 12,168, and that figure is course material. Behaviour left as it was, the
-    comment corrected to say all of this.
+    the default --- and the `- 1` was not needed for the reason its comment gave, since
+    `Math.max(..., 3)` already lets a cutoff of 1 disable the mechanism. (The comment also said 0
+    gives a default of 7. Not since `CUTOFF_DEFAULT` became 20 --- though 7 is still HuskySort's
+    default, which is presumably where the line came from.) Four counts in
+    `QuickSort_ClassicTest.testSortWithInstrumenting5a` move with it: compares 12,189 -> 12,168,
+    swaps 2,466 -> 2,614, hits 17,759 -> 17,956, lookups 11,915 -> 11,681. The stale
+    `// with cutoff = 16` comment there is replaced by the effective cutoff, which is 7.
+
+    ### And the condition itself now lives in one place
+
+    Robin's request, 2026-09-30: one method, taking `n = to - from`, that every cutoff condition
+    calls. `Config.shouldRecurse(n, cutoff)` here, `Config_Benchmark.shouldRecurse(n, cutoff)` in
+    INFO6205 (`949c8238`), both `n > Math.max(cutoff, 1)`, with an overload taking a `Config` and
+    a `getCutoff(Config)` that resolves 0 or less to the default.
+
+    Named `shouldRecurse` rather than `isRecurse`, since `is` reads as a property of a thing and
+    this is a question about what to do next.
+
+    **The `Math.max` is why it is worth being a method.** Every failure this audit found was a
+    cutoff of 0 or 1 reaching a condition that then let a one-element range recurse --- and a
+    one-element range splits into an empty half and itself. Putting the floor where the question
+    is asked means no call site can reintroduce that, whatever it passes. It deliberately does
+    *not* substitute a default: the right default differs by sort (`MSDStringSort` uses 15,
+    INFO6205's `msdcutoff` 256), so a caller that wants 0 to mean "my default" resolves it first,
+    as the helpers do.
+
+    All nine sites across the two projects now call it --- including
+    `MultikeyQuicksort`, where `hi` is inclusive and so passes `hi - lo + 1`, which makes a
+    conversion that a reader previously had to rediscover explicit. `ShouldRecurseTest` in each
+    project covers the convention, the disabling value, the termination floor at every
+    non-positive cutoff, and the `Config` resolution.

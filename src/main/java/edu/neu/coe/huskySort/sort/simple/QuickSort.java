@@ -6,6 +6,7 @@ import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.List;
+import static edu.neu.coe.huskySort.util.Config.shouldRecurse;
 
 /**
  * Base class for implementations of QuickSort.
@@ -72,7 +73,7 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
      */
     protected boolean terminator(final X[] xs, final int from, final int to, final int depth) {
         @SuppressWarnings("UnnecessaryLocalVariable") final int lo = from;
-        if (to <= lo + getHelper().getCutoff()) {
+        if (!shouldRecurse(to - lo, getHelper().getCutoff())) {
             insertionSort.sort(xs, from, to);
             return true;
         }

@@ -7,6 +7,7 @@ import edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper;
 import edu.neu.coe.huskySort.util.LazyLogger;
 
 import java.util.Arrays;
+import static edu.neu.coe.huskySort.util.Config.shouldRecurse;
 
 /**
  * This version of (Pure) Husky Sort is based on merge sort (rather than quicksort) for the main sorting phase.
@@ -85,7 +86,7 @@ public class MergeHuskySort<X extends Comparable<X>> {
      * @param to         the index of the first element not to be sorted.
      */
     private void mergeSort(final long[] lsSortable, final X[] xsSortable, final long[] lsAux, final X[] xsAux, final int from, final int to) {
-        if (to <= from + cutoff) {
+        if (!shouldRecurse(to - from, cutoff)) {
             insertionSort(xsAux, lsAux, from, to);
             return;
         }
