@@ -2783,10 +2783,10 @@ is a defect; all are hardening or generalisation.
     once at 111.5 ms under load, passing on re-run. A wall-clock equality assertion with no
     tolerance. Not touched; noting it so the next red build is not mistaken for a regression.
 
-52. **`HashCodeSort.verify` cannot repair more than two colliding elements (INFO6205, found
-    2026-09-30).** Different repository --- `../INFO6205`,
-    `sort/huskySort/sort/hashCode/HashCodeSort.java` --- and it is course material, so recorded
-    here for Robin's judgement rather than changed.
+52. ~~**`HashCodeSort.verify` cannot repair more than two colliding elements**~~ **FIXED
+    2026-09-30** in `../INFO6205` (commit `64beda4f`), `sort/huskySort/sort/hashCode/HashCodeSort.java`.
+    Recorded here because it is the husky cleanup pass in miniature and the finding came out of
+    item 51.
 
     It is the husky idea in miniature, and a student exercise: sort by `hashCode` as the proxy,
     then `verify` repairs the ties. But `verify` is a **single adjacent-swap pass**:
@@ -2813,9 +2813,10 @@ is a defect; all are hardening or generalisation.
     Groups of 2 already fail because duplicate *values* put three or more elements in one hash
     class. `HashCodeSortTest` passes because it uses exactly one colliding pair.
 
-    The fix is to sort each maximal run of equal hashes rather than swapping adjacent pairs ---
-    an insertion sort over the run, which is what the HuskySort cleanup pass does. Whether the
-    exercise intends the general case is Robin's call.
+    `verify` is now an insertion sort restricted to runs of equal hashes, the inner guard
+    stopping at a run boundary so that elements of differing hashes are never compared --- the
+    first phase has ordered those already, and comparing them again would cost the lookups the
+    method exists to avoid. Four tests added; three of them fail against the old version.
 
     ### The rest of INFO6205 is clean
 
@@ -2828,6 +2829,42 @@ is a defect; all are hardening or generalisation.
     zero-gap degenerate case is already guarded. Nothing in INFO6205 has a `perfect`-guarded
     cleanup at all.
 
-    NOTE the INFO6205 `MergeSort` tests assert only `helper.isSorted(sorted)`, which is the
-    assertion blind to item 50's failure mode. The code is right; the tests would not have caught
-    it if it were not.
+    ### Why INFO6205's MergeSort tests would not have caught it --- and it is not the assertion
+
+    Recorded 2026-09-30, correcting what this item first said. The first note here claimed the
+    tests were blind because they assert only `helper.isSorted(sorted)`. **That was wrong.** In
+    INFO6205's scheme the corresponding failure mis-orders a permutation, which `isSorted` catches
+    perfectly well. The gap is coverage, not assertion strength.
+
+    Established by injecting the `MergeHuskySort` fault --- `return` in place of `copyBlock` ---
+    and running the suite: **all 28 tests passed.** Then:
+
+    - `testSort12`, `13` and `14` are the only tests that enable insurance, and all three sort
+      **8** elements against a default cutoff of 20. They never recurse; the merge code never
+      executes. The three tests aimed at the optimisation are pure insertion sorts.
+    - Every test with n past the cutoff (16, 128, 1024, 8192, and the 2^k ones) sets
+      `INSURANCE, "false"` explicitly.
+    - `testSort11_partialsorted` builds partially-ordered data, which is the right shape --- but
+      constructs its sorter with the unmodified `config` (insurance unset, so false) and asserts
+      nothing at all. It prints a timing.
+
+    **And simply enlarging those tests would not have sufficed.** The check fires only when the
+    left partition's maximum is at most the right partition's minimum:
+
+    ```
+    data shape (n = 1024, insurance on, cutoff 20)   branch fires   fault caught
+    uniform random nextInt(1000)  (what tests use)          0 / 50 sorts    no
+    duplicate-heavy nextInt(5)                              0 / 50 sorts    no
+    fully ascending                                     3,150 / 50 sorts    no
+    nearly sorted, 5 random swaps                       2,483 / 50 sorts    50/50
+    ```
+
+    Random halves essentially never satisfy the condition. Fully ascending input fires it
+    constantly and still cannot expose a fault, because both arrays then hold the same thing
+    anyway --- the same reason HuskySort's ordered-input case passed either way. Only *nearly*
+    sorted input does it, which is exactly the input the optimisation exists for and exactly what
+    no correctness test used.
+
+    A test covering all four `(nocopy, insurance)` combinations over nearly-sorted arrays of 64
+    to 1,024 elements is now in `MergeSortTest`, asserting the whole array. It catches the
+    injected fault that the previous 28 tests all passed.
