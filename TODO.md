@@ -2524,3 +2524,65 @@ is a defect; all are hardening or generalisation.
       name. That cannot go stale the same way: a future cell needing a Collator is refused for what
       it is rather than for what it is called. Verified that the guard now fires for both `pinyin`
       and `pinyinRank` and still lets the natural-order cells through.
+
+49. **Raise the composite budget from 63 bits to 64 (raised 2026-09-29, deferred).** Robin's
+    observation while reviewing item 31: "it does seem odd that the one type that we cannot
+    perfectly encode is a long", and then the sharper form of it --- the change would affect far
+    more than longs.
+
+    ### Why 63 today
+
+    `CompositeHuskyCoder.BUDGET` is 63 so that every code is non-negative and its numeric order is
+    its intended order. Bit 63 is the sign bit, and a code that sets it is a *negative* long, which
+    sorts below every code that does not --- inverting the most significant field, the worst
+    failure available.
+
+    ### Why 64 is nevertheless available
+
+    Husky codes are compared as **signed** longs, and the mapping from unsigned order to signed
+    order is one exclusive-or: fold into the full 64 bits and return `fold ^ Long.MIN_VALUE`. Then
+    signed comparison of the result is unsigned comparison of the fold, which is the order the
+    concatenation built. `RadixHuskySort` already does exactly this internally, at
+    `RadixHuskySort.java:197` and `:205`, to make unsigned digit extraction agree with signed order.
+    And negative husky codes are not novel here: `HuskyCoderFactory.longCoder` returns its argument
+    unchanged, so it has always produced them.
+
+    ### What it would buy, measured
+
+    Every field set summing to exactly 64 --- which is the natural shape of a packed record ---
+    currently loses its last bit and reports imperfect:
+
+    ```
+    record            declared  used  truncating
+    TwoInts(int,int)        64    63        true
+    FourChars(char x4)      64    63        true
+    EightBytes(byte x8)     64    63        true
+    IntTwoShorts            64    63        true
+    ```
+
+    So `record Point(int x, int y)`, about as ordinary a record as exists, cannot be exactly
+    encoded. The long case is separate and slightly different: an unannotated `long` is *narrowed*
+    at declaration to `[-2^62, 2^62-1]`, since the full span will not fit 63, so it does not
+    truncate --- it simply cannot represent its own type. Either way the type husky coding handles
+    most trivially is the one the composite handles worst.
+
+    **It would also apply outside this class.** `HuskyCoderFactory.unicodeCoder` packs 4 x 16 = 64
+    bits and resolves the overrun with `>>> 1`, declaring its maxLength as
+    `MAX_LENGTH_UNICODE - 1` = 3. Verified 2026-09-28: `"aaa`"` and `"aaaa"` differ only in the
+    fourth character's low bit and their codes collide. With the exclusive-or it could be exact at
+    four characters, which is the whole of the Chinese corpus's typical word length.
+
+    ### Why it is deferred rather than done
+
+    - It changes **every emitted code value**. The bit-for-bit equivalence test against
+      `PermitCoder` has been the most valuable test in this class --- it caught two errors of mine
+      in an hour --- and it would need an exclusive-or on one side, losing some of its directness.
+    - Codes stop being non-negative, diverging from the convention `PermitCoder`, `Tuple` and
+      `unicodeCoder` all follow, and from what a reader expects in a debugger.
+    - Changing `unicodeCoder` would move every chinese benchmark figure, and Yunlu is mid-run on
+      request 12.
+
+    None of those is an argument against the change, only against making it today. The work itself
+    is small: one constant, one exclusive-or at the end of the fold, and the equivalence test
+    adjusted. Do it when a field set that fills the word exactly actually matters --- or when
+    `unicodeCoder` is next revisited, since that is the case with real figures attached.
