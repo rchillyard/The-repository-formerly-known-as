@@ -2889,3 +2889,62 @@ is a defect; all are hardening or generalisation.
 
     NOTE `testSort14` is one fixed 8-element array from a fixed seed, so it catches *this* fault
     rather than that class of fault. The nearly-sorted test above covers the class.
+
+53. ~~**Audit every cutoff condition in both repositories**~~ **DONE 2026-09-30.** Robin's
+    request after item 52: the test should be `to <= from + cutoff`, or `from < to - cutoff` for
+    the recursion guard, and getting it wrong matters chiefly when `cutoff` is 1 or 0.
+
+    ### HuskySort
+
+    | site | form | verdict |
+    |---|---|---|
+    | `simple/QuickSort:75` | `to <= lo + getCutoff()` | canonical |
+    | `simple/MergeSortBasic:41` | `to <= lo + getCutoff()` | canonical |
+    | `huskySort/MergeHuskySort:88` | `to <= from + cutoff` | canonical (cutoff a private final 8) |
+    | `simple/MultikeyQuicksort:79` | `hi - lo < CUTOFF` | **correct**: `hi` is inclusive here, so this *is* `to <= from + CUTOFF` |
+    | `radix/MSDStringSort:65` | `hi < lo + cutoff` | **off by one** -- fixed |
+    | `radix/UnicodeMSDStringSort:89` | `n < getCutoff()` | **off by one** -- fixed |
+
+    The four helper classes --- `ComparableSortHelper`, `InstrumentedComparisonSortHelper`,
+    `BasicCountingSortHelper`, `InstrumentedCountingSortHelper` --- all read
+    `(cutoff >= 1) ? cutoff : default`, so a configured 0 means "unset" and cannot cause the
+    infinite recursion their comments warn about. Verified: `MergeSortBasic`, `QuickSort_3way`,
+    `QuickSort_DualPivot` and `IntroSort` all sort correctly at configured cutoffs of 0, 1, 2 and
+    8. NOTE the configured default in `config.ini` is empty, which reads as 0, so that guard is
+    load-bearing in ordinary use, not just in the odd case.
+
+    **`MSDStringSort` was the exception, because its cutoff is a `static` field with a public
+    setter and no guard.** `setCutoff(0)` made `hi < lo + 0` never true, so even an empty range
+    recursed: every sort ended in `StackOverflowError` (measured over random words, all-equal
+    strings and a shared long prefix). `setCutoff` now takes 0 or less to mean "unset", matching
+    the four helpers, and the condition is `<=`. The `<` had also made the effective cutoff one
+    less than the value set --- 14 rather than the declared 15.
+
+    `UnicodeMSDStringSort` had the same `<` but could not overflow: `n` is at least 2 by the test
+    above it and `getCutoff()` is at least 1. Corrected for consistency, which is what makes an
+    odd one visible.
+
+    ### INFO6205 (commit `429b0b4a`)
+
+    Canonical and correct: `MergeSort:153`, `MergeSortBasic:57`, `IntroSort.terminator`
+    (`sizeThreshold` is a private final 16), `MSDStringSort:103` (and it cuts to quicksort rather
+    than recursing), `InsertionSort:79`, the exact-size `sortPair`/`sortTrio` helpers.
+    `RandomSort`'s `CUTOFF` is not a recursion guard.
+
+    **`ParSort:38` was the one hazard.** Its sense is inverted --- `to - from >= cutoff` means
+    *go parallel* --- and it had no lower bound. At cutoff 1 a single-element range takes the
+    parallel path, where `mid == from`, so the second half is the whole range again. Measured:
+    cutoff 0 and 1 both ran forever, 2 and above were fine. `cutoff` is `public static` and
+    mutable, and choosing it is the point of that exercise, so it now splits only with at least
+    two elements.
+
+    ### One left for Robin
+
+    `QuickSort:104` is correct in form but `Math.max(getHelper().cutoff() - 1, 3)` makes its
+    effective cutoff one less than `MergeSort`'s for the same configuration --- 19 against 20 at
+    the default. The `- 1` is not needed for the reason its comment gave: `Math.max(..., 3)`
+    already lets a cutoff of 1 disable the mechanism, since `n <= 3` is handled above. (The
+    comment also said 0 gives a default of 7; not since `CUTOFF_DEFAULT` became 20.) Dropping it
+    aligns the two sorts but moves `QuickSort_ClassicTest.testSortWithInstrumenting5a` from
+    12,189 compares to 12,168, and that figure is course material. Behaviour left as it was, the
+    comment corrected to say all of this.

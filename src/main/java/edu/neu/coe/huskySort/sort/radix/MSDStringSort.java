@@ -47,7 +47,13 @@ public final class MSDStringSort {
      * @param cutoff the size threshold below which insertion sort will be used.
      */
     public static void setCutoff(final int cutoff) {
-        MSDStringSort.cutoff = cutoff;
+        // NOTE 0 or less means "unset", matching every helper-based cutoff in this project
+        // (ComparableSortHelper, InstrumentedComparisonSortHelper, BasicCountingSortHelper and
+        // InstrumentedCountingSortHelper all read (cutoff >= 1) ? cutoff : default). Those are
+        // guarded because this field is the one cutoff a caller can set directly, and it was not:
+        // measured 2026-09-30, setCutoff(0) made the test below never true, so even an empty
+        // range recursed and every sort ended in StackOverflowError.
+        MSDStringSort.cutoff = cutoff >= 1 ? cutoff : DEFAULT_CUTOFF;
     }
 
     /**
@@ -62,7 +68,11 @@ public final class MSDStringSort {
     private void sort(final String[] a, final int lo, final int hi, final int d) {
         assert lo >= 0 : "lo " + lo + " is negative";
         assert hi <= a.length : "hi " + hi + " is out of bounds: " + a.length;
-        if (hi < lo + cutoff) insertionSort(a, lo, hi, d);
+        // NOTE "<=" rather than "<", which is the convention throughout both this project and
+        // INFO6205: a cutoff of k means ranges of up to k elements go to insertion sort. Written
+        // with "<" until 2026-09-30, so the effective cutoff was one less than the value set --
+        // 14 rather than the 15 declared below.
+        if (hi <= lo + cutoff) insertionSort(a, lo, hi, d);
         else {
             final int countLength = alphabet.getCountLength();
             final int[] count = new int[countLength];
@@ -129,7 +139,14 @@ public final class MSDStringSort {
         a[i] = temp;
     }
 
-    private static int cutoff = 15;
+    /**
+     * The size threshold below which insertion sort is used. See {@link #setCutoff}: values of 0
+     * or less mean "unset" and select this default, because the recursion does not terminate
+     * without a positive cutoff.
+     */
+    public static final int DEFAULT_CUTOFF = 15;
+
+    private static int cutoff = DEFAULT_CUTOFF;
     private static String[] aux;       // auxiliary array for distribution
 
     private final Alphabet alphabet;
