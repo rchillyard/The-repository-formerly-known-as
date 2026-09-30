@@ -86,11 +86,12 @@ public class MergeHuskySort<X extends Comparable<X>> {
      * @param to         the index of the first element not to be sorted.
      */
     private void mergeSort(final long[] lsSortable, final X[] xsSortable, final long[] lsAux, final X[] xsAux, final int from, final int to) {
-        if (!shouldRecurse(to - from, cutoff)) {
+        int n = to - from;
+        if (!shouldRecurse(n, cutoff)) {
             insertionSort(xsAux, lsAux, from, to);
             return;
         }
-        final int mid = from + (to - from) / 2;
+        final int mid = from + n / 2;
         mergeSort(lsAux, xsAux, lsSortable, xsSortable, from, mid);
         mergeSort(lsAux, xsAux, lsSortable, xsSortable, mid, to);
         merge(xsSortable, xsAux, lsSortable, lsAux, from, mid, to);

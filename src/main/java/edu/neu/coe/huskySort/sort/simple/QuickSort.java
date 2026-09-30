@@ -72,8 +72,7 @@ public abstract class QuickSort<X extends Comparable<X>> extends SortWithHelper<
      * @return true if there is no further work to be done.
      */
     protected boolean terminator(final X[] xs, final int from, final int to, final int depth) {
-        @SuppressWarnings("UnnecessaryLocalVariable") final int lo = from;
-        if (!shouldRecurse(to - lo, getHelper().getCutoff())) {
+        if (!shouldRecurse(to - from, getHelper().getCutoff())) {
             insertionSort.sort(xs, from, to);
             return true;
         }

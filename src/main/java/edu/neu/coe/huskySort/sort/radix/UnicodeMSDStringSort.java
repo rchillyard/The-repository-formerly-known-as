@@ -90,7 +90,8 @@ public final class UnicodeMSDStringSort extends BaseCountingSort<UnicodeString, 
         // NOTE Config.shouldRecurse is the one place the cutoff comparison is written. This
         // read "n < helper.getCutoff()" until 2026-09-30, so the effective cutoff was one less
         // than the value configured.
-        if (!shouldRecurse(n, helper.getCutoff())) insertionSort(xs, from, to, d);
+        if (!shouldRecurse(n, helper.getCutoff()))
+            insertionSort(xs, from, to, d);
         else {
             // CONSIDER is this the correct place to allocate aux?
             final UnicodeString[] aux = new UnicodeString[n];

@@ -164,7 +164,7 @@ public class MultikeyQuicksort {
          * @param d the number of leading characters common to the whole range, which a fallback may
          *          skip when comparing. The pinyin fallback ignores it and compares whole names.
          */
-        void sort(String[] a, int lo, int hiExclusive, int d);
+        void sort(String[] a, int from, int to, int d);
     }
 
     /**
