@@ -2733,3 +2733,101 @@ is a defect; all are hardening or generalisation.
     commoner --- a composite of two `int`s, four `char`s or eight `byte`s is now exact --- so the
     remaining sorts deserve the same question. `SortSweep` now runs a word-filling composite, codes
     spanning the whole signed range, through all seven husky sorts; all seven pass.
+
+51. ~~**Sweep every husky sort for item-50's masked-bug pattern**~~ **DONE 2026-09-30.** Robin's
+    question after item 50: if `MergeHuskySort` was wrong for four years because the cleanup pass
+    hid it, what about the others?
+
+    ### The sweep
+
+    Every sort, with `longCoder` (the cheapest perfect coder there is, so no cleanup runs), over:
+    every size from 0 to 320 at three value spreads; ordered, reversed and constant input at six
+    sizes; and random `long`s to 1,000,000 with both extremes present. Assertions on the **whole
+    array** via `Arrays.equals`, never on sortedness --- item 50's failure produced output that
+    ascended perfectly and merely was not a permutation of its input, which `helper.sorted(xs)`
+    cannot see.
+
+    ```
+    QuickHuskySort (insertion cleanup)   all passed
+    QuickHuskySort (system cleanup)      all passed
+    QuickHuskySort (mayBeSorted)         all passed
+    MergeHuskySort                       all passed   (after item 50)
+    IntroHuskySort                       all passed
+    DutchHuskySort                       all passed
+    HuskyBucketSort                      54 failures  -> fixed, below
+    RadixHuskySort                       all passed
+    ParallelRadixHuskySort               all passed
+    ```
+
+    **So the masked-bug pattern was confined to `MergeHuskySort`.** Six sorts were already clean.
+    That is worth knowing rather than assuming, and it is the one question the project could not
+    answer before item 49 made perfect codings easy to produce for an arbitrary type.
+
+    ### The one failure was a different bug
+
+    `HuskyBucketSort` threw `ArithmeticException: BigInteger divide by zero` for **every array
+    smaller than `bucketSize`**. `HuskyBucketHelper` sizes its bucket array as `n / m`, integer
+    division, which is zero below one bucket's worth; `loadBuckets` then divides by the bucket
+    count. Not masked at all --- it throws loudly --- and nothing to do with perfection: it fails
+    for any coder. It survived because `HuskyBucketSortTest` uses n = 4 with bucketSize 2, and
+    n = 10,000 and 10,240 with bucketSize 16, so no test ever went below the bucket size.
+
+    Fixed with `Math.max(1, n / m)` in both constructors. One bucket is the right answer for a
+    small array: the sort degenerates to running the post-sorter over everything, which is what
+    should happen below one bucket's worth of data. Regression test added covering n = 0 to 15
+    against a bucket size of 16.
+
+    ### Unrelated flake noticed in passing
+
+    `TimerTest.testMillisecs` asserts `assertEquals(100.0, ...)` against a real sleep and failed
+    once at 111.5 ms under load, passing on re-run. A wall-clock equality assertion with no
+    tolerance. Not touched; noting it so the next red build is not mistaken for a regression.
+
+52. **`HashCodeSort.verify` cannot repair more than two colliding elements (INFO6205, found
+    2026-09-30).** Different repository --- `../INFO6205`,
+    `sort/huskySort/sort/hashCode/HashCodeSort.java` --- and it is course material, so recorded
+    here for Robin's judgement rather than changed.
+
+    It is the husky idea in miniature, and a student exercise: sort by `hashCode` as the proxy,
+    then `verify` repairs the ties. But `verify` is a **single adjacent-swap pass**:
+
+    ```java
+    for (int i = 1; i < n; i++)
+        if (hashes[i - 1] == hashes[i])
+            if (a.get(indices[i - 1]).compareTo(a.get(indices[i])) > 0)
+                exchange(indices, i);
+    ```
+
+    One pass of adjacent swaps sorts a run of two and nothing longer. Three elements sharing a
+    hash code, values `[3, 2, 1]`, come back `[2, 1, 3]`.
+
+    Measured over 200 random lists at each collision density:
+
+    ```
+    elements colliding in groups of 1    200/200 correct
+    elements colliding in groups of 2     46/200 wrong
+    elements colliding in groups of 3     92/200 wrong
+    elements colliding in groups of 8    161/200 wrong
+    ```
+
+    Groups of 2 already fail because duplicate *values* put three or more elements in one hash
+    class. `HashCodeSortTest` passes because it uses exactly one colliding pair.
+
+    The fix is to sort each maximal run of equal hashes rather than swapping adjacent pairs ---
+    an insertion sort over the run, which is what the HuskySort cleanup pass does. Whether the
+    exercise intends the general case is Robin's call.
+
+    ### The rest of INFO6205 is clean
+
+    `MergeSort` has the same no-copy/insurance structure that item 50 was about, and gets it
+    right: its no-copy branch calls `helper.copyBlock` where `MergeHuskySort` returned. Verified
+    rather than read --- all four `(nocopy, insurance)` combinations at two cutoffs, every size
+    from 1 to 320 at three spreads plus shaped inputs, asserting the whole array: all passed.
+    `MergeSortBasic` has no such optimisation. `BucketSort` takes its bucket count from the caller
+    instead of deriving it as `n / size`, so it cannot produce item 51's zero-bucket case, and its
+    zero-gap degenerate case is already guarded. Nothing in INFO6205 has a `perfect`-guarded
+    cleanup at all.
+
+    NOTE the INFO6205 `MergeSort` tests assert only `helper.isSorted(sorted)`, which is the
+    assertion blind to item 50's failure mode. The code is right; the tests would not have caught
+    it if it were not.
