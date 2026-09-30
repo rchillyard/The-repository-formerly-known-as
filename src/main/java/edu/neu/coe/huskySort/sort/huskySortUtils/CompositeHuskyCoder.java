@@ -38,13 +38,28 @@ import java.util.function.Function;
  *     {@link HuskyFieldCoder#ofRange} does by subtracting the minimum.</li>
  * </ul>
  *
- * <h2>The budget</h2>
+ * <h2>The budget, and what happens when it is exceeded</h2>
  * Sixty-three bits, not sixty-four: the top bit is left clear so that every code is non-negative
- * and numeric order is the order intended. {@link Builder#build} refuses to produce a coder whose
- * fields do not fit, naming the fields and their widths. That check is the whole point of item 29:
- * {@code Tuple} packs 8 + 17 + 38 = 63 bits exactly, so widening any field by one bit would push
- * the code negative and <i>invert</i> the ordering rather than degrade it -- and its widths are
- * literals inside a shift expression, with nothing to assert against.
+ * and numeric order is the order intended.
+ * <p>
+ * Fields that do not fit are <b>truncated, not rejected</b>. Robin's framing, 2026-09-29: running
+ * out of bits is not a different kind of problem from a field that saturates or a string that is
+ * too long -- all three are the encoding being imperfect, and this mechanism is built to tolerate
+ * that. Refusing to build would impose an exactness requirement a husky sort does not need.
+ * <p>
+ * <b>What must be got right is which bits go.</b> The budget is spent most significant field first,
+ * so a field straddling the boundary keeps its top bits and loses its bottom ones, and a field past
+ * the boundary contributes nothing. Losing low bits weakens the ordering to ties among values those
+ * bits would have separated, and a tie is what the cleanup pass exists to resolve. Losing high bits
+ * would <i>invert</i> the ordering, which nothing downstream can repair. So the degradation is
+ * graceful in the way that matters: the sort still orders by the fields of highest comparison
+ * priority, and the cleanup settles the rest.
+ * <p>
+ * Item 29's concern is met differently as a result. {@code Tuple} packs 8 + 17 + 38 = 63 bits
+ * exactly, with its widths as literals inside a shift expression, so widening any field by one bit
+ * pushes the code negative and inverts the ordering. Here the same widening costs a bit off the
+ * least significant field and sets {@code perfect} false -- weakened, not inverted, and reported
+ * rather than silent.
  *
  * <h2>Perfection is computed, not declared</h2>
  * {@code perfect} is the conjunction over every field of every element, taken from each field
@@ -109,15 +124,17 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
          */
         public CompositeHuskyCoder<X> build() {
             if (fields.isEmpty()) throw new IllegalStateException(name + ": no fields were added");
-            int total = 0;
-            for (final Field<X, ?> f : fields) total += f.coder.bits();
-            if (total > BUDGET) {
-                final StringBuilder sb = new StringBuilder(name + ": the fields need " + total
-                        + " bits, which exceeds the " + BUDGET + " available by " + (total - BUDGET) + ". Widths are");
-                for (final Field<X, ?> f : fields) sb.append(" ").append(f.coder.name()).append("=").append(f.coder.bits());
-                throw new IllegalStateException(sb.append(". Narrow a field's declared range, or drop one."). toString());
+            int declared = 0, used = 0;
+            final List<Field<X, ?>> placed = new ArrayList<>(fields.size());
+            for (final Field<X, ?> f : fields) {
+                final int w = f.coder.bits();
+                declared += w;
+                // Most significant field first, so what runs out is the room for the LOW bits.
+                final int take = Math.max(0, Math.min(w, BUDGET - used));
+                placed.add(f.taking(take));
+                used += take;
             }
-            return new CompositeHuskyCoder<>(name, List.copyOf(fields), total);
+            return new CompositeHuskyCoder<>(name, List.copyOf(placed), used, declared);
         }
     }
 
@@ -131,7 +148,7 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
      */
     public long huskyEncode(final X x) {
         long result = 0L;
-        for (final Field<X, ?> f : fields) result = (result << f.coder.bits()) | f.encode(x);
+        for (final Field<X, ?> f : fields) result = (result << f.take()) | f.encodeTaken(x);
         return result;
     }
 
@@ -160,6 +177,23 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
     public boolean exact(final X x) {
         for (final Field<X, ?> f : fields) if (!f.exact(x)) return false;
         return true;
+    }
+
+    /**
+     * @return true if the declared fields exceeded {@link #BUDGET}, so that the least significant
+     * of them lost bits. Such a coder can still be exact for a particular element -- only if every
+     * bit it dropped happened to be zero -- but it cannot be exact in general.
+     */
+    public boolean truncating() {
+        return declaredBits > bits;
+    }
+
+    /**
+     * @return the sum of the declared field widths, which exceeds {@link #bits()} exactly when the
+     * coder is {@link #truncating()}.
+     */
+    public int declaredBits() {
+        return declaredBits;
     }
 
     /**
@@ -202,32 +236,75 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder(name).append("[").append(bits).append(" of ").append(BUDGET).append(" bits:");
-        for (final Field<X, ?> f : fields) sb.append(" ").append(f.coder.name()).append("=").append(f.coder.bits());
+        for (final Field<X, ?> f : fields) {
+            sb.append(" ").append(f.coder.name()).append("=").append(f.coder.bits());
+            if (f.dropped() > 0) sb.append(f.take() == 0 ? "(dropped)" : "(-" + f.dropped() + ")");
+        }
+        if (truncating()) sb.append("; declared ").append(declaredBits).append(", so never perfect");
         return sb.append("]").toString();
     }
 
-    private CompositeHuskyCoder(final String name, final List<Field<X, ?>> fields, final int bits) {
+    private CompositeHuskyCoder(final String name, final List<Field<X, ?>> fields, final int bits, final int declaredBits) {
         this.name = name;
         this.fields = fields;
         this.bits = bits;
+        this.declaredBits = declaredBits;
     }
 
     private final String name;
     private final List<Field<X, ?>> fields;
     private final int bits;
+    private final int declaredBits;
 
     /**
      * One field: how to read it, and how to encode what was read. The type parameter is captured
      * here so that the accessor and the coder cannot be mismatched, which a list of raw pairs
      * would allow.
      */
-    private record Field<X, T>(Function<X, T> accessor, HuskyFieldCoder<T> coder) {
+    private record Field<X, T>(Function<X, T> accessor, HuskyFieldCoder<T> coder, int take) {
+
+        Field(final Function<X, T> accessor, final HuskyFieldCoder<T> coder) {
+            this(accessor, coder, coder.bits());
+        }
+
+        /**
+         * @param n how many of this field's bits the budget could afford, counted from the top.
+         * @return the same field, placed.
+         */
+        Field<X, T> taking(final int n) {
+            return new Field<>(accessor, coder, n);
+        }
+
+        /**
+         * @return how many low bits were dropped for want of room; zero when the field fits.
+         */
+        int dropped() {
+            return coder.bits() - take;
+        }
+
         long encode(final X x) {
             return coder.encode(accessor.apply(x));
         }
 
+        /**
+         * @return the top {@link #take()} bits of this field's code. A field that got no room at
+         * all contributes zero, and one that got all of its bits is shifted by nothing.
+         */
+        long encodeTaken(final X x) {
+            return encode(x) >>> dropped();
+        }
+
+        /**
+         * Exact for this element when the field coder says so <i>and</i> nothing was lost to the
+         * budget. The second half is per value rather than per field on purpose: a truncated field
+         * whose dropped bits happen to be zero has lost nothing for <i>this</i> element, and
+         * reporting it inexact would make a husky sort run a cleanup pass it does not need.
+         */
         boolean exact(final X x) {
-            return coder.exact(accessor.apply(x));
+            final T value = accessor.apply(x);
+            if (!coder.exact(value)) return false;
+            final int d = dropped();
+            return d == 0 || (coder.encode(value) & ((1L << d) - 1)) == 0L;
         }
     }
 }

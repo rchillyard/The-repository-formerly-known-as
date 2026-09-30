@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
+import java.util.function.Function;
 
 import static org.junit.Assert.*;
 
@@ -90,25 +91,89 @@ public class CompositeHuskyCoderTest {
     // ---------- the budget, which is item 29's point ----------
 
     /**
-     * The check {@code Tuple} cannot make. Its widths are literals inside a shift expression
-     * summing to exactly 63, so widening any field by one bit would push the code negative and
-     * invert the ordering; there is nothing there to assert against. Here it is a build failure
-     * naming the offending widths.
+     * Over budget is imperfection, not an error. Robin's point, 2026-09-29: running out of bits is
+     * the same kind of problem as a saturating field or an over-long string, and the mechanism is
+     * built to tolerate all three. So the coder builds, loses the low bits of the least significant
+     * fields, and says it is no longer perfect.
      */
     @Test
-    public void refusesToBuildWhenTheFieldsDoNotFit() {
-        final CompositeHuskyCoder.Builder<Permit> b = CompositeHuskyCoder.<Permit>builder()
+    public void truncatesRatherThanRefusingWhenTheFieldsDoNotFit() {
+        final CompositeHuskyCoder<Permit> c = CompositeHuskyCoder.<Permit>builder()
                 .named("TooWide")
                 .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 8, PermitCoder.BLOCK_ALPHABET))
-                .add(Permit::getLot, HuskyFieldCoder.ofString("lot", 6, PermitCoder.LOT_ALPHABET));
-        try {
-            b.build();
-            fail("40 + 36 = 76 bits should not fit in 63");
-        } catch (final IllegalStateException e) {
-            assertTrue("the message should give the total: " + e.getMessage(), e.getMessage().contains("76"));
-            assertTrue("and name the fields: " + e.getMessage(), e.getMessage().contains("block=40"));
-            assertTrue("and name the fields: " + e.getMessage(), e.getMessage().contains("lot=36"));
-        }
+                .add(Permit::getLot, HuskyFieldCoder.ofString("lot", 6, PermitCoder.LOT_ALPHABET))
+                .build();
+        assertEquals("40 + 36 = 76 declared", 76, c.declaredBits());
+        assertEquals("clamped to the budget", 63, c.bits());
+        assertTrue(c.truncating());
+        assertTrue("toString should say what was lost: " + c, c.toString().contains("lot=36(-13)"));
+        assertFalse("a corpus cannot be perfectly encoded by a truncating coder",
+                c.huskyEncode(PermitLoader.getPermits()).perfect);
+    }
+
+    /**
+     * <b>The property that makes truncation acceptable.</b> Dropping low bits weakens the ordering
+     * to ties among values the lost bits would have separated; dropping high bits would invert it,
+     * and nothing downstream could repair that. So an over-budget coder must still never place two
+     * permits in the wrong order -- only fail to separate them.
+     */
+    @Test
+    public void truncationWeakensTheOrderingButNeverInvertsIt() {
+        final Permit[] permits = Arrays.copyOf(PermitLoader.getPermits(), 40_000);
+        final CompositeHuskyCoder<Permit> c = CompositeHuskyCoder.<Permit>builder()
+                .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 8, PermitCoder.BLOCK_ALPHABET))
+                .add(Permit::getLot, HuskyFieldCoder.ofString("lot", 6, PermitCoder.LOT_ALPHABET))
+                .build();
+        int ties = 0;
+        for (final Permit x : permits)
+            for (int k = 0; k < 3; k++) {
+                final Permit y = permits[(x.hashCode() * 31 + k) & 0x7FFF];
+                final int byPermit = Integer.signum(x.compareTo(y));
+                final int byCode = Integer.signum(Long.compare(c.huskyEncode(x), c.huskyEncode(y)));
+                if (byCode == 0) ties++;
+                else assertEquals("the code must never invert the permits' own order", byPermit, byCode);
+            }
+        assertTrue("and some pairs really were only tied, or this proves nothing", ties > 0);
+    }
+
+    /**
+     * A field pushed entirely past the budget contributes nothing at all, rather than wrapping.
+     */
+    @Test
+    public void aFieldWithNoRoomLeftContributesNothing() {
+        final CompositeHuskyCoder<Permit> wide = CompositeHuskyCoder.<Permit>builder()
+                .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 13, PermitCoder.BLOCK_ALPHABET))
+                .add(Permit::getFiledDate, HuskyFieldCoder.ofDate("filed", PermitCoder.EPOCH, 1879))
+                .build();
+        assertEquals("13 x 5 for the block plus 11 for the date", 76, wide.declaredBits());
+        assertEquals(63, wide.bits());
+        assertTrue("the block alone overruns, losing two bits: " + wide, wide.toString().contains("block=65(-2)"));
+        assertTrue("so the date is wholly past the boundary: " + wide, wide.toString().contains("filed=11(dropped)"));
+        // With the block already filling the budget, adding the date must change nothing at all.
+        final CompositeHuskyCoder<Permit> blockOnly = CompositeHuskyCoder.<Permit>builder()
+                .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 13, PermitCoder.BLOCK_ALPHABET))
+                .build();
+        for (final Permit p : Arrays.copyOf(PermitLoader.getPermits(), 5_000))
+            assertEquals("a dropped field must contribute nothing, not wrap into the field above",
+                    blockOnly.huskyEncode(p), wide.huskyEncode(p));
+    }
+
+    /**
+     * Truncation is a property of the coder, but exactness stays a property of the element: a
+     * dropped bit that happened to be zero lost nothing for that element, and reporting it inexact
+     * would make a husky sort run a cleanup pass it does not need.
+     */
+    @Test
+    public void aTruncatedFieldIsStillExactForAValueWhoseLostBitsWereZero() {
+        final HuskyFieldCoder<Long> low = HuskyFieldCoder.ofRange("low", 0, 255);
+        final CompositeHuskyCoder<Long> c = CompositeHuskyCoder.<Long>builder()
+                .add(Function.identity(), HuskyFieldCoder.ofRange("high", 0, (1L << 58) - 1))
+                .add(v -> v, low)
+                .build();
+        assertTrue(c.truncating());
+        assertEquals("58 + 8 declared, 5 of the low field lost", 66, c.declaredBits());
+        assertTrue("a value whose low 3 bits are zero loses nothing", c.exact(8L));
+        assertFalse("one whose low bits are set does", c.exact(9L));
     }
 
     @Test
