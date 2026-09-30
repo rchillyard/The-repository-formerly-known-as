@@ -2868,3 +2868,24 @@ is a defect; all are hardening or generalisation.
     A test covering all four `(nocopy, insurance)` combinations over nearly-sorted arrays of 64
     to 1,024 elements is now in `MergeSortTest`, asserting the whole array. It catches the
     injected fault that the previous 28 tests all passed.
+
+    ### And the three existing tests now turn the cutoff off (INFO6205 `5120532a`)
+
+    Robin's point, 2026-09-30: `testSort12`, `13` and `14` should disable the cutoff rather than
+    be left sorting 8 elements under a cutoff of 20. They now pass `cutoff = 1`, and with that
+    `testSort14` --- the `nocopy=true, insurance=true` case --- **fails against the injected
+    fault**, where before it passed. `testSort12` and `13` correctly still pass, neither reaching
+    that branch.
+
+    **The value is 1, not 0.** `BaseHelper.cutoff()` is
+    `(cutoff >= 1) ? cutoff : CUTOFF_DEFAULT`, so 0 and every negative value silently give 20
+    rather than disabling anything --- the change would have looked applied and done nothing.
+    Measured: unset, `0` and `-1` all yield 20; `1` yields 1. `config.ini` already says
+    "use the value 1 (not 0)", the rest of the suite passes `"1"`, and nothing in the repository
+    passes `"0"`, so these three were the only instance. This also answers the standing
+    `XXX check that a cutoff value of 1 effectively stops the cutoff mechanism` at
+    `MergeSort.java:148`: it does, because the test becomes `to <= from + 1`, true only for a
+    range of 0 or 1 elements, so insertion sort does nothing and every merge is still reached.
+
+    NOTE `testSort14` is one fixed 8-element array from a fixed seed, so it catches *this* fault
+    rather than that class of fault. The nearly-sorted test above covers the class.
