@@ -2973,3 +2973,57 @@ is a defect; all are hardening or generalisation.
     conversion that a reader previously had to rediscover explicit. `ShouldRecurseTest` in each
     project covers the convention, the disabling value, the termination floor at every
     non-positive cutoff, and the `Config` resolution.
+
+    ### Did a cutoff of 0 change behaviour? Checked site by site
+
+    Robin's question, 2026-09-30, and a fair one: `shouldRecurse` applies `Math.max(cutoff, 1)`
+    where the old conditions did not, so a 0 reaching a condition would now behave differently.
+
+    Answered by writing out each site's *old* and *new* "stop here" predicate, together with how
+    its cutoff is resolved before the condition sees it and the smallest range size that can
+    reach the condition at all, then comparing them over every cutoff from -2 to 59 and every
+    reachable n. Sound because at each of the eight unchanged sites the diff is exactly one
+    import and one expression --- nothing else moved --- so equal predicates mean equal
+    behaviour.
+
+    ```
+    HuskySort  simple/QuickSort              IDENTICAL for every cutoff and every reachable n
+    HuskySort  simple/MergeSortBasic         IDENTICAL
+    HuskySort  huskySort/MergeHuskySort      IDENTICAL
+    HuskySort  simple/MultikeyQuicksort      IDENTICAL
+    HuskySort  radix/MSDStringSort           differs -- the intended <= fix
+    HuskySort  radix/UnicodeMSDStringSort    differs -- the intended <= fix
+    INFO6205   linearithmic/MergeSort        IDENTICAL
+    INFO6205   linearithmic/MergeSortBasic   IDENTICAL
+    INFO6205   linearithmic/IntroSort        IDENTICAL
+    INFO6205   counting/MSDStringSort        IDENTICAL
+    INFO6205   linearithmic/QuickSort        differs -- the intended "- 1" drop
+    INFO6205   par/ParSort                   differs -- the termination fix
+    ```
+
+    **No site changed behaviour because of a zero.** At the four sites that do differ, a cutoff
+    of 0 or less is either impossible or irrelevant:
+
+    - `simple/QuickSort`, `simple/MergeSortBasic`, `UnicodeMSDStringSort`, INFO6205's `MergeSort`,
+      `MergeSortBasic` and `QuickSort` all read the cutoff through a helper that already replaced
+      0 with a positive default (7 here, 20 there) *before* the condition saw it. The `Math.max`
+      is a no-op on those paths. Their differences sit at `n` equal to that default --- the
+      off-by-one and the `- 1`, not the zero.
+    - `MergeHuskySort` (8), `MultikeyQuicksort` (16) and `IntroSort` (16) have fixed positive
+      cutoffs.
+    - The two sites where a literal 0 really could arrive, HuskySort's `MSDStringSort` and
+      INFO6205's `ParSort`, did not terminate at 0 before. There is no old behaviour to preserve.
+
+    **The one that looked dangerous and is not:** INFO6205's `msdcutoff` is *unguarded* ---
+    `MSDCutoff()` returns it raw, and an explicit `msdcutoff = 0` does reach the condition as 0
+    (an *empty* entry yields 256, so the shipped configuration is unaffected). But `doSort`
+    returns at `n <= 1` before the test, so the `max(0, 1)` floor is unreachable and the site is
+    identical at every cutoff. Worth knowing, because it is unguarded by luck rather than by
+    design: if that early return were ever removed, `msdcutoff = 0` would matter again.
+
+    ### One real consequence, in `ParSort`
+
+    Routing it through the common method changed `n >= cutoff` to `n > cutoff`, so a range of
+    exactly `cutoff` elements now sorts sequentially rather than in parallel. That moves where
+    parallelism begins by one element and changes no answer. It is the price of "cutoff" meaning
+    the same thing there as everywhere else, and it is recorded in the source.
