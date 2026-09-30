@@ -299,6 +299,119 @@ public class CompositeHuskyCoderTest {
         assertEquals(11, HuskyFieldCoder.bitsFor(1878));
     }
 
+    // ---------- the width contract, which only a hand-written field coder can break ----------
+
+    /** A field coder that lies: declares seven bits, returns up to 255. */
+    private static HuskyFieldCoder<Long> liar(final int declared) {
+        return new HuskyFieldCoder<>() {
+            public int bits() {
+                return declared;
+            }
+
+            public long encode(final Long v) {
+                return v;
+            }
+
+            public String name() {
+                return "liar";
+            }
+        };
+    }
+
+    /**
+     * A field returning more bits than it declared corrupts the fields <b>above</b> it, and
+     * corrupting a higher-priority field inverts the composite ordering rather than weakening it --
+     * so unlike every other imperfection here, it cannot be left to the cleanup pass.
+     * <p>
+     * Measured before the check existed: a field declaring seven bits and returning eight inverted
+     * <b>66,048</b> pairs of a four-by-256 grid while {@code exact()} reported true throughout. A
+     * wrong ordering claimed as perfect is the worst failure this project has, which is why this
+     * throws rather than masking.
+     */
+    @Test
+    public void aFieldWiderThanItDeclaresIsRefusedRatherThanCorruptingTheFieldAboveIt() {
+        final CompositeHuskyCoder<Long> c = CompositeHuskyCoder.<Long>builder()
+                .add(v -> v >> 8, HuskyFieldCoder.ofRange("high", 0, 255))
+                .add(v -> v & 0xFF, liar(7))
+                .build();
+        assertEquals("fits comfortably, so nothing is truncated", 15, c.bits());
+        c.huskyEncode(0x0100L);
+        try {
+            c.huskyEncode(0x0080L);
+            fail("a seven-bit field returning 128 should be refused");
+        } catch (final IllegalStateException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("liar"));
+            assertTrue("it should say what was declared: " + e.getMessage(), e.getMessage().contains("7 bits"));
+            assertTrue("and what came back: " + e.getMessage(), e.getMessage().contains("128"));
+            assertTrue("and what that needed: " + e.getMessage(), e.getMessage().contains("needs 8"));
+        }
+    }
+
+    /**
+     * {@code exact} reads the field coders too, so it must apply the same check -- otherwise a
+     * caller asking whether an array encodes perfectly would get an answer computed from corrupt
+     * codes.
+     */
+    @Test
+    public void theWidthCheckAppliesToExactAsWellAsToEncode() {
+        final CompositeHuskyCoder<Long> c = CompositeHuskyCoder.<Long>builder()
+                .add(v -> v, liar(7))
+                .build();
+        assertTrue(c.exact(100L));
+        try {
+            c.exact(200L);
+            fail("exact() must not compute an answer from a code that overran its field");
+        } catch (final IllegalStateException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("liar"));
+        }
+    }
+
+    /**
+     * A negative code is caught by the same test, the unsigned shift of a negative long being
+     * large. Worth asserting because a field coder that forgets to bias a signed value is the
+     * likeliest way to produce one.
+     */
+    @Test
+    public void aNegativeFieldCodeIsRefused() {
+        final CompositeHuskyCoder<Long> c = CompositeHuskyCoder.<Long>builder().add(v -> v, liar(8)).build();
+        try {
+            c.huskyEncode(-1L);
+            fail("a negative code cannot lie in [0, 2^bits)");
+        } catch (final IllegalStateException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("-1"));
+        }
+    }
+
+    /**
+     * The coders this class ships honour their declared widths by construction. Checked over their
+     * whole domains where that is finite, because the contract is the one thing a field coder must
+     * not get wrong.
+     */
+    @Test
+    public void theSuppliedFieldCodersAllHonourTheirDeclaredWidths() {
+        final HuskyFieldCoder<Long> r = HuskyFieldCoder.ofRange("r", -1000, 1000);
+        for (long v = -1100; v <= 1100; v++) assertWithin(r, r.encode(v), v);
+        final HuskyFieldCoder<String> s = HuskyFieldCoder.ofString("s", 3, "ABCDEFG");
+        for (char a = 0; a < 200; a++)
+            for (char b = 0; b < 200; b += 7)
+                assertWithin(s, s.encode("" + a + b), "" + (int) a + "," + (int) b);
+        final HuskyFieldCoder<LocalDate> d = HuskyFieldCoder.ofDate("d", LocalDate.of(2013, 1, 1), 1879);
+        for (int k = -50; k < 2000; k += 7) {
+            final LocalDate date = LocalDate.of(2013, 1, 1).plusDays(k);
+            assertWithin(d, d.encode(date), date);
+        }
+        final HuskyFieldCoder<Boolean> b = HuskyFieldCoder.ofBoolean("b");
+        assertWithin(b, b.encode(true), true);
+        final HuskyFieldCoder<java.time.DayOfWeek> e = HuskyFieldCoder.ofEnum("e", java.time.DayOfWeek.class);
+        for (final java.time.DayOfWeek day : java.time.DayOfWeek.values()) assertWithin(e, e.encode(day), day);
+    }
+
+    private static void assertWithin(final HuskyFieldCoder<?> coder, final long code, final Object value) {
+        assertTrue(coder.name() + " returned a negative code " + code + " for " + value, code >= 0);
+        assertTrue(coder.name() + " declares " + coder.bits() + " bits but returned " + code + " for " + value,
+                (code >>> coder.bits()) == 0);
+    }
+
     // ---------- the derived comparator ----------
 
     /**

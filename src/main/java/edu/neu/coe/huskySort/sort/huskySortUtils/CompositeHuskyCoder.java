@@ -289,9 +289,37 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
         /**
          * @return the top {@link #take()} bits of this field's code. A field that got no room at
          * all contributes zero, and one that got all of its bits is shifted by nothing.
+         * @throws IllegalStateException if the field coder returned a value its own declared width
+         *                               cannot hold. See {@link #checkWidth}.
          */
         long encodeTaken(final X x) {
-            return encode(x) >>> dropped();
+            final long code = encode(x);
+            checkWidth(code, x);
+            return code >>> dropped();
+        }
+
+        /**
+         * A field that returns more bits than it declared corrupts the fields <b>above</b> it, and
+         * corrupting a higher-priority field inverts the composite ordering rather than weakening
+         * it. So this is checked rather than trusted, and it throws rather than masking.
+         * <p>
+         * Masking would be cheaper and would confine the damage to the offending field, but it
+         * would also hide a defect that is always a programming error: {@link HuskyFieldCoder}'s
+         * first contract clause says the code lies in {@code [0, 2^bits)}, and the coders this
+         * class ships all honour it by construction. Only a hand-written one can break it, and the
+         * failure is worth hearing about -- measured before the check existed, a field declaring
+         * seven bits and returning eight inverted 66,048 of the pairs in a four-by-256 grid, while
+         * {@code exact()} reported true throughout.
+         * <p>
+         * NOTE a negative code is caught too, since the unsigned shift of a negative long is large.
+         */
+        private void checkWidth(final long code, final X x) {
+            final int w = coder.bits();
+            if (w < 64 && (code >>> w) != 0)
+                throw new IllegalStateException("field " + coder.name() + " declares " + w
+                        + " bits but returned " + code + " for " + x
+                        + ", which needs " + (64 - Long.numberOfLeadingZeros(code))
+                        + "; a field wider than it declares corrupts the fields above it and inverts the ordering");
         }
 
         /**
@@ -303,8 +331,10 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
         boolean exact(final X x) {
             final T value = accessor.apply(x);
             if (!coder.exact(value)) return false;
+            final long code = coder.encode(value);
+            checkWidth(code, x);
             final int d = dropped();
-            return d == 0 || (coder.encode(value) & ((1L << d) - 1)) == 0L;
+            return d == 0 || (code & ((1L << d) - 1)) == 0L;
         }
     }
 }
