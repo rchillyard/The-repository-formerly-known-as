@@ -2640,10 +2640,11 @@ is a defect; all are hardening or generalisation.
     benchmark figure, while Yunlu is mid-run on request 12. It is the case with real figures
     attached, so it wants its own before-and-after; do it when request 12 has landed.
 
-50. **`MergeHuskySort` leaves inversions whenever the coding is perfect (found 2026-09-30).** Not
-    an item-49 regression: it predates that change and has nothing to do with the sign bit.
+50. ~~**`MergeHuskySort` leaves inversions whenever the coding is perfect**~~ **FOUND and FIXED
+    2026-09-30.** Not an item-49 regression: it predated that change and had nothing to do with
+    the sign bit. Three separate defects, two of them Robin's fix, one found by testing it.
 
-    ### The defect
+    ### Why nothing caught it
 
     `MergeHuskySort.sort` ends:
 
@@ -2682,9 +2683,53 @@ is a defect; all are hardening or generalisation.
     wrong answer as item 48, and found the same way --- by asking what happens when the coding
     claims to be perfect.
 
-    ### What to do
+    ### The three defects
 
-    Fix the merge (the overlapping halves look like the whole of it), and add a test that sorts
-    with a **perfect** coder --- `HuskyCoderFactory.longCoder` over random `Long`s is the cheapest
-    --- since no existing test does. `MergeHuskySortTest` should have caught this and did not,
-    which is worth a look in its own right: it presumably tests only with string coders.
+    1. **Overlapping halves.** `mid = from + (to - from - 1) / 2` and then recursion on
+       `[lo, mid + 1)` and `[mid, to)`: element `mid` belonged to both.
+    2. **A merge one element short.** `merge` was called with `hi = to - 1` and looped `k < hi`, so
+       the last slot of every merged range was never written.
+    3. **The insurance check skipped the copy, not just the comparisons.** This is the one that
+       survived the first two fixes, and it is the interesting one. In an ordinary merge sort that
+       merges back into the array it read from, two partitions already in order need *no work at
+       all* and the check can simply `return`. This class implements "avoidance of copying between
+       the arrays": the two arrays swap roles at each level of the recursion, so `merge` reads
+       `xsOrdered` and writes `xsDst`, and **from the first merge onwards those hold different
+       permutations**. Returning early therefore left the caller reading a stale one. The fix keeps
+       the optimisation --- no comparisons --- but moves the elements with `System.arraycopy`.
+
+    Robin fixed 1 and 2 on 2026-09-30; 3 was found by testing that fix, which still corrupted 280
+    of 8,020 random arrays from n=36 upwards. Isolated by replicating the algorithm with the check
+    switchable: check-returns 280 failures, no-check 0, check-bulk-copies 0.
+
+    ### The check was worth keeping
+
+    Sorting 1,000,000 `Long` with `longCoder`, best of 5, after the fix:
+
+    ```
+    already ordered     11.8 ms
+    nearly ordered      67.5 ms
+    reverse ordered    104.1 ms
+    random             202.1 ms
+    ```
+
+    17x on ordered input, so `System.arraycopy` rather than deleting the branch.
+
+    ### Tests added
+
+    `MergeHuskySortTest` gained three tests using `longCoder`, the cheapest perfect coder there is:
+    every size from 0 to 320 at three value spreads, ordered/reversed/constant input at six sizes,
+    and random `long`s including both extremes. All three assert the **whole array** with
+    `assertArrayEquals` rather than `helper.sorted(xs)`, which every pre-existing test uses --- and
+    which cannot see this failure at all, since the corrupted output is perfectly ascending and
+    merely not a permutation of its input. Verified against the pre-fix code: two of the three fail
+    there, and the third (ordered input) passes because a fully ordered array is correct by
+    accident when nothing is ever copied.
+
+    ### The general lesson, which is item 48's lesson again
+
+    Both bugs were invisible because the cleanup pass masked them, and both became visible only by
+    asking what happens when the coding claims to be **perfect**. Item 49 makes perfect codings
+    commoner --- a composite of two `int`s, four `char`s or eight `byte`s is now exact --- so the
+    remaining sorts deserve the same question. `SortSweep` now runs a word-filling composite, codes
+    spanning the whole signed range, through all seven husky sorts; all seven pass.
