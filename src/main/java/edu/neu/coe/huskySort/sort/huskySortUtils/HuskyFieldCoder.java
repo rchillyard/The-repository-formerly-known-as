@@ -90,7 +90,16 @@ public interface HuskyFieldCoder<T> {
      */
     static <N extends Number> HuskyFieldCoder<N> ofRange(final String name, final long min, final long max) {
         if (max < min) throw new IllegalArgumentException(name + ": max " + max + " is below min " + min);
-        final int width = bitsFor(max - min);
+        // A span wider than Long.MAX_VALUE cannot be held in the long arithmetic below: max - min
+        // wraps, and bitsFor would then be asked for the width of a negative number. Rejecting is
+        // right rather than pedantic, because the case that reaches here is a real one -- a full
+        // 64-bit field -- and it has its own coder.
+        final long span = max - min;
+        if (span < 0)
+            throw new IllegalArgumentException(name + ": the range [" + min + ", " + max + "] spans more than"
+                    + " Long.MAX_VALUE, which ofRange cannot express. Use ofLong for a full-width long field,"
+                    + " or narrow the range.");
+        final int width = bitsFor(span);
         return new HuskyFieldCoder<>() {
             public int bits() {
                 return width;
@@ -104,6 +113,40 @@ public interface HuskyFieldCoder<T> {
             public boolean exact(final N value) {
                 final long v = value.longValue();
                 return v >= min && v <= max;
+            }
+
+            public String name() {
+                return name;
+            }
+        };
+    }
+
+    /**
+     * A field holding any {@code long} at all: the full 64-bit signed range, exactly.
+     * <p>
+     * Distinct from {@code ofRange(name, Long.MIN_VALUE, Long.MAX_VALUE)}, which cannot work --
+     * that span is {@code 2^64 - 1} and overflows the {@code long} arithmetic
+     * {@link #ofRange} does. More to the point, a full-width field needs no range at all: it needs
+     * the signed-to-unsigned bias, which is what this applies.
+     * <p>
+     * It occupies the whole budget, so a composite holding one has room for nothing else -- which
+     * is the honest answer, a {@code long} carrying 64 bits of ordering.
+     *
+     * @param name the field's name.
+     * @return a coder for it.
+     */
+    static HuskyFieldCoder<Long> ofLong(final String name) {
+        return new HuskyFieldCoder<>() {
+            public int bits() {
+                return 64;
+            }
+
+            public long encode(final Long value) {
+                // Signed order into unsigned order, so that the concatenation's unsigned
+                // comparison gives the order intended. The composite then biases the whole fold
+                // back into signed space; for a lone long field the two cancel, and the code is
+                // the value, which is what HuskyCoderFactory.longCoder returns.
+                return value ^ Long.MIN_VALUE;
             }
 
             public String name() {

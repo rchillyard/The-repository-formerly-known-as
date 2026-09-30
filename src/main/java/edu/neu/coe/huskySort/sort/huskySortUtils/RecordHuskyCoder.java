@@ -132,6 +132,23 @@ public final class RecordHuskyCoder {
             requireUnset(spec, path, t);
             return (HuskyFieldCoder) HuskyFieldCoder.ofDate(path, epoch, days);
         }
+        if (t == long.class || t == Long.class) {
+            final boolean noMin = spec == null || spec.min() == Long.MIN_VALUE;
+            final boolean noMax = spec == null || spec.max() == Long.MAX_VALUE;
+            // Both ends or neither. Neither takes the full 64-bit width, which is the whole point
+            // of ofLong. One end alone cannot be completed: defaulting the other to the type's own
+            // extreme gives a span wider than Long.MAX_VALUE, which ofRange rightly refuses, and
+            // guessing anything narrower would be a width declaration the caller never made --
+            // exactly the silent guess this annotation exists to replace.
+            if (noMin && noMax) {
+                requireUnset(spec, path, t);
+                return (HuskyFieldCoder) HuskyFieldCoder.ofLong(path);
+            }
+            if (noMin || noMax)
+                throw new IllegalArgumentException(path + " is a long, so @HuskyField must declare both min and"
+                        + " max or neither: one end alone leaves a range wider than Long.MAX_VALUE. Omit the"
+                        + " annotation for the full 64-bit width.");
+        }
         final long[] bounds = integralBounds(t, path);
         final long min = spec == null || spec.min() == Long.MIN_VALUE ? bounds[0] : spec.min();
         final long max = spec == null || spec.max() == Long.MAX_VALUE ? bounds[1] : spec.max();
@@ -170,9 +187,9 @@ public final class RecordHuskyCoder {
         if (t == char.class || t == Character.class) return new long[]{Character.MIN_VALUE, Character.MAX_VALUE};
         if (t == int.class || t == Integer.class) return new long[]{Integer.MIN_VALUE, Integer.MAX_VALUE};
         if (t == long.class || t == Long.class)
-            // The full 64-bit span will not fit a 63-bit budget, so an unannotated long is given
-            // the widest range that does. Say @HuskyField(min=..., max=...) to do better.
-            return new long[]{-(1L << 62), (1L << 62) - 1};
+            // Reached only when a range was declared; an undeclared long takes the full 64-bit
+            // width through HuskyFieldCoder.ofLong, which the caller handles before arriving here.
+            return new long[]{Long.MIN_VALUE, Long.MAX_VALUE};
         throw new IllegalArgumentException("component " + path + " has type " + t.getName()
                 + ", which RecordHuskyCoder cannot encode. Supported: boolean, enum, byte, short, char,"
                 + " int, long, String, LocalDate, and records of those. Encode it by hand with"

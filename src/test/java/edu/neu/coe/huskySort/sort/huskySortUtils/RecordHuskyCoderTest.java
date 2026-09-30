@@ -50,8 +50,10 @@ public class RecordHuskyCoderTest {
         assertFalse(derived.truncating());
         for (final Permit p : permits) {
             final PermitRecord r = new PermitRecord(p.getBlock(), p.getLot(), p.getFiledDate());
+            // XOR undoes CompositeHuskyCoder.SIGN_BIAS, which PermitCoder does not apply because
+            // it knows it never fills the word. See CompositeHuskyCoderTest for the argument.
             assertEquals("codes must agree for " + p.getBlock() + "/" + p.getLot() + "/" + p.getFiledDate(),
-                    PermitCoder.INSTANCE.huskyEncode(p), derived.huskyEncode(r));
+                    PermitCoder.INSTANCE.huskyEncode(p), derived.huskyEncode(r) ^ CompositeHuskyCoder.SIGN_BIAS);
         }
     }
 
@@ -104,27 +106,93 @@ public class RecordHuskyCoderTest {
     }
 
     /**
-     * Two unannotated {@code int}s declare 64 bits against a budget of 63, so the low one loses a
-     * bit. The record still sorts correctly -- the loss is at the bottom -- and simply reports
-     * itself imperfect. That is the bargain the whole mechanism offers, applied to the budget.
+     * <b>TODO.md item 49.</b> Two unannotated {@code int}s are a machine word exactly, and since
+     * 2026-09-30 the budget is a machine word, so the commonest composite there is needs no
+     * annotation at all to be exact. Under the old 63-bit budget this same record was truncated
+     * and reported imperfect.
      */
     @Test
-    public void anUnannotatedRecordStillSortsButIsNotPerfect() {
+    public void twoUnannotatedIntsAreExactBecauseTheBudgetIsAWholeWord() {
         final CompositeHuskyCoder<TwoInts> c = RecordHuskyCoder.of(TwoInts.class);
         assertEquals("two ints declare 64", 64, c.declaredBits());
-        assertEquals(63, c.bits());
-        assertTrue(c.truncating());
+        assertEquals(64, c.bits());
+        assertFalse(c.truncating());
         final TwoInts[] xs = {
                 new TwoInts(-5, 7), new TwoInts(-5, 6), new TwoInts(0, 0),
                 new TwoInts(3, Integer.MIN_VALUE), new TwoInts(3, Integer.MAX_VALUE), new TwoInts(Integer.MAX_VALUE, 0)};
         final Comparator<TwoInts> natural = Comparator.comparingInt(TwoInts::high).thenComparingInt(TwoInts::low);
         for (final TwoInts x : xs)
-            for (final TwoInts y : xs) {
+            for (final TwoInts y : xs)
+                assertEquals("the code order must be the declaration order",
+                        Integer.signum(natural.compare(x, y)),
+                        Integer.signum(Long.compare(c.huskyEncode(x), c.huskyEncode(y))));
+        assertTrue("and nothing was lost, so it is perfect", c.huskyEncode(xs).perfect);
+    }
+
+    public record ThreeInts(int high, int mid, int low) {
+    }
+
+    /**
+     * Three, though, declare 96 bits, so the lowest loses everything and the middle one all but
+     * its top bits. The record still sorts correctly -- the loss is at the bottom -- and simply
+     * reports itself imperfect. That is the bargain the whole mechanism offers, applied to the
+     * budget.
+     */
+    @Test
+    public void anUnannotatedRecordStillSortsButIsNotPerfect() {
+        final CompositeHuskyCoder<ThreeInts> c = RecordHuskyCoder.of(ThreeInts.class);
+        assertEquals("three ints declare 96", 96, c.declaredBits());
+        assertEquals(64, c.bits());
+        assertTrue(c.truncating());
+        final ThreeInts[] xs = {
+                new ThreeInts(-5, 7, 0), new ThreeInts(-5, 6, 1), new ThreeInts(0, 0, 0),
+                new ThreeInts(3, Integer.MIN_VALUE, 9), new ThreeInts(3, Integer.MAX_VALUE, -9),
+                new ThreeInts(Integer.MAX_VALUE, 0, 0)};
+        final Comparator<ThreeInts> natural = Comparator.comparingInt(ThreeInts::high)
+                .thenComparingInt(ThreeInts::mid).thenComparingInt(ThreeInts::low);
+        for (final ThreeInts x : xs)
+            for (final ThreeInts y : xs) {
                 final int byCode = Integer.signum(Long.compare(c.huskyEncode(x), c.huskyEncode(y)));
                 if (byCode != 0)
                     assertEquals("truncation may tie, but must never invert", Integer.signum(natural.compare(x, y)), byCode);
             }
         assertFalse("and it must say it is not perfect", c.huskyEncode(xs).perfect);
+    }
+
+    public record OneLong(long v) {
+    }
+
+    /**
+     * An unannotated {@code long} takes the whole budget through {@link HuskyFieldCoder#ofLong},
+     * rather than being narrowed to whatever range would fit. Before item 49 it could not be
+     * exact at all, which was the oddest consequence of reserving the sign bit: the type husky
+     * coding is defined in terms of was the one type the generic coder could not encode.
+     */
+    @Test
+    public void anUnannotatedLongTakesTheWholeWordAndIsExact() {
+        final CompositeHuskyCoder<OneLong> c = RecordHuskyCoder.of(OneLong.class);
+        assertEquals(64, c.bits());
+        assertFalse(c.truncating());
+        final OneLong[] xs = {new OneLong(Long.MIN_VALUE), new OneLong(-1), new OneLong(0),
+                new OneLong(1), new OneLong(Long.MAX_VALUE)};
+        for (final OneLong x : xs)
+            assertEquals("the field's bias and the composite's cancel", x.v(), c.huskyEncode(x));
+        assertTrue(c.huskyEncode(xs).perfect);
+    }
+
+    public record NarrowLong(@HuskyField(min = 0, max = 1_000_000) long n) {
+    }
+
+    /**
+     * Declaring a range still narrows a long, which is the whole purpose of the annotation: a
+     * million needs twenty bits, leaving forty-four for the fields beside it.
+     */
+    @Test
+    public void aDeclaredRangeStillNarrowsALong() {
+        final CompositeHuskyCoder<NarrowLong> c = RecordHuskyCoder.of(NarrowLong.class);
+        assertEquals("a million needs twenty bits", 20, c.bits());
+        assertTrue(c.huskyEncode(new NarrowLong(999_999)) > c.huskyEncode(new NarrowLong(1)));
+        assertFalse("and the range is enforced", c.huskyEncode(new NarrowLong[]{new NarrowLong(-1)}).perfect);
     }
 
     /**
@@ -142,6 +210,25 @@ public class RecordHuskyCoderTest {
     }
 
     public record Narrowed(@HuskyField(min = 0, max = 99_999) int zip, @HuskyField(min = 1850, max = 2020) int year) {
+    }
+
+    public record HalfDeclaredLong(@HuskyField(max = 100) long n) {
+    }
+
+    /**
+     * One end of a long's range is not enough: completing it with the type's own extreme gives a
+     * span wider than {@code Long.MAX_VALUE}, and guessing anything narrower would be a width
+     * declaration the caller never made. Before item 49 this quietly took {@code [-2^62, 2^62-1]}
+     * as the default range, which is precisely the silent guess this annotation exists to replace.
+     */
+    @Test
+    public void refusesALongWithOnlyOneEndOfItsRangeDeclared() {
+        try {
+            RecordHuskyCoder.of(HalfDeclaredLong.class);
+            fail("one end alone leaves a range wider than Long.MAX_VALUE");
+        } catch (final IllegalArgumentException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("both min and max or neither"));
+        }
     }
 
     // ---------- the types the declaration fixes on its own ----------

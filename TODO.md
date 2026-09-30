@@ -2525,14 +2525,15 @@ is a defect; all are hardening or generalisation.
       it is rather than for what it is called. Verified that the guard now fires for both `pinyin`
       and `pinyinRank` and still lets the natural-order cells through.
 
-49. **Raise the composite budget from 63 bits to 64 (raised 2026-09-29, deferred).** Robin's
-    observation while reviewing item 31: "it does seem odd that the one type that we cannot
+49. ~~**Raise the composite budget from 63 bits to 64**~~ **DONE 2026-09-30** for
+    `CompositeHuskyCoder`; the `unicodeCoder` half is still open, see "What was not done" below.
+    Robin's observation while reviewing item 31: "it does seem odd that the one type that we cannot
     perfectly encode is a long", and then the sharper form of it --- the change would affect far
     more than longs.
 
-    ### Why 63 today
+    ### Why 63 was chosen originally
 
-    `CompositeHuskyCoder.BUDGET` is 63 so that every code is non-negative and its numeric order is
+    `CompositeHuskyCoder.BUDGET` was 63 so that every code is non-negative and its numeric order is
     its intended order. Bit 63 is the sign bit, and a code that sets it is a *negative* long, which
     sorts below every code that does not --- inverting the most significant field, the worst
     failure available.
@@ -2572,17 +2573,118 @@ is a defect; all are hardening or generalisation.
     fourth character's low bit and their codes collide. With the exclusive-or it could be exact at
     four characters, which is the whole of the Chinese corpus's typical word length.
 
-    ### Why it is deferred rather than done
+    ### What was done
 
-    - It changes **every emitted code value**. The bit-for-bit equivalence test against
-      `PermitCoder` has been the most valuable test in this class --- it caught two errors of mine
-      in an hour --- and it would need an exclusive-or on one side, losing some of its directness.
-    - Codes stop being non-negative, diverging from the convention `PermitCoder`, `Tuple` and
-      `unicodeCoder` all follow, and from what a reader expects in a debugger.
-    - Changing `unicodeCoder` would move every chinese benchmark figure, and Yunlu is mid-run on
-      request 12.
+    `BUDGET` is 64, `CompositeHuskyCoder.SIGN_BIAS` is applied at the end of every fold, and
+    `HuskyFieldCoder.ofLong` gives a `long` component its own full-width coder --- `ofRange` cannot
+    serve, its span being `2^64 - 1`, which overflows the `long` arithmetic it does. An unannotated
+    `long` component now takes that coder instead of being narrowed to `[-2^62, 2^62-1]`; a
+    declared range still narrows it, which is what the annotation is for.
 
-    None of those is an argument against the change, only against making it today. The work itself
-    is small: one constant, one exclusive-or at the end of the fold, and the equivalence test
-    adjusted. Do it when a field set that fills the word exactly actually matters --- or when
-    `unicodeCoder` is next revisited, since that is the case with real figures attached.
+    The three reservations recorded below as reasons to defer all held, and none turned out to
+    matter:
+
+    - The bit-for-bit `PermitCoder` equivalence test survives with `^ CompositeHuskyCoder.SIGN_BIAS`
+      on one side, in both `CompositeHuskyCoderTest` and `RecordHuskyCoderTest`. It is a little less
+      direct and still the most valuable test in the class.
+    - Codes are indeed no longer non-negative. `SIGN_BIAS`'s javadoc says so explicitly, since it is
+      the thing that will surprise the next reader in a debugger.
+    - `unicodeCoder` was left alone --- see below.
+
+    ### What it bought, measured 2026-09-30
+
+    The payoff is not the extra bit as such but the **cleanup pass it lets a word-filling composite
+    skip**: `AbstractHuskySort.postSort` returns immediately when the coding is perfect. Sorting
+    1,000,000 random `Pair(int, int)`, best of 6, against a coder reproducing exactly what the
+    63-bit budget produced (same fold, shifted right one, unbiased, necessarily imperfect):
+
+    ```
+                        64-bit (no cleanup)   63-bit (cleanup)
+    RadixHuskySort              62.0 ms            75.6 ms      1.22x
+    QuickHuskySort             155.4 ms           228.9 ms      1.47x
+    ```
+
+    ### What it cost, measured
+
+    Nothing detectable. Two questions, both answered by A/B in a single process: the exclusive-or
+    itself, and the fact that a sub-word composite's codes now sit just above `Long.MIN_VALUE`
+    rather than just above zero, which changes the digits `RadixHuskySort`'s passes see.
+
+    ```
+                                        biased (now)   unbiased (before)
+    198,900 permits, 60 bits, radix         19.15 ms        18.90 / 19.88 ms
+    198,900 permits, 60 bits, quick         39.78 ms        40.73 / 41.80 ms
+    1,000,000 Pair, 48 bits, radix          92.55 ms        87.15 / 102.65 ms
+    1,000,000 Pair, 48 bits, quick         193.55 ms       191.53 / 176.65 ms
+    ```
+
+    Every difference is within +-6%, and --- the point --- **the sign of the difference flips when
+    the two are measured in the other order**, which is what a measurement artefact looks like and
+    what a real effect does not. The permit end-to-end figure against hand-written `PermitCoder` is
+    unchanged at 1.28x (18.63 ms against 14.58 ms), as is the encode-only penalty (1.19x for the
+    builder, 1.38x for the derived coder).
+
+    ### Nothing downstream assumed a non-negative code
+
+    Checked by running a word-filling composite --- codes spanning the whole signed range, with
+    `Long.MIN_VALUE` and `Long.MAX_VALUE` both present --- through every husky sort in the project.
+    `QuickHuskySort`, `IntroHuskySort`, `DutchHuskySort`, `HuskyBucketSort` (the `BigInteger` bucket
+    path, the one most likely to care), `RadixHuskySort` and `ParallelRadixHuskySort` all sort
+    correctly. `MergeHuskySort` does not --- but see item 50, which is not this change's doing.
+
+    ### What was not done
+
+    `HuskyCoderFactory.unicodeCoder` still packs 4 x 16 = 64 bits, still resolves the overrun with
+    `>>> 1`, and still declares `maxLength` as 3. Fixing it would make it exact at four characters,
+    which is the whole of the Chinese corpus's typical word length --- and would move every chinese
+    benchmark figure, while Yunlu is mid-run on request 12. It is the case with real figures
+    attached, so it wants its own before-and-after; do it when request 12 has landed.
+
+50. **`MergeHuskySort` leaves inversions whenever the coding is perfect (found 2026-09-30).** Not
+    an item-49 regression: it predates that change and has nothing to do with the sign bit.
+
+    ### The defect
+
+    `MergeHuskySort.sort` ends:
+
+    ```java
+    if (coding.perfect) return;
+    Arrays.sort(xs);
+    ```
+
+    Its merge sort is wrong, and that `Arrays.sort` has been hiding it. Every coder this project
+    sorts with in anger --- the string coders --- is imperfect, so the cleanup pass runs on every
+    sort and silently repairs the merge's output. Only a **perfect** coder takes the early return,
+    and then the defect reaches the caller as a wrong answer.
+
+    ### Measured
+
+    100,000 elements each, counting inversions left in the returned array:
+
+    ```
+    coder                                        perfect   inversions left
+    longCoder over random Long                     true           32
+    longCoder over non-negative Long               true           29
+    asciiCoder over 12-letter words                false           0
+    ```
+
+    The second row is the one that settles the cause: all codes non-negative, so nothing to do with
+    bit 63 or with `SIGN_BIAS`. It is the merge itself. Note the suspicious index arithmetic in
+    `mergeSort`: `final int mid = from + (to - from - 1) / 2;` and then recursive calls on
+    `[lo, mid + 1)` and `[mid, to)` --- the two halves **overlap at `mid`**, and `merge` is called
+    with `hi = to - 1`.
+
+    ### Why it matters more now than it did
+
+    Item 49 makes perfect codings **commoner**: a composite of two `int`s, four `char`s or eight
+    `byte`s is now exact where it used to truncate, so a caller pairing `MergeHuskySort` with a
+    composite coder now takes the early return that exposes the bug. The same class of latent
+    wrong answer as item 48, and found the same way --- by asking what happens when the coding
+    claims to be perfect.
+
+    ### What to do
+
+    Fix the merge (the overlapping halves look like the whole of it), and add a test that sorts
+    with a **perfect** coder --- `HuskyCoderFactory.longCoder` over random `Long`s is the cheapest
+    --- since no existing test does. `MergeHuskySortTest` should have caught this and did not,
+    which is worth a look in its own right: it presumably tests only with string coders.

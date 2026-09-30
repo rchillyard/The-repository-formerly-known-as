@@ -39,9 +39,9 @@ import java.util.function.Function;
  * </ul>
  *
  * <h2>The budget, and what happens when it is exceeded</h2>
- * Sixty-three bits, not sixty-four: the top bit is left clear so that every code is non-negative
- * and numeric order is the order intended.
- * <p>
+ * All sixty-four bits, the sign bit spent rather than reserved: the fold is unsigned and
+ * {@link #SIGN_BIAS} carries it into signed space. Reserving the sign bit, as this class did
+ * until 2026-09-30, cost exactly the one bit that every field set filling a machine word needs.
  * Fields that do not fit are <b>truncated, not rejected</b>. Robin's framing, 2026-09-29: running
  * out of bits is not a different kind of problem from a field that saturates or a string that is
  * too long -- all three are the encoding being imperfect, and this mechanism is built to tolerate
@@ -72,10 +72,35 @@ import java.util.function.Function;
 public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
 
     /**
-     * The usable width. Bit 63 stays clear so that codes are non-negative and their numeric order
-     * is their intended order.
+     * The usable width: all sixty-four bits.
+     * <p>
+     * The sign bit is spent rather than reserved, which is what {@link #SIGN_BIAS} is for. Reserving
+     * it cost exactly one bit, and one bit is what every field set that fills a machine word needs:
+     * two {@code int}s, four {@code char}s, eight {@code byte}s, and a {@code long}, all of which
+     * were a bit short and reported imperfect until 2026-09-30. See TODO.md item 49.
      */
-    public static final int BUDGET = 63;
+    public static final int BUDGET = 64;
+
+    /**
+     * Added to every code, by exclusive-or, to carry an unsigned fold into signed space.
+     * <p>
+     * The concatenation builds an <i>unsigned</i> quantity: the most significant field occupies the
+     * top bits, and comparing two folds as unsigned longs gives the order intended. But husky codes
+     * are compared as <b>signed</b> longs -- {@code QuickHuskySort} does {@code longs[i] < longs[lo]}
+     * directly -- and a fold that sets bit 63 is a negative long, which would sort below every fold
+     * that does not and so invert the most significant field.
+     * <p>
+     * Exclusive-or with {@code Long.MIN_VALUE} is a monotone bijection from unsigned order to signed
+     * order, so it repairs that exactly. It is not a novelty here: {@link RadixHuskySort} applies the
+     * same transformation internally to make unsigned digit extraction agree with signed order, and
+     * {@code HuskyCoderFactory.longCoder} has always returned negative codes for negative inputs.
+     * <p>
+     * NOTE the consequence for anyone reading codes: they are now negative whenever the fields do
+     * not fill all 64 bits, because the top bits are zero and the bias sets bit 63. That is
+     * cosmetic, and the ordering is what matters, but it does mean these codes no longer look like
+     * {@code PermitCoder}'s.
+     */
+    public static final long SIGN_BIAS = Long.MIN_VALUE;
 
     /**
      * @param <X> the composite type.
@@ -148,8 +173,11 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
      */
     public long huskyEncode(final X x) {
         long result = 0L;
+        // NOTE a single field taking all 64 bits shifts by 64, which Java reads as a shift by 0 --
+        // harmless only because result is still 0 at that point, which it must be, 64 being the
+        // whole budget and so available only to the first field.
         for (final Field<X, ?> f : fields) result = (result << f.take()) | f.encodeTaken(x);
-        return result;
+        return result ^ SIGN_BIAS;
     }
 
     /**
@@ -171,7 +199,7 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
             final X x = xs[i];
             long code = 0L;
             for (final Field<X, ?> f : fields) code = (code << f.take()) | f.place(x, stillPerfect);
-            result[i] = code;
+            result[i] = code ^ SIGN_BIAS;
         }
         return new Coding(result, stillPerfect[0]);
     }
@@ -221,7 +249,9 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
     public Comparator<X> comparator() {
         Comparator<X> result = null;
         for (final Field<X, ?> f : fields) {
-            final Comparator<X> byField = Comparator.comparingLong(f::encode);
+            // Unsigned: a full-width field's code spans all 64 bits, so signed comparison of it
+            // would invert, exactly as it would for the composite without SIGN_BIAS.
+            final Comparator<X> byField = (p, q) -> Long.compareUnsigned(f.encode(p), f.encode(q));
             result = result == null ? byField : result.thenComparing(byField);
         }
         return result;

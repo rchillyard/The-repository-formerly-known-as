@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
@@ -56,8 +57,12 @@ public class CompositeHuskyCoderTest {
         assertEquals("the same 60 bits PermitCoder documents", 60, derived.bits());
         for (final Permit p : permits) {
             final long expected = PermitCoder.INSTANCE.huskyEncode(p);
+            // Undo the sign bias to compare the folds themselves. PermitCoder spends 60 of 64 bits
+            // and so never sets bit 63, which is why it could omit the bias; this coder applies it
+            // unconditionally because it does not know in advance how many bits its fields fill.
+            // Removing it recovers bit-for-bit identity, which is the claim being made.
             assertEquals("codes must agree for " + p.getBlock() + "/" + p.getLot() + "/" + p.getFiledDate(),
-                    expected, derived.huskyEncode(p));
+                    expected, derived.huskyEncode(p) ^ CompositeHuskyCoder.SIGN_BIAS);
         }
     }
 
@@ -100,13 +105,20 @@ public class CompositeHuskyCoderTest {
     public void truncatesRatherThanRefusingWhenTheFieldsDoNotFit() {
         final CompositeHuskyCoder<Permit> c = CompositeHuskyCoder.<Permit>builder()
                 .named("TooWide")
-                .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 8, PermitCoder.BLOCK_ALPHABET))
-                .add(Permit::getLot, HuskyFieldCoder.ofString("lot", 6, PermitCoder.LOT_ALPHABET))
+                // Nine characters of block, not eight: the drop has to reach a character position
+                // the corpus actually uses. Every lot in the corpus is at most four characters, so
+                // a field of six positions carries twelve bits of trailing padding, and truncating
+                // those twelve loses nothing whatever -- the coder is truncating and the corpus is
+                // still exact, which is the per-element rule of
+                // aTruncatedFieldIsStillExactForAValueWhoseLostBitsWereZero, met by accident. This
+                // configuration drops five bits of the lot's fourth character instead.
+                .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 9, PermitCoder.BLOCK_ALPHABET))
+                .add(Permit::getLot, HuskyFieldCoder.ofString("lot", 4, PermitCoder.LOT_ALPHABET))
                 .build();
-        assertEquals("40 + 36 = 76 declared", 76, c.declaredBits());
-        assertEquals("clamped to the budget", 63, c.bits());
+        assertEquals("45 + 24 = 69 declared", 69, c.declaredBits());
+        assertEquals("clamped to the budget", 64, c.bits());
         assertTrue(c.truncating());
-        assertTrue("toString should say what was lost: " + c, c.toString().contains("lot=36(-13)"));
+        assertTrue("toString should say what was lost: " + c, c.toString().contains("lot=24(-5)"));
         assertFalse("a corpus cannot be perfectly encoded by a truncating coder",
                 c.huskyEncode(PermitLoader.getPermits()).perfect);
     }
@@ -121,9 +133,11 @@ public class CompositeHuskyCoderTest {
     public void truncationWeakensTheOrderingButNeverInvertsIt() {
         final Permit[] permits = Arrays.copyOf(PermitLoader.getPermits(), 40_000);
         final CompositeHuskyCoder<Permit> c = CompositeHuskyCoder.<Permit>builder()
-                .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 8, PermitCoder.BLOCK_ALPHABET))
-                .add(Permit::getLot, HuskyFieldCoder.ofString("lot", 6, PermitCoder.LOT_ALPHABET))
+                .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 9, PermitCoder.BLOCK_ALPHABET))
+                .add(Permit::getLot, HuskyFieldCoder.ofString("lot", 4, PermitCoder.LOT_ALPHABET))
                 .build();
+        assertTrue("the drop must reach a character the corpus uses, or this proves nothing",
+                c.truncating() && !c.huskyEncode(PermitLoader.getPermits()).perfect);
         int ties = 0;
         for (final Permit x : permits)
             for (int k = 0; k < 3; k++) {
@@ -146,8 +160,8 @@ public class CompositeHuskyCoderTest {
                 .add(Permit::getFiledDate, HuskyFieldCoder.ofDate("filed", PermitCoder.EPOCH, 1879))
                 .build();
         assertEquals("13 x 5 for the block plus 11 for the date", 76, wide.declaredBits());
-        assertEquals(63, wide.bits());
-        assertTrue("the block alone overruns, losing two bits: " + wide, wide.toString().contains("block=65(-2)"));
+        assertEquals(64, wide.bits());
+        assertTrue("the block alone overruns, losing one bit: " + wide, wide.toString().contains("block=65(-1)"));
         assertTrue("so the date is wholly past the boundary: " + wide, wide.toString().contains("filed=11(dropped)"));
         // With the block already filling the budget, adding the date must change nothing at all.
         final CompositeHuskyCoder<Permit> blockOnly = CompositeHuskyCoder.<Permit>builder()
@@ -171,20 +185,101 @@ public class CompositeHuskyCoderTest {
                 .add(v -> v, low)
                 .build();
         assertTrue(c.truncating());
-        assertEquals("58 + 8 declared, 5 of the low field lost", 66, c.declaredBits());
+        assertEquals("58 + 8 declared, 2 of the low field lost", 66, c.declaredBits());
         assertTrue("a value whose low 3 bits are zero loses nothing", c.exact(8L));
         assertFalse("one whose low bits are set does", c.exact(9L));
     }
 
+    public record Pair(int high, int low) { }
+
+    /**
+     * <b>TODO.md item 49.</b> Two full-range {@code int}s declare thirty-two bits each, which is a
+     * machine word exactly -- and until 2026-09-30 that was one bit too many, because the budget
+     * reserved the sign bit. The commonest composite of all was truncated and reported imperfect
+     * for want of the one bit the reservation cost.
+     * <p>
+     * Spending the sign bit and biasing the fold instead makes it exact. The bias is what earns the
+     * bit: without it, a pair whose high int is negative would fold to a code with bit 63 clear and
+     * sort <i>above</i> every pair whose high int is positive.
+     */
     @Test
-    public void acceptsExactlyTheBudget() {
-        final CompositeHuskyCoder<Permit> c = CompositeHuskyCoder.<Permit>builder()
-                .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 12, PermitCoder.BLOCK_ALPHABET))
-                .add(Permit::getFiledDate, HuskyFieldCoder.ofDate("filed", PermitCoder.EPOCH, 4))
+    public void twoIntsFillTheWordExactlyAndOrderAcrossTheSignBit() {
+        final CompositeHuskyCoder<Pair> c = CompositeHuskyCoder.<Pair>builder()
+                .named("TwoInts")
+                .add(Pair::high, HuskyFieldCoder.ofRange("high", Integer.MIN_VALUE, Integer.MAX_VALUE))
+                .add(Pair::low, HuskyFieldCoder.ofRange("low", Integer.MIN_VALUE, Integer.MAX_VALUE))
                 .build();
-        assertEquals(63, c.bits());
-        assertTrue("a full-budget code must still be non-negative",
-                c.huskyEncode(PermitLoader.getPermits()[0]) >= 0);
+        assertEquals("two ints are a machine word", 64, c.bits());
+        assertFalse("and no longer a bit over budget", c.truncating());
+        final Pair[] xs = {
+                new Pair(Integer.MIN_VALUE, Integer.MIN_VALUE), new Pair(Integer.MIN_VALUE, Integer.MAX_VALUE),
+                new Pair(-1, 0), new Pair(0, -1), new Pair(0, 0), new Pair(0, 1),
+                new Pair(1, Integer.MIN_VALUE), new Pair(Integer.MAX_VALUE, Integer.MAX_VALUE)};
+        final Comparator<Pair> natural = Comparator.comparingInt(Pair::high).thenComparingInt(Pair::low);
+        for (final Pair x : xs)
+            for (final Pair y : xs)
+                assertEquals("signed comparison of the codes must give the lexicographic order of " + x + " and " + y,
+                        Integer.signum(natural.compare(x, y)),
+                        Integer.signum(Long.compare(c.huskyEncode(x), c.huskyEncode(y))));
+        assertTrue("and a coder that loses nothing must say it is perfect", c.huskyEncode(xs).perfect);
+        assertTrue("the fold really does cross bit 63, which is the whole point",
+                c.huskyEncode(new Pair(0, 0)) >= 0);
+        assertTrue(c.huskyEncode(new Pair(-1, 0)) < 0);
+    }
+
+    /**
+     * The other two field sets that a reserved sign bit cost a bit: four {@code char}s and eight
+     * {@code byte}s. Both were a bit short of a machine word; both are now exact.
+     */
+    @Test
+    public void theOtherWordFillingFieldSetsAreNowExactToo() {
+        record FourChars(char a, char b, char c, char d) { }
+        final CompositeHuskyCoder<FourChars> chars = CompositeHuskyCoder.<FourChars>builder()
+                // A cast per accessor because ofRange takes a Number and a Character is not one;
+                // RecordHuskyCoder normalises char for you, a hand-built composite does not.
+                .add(x -> (int) x.a(), HuskyFieldCoder.ofRange("a", 0, 0xFFFF))
+                .add(x -> (int) x.b(), HuskyFieldCoder.ofRange("b", 0, 0xFFFF))
+                .add(x -> (int) x.c(), HuskyFieldCoder.ofRange("c", 0, 0xFFFF))
+                .add(x -> (int) x.d(), HuskyFieldCoder.ofRange("d", 0, 0xFFFF))
+                .build();
+        assertEquals("four 16-bit characters", 64, chars.bits());
+        assertFalse(chars.truncating());
+        assertTrue(chars.huskyEncode(new FourChars[]{new FourChars('\uFFFF', 'a', '\u0000', 'z')}).perfect);
+
+        record EightBytes(byte a, byte b, byte c, byte d, byte e, byte f, byte g, byte h) { }
+        final List<Function<EightBytes, Byte>> reads = List.of(EightBytes::a, EightBytes::b, EightBytes::c,
+                EightBytes::d, EightBytes::e, EightBytes::f, EightBytes::g, EightBytes::h);
+        CompositeHuskyCoder.Builder<EightBytes> builder = CompositeHuskyCoder.builder();
+        for (int i = 0; i < reads.size(); i++)
+            builder = builder.add(reads.get(i), HuskyFieldCoder.ofRange("b" + i, Byte.MIN_VALUE, Byte.MAX_VALUE));
+        final CompositeHuskyCoder<EightBytes> bytes = builder.build();
+        assertEquals("eight bytes", 64, bytes.bits());
+        assertFalse(bytes.truncating());
+    }
+
+    /**
+     * A {@code long} field is the case {@link HuskyFieldCoder#ofLong} exists for: its span is
+     * {@code 2^64 - 1}, which {@code ofRange}'s {@code long} arithmetic cannot express at all, so
+     * the full range is a coder of its own rather than a range with wide bounds. It is also the
+     * case that reads oddest -- the type husky coding is <i>defined</i> in terms of was the one the
+     * generic mechanism could not encode.
+     * <p>
+     * A composite of one such field must reproduce {@code HuskyCoderFactory.longCoder} exactly: the
+     * field's signed-to-unsigned bias and the composite's unsigned-to-signed bias cancel, leaving
+     * the value itself.
+     */
+    @Test
+    public void aLongFieldIsExactAndAgreesWithLongCoder() {
+        final CompositeHuskyCoder<Long> c = CompositeHuskyCoder.<Long>builder()
+                .named("OneLong").add(Function.identity(), HuskyFieldCoder.ofLong("v")).build();
+        assertEquals("the whole word, which is what a long is", 64, c.bits());
+        assertFalse(c.truncating());
+        final Long[] xs = {Long.MIN_VALUE, -1L, 0L, 1L, 42L, Long.MAX_VALUE};
+        for (final Long x : xs)
+            assertEquals("the two biases cancel, leaving the value", (long) x, c.huskyEncode(x));
+        assertArrayEquals("so the composite is longCoder", HuskyCoderFactory.longCoder.huskyEncode(xs).longs,
+                c.huskyEncode(xs).longs);
+        assertTrue(c.huskyEncode(xs).perfect);
     }
 
     @Test
@@ -246,6 +341,23 @@ public class CompositeHuskyCoderTest {
     /**
      * Padding with zero is what makes a prefix sort first, matching {@code String.compareTo}.
      */
+    /**
+     * A range wider than {@code Long.MAX_VALUE} wraps when the width is computed from
+     * {@code max - min}, so it is refused with a message naming the coder that does handle it.
+     * The full signed range is the case that reaches this in practice.
+     */
+    @Test
+    public void rangeCoderRefusesASpanItCannotExpress() {
+        for (final long[] bounds : new long[][]{{Long.MIN_VALUE, Long.MAX_VALUE}, {Long.MIN_VALUE, 100}, {-(1L << 62), 1L << 62}})
+            try {
+                HuskyFieldCoder.ofRange("f", bounds[0], bounds[1]);
+                fail("a span of more than Long.MAX_VALUE cannot be held in long arithmetic: " + Arrays.toString(bounds));
+            } catch (final IllegalArgumentException e) {
+                assertTrue("it should name the coder that does handle it: " + e.getMessage(),
+                        e.getMessage().contains("ofLong"));
+            }
+    }
+
     @Test
     public void stringCoderPadsSoThatAPrefixSortsFirst() {
         final HuskyFieldCoder<String> f = HuskyFieldCoder.ofString("s", 4, "ABCDE");
@@ -454,7 +566,7 @@ public class CompositeHuskyCoderTest {
     @Test
     public void toStringNamesTheFieldsAndTheirWidths() {
         final String s = permitCoder().toString();
-        assertTrue(s, s.contains("60 of 63 bits"));
+        assertTrue(s, s.contains("60 of 64 bits"));
         assertTrue(s, s.contains("block=25"));
         assertTrue(s, s.contains("lot=24"));
         assertTrue(s, s.contains("filed=11"));
