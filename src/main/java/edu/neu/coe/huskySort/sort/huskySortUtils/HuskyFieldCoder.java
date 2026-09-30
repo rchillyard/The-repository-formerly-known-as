@@ -74,12 +74,21 @@ public interface HuskyFieldCoder<T> {
      * outside the range is clamped to the nearer end and reported inexact, which keeps the ordering
      * weak rather than wrong.
      *
+     * NOTE the type parameter is the <i>field's</i> boxed type, not {@code Long}, and is inferred
+     * from where the coder is used: {@code add(Permit::getLot, ofRange("lot", 0, 9999))} infers
+     * {@code Integer} and type-checks against an {@code int} accessor. It was fixed to
+     * {@code Long} until 2026-09-29, which made every integral field need a widening lambda ---
+     * {@code add(p -> (long) p.lot(), ...)} --- for no reason the caller could see.
+     *
      * @param name the field's name.
      * @param min  the least value expected.
      * @param max  the greatest.
+     * @param <N>  the field's type, any boxed integral type. Values are read through
+     *             {@link Number#longValue()}, so a floating-point field would be truncated; this
+     *             is for integral fields.
      * @return a coder for it.
      */
-    static HuskyFieldCoder<Long> ofRange(final String name, final long min, final long max) {
+    static <N extends Number> HuskyFieldCoder<N> ofRange(final String name, final long min, final long max) {
         if (max < min) throw new IllegalArgumentException(name + ": max " + max + " is below min " + min);
         final int width = bitsFor(max - min);
         return new HuskyFieldCoder<>() {
@@ -87,13 +96,14 @@ public interface HuskyFieldCoder<T> {
                 return width;
             }
 
-            public long encode(final Long value) {
-                final long v = value;
+            public long encode(final N value) {
+                final long v = value.longValue();
                 return v <= min ? 0L : v >= max ? max - min : v - min;
             }
 
-            public boolean exact(final Long value) {
-                return value >= min && value <= max;
+            public boolean exact(final N value) {
+                final long v = value.longValue();
+                return v >= min && v <= max;
             }
 
             public String name() {

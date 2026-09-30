@@ -199,6 +199,24 @@ public class CompositeHuskyCoderTest {
 
     // ---------- the field coders ----------
 
+    /**
+     * The field's own type is inferred, so an int accessor needs no widening lambda. Until
+     * 2026-09-29 {@code ofRange} was fixed to {@code Long} and every integral field had to be
+     * written {@code add(p -> (long) p.high(), ...)} for a reason the caller could not see.
+     */
+    @Test
+    public void rangeCoderTakesTheFieldsOwnTypeWithoutAWideningLambda() {
+        record Pair(int high, short low) { }
+        final CompositeHuskyCoder<Pair> c = CompositeHuskyCoder.<Pair>builder()
+                .add(Pair::high, HuskyFieldCoder.ofRange("high", 0, 255))
+                .add(Pair::low, HuskyFieldCoder.ofRange("low", 0, 1000))
+                .build();
+        assertEquals(18, c.bits());
+        assertTrue(c.huskyEncode(new Pair(1, (short) 0)) > c.huskyEncode(new Pair(0, (short) 1000)));
+        assertTrue(c.exact(new Pair(200, (short) 999)));
+        assertFalse("and the declared range is still enforced", c.exact(new Pair(300, (short) 0)));
+    }
+
     @Test
     public void rangeCoderUsesTheNarrowestWidthAndBiasesByTheMinimum() {
         final HuskyFieldCoder<Long> zip = HuskyFieldCoder.ofRange("zip", 0, 99_999);
