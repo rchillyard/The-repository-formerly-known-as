@@ -22,7 +22,7 @@ public class InversionCounter {
 
     /**
      * Calculates and returns the number of inversions in the array provided at the time of object creation.
-     * An inversion is any pair of indices (i, j) such that i < j and arr[i] > arr[j].
+     * An inversion is any pair of indices (i, j) such that {@code i < j} and {@code arr[i] > arr[j]}.
      * The method uses a modified merge sort algorithm to count inversions efficiently.
      * The input array remains unmodified during the process.
      *

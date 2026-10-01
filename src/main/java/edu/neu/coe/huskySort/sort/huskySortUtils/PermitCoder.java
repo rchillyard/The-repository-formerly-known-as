@@ -8,7 +8,6 @@ import java.time.LocalDate;
 
 /**
  * An exact husky encoding of {@link Permit}, packing its whole ordering into 60 of the available 64 bits.
- * <p>
  * <pre>
  *   block      5 characters x 5 bits over a 31-symbol alphabet   25 bits
  *   lot        4 characters x 6 bits over a 63-symbol alphabet   24 bits

@@ -91,7 +91,7 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
      * that does not and so invert the most significant field.
      * <p>
      * Exclusive-or with {@code Long.MIN_VALUE} is a monotone bijection from unsigned order to signed
-     * order, so it repairs that exactly. It is not a novelty here: {@link RadixHuskySort} applies the
+     * order, so it repairs that exactly. It is not a novelty here: {@link edu.neu.coe.huskySort.sort.huskySort.RadixHuskySort RadixHuskySort} applies the
      * same transformation internally to make unsigned digit extraction agree with signed order, and
      * {@code HuskyCoderFactory.longCoder} has always returned negative codes for negative inputs.
      * <p>
