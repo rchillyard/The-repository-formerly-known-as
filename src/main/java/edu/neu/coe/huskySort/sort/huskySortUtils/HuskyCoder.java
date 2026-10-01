@@ -14,6 +14,39 @@ import java.text.Collator;
  * with a relatively small number of inversions which can be cleared up in phase two of the sort,
  * in linear time.
  *
+ * <h2>"exact" and "perfect": they are not synonyms</h2>
+ * Both words are used throughout this package and they say different things. Written down here
+ * 2026-10-01 at Robin's request, the distinction having been held consistently but never stated.
+ * <pre>
+ *   exact(value)         ONE VALUE     does this value encode without loss?
+ *   Coding.perfect       ONE ARRAY     did every element of this array encode without loss?
+ *   perfect()            THE CODER     does every possible value of X encode without loss?
+ *   perfectForLength(n)  THE CODER     would a sequence of this length fit? (a necessary
+ *                                      condition on one aspect of a value, not a sufficient one)
+ * </pre>
+ * So <b>exact is per value, perfect is a quantifier over exact</b>: {@link Coding#perfect} is the
+ * conjunction of {@code exact} over the elements of one array, and {@link #perfect()} is the
+ * claim that {@code exact} holds for every value there could ever be, which is why a coder may
+ * only assert it when its own construction guarantees it.
+ *
+ * <h3>Why the difference is worth keeping straight</h3>
+ * {@code Coding.perfect} is the one the sorts actually read --- {@code AbstractHuskySort.postSort},
+ * {@code QuickHuskySort.sort} and {@code MergeHuskySort.sort} all skip the cleanup pass when it is
+ * true. The two directions are therefore not symmetric: reporting perfect when some element was
+ * not exact turns a slow answer into a <b>wrong</b> one, while reporting imperfect when every
+ * element was exact merely costs a pass that was not needed. Claim it only when it is computed or
+ * proved.
+ * <p>
+ * This has already cost two defects. Item 48: {@code BaseHuskySequenceCoder} decided perfection
+ * from {@code perfectForLength} alone, treating a necessary condition as sufficient, so a
+ * narrowing coder returned an unsorted array and said it was perfect. Item 50:
+ * {@code MergeHuskySort}'s merge had been wrong for four years and only a perfect coding exposed
+ * it, every other coding having had the defect repaired by the cleanup pass it triggered.
+ * <p>
+ * NOTE one wart left alone, since renaming it would change a public interface:
+ * {@link HuskySequenceCoder#perfectForLength} says "perfect" for what is really an {@code exact}
+ * predicate applied to one dimension of a value. Read it as "could be exact at this length".
+ *
  * @param <X> the underlying type for this coder.
  */
 public interface HuskyCoder<X> {
@@ -102,6 +135,11 @@ public interface HuskyCoder<X> {
 
     /**
      * Method to determine if this Husky Coder is perfect for a class of objects (X).
+     * <p>
+     * This is the strongest of the three claims described in this interface's documentation: not
+     * that a particular value encodes exactly, nor that every element of one array did, but that
+     * every value of X ever will. Default false, which is the safe answer --- it costs a cleanup
+     * pass that may not be needed, where a wrong true costs correctness.
      *
      * @return true if the resulting longs are perfect for ANY value of X.
      * By default, this method returns false.

@@ -50,6 +50,11 @@ public interface HuskyFieldCoder<T> {
     long encode(T value);
 
     /**
+     * NOTE "exact" is <b>per value</b>, which is what distinguishes it from "perfect"; see
+     * {@link HuskyCoder} for the three scopes and why conflating them has already cost two
+     * defects. {@link CompositeHuskyCoder} folds this over fields and then over elements to reach
+     * the per-array {@link Coding#perfect}.
+     *
      * @param value the field value.
      * @return true if {@code encode(value)} loses nothing, so that this value is ordered exactly
      * against every other value this coder reports exact.
