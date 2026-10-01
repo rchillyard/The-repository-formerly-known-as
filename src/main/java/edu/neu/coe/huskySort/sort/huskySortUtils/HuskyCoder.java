@@ -21,8 +21,9 @@ import java.text.Collator;
  *   exact(value)         ONE VALUE     does this value encode without loss?
  *   Coding.perfect       ONE ARRAY     did every element of this array encode without loss?
  *   perfect()            THE CODER     does every possible value of X encode without loss?
- *   perfectForLength(n)  THE CODER     would a sequence of this length fit? (a necessary
- *                                      condition on one aspect of a value, not a sufficient one)
+ *   couldBeExactAtLength(n)  ONE LENGTH  would a sequence of this length fit? (necessary for
+ *                                        exactness, not sufficient -- it says nothing about
+ *                                        which characters the sequence holds)
  * </pre>
  * So <b>exact is per value, perfect is a quantifier over exact</b>: {@link Coding#perfect} is the
  * conjunction of {@code exact} over the elements of one array, and {@link #perfect()} is the
@@ -38,14 +39,15 @@ import java.text.Collator;
  * proved.
  * <p>
  * This has already cost two defects. Item 48: {@code BaseHuskySequenceCoder} decided perfection
- * from {@code perfectForLength} alone, treating a necessary condition as sufficient, so a
+ * from {@code couldBeExactAtLength} alone, treating a necessary condition as sufficient, so a
  * narrowing coder returned an unsorted array and said it was perfect. Item 50:
  * {@code MergeHuskySort}'s merge had been wrong for four years and only a perfect coding exposed
  * it, every other coding having had the defect repaired by the cleanup pass it triggered.
  * <p>
- * NOTE one wart left alone, since renaming it would change a public interface:
- * {@link HuskySequenceCoder#perfectForLength} says "perfect" for what is really an {@code exact}
- * predicate applied to one dimension of a value. Read it as "could be exact at this length".
+ * NOTE {@link HuskySequenceCoder#couldBeExactAtLength} was called {@code perfectForLength} until
+ * 2026-10-01, which said "perfect" for what is really an {@code exact} predicate on one dimension
+ * of a value --- the very conflation that produced item 48. Renamed rather than merely documented,
+ * since a name that carries its own warning is worth a change to an interface used in four places.
  *
  * @param <X> the underlying type for this coder.
  */

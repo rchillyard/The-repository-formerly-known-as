@@ -2786,11 +2786,22 @@ is a defect; all are hardening or generalisation.
     should happen below one bucket's worth of data. Regression test added covering n = 0 to 15
     against a bucket size of 16.
 
-    ### Unrelated flake noticed in passing
+    ### Unrelated flake noticed in passing --- FIXED 2026-10-01
 
-    `TimerTest.testMillisecs` asserts `assertEquals(100.0, ...)` against a real sleep and failed
-    once at 111.5 ms under load, passing on re-run. A wall-clock equality assertion with no
-    tolerance. Not touched; noting it so the next red build is not mistaken for a regression.
+    `TimerTest` asserts measured times against a real sleep and failed twice during this session
+    under load, `testMillisecs` at 111.5 ms and `testPauseAndLapResume1` at 112.4 ms, each
+    passing on its own re-run.
+
+    NOTE the first description here was wrong: these were not tolerance-free assertions. They
+    read `assertEquals(TENTH_DOUBLE, time, 11)` --- a tolerance of 11 ms on a 100 ms sleep, so an
+    11% window. The defect was that the window was too narrow, not that there was none.
+
+    Widened to 50 ms, as a named `TOLERANCE` constant with the reasoning beside it. A sleep
+    cannot finish early but can overrun without limit when the scheduler is contended, so an 11%
+    window was really testing how idle the machine was. 50 ms still catches a timer that reports
+    zero, or the wrong unit, or forgets a pause. If these ever need to be exact, the fix is not a
+    tighter tolerance but a different assertion --- that the measured time is **at least** the
+    sleep, which is the direction a sleep actually guarantees.
 
 52. ~~**`HashCodeSort.verify` cannot repair more than two colliding elements**~~ **FIXED
     2026-09-30** in `../INFO6205` (commit `64beda4f`), `sort/huskySort/sort/hashCode/HashCodeSort.java`.
