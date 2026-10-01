@@ -3075,31 +3075,40 @@ is a defect; all are hardening or generalisation.
     coder needs no special case in `RecordHuskyCoder` at all, and the same mechanism would let a
     caller add a width type this project has never heard of.
 
-    ### The offset is the part that can go silently wrong
+    ### The offset has to be defined by the type --- which narrows the proposal
 
-    An offset held per *instance* is not the same thing as an offset declared per *field*, and the
-    concatenation needs the latter. If one element of a column is `new Bits10(5, 0)` and another
-    is `new Bits10(600, 500)`, the two codes are not comparable, and nothing in the type system
-    says so --- the fields would still be 10 bits wide and `exact()` would still be true. That is
-    the exact shape of failure items 48 and 50 were: a wrong ordering reported as perfect.
+    Robin confirmed this, 2026-09-30, and it rules out the `Bits10(int value, int offset)`
+    constructor from the original sketch. An offset held per *instance* is not the same thing as
+    one declared per *field*, and the concatenation needs the latter: if one element of a column
+    is `new Bits10(5, 0)` and another `new Bits10(600, 500)`, the two codes are not comparable,
+    and nothing says so --- both fields are still 10 bits wide and `exact()` is still true. That
+    is the shape of items 48 and 50, a wrong ordering reported as perfect.
 
-    Three ways out, in increasing order of how much they cost the caller:
+    So the offset belongs to the type. And **a `BitsN` type can then express only
+    `[0, 2^N - 1]`**: any other range needs a bespoke type per offset, which is absurd past a
+    handful of cases, or an annotation after all. Stage three therefore removes the annotation
+    only for **zero-based integral fields**. `Narrowed`'s `@HuskyField(min = 1850, max = 2020)`
+    --- the year field from `Tuple`, item 29 --- would keep it, as would `PermitCoder`'s date.
 
-    - let the constructor take the offset but have `CompositeHuskyCoder.huskyEncode(X[])` check
-      that a column's offsets agree, reporting imperfect (or throwing, as `checkWidth` does for an
-      over-wide field) when they do not. One comparison per element, and it fits machinery that
-      already exists;
-    - make the offset part of the coder rather than the value, supplied once when the field is
-      added --- which is a declaration again, just not an annotation;
-    - fold the offset into the type, which is absurd past a handful of cases.
+    ### Which makes the annotation form look better than the sketch assumed
 
-    The first looks right. NOTE also the convention question: the boxed built-ins are **signed**
-    (`Byte` spans -128..127), where a `BitsN` would naturally be **unsigned** (0..2^N-1). Both
-    work --- each field biases itself --- but a record mixing them wants that said out loud.
+    Robin's second point, same day, and it is the right one: `@HuskyField(min = 0, max = 1023)`
+    on a component is already fine, **because the range is stated in the record's own
+    declaration**. That is the property that matters --- the width travels with the type being
+    sorted, not with some remote call site --- and the annotation has it. What a width type adds
+    over it is reuse across records and a name for the width, not a new guarantee.
+
+    It also only ever applied to integral fields. For a `String` the declaration must carry the
+    **alphabet**, and for a `LocalDate` the **epoch**; no `BitsN` can hold either. So
+    `PermitRecord` --- the flagship case for the whole derivation, and the one checked bit for
+    bit against `PermitCoder` over 198,900 records --- would be **entirely unaffected** by stage
+    three. Its three components are `String`, `String`, `LocalDate`; it has no integral field at
+    all, which is why it uses `chars`/`alphabet` and `epoch`/`days` rather than `min`/`max`.
 
     ### What it would cost
 
-    A `Bits10` is a heap object, and Java has no value types until Valhalla lands. A record of
+    Narrowed as above, the case for it is reuse and readability rather than correctness, so cost
+    decides. A `Bits10` is a heap object, and Java has no value types until Valhalla lands. A record of
     `BitsN` components therefore allocates per field per element, where `int` plus an annotation
     stores primitives. That matters for a method whose premise is extracting the key *once* per
     element: the generic coder already costs 1.19x (builder) and 1.38x (derived) against
