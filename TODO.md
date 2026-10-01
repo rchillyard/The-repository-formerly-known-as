@@ -904,7 +904,12 @@ is a defect; all are hardening or generalisation.
     composite key field needs. A visibility change and a home, plausibly `HuskyCoderFactory`.
     Prerequisite for item 31.
 
-31. **A composite-key coder: combinator first, derivation second.** The paper's appendix A.4
+31. ~~**A composite-key coder: combinator first, derivation second.**~~ **DONE 2026-09-30.**
+    Stage one is `CompositeHuskyCoder` (builder, budget, truncation from the low end, computed
+    `perfect`, derived `comparator()`); stage two is `RecordHuskyCoder`, which reads the packing
+    order off a record's declaration and reproduces `PermitCoder` bit for bit over all 198,900
+    records. Item 49 then spent the sign bit so that a field set filling a machine word is exact.
+    Item 54 is a possible stage three, not planned. The paper's appendix A.4
     argues this is what adoption would require, and Robin's framing on 2026-09-07 was that it is
     not essential for the paper but would be for anyone taking the method up. Two stages, and the
     second is the one that matters: a builder that folds N field encodings most-significant-first
@@ -3032,8 +3037,10 @@ is a defect; all are hardening or generalisation.
     parallelism begins by one element and changes no answer. It is the price of "cutoff" meaning
     the same thing there as everywhere else, and it is recorded in the source.
 
-54. **Item 31 stage three: widths carried by the component types, so that no annotation is
-    needed at all.** Robin's design, 2026-09-30. Where stage two reads the packing order off a
+54. **MAYBE --- item 31 stage three: widths carried by the component types.** Robin's design,
+    2026-09-30, left as a maybe the same day once its scope became clear: the annotation already
+    puts the width in the record's declaration, so this buys reuse and readability rather than a
+    guarantee. Recorded in case the vocabulary below turns out to be worth it on its own. Where stage two reads the packing order off a
     record's declaration, this would read the *widths* off it too:
 
     ```java
@@ -3104,6 +3111,37 @@ is a defect; all are hardening or generalisation.
     bit against `PermitCoder` over 198,900 records --- would be **entirely unaffected** by stage
     three. Its three components are `String`, `String`, `LocalDate`; it has no integral field at
     all, which is why it uses `chars`/`alphabet` and `epoch`/`days` rather than `min`/`max`.
+
+    ### The convenience definitions are the part that earns its keep
+
+    Robin, 2026-09-30: rather than a numeric family, a few **named** types ---
+    `English`, `Ascii`, `ExtendedAscii` --- each fixing a width *and* an offset. That answers the
+    objection above, because the reason "a bespoke type per offset" looked absurd was the
+    unbounded numeric family; there are only a handful of character ranges anyone wants, and they
+    already have names in this project and in the paper.
+
+    The ranges, taken from `HuskyCoderFactory` rather than guessed, and verified 2026-09-30 to
+    give exactly those widths through the existing annotation:
+
+    ```
+    type            offset   width   range          @HuskyField equivalent today
+    English         64       6       64..127        (min = 64,  max = 127)  char
+    Ascii            0       7        0..127        (min = 0,   max = 127)  char
+    ExtendedAscii    0       8        0..255        (min = 0,   max = 255)  char
+    Unicode          0      16        0..65535      none needed -- plain char is already 16 and exact
+    ```
+
+    `English`'s window is 64..127, not 60..96: `OFFSET_ENGLISH` is 64 and the width 6, which is
+    what brings `'A'` = 65 through `'z'` = 122 into a six-bit slot. Measured: a record of four
+    such components declares 24 bits, so ten of them fit a machine word with four to spare.
+
+    **And a type can enforce what the coder can only hope for.** `englishCoder` is merely
+    quasi-order-preserving because it *masks* with `& 0x3F`, which is not monotonic outside the
+    window --- that is the masking-versus-saturation discussion of item 43G. An `English` *value
+    type* would reject or clamp out-of-window characters in its constructor, so the ordering
+    inside the type would be exact by construction. That is a real gain over the annotation, and
+    the strongest argument in this item: the annotation declares a range, the type can guarantee
+    it.
 
     ### What it would cost
 
