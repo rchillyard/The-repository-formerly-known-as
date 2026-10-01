@@ -914,6 +914,10 @@ is a defect; all are hardening or generalisation.
     the possibility that packing order and comparison order disagree, and lets `perfect()` be
     computed rather than asserted and separately verified by a corpus test.
 
+    Stages one and two are **DONE** (2026-09-29 and 2026-09-30); see also items 49 and 54. Item 54
+    is Robin's stage three: component types that carry their own widths, so that the annotation
+    goes away entirely.
+
 32. **Complete the two thin bibliography entries' provenance note.** Both were completed on
     2026-09-07 and neither blocks anything; recorded only so the reconstruction of
     `paper/sample-base.bib` from `HuskySort.bbl` is not mistaken later for the original file. The
@@ -3027,3 +3031,81 @@ is a defect; all are hardening or generalisation.
     exactly `cutoff` elements now sorts sequentially rather than in parallel. That moves where
     parallelism begins by one element and changes no answer. It is the price of "cutoff" meaning
     the same thing there as everywhere else, and it is recorded in the source.
+
+54. **Item 31 stage three: widths carried by the component types, so that no annotation is
+    needed at all.** Robin's design, 2026-09-30. Where stage two reads the packing order off a
+    record's declaration, this would read the *widths* off it too:
+
+    ```java
+    record Pair(Byte high, Bits10 low) { }
+    ```
+
+    `Bits10` being a 10-bit type exactly as `Byte` is an 8-bit type, so
+    `@HuskyField(min = 0, max = 1023)` disappears. An offset would come from a second
+    constructor, `Bits10(int value, int offset)`, with the one-argument form meaning offset zero.
+
+    ### Half of that example already works
+
+    Measured 2026-09-30:
+
+    ```
+    record ByteOnly(Byte b)                     -> 8 of 64 bits: b=8
+    record (Byte, @HuskyField(0..1023) int)     -> 18 of 64 bits: high=8 low=10
+    record (Byte, int)   [no annotation]        -> 40 of 64 bits: high=8 low=32
+    ```
+
+    A boxed `Byte` component is already exact and unannotated, because `integralBounds` knows the
+    type's own range. So what stage three adds is precisely the **non-power-of-two widths** ---
+    the 10 above, the 17 a zip code needs, the 11 `PermitCoder` spends on a date, the 5 per
+    character of the block alphabet. Those are the widths that make the difference between 18
+    bits and 40, and today only an annotation can state them.
+
+    ### The width has to be in the type, not in the value
+
+    This constrains the design more than it first appears. `RecordHuskyCoder.of(Class)` builds the
+    coder from the declaration, **before any instance exists** --- that is the whole point, since
+    the accessors are unreflected once and the coder is then reused for every element. So a single
+    `Bits(int value, int width)` class cannot work: `getRecordComponents()` would report the
+    component's type as `Bits` and there would be nothing to ask for the width.
+
+    The width must therefore be recoverable from the `Class` alone, which means either a class per
+    width (`Bits1` ... `Bits63`, generated or sealed), or a convention the derivation can read
+    reflectively --- a `public static final int BITS`, or a `public static final HuskyFieldCoder`
+    the type supplies for itself. The last is the most appealing: a type that ships its own field
+    coder needs no special case in `RecordHuskyCoder` at all, and the same mechanism would let a
+    caller add a width type this project has never heard of.
+
+    ### The offset is the part that can go silently wrong
+
+    An offset held per *instance* is not the same thing as an offset declared per *field*, and the
+    concatenation needs the latter. If one element of a column is `new Bits10(5, 0)` and another
+    is `new Bits10(600, 500)`, the two codes are not comparable, and nothing in the type system
+    says so --- the fields would still be 10 bits wide and `exact()` would still be true. That is
+    the exact shape of failure items 48 and 50 were: a wrong ordering reported as perfect.
+
+    Three ways out, in increasing order of how much they cost the caller:
+
+    - let the constructor take the offset but have `CompositeHuskyCoder.huskyEncode(X[])` check
+      that a column's offsets agree, reporting imperfect (or throwing, as `checkWidth` does for an
+      over-wide field) when they do not. One comparison per element, and it fits machinery that
+      already exists;
+    - make the offset part of the coder rather than the value, supplied once when the field is
+      added --- which is a declaration again, just not an annotation;
+    - fold the offset into the type, which is absurd past a handful of cases.
+
+    The first looks right. NOTE also the convention question: the boxed built-ins are **signed**
+    (`Byte` spans -128..127), where a `BitsN` would naturally be **unsigned** (0..2^N-1). Both
+    work --- each field biases itself --- but a record mixing them wants that said out loud.
+
+    ### What it would cost
+
+    A `Bits10` is a heap object, and Java has no value types until Valhalla lands. A record of
+    `BitsN` components therefore allocates per field per element, where `int` plus an annotation
+    stores primitives. That matters for a method whose premise is extracting the key *once* per
+    element: the generic coder already costs 1.19x (builder) and 1.38x (derived) against
+    hand-written `PermitCoder` on encode alone, and this would add to that rather than to the
+    comparison count it saves. **Measure it before adopting it** --- the honest comparison is
+    `record Permit(Bits5x5 block, ...)` against the annotated record of stage two, over the
+    198,900-record corpus, using the probes in this item's history.
+
+    See item 31 for stages one and two.
