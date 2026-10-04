@@ -271,6 +271,96 @@ public class RecordHuskyCoderTest {
                 c.huskyEncode(new Outer(new Inner(0, 0), 1)) > c.huskyEncode(new Outer(new Inner(0, 0), 0)));
     }
 
+    // ---------- the documented list of supported types ----------
+
+    public record JustBoolean(boolean v) { }
+    public record JustBooleanBoxed(Boolean v) { }
+    public record JustEnum(DayOfWeek v) { }
+    public record JustByte(byte v) { }
+    public record JustByteBoxed(Byte v) { }
+    public record JustShort(short v) { }
+    public record JustShortBoxed(Short v) { }
+    public record JustChar(char v) { }
+    public record JustCharBoxed(Character v) { }
+    public record JustInt(int v) { }
+    public record JustIntBoxed(Integer v) { }
+    public record JustLong(long v) { }
+    public record JustLongBoxed(Long v) { }
+    public record JustString(String v) { }
+    public record JustDate(LocalDate v) { }
+
+    /**
+     * <b>The table in {@link RecordHuskyCoder}'s documentation, asserted.</b> Robin asked
+     * 2026-10-04 whether a list of supported types existed; it did, in an exception message, and
+     * it was out of date. The list now lives in the class javadoc with each type's unannotated
+     * width, and this test exists so that the prose cannot drift away from the code.
+     * <p>
+     * A boxed type must behave exactly as its primitive, which is the other half of the claim.
+     */
+    @Test
+    public void theSupportedTypesAreExactlyAsDocumented() {
+        assertEquals(1, RecordHuskyCoder.of(JustBoolean.class).bits());
+        assertEquals(1, RecordHuskyCoder.of(JustBooleanBoxed.class).bits());
+        assertEquals("seven constants", 3, RecordHuskyCoder.of(JustEnum.class).bits());
+        assertEquals(8, RecordHuskyCoder.of(JustByte.class).bits());
+        assertEquals(8, RecordHuskyCoder.of(JustByteBoxed.class).bits());
+        assertEquals(16, RecordHuskyCoder.of(JustShort.class).bits());
+        assertEquals(16, RecordHuskyCoder.of(JustShortBoxed.class).bits());
+        assertEquals(16, RecordHuskyCoder.of(JustChar.class).bits());
+        assertEquals(16, RecordHuskyCoder.of(JustCharBoxed.class).bits());
+        assertEquals(32, RecordHuskyCoder.of(JustInt.class).bits());
+        assertEquals(32, RecordHuskyCoder.of(JustIntBoxed.class).bits());
+        assertEquals(64, RecordHuskyCoder.of(JustLong.class).bits());
+        assertEquals(64, RecordHuskyCoder.of(JustLongBoxed.class).bits());
+        assertEquals("nine characters of printable ASCII", 63, RecordHuskyCoder.of(JustString.class).bits());
+        assertEquals("32,767 days from the default epoch", 15, RecordHuskyCoder.of(JustDate.class).bits());
+        assertEquals("a nested record contributes the sum of its leaves",
+                24, RecordHuskyCoder.of(Outer.class).bits());
+    }
+
+    /**
+     * And the seven types that carry their own width, which the same table lists.
+     */
+    @Test
+    public void theShippedWindowTypesAreExactlyAsDocumented() {
+        assertEquals(6, English.BITS);
+        assertEquals(7, Ascii.BITS);
+        assertEquals(8, ExtendedAscii.BITS);
+        assertEquals(17, SecondOfDay.BITS);
+        assertEquals(22, IsoDate.BITS);
+        assertEquals(39, IsoTimestamp.BITS);
+        assertEquals(47, TimeOfDay.BITS);
+        // Each is what the derivation actually gives a component of that type.
+        assertEquals(English.BITS, RecordHuskyCoder.of(OneEnglish.class).bits());
+        assertEquals(IsoDate.BITS, RecordHuskyCoder.of(OneIsoDate.class).bits());
+        assertEquals(TimeOfDay.BITS, RecordHuskyCoder.of(OneTimeOfDay.class).bits());
+    }
+
+    public record OneEnglish(English v) { }
+
+    public record OneIsoDate(IsoDate v) { }
+
+    public record OneTimeOfDay(TimeOfDay v) { }
+
+    /**
+     * The unsupported types are refused by name, and the message should point at both ways out.
+     * Floating point is absent on purpose: a husky code must be order-preserving under integer
+     * comparison, and NaN has no place in a total order.
+     */
+    @Test
+    public void anUnsupportedTypeIsRefusedWithBothWaysOut() {
+        try {
+            RecordHuskyCoder.of(Unsupported.class);
+            fail("double is not supported");
+        } catch (final IllegalArgumentException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("double"));
+            assertTrue("it should offer HUSKY_CODER: " + e.getMessage(),
+                    e.getMessage().contains(RecordHuskyCoder.SELF_SUPPLIED_CODER));
+            assertTrue("and the hand-written route: " + e.getMessage(),
+                    e.getMessage().contains("CompositeHuskyCoder.builder()"));
+        }
+    }
+
     // ---------- refusals, which should say what to do instead ----------
 
     public record Unsupported(double d) {

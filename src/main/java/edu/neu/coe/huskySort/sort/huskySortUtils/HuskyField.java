@@ -31,7 +31,9 @@ import java.lang.annotation.Target;
  *   String                                    chars, alphabet
  *   LocalDate                                 epoch, days
  *   boolean, enum                             none -- the type fixes the width
+ *   a type with its own HUSKY_CODER           none -- the type fixes the width
  * </pre>
+ * {@link RecordHuskyCoder} carries the full table, with each type's unannotated width.
  * An attribute given for a type that does not use it is an error rather than being ignored, since
  * a silently ignored width declaration is exactly the kind of thing this class exists to prevent.
  *

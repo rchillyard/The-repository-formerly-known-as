@@ -43,6 +43,54 @@ import java.util.function.Function;
  * call and a {@code MethodHandle} about 65. A coder that reflected per element would spend more
  * than the comparisons it saves.
  *
+ * <h2>Which component types are supported</h2>
+ * The canonical list. Every width below is measured, and
+ * {@code RecordHuskyCoderTest.theSupportedTypesAreExactlyAsDocumented} asserts each one, so this
+ * table cannot drift away from the code.
+ * <pre>
+ *   component type             unannotated   can be narrowed by
+ *   ------------------------------------------------------------------------------
+ *   boolean, Boolean                1        nothing: the type fixes it
+ *   any enum                  ceil(lg n)     nothing: the constant count fixes it
+ *   byte, Byte                      8        min, max
+ *   short, Short                   16        min, max
+ *   char, Character                16        min, max
+ *   int, Integer                   32        min, max
+ *   long, Long                     64        min and max, both or neither
+ *   String                         63        chars, alphabet
+ *   LocalDate                      15        epoch, days
+ *   a nested record           its leaves     annotate the leaves, not the record
+ *   a type with HUSKY_CODER   it decides     nothing: annotating one is an error
+ * </pre>
+ * A boxed type behaves exactly as its primitive. The unannotated width of a {@code String} is
+ * nine characters of printable ASCII ({@link #DEFAULT_ALPHABET}), and of a {@code LocalDate}
+ * 32,767 days from {@link #DEFAULT_EPOCH} --- both deliberately generous, and both usually worth
+ * narrowing. A nested record contributes the sum of its leaves, flattened in declaration order.
+ *
+ * <h3>Types that carry their own width</h3>
+ * Shipped with the project, needing no annotation and no special case here:
+ * <pre>
+ *   English         6    a character, '@' (64) through DEL (127)
+ *   Ascii           7    a character, NUL through DEL
+ *   ExtendedAscii   8    a character, NUL through 255
+ *   SecondOfDay    17    a time of day, 00:00:00 through 23:59:59
+ *   IsoDate        22    a date, 0001-01-01 through 9999-12-31
+ *   IsoTimestamp   39    both of the above, to the second
+ *   TimeOfDay      47    a time of day at full nanosecond resolution
+ * </pre>
+ * Any type may join that list by declaring {@code public static final HuskyFieldCoder<Itself>}
+ * named {@link #SELF_SUPPLIED_CODER}; see {@link #selfSuppliedCoder}.
+ *
+ * <h3>Not supported</h3>
+ * {@code double}, {@code float}, {@code BigInteger}, {@code BigDecimal}, {@code Instant},
+ * {@code LocalTime} and {@code LocalDateTime} bare, arrays, collections, and anything else. A
+ * component of such a type is <b>refused by name</b> rather than skipped, because silently
+ * omitting a field would produce a coder that ignores part of the key. Two ways forward: give the
+ * type a {@code HUSKY_CODER} of its own, as {@link TimeOfDay} does for {@code LocalTime}; or build
+ * the coder by hand with {@link CompositeHuskyCoder#builder()} and a {@link HuskyFieldCoder} you
+ * write. NOTE the floating-point types are absent on purpose --- a husky code must be
+ * order-preserving under integer comparison, and {@code NaN} has no place in a total order.
+ *
  * <h2>Annotations are optional</h2>
  * A component with no {@link HuskyField} is encoded as widely as its type allows. Since fields
  * over budget are truncated from the bottom rather than rejected, an unannotated record still
@@ -270,8 +318,12 @@ public final class RecordHuskyCoder {
             return new long[]{Long.MIN_VALUE, Long.MAX_VALUE};
         throw new IllegalArgumentException("component " + path + " has type " + t.getName()
                 + ", which RecordHuskyCoder cannot encode. Supported: boolean, enum, byte, short, char,"
-                + " int, long, String, LocalDate, and records of those. Encode it by hand with"
-                + " CompositeHuskyCoder.builder() and a HuskyFieldCoder of your own.");
+                + " int, long, String, LocalDate, records of those, and any type declaring"
+                + " public static final HuskyFieldCoder<Itself> " + SELF_SUPPLIED_CODER
+                + " (as English, Ascii, ExtendedAscii, IsoDate, SecondOfDay, TimeOfDay and"
+                + " IsoTimestamp do). See RecordHuskyCoder's documentation for the full table with"
+                + " widths. Otherwise give " + t.getSimpleName() + " a " + SELF_SUPPLIED_CODER
+                + " of its own, or encode it by hand with CompositeHuskyCoder.builder().");
     }
 
     private static long asLong(final Object value) {
