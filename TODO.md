@@ -3051,8 +3051,15 @@ is a defect; all are hardening or generalisation.
 54. **MAYBE --- item 31 stage three: widths carried by the component types.** Robin's design,
     2026-09-30, left as a maybe the same day once its scope became clear: the annotation already
     puts the width in the record's declaration, so this buys reuse and readability rather than a
-    guarantee. Recorded in case the vocabulary below turns out to be worth it on its own. Where stage two reads the packing order off a
-    record's declaration, this would read the *widths* off it too:
+    guarantee. Recorded in case the vocabulary below turns out to be worth it on its own.
+
+    **Status 2026-10-04: nothing written.** Only this entry exists; there is no `English`,
+    `Ascii`, `ExtendedAscii` or `Bits10` type in the source. The design below is settled enough
+    to build from, and the one thing still open is how the derivation discovers a width from a
+    `Class` --- see "The width has to be in the type".
+
+    Where stage two reads the packing order off a record's declaration, this would read the
+    *widths* off it too:
 
     ```java
     record Pair(Byte high, Bits10 low) { }
