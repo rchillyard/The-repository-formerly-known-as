@@ -113,7 +113,12 @@ public final class RecordHuskyCoder {
      * annotate.
      */
     public static final LocalDate DEFAULT_EPOCH = LocalDate.of(1970, 1, 1);
-    private static final long DEFAULT_DAYS = 32_767L;
+
+    /**
+     * The name of the static field by which a type declares its own width. See
+     * {@link #selfSuppliedCoder}.
+     */
+    public static final String SELF_SUPPLIED_CODER = "HUSKY_CODER";
 
     /**
      * @param type a record class.
@@ -130,6 +135,8 @@ public final class RecordHuskyCoder {
         for (final RecordComponent rc : components) addComponent(builder, rc, accessor(rc), rc.getName());
         return builder.build();
     }
+
+    private static final long DEFAULT_DAYS = 32_767L;
 
     /**
      * Adds one component, or, for a component which is itself a record, the components of that
@@ -158,9 +165,8 @@ public final class RecordHuskyCoder {
                 final Function<Object, Object> readInner = accessor(inner);
                 addComponent(builder, inner, x -> readInner.apply(read.apply(x)), path + "." + inner.getName());
             }
-        } else {
+        } else
             builder.add(read, coderFor(t, spec, path));
-        }
     }
 
     /**
@@ -223,12 +229,6 @@ public final class RecordHuskyCoder {
             }
         };
     }
-
-    /**
-     * The name of the static field by which a type declares its own width. See
-     * {@link #selfSuppliedCoder}.
-     */
-    public static final String SELF_SUPPLIED_CODER = "HUSKY_CODER";
 
     /**
      * @param t    the component's type.
