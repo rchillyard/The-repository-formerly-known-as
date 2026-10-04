@@ -3159,8 +3159,20 @@ is a defect; all are hardening or generalisation.
     general `BitsN` family is still not worth building: these three earn it by making the
     coding perfect, where a `Bits10` would only restate an annotation.
 
-    12 tests in `CharacterWindowTypesTest` and 13 in `DateTimeWindowTypesTest`. 542 unit and 564
-    with integration, both green, javadoc clean.
+    ### Over-budget now warns, once
+
+    Robin, 2026-10-04: keep truncating rather than refusing, but say so. `Builder.build()` logs a
+    WARN naming the declared width, the budget, and --- the part worth knowing --- that the coder
+    can never report perfect, so a husky sort using it will always run its cleanup pass.
+
+    **Once per coder, never per element.** A coder is built once and then used for every element
+    of every array it codes, so a per-element log would be ruinous for a method whose premise is
+    doing work once per element rather than once per comparison. There is a test that attaches an
+    appender, builds a truncating coder, codes all 198,900 permits through it, and asserts
+    exactly one warning; and that a coder which fits says nothing at all.
+
+    12 tests in `CharacterWindowTypesTest`, 13 in `DateTimeWindowTypesTest`, 1 more in
+    `CompositeHuskyCoderTest`. 543 unit and 565 with integration, both green, javadoc clean.
 
     ### The original sketch, and why it narrowed to this
 

@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
@@ -280,6 +281,53 @@ public class CompositeHuskyCoderTest {
         assertArrayEquals("so the composite is longCoder", HuskyCoderFactory.longCoder.huskyEncode(xs).longs,
                 c.huskyEncode(xs).longs);
         assertTrue(c.huskyEncode(xs).perfect);
+    }
+
+    /**
+     * Truncating is deliberate and silent, and what it silently costs is the cleanup pass. So it
+     * warns --- <b>once, when the coder is built</b>, never per element. That distinction is the
+     * whole reason this is acceptable: a coder is constructed once and then used for every
+     * element of every array it codes, so a per-element log would be ruinous for a sort whose
+     * premise is doing work once per element rather than once per comparison.
+     */
+    @Test
+    public void truncatingWarnsOncePerCoderAndNeverPerElement() {
+        final List<String> warnings = new ArrayList<>();
+        final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(CompositeHuskyCoder.class);
+        final org.apache.log4j.Appender appender = new org.apache.log4j.AppenderSkeleton() {
+            protected void append(final org.apache.log4j.spi.LoggingEvent event) {
+                if (event.getLevel().toInt() >= org.apache.log4j.Level.WARN_INT)
+                    warnings.add(String.valueOf(event.getMessage()));
+            }
+
+            public void close() {
+            }
+
+            public boolean requiresLayout() {
+                return false;
+            }
+        };
+        logger.addAppender(appender);
+        try {
+            CompositeHuskyCoder.<Permit>builder()
+                    .add(Permit::getBlock, HuskyFieldCoder.ofString("block", 9, PermitCoder.BLOCK_ALPHABET))
+                    .add(Permit::getLot, HuskyFieldCoder.ofString("lot", 4, PermitCoder.LOT_ALPHABET))
+                    .build()
+                    .huskyEncode(PermitLoader.getPermits());   // 198,900 elements, after the one warning
+            assertEquals("exactly one warning, from build() and not from coding 198,900 permits",
+                    1, warnings.size());
+            final String warning = warnings.get(0);
+            assertTrue("it should say how many bits were declared: " + warning, warning.contains("69"));
+            assertTrue("and what the budget is: " + warning, warning.contains("64"));
+            assertTrue("and what it costs, which is the part worth knowing: " + warning,
+                    warning.contains("cleanup pass"));
+
+            warnings.clear();
+            permitCoder().huskyEncode(PermitLoader.getPermits());
+            assertEquals("and a coder that fits says nothing at all", 0, warnings.size());
+        } finally {
+            logger.removeAppender(appender);
+        }
     }
 
     @Test

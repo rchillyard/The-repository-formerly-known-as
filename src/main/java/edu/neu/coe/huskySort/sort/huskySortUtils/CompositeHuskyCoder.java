@@ -4,6 +4,8 @@
 
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
+import edu.neu.coe.huskySort.util.LazyLogger;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -159,9 +161,26 @@ public class CompositeHuskyCoder<X> implements HuskyCoder<X> {
                 placed.add(f.taking(take));
                 used += take;
             }
-            return new CompositeHuskyCoder<>(name, List.copyOf(placed), used, declared);
+            final CompositeHuskyCoder<X> result = new CompositeHuskyCoder<>(name, List.copyOf(placed), used, declared);
+            // NOTE once per coder, not once per element: a coder is built once and then used for
+            // every element of every array it codes, so this cannot become a per-element cost.
+            // Truncating is deliberate and correct -- the ordering weakens to ties rather than
+            // inverting, which is the whole argument of this class -- but it is also silent, and
+            // what it silently costs is the cleanup pass the sort must now run. A caller who
+            // declared more bits than there are has usually made a choice they did not know they
+            // were making: record R(IsoDate d, TimeOfDay t) compiles, sorts correctly, and gives
+            // up perfection for five bits of nanosecond. Worth one line in the log.
+            // NOTE not the Supplier overload: LazyLogger offers that for debug only, and the
+            // string is built at most once per coder, and only when there is something to say.
+            if (result.truncating()) logger.warn(name + ": the declared fields need " + declared
+                    + " bits and the budget is " + BUDGET + ", so the least significant will be truncated"
+                    + " and this coder can never report perfect, which means a husky sort using it will"
+                    + " always run its cleanup pass. " + result);
+            return result;
         }
     }
+
+    private final static LazyLogger logger = new LazyLogger(CompositeHuskyCoder.class);
 
     /**
      * {@inheritDoc}
