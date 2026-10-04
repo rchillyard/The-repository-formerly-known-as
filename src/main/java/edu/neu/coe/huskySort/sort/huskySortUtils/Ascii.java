@@ -5,7 +5,11 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 /**
- * A single character known to lie in {@code [0, 127]}, which is 7 bits of ordering.
+ * A single character from {@code NUL} (0) through {@code DEL} (127) inclusive: the whole of
+ * seven-bit ASCII.
+ * <p>
+ * <b>128 distinct values, so exactly 7 bits</b>, with nothing wasted. One bit wider than
+ * {@link English} and in exchange it holds the digits, the space and all the punctuation.
  *
  * <h2>What a type gives that an annotation cannot</h2>
  * {@code @HuskyField(min = 0, max = 127) char} declares the same window and yields the same

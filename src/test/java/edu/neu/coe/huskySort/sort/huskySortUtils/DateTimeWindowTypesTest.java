@@ -54,6 +54,29 @@ public class DateTimeWindowTypesTest {
                 IsoDate.BITS + SecondOfDay.BITS, IsoTimestamp.BITS);
     }
 
+    /**
+     * The counts quoted in each type's opening javadoc, asserted so that the documentation
+     * cannot drift away from the code. A span is one less than a count, and it is the count that
+     * the prose gives, because that is the number a reader can check against the width.
+     */
+    @Test
+    public void theValueCountsAreWhatTheJavadocSays() {
+        assertEquals("3,652,059 distinct days", 3_652_059L,
+                IsoDate.HIGHEST.toEpochDay() - IsoDate.LOWEST.toEpochDay() + 1);
+        assertEquals("86,400 distinct seconds", 86_400L, LocalTime.MAX.toSecondOfDay() + 1L);
+        assertEquals("86,400,000,000,000 distinct nanoseconds", 86_400_000_000_000L, LocalTime.MAX.toNanoOfDay() + 1);
+        assertEquals("315,537,897,600 distinct timestamps", 315_537_897_600L, 3_652_059L * 86_400L);
+        // And each width is the narrowest that holds its count, with the stated headroom.
+        assertTrue(Math.pow(2, IsoDate.BITS) >= 3_652_059L);
+        assertTrue(Math.pow(2, IsoDate.BITS - 1) < 3_652_059L);
+        assertTrue(Math.pow(2, SecondOfDay.BITS) >= 86_400L);
+        assertTrue(Math.pow(2, SecondOfDay.BITS - 1) < 86_400L);
+        assertTrue(Math.pow(2, TimeOfDay.BITS) >= 86_400_000_000_000L);
+        assertTrue(Math.pow(2, TimeOfDay.BITS - 1) < 86_400_000_000_000L);
+        assertTrue(Math.pow(2, IsoTimestamp.BITS) >= 315_537_897_600L);
+        assertTrue(Math.pow(2, IsoTimestamp.BITS - 1) < 315_537_897_600L);
+    }
+
     // ---------- IsoDate ----------
 
     public record Dated(IsoDate on) { }

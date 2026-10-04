@@ -7,7 +7,10 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 import java.time.LocalTime;
 
 /**
- * A time of day to the whole second, which is 17 bits of ordering.
+ * A time of day from 00:00:00 through 23:59:59 inclusive, to the whole second.
+ * <p>
+ * <b>86,400 distinct values, so 17 bits</b> of ordering. Not a full field --- 17 bits hold
+ * 131,072 --- but the width is the narrowest that fits, as everywhere else here.
  *
  * <h2>Thirty bits cheaper than the nanoseconds you probably do not have</h2>
  * {@link TimeOfDay} spends 47 bits to keep a {@link LocalTime}'s full resolution. Most data does

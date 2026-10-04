@@ -5,7 +5,13 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 /**
- * A single character known to lie in {@code [64, 127]}, which is 6 bits of ordering.
+ * A single character from {@code '@'} (64) through {@code DEL} (127) inclusive.
+ * <p>
+ * <b>64 distinct values, so exactly 6 bits</b>, with nothing wasted. That block is chosen
+ * because it is the narrowest one holding both letter cases: {@code 'A'}..{@code 'Z'} are
+ * 65..90 and {@code 'a'}..{@code 'z'} are 97..122, with {@code [ \ ] ^ _ `} between them and
+ * {@code { | } ~} above. It holds no digits, no space and no punctuation below {@code '@'}; for
+ * those, {@link Ascii} costs one bit more.
  *
  * <h2>What a type gives that an annotation cannot</h2>
  * {@code @HuskyField(min = 64, max = 127) char} declares the same window and yields the same

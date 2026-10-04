@@ -7,7 +7,10 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 import java.time.LocalDate;
 
 /**
- * A date in the four-digit ISO years, 0001-01-01 through 9999-12-31, which is 22 bits of ordering.
+ * A date from 0001-01-01 through 9999-12-31 inclusive: the four-digit ISO years.
+ * <p>
+ * <b>3,652,059 distinct days, so 22 bits</b> of ordering. Not a full field --- 22 bits hold
+ * 4,194,304 --- but the width is the narrowest that fits, as everywhere else here.
  *
  * <h2>Why this window and not an epoch</h2>
  * {@link HuskyFieldCoder#ofDate} and {@code @HuskyField(epoch = ..., days = ...)} ask the caller

@@ -48,6 +48,26 @@ public class CharacterWindowTypesTest {
         assertTrue(10 * Ascii.BITS > 64);
     }
 
+    /**
+     * The counts quoted in each type's opening javadoc. These three fill their widths exactly,
+     * which the date types do not, and the prose says so.
+     */
+    @Test
+    public void theValueCountsAreWhatTheJavadocSaysAndFillTheWidthExactly() {
+        assertEquals("64 distinct characters", 64, English.HIGHEST - English.LOWEST + 1);
+        assertEquals("128 distinct characters", 128, Ascii.HIGHEST - Ascii.LOWEST + 1);
+        assertEquals("256 distinct characters", 256, ExtendedAscii.HIGHEST - ExtendedAscii.LOWEST + 1);
+        assertEquals("exactly 2^6, nothing wasted", 64, 1 << English.BITS);
+        assertEquals("exactly 2^7", 128, 1 << Ascii.BITS);
+        assertEquals("exactly 2^8", 256, 1 << ExtendedAscii.BITS);
+        // The claim in English's javadoc about which letters the window holds.
+        assertTrue("both letter cases are inside", English.admits('A') && English.admits('Z')
+                && English.admits('a') && English.admits('z'));
+        assertFalse("digits are not", English.admits('0'));
+        assertFalse("nor the space", English.admits(' '));
+        assertTrue("where Ascii holds them", Ascii.admits('0') && Ascii.admits(' '));
+    }
+
     // ---------- the invariant ----------
 
     public record Word(English a, English b, English c, English d) { }

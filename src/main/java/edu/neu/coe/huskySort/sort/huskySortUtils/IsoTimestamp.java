@@ -9,7 +9,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * A date and time to the whole second, in the four-digit ISO years, which is 39 bits of ordering.
+ * A date and time from 0001-01-01T00:00:00 through 9999-12-31T23:59:59 inclusive: the four-digit
+ * ISO years, to the whole second.
+ * <p>
+ * <b>315,537,897,600 distinct values, so 39 bits</b> of ordering, which is 3,652,059 days of
+ * 86,400 seconds. Equivalently {@link IsoDate}'s 22 bits plus {@link SecondOfDay}'s 17, and
+ * encoded as one number rather than two fields for the reason given below.
  *
  * <h2>The combination that fits</h2>
  * A date costs 22 bits ({@link IsoDate}) and a time to the second costs 17 ({@link SecondOfDay}),

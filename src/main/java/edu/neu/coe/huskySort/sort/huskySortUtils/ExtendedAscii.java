@@ -5,7 +5,13 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 /**
- * A single character known to lie in {@code [0, 255]}, which is 8 bits of ordering.
+ * A single character from {@code NUL} (0) through 255 inclusive: a byte's worth, which over
+ * Latin-1 reaches {@code 'ÿ'}.
+ * <p>
+ * <b>256 distinct values, so exactly 8 bits</b>, with nothing wasted. One bit wider than
+ * {@link Ascii} and in exchange it holds the accented Latin letters. Beyond that lies the rest
+ * of Unicode, for which a plain {@code char} component is already 16 bits and exact, needing no
+ * type at all.
  *
  * <h2>What a type gives that an annotation cannot</h2>
  * {@code @HuskyField(min = 0, max = 255) char} declares the same window and yields the same

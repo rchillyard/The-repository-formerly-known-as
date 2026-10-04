@@ -7,7 +7,12 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 import java.time.LocalTime;
 
 /**
- * A time of day at full nanosecond resolution, which is 47 bits of ordering.
+ * A time of day from 00:00:00.000000000 through 23:59:59.999999999 inclusive, at
+ * {@link LocalTime}'s full nanosecond resolution.
+ * <p>
+ * <b>86,400,000,000,000 distinct values, so 47 bits</b> of ordering. Thirty bits dearer than
+ * {@link SecondOfDay}, which is what sub-second precision costs and why it does not fit beside a
+ * date.
  *
  * <h2>The one window type that needs no invariant</h2>
  * {@link LocalTime}'s entire domain is 0 through 86,399,999,999,999 nanoseconds, and that fits in
