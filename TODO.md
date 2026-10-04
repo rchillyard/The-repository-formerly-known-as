@@ -3048,15 +3048,70 @@ is a defect; all are hardening or generalisation.
     parallelism begins by one element and changes no answer. It is the price of "cutoff" meaning
     the same thing there as everywhere else, and it is recorded in the source.
 
-54. **MAYBE --- item 31 stage three: widths carried by the component types.** Robin's design,
-    2026-09-30, left as a maybe the same day once its scope became clear: the annotation already
-    puts the width in the record's declaration, so this buys reuse and readability rather than a
-    guarantee. Recorded in case the vocabulary below turns out to be worth it on its own.
+54. ~~**Item 31 stage three: widths carried by the component types.**~~ **DONE 2026-10-04** for
+    the three character types; the general `BitsN` family remains a maybe and probably always
+    will, for the reasons below.
 
-    **Status 2026-10-04: nothing written.** Only this entry exists; there is no `English`,
-    `Ascii`, `ExtendedAscii` or `Bits10` type in the source. The design below is settled enough
-    to build from, and the one thing still open is how the derivation discovers a width from a
-    `Class` --- see "The width has to be in the type".
+    ### What was built
+
+    `English`, `Ascii` and `ExtendedAscii`: one-character value types, each a record whose
+    constructor refuses anything outside its window.
+
+    ```
+    type            window      bits   ten of them
+    English         64..127     6      60   (as HuskyCoderFactory.englishCoder packs)
+    Ascii             0..127    7      63 for nine (as asciiCoder packs)
+    ExtendedAscii     0..255    8
+    ```
+
+    `Unicode` was not built and is not needed: a plain `char` component is already 16 bits and
+    exact through `integralBounds`.
+
+    Each declares `public static final HuskyFieldCoder<Itself> HUSKY_CODER`, which
+    `RecordHuskyCoder` finds reflectively once per coder construction --- a convention rather
+    than an interface, because the width must be recoverable from the `Class` alone (the
+    derivation runs before any instance exists) and Java cannot require a static through an
+    interface. The derivation therefore knows nothing about these three in particular, and a
+    caller can add a width type this project has never heard of. Shared machinery is
+    `HuskyFieldCoder.ofCharacterWindow`, which exists because `ofRange` is bounded by
+    `N extends Number` and a `Character` is not one.
+
+    **The lookup must precede the nested-record flattening.** These types are records, and
+    flattening one reaches its `char` component and gives it sixteen bits --- discarding the very
+    width the type exists to carry. There is a test that says so.
+
+    ### What it buys, which is more than the readability I first credited it with
+
+    The constructor refusing out-of-window characters makes "in the window" an invariant, so
+    every code is exact, so **a record of these components is always `perfect`** --- and
+    `AbstractHuskySort.postSort` returns immediately when it is. An annotated `char` cannot
+    promise that: nothing stops the array holding a character outside the declared range, at
+    which point the field clamps, the coding reports imperfect, and the sort pays for a cleanup
+    pass. There is a test comparing the two forms directly: same width, same codes for in-window
+    data, and the annotated one going imperfect exactly where the typed one could not have been
+    constructed.
+
+    This is also item 43G's masking-versus-saturation question answered by construction rather
+    than by argument. `englishCoder` is only quasi-order-preserving because it narrows with a
+    mask, and masking is not monotonic outside the window. Here there is no such character to
+    narrow. For data that is not clean, `clamp` saturates --- but at construction, in the
+    caller's own code, where the loss is visible.
+
+    ### Cost: none measured
+
+    Robin predicted none and there is none. The reflective lookup is one `getField` per component
+    when the coder is built, never per element. The Permit probes are unchanged within noise:
+    encode 1.18x (builder) and 1.37x (derived) against hand-written `PermitCoder`, where before
+    this change they were 1.19x and 1.37x; end-to-end sort 1.32x against 1.28x, with the
+    hand-written baseline having moved by a comparable amount in the same runs.
+
+    An allocation per field per element remains the cost of *using* them, which is why the
+    general `BitsN` family is still not worth building: these three earn it by making the
+    coding perfect, where a `Bits10` would only restate an annotation.
+
+    12 tests in `CharacterWindowTypesTest`. 529 unit and 551 with integration, both green.
+
+    ### The original sketch, and why it narrowed to this
 
     Where stage two reads the packing order off a record's declaration, this would read the
     *widths* off it too:

@@ -6,6 +6,8 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
 import java.time.LocalDate;
 import java.util.function.Function;
@@ -93,7 +95,16 @@ public final class RecordHuskyCoder {
                                          final Function<R, Object> read, final String path) {
         final Class<?> t = rc.getType();
         final HuskyField spec = rc.getAnnotation(HuskyField.class);
-        if (t.isRecord()) {
+        final HuskyFieldCoder<Object> own = selfSuppliedCoder(t);
+        if (own != null) {
+            // NOTE before the isRecord test, not after. English, Ascii and ExtendedAscii are
+            // records, and flattening one would reach its char component and give it sixteen
+            // bits -- discarding the very width the type exists to carry.
+            reject(spec, path, "a type supplying its own HUSKY_CODER declares its own width");
+            // Renamed to the component's path so that the composite's toString reads
+            // "block=6 lot=6" like every other field, rather than repeating the type's name.
+            builder.add(read, renamed(own, path));
+        } else if (t.isRecord()) {
             reject(spec, path, "a nested record takes its width from its own components");
             for (final RecordComponent inner : t.getRecordComponents()) {
                 final Function<Object, Object> readInner = accessor(inner);
@@ -103,6 +114,73 @@ public final class RecordHuskyCoder {
             builder.add(read, coderFor(t, spec, path));
         }
     }
+
+    /**
+     * A component type may carry its own width by declaring
+     * {@code public static final HuskyFieldCoder<Itself> HUSKY_CODER}, as {@link English},
+     * {@link Ascii} and {@link ExtendedAscii} do. This is read once, when the coder is built,
+     * never per element.
+     * <p>
+     * A convention rather than an interface because the width has to be recoverable from the
+     * {@link Class} alone: the derivation runs before any instance exists, so there is nothing
+     * to call an instance method on, and Java cannot require a static through an interface. The
+     * benefit over a special case per type is that the derivation needs no knowledge of these
+     * three at all, and a caller can add a width type this project has never heard of.
+     *
+     * @param t the component's type.
+     * @return its own coder, or null if it does not supply one.
+     */
+    @SuppressWarnings("unchecked")
+    private static HuskyFieldCoder<Object> selfSuppliedCoder(final Class<?> t) {
+        final Field field;
+        try {
+            field = t.getField(SELF_SUPPLIED_CODER);
+        } catch (final NoSuchFieldException e) {
+            return null;
+        }
+        if (!HuskyFieldCoder.class.isAssignableFrom(field.getType())) return null;
+        final int modifiers = field.getModifiers();
+        if (!Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers))
+            throw new IllegalArgumentException(t.getName() + "." + SELF_SUPPLIED_CODER
+                    + " must be public static for the derivation to read it");
+        try {
+            return (HuskyFieldCoder<Object>) field.get(null);
+        } catch (final IllegalAccessException e) {
+            throw new IllegalArgumentException("could not read " + t.getName() + "." + SELF_SUPPLIED_CODER, e);
+        }
+    }
+
+    /**
+     * @param coder a field coder.
+     * @param name  the name to give it.
+     * @return the same coder under a different name, so that a type's own coder reports the
+     * component it was used for rather than the type it came from.
+     */
+    private static HuskyFieldCoder<Object> renamed(final HuskyFieldCoder<Object> coder, final String name) {
+        return new HuskyFieldCoder<>() {
+            public int bits() {
+                return coder.bits();
+            }
+
+            public long encode(final Object value) {
+                return coder.encode(value);
+            }
+
+            public boolean exact(final Object value) {
+                return coder.exact(value);
+            }
+
+            public String name() {
+                return name;
+            }
+        };
+    }
+
+    /**
+     * The name of the static field by which a type declares its own width. See
+     * {@link #selfSuppliedCoder}.
+     */
+    public static final String SELF_SUPPLIED_CODER = "HUSKY_CODER";
 
     /**
      * @param t    the component's type.

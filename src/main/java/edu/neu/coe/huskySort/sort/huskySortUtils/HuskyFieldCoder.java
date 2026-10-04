@@ -5,6 +5,7 @@
 package edu.neu.coe.huskySort.sort.huskySortUtils;
 
 import java.time.LocalDate;
+import java.util.function.ToIntFunction;
 
 /**
  * An order-preserving encoding of one field of a composite key into a fixed number of bits.
@@ -118,6 +119,56 @@ public interface HuskyFieldCoder<T> {
             public boolean exact(final N value) {
                 final long v = value.longValue();
                 return v >= min && v <= max;
+            }
+
+            public String name() {
+                return name;
+            }
+        };
+    }
+
+    /**
+     * A field whose values are characters known to lie in {@code [lowest, highest]}.
+     * <p>
+     * The shared machinery behind {@link English}, {@link Ascii} and {@link ExtendedAscii}: each
+     * of those is a one-character value type whose constructor refuses anything outside its
+     * window, so the width is a property of the type rather than something a caller declares.
+     * <p>
+     * NOTE {@link #ofRange} cannot serve, because it is bounded by {@code N extends Number} and
+     * a {@code Character} is not a {@code Number} --- which is also why a hand-built composite
+     * over a {@code char} accessor needs a cast today. This takes the character out of the value
+     * with a {@link ToIntFunction} instead.
+     *
+     * @param name    the field's name.
+     * @param lowest  the least character the type admits.
+     * @param highest the greatest.
+     * @param charOf  how to read the character out of a value.
+     * @param <T>     the value type.
+     * @return a coder for it.
+     */
+    static <T> HuskyFieldCoder<T> ofCharacterWindow(final String name, final char lowest, final char highest,
+                                                    final ToIntFunction<T> charOf) {
+        if (highest < lowest)
+            throw new IllegalArgumentException(name + ": highest " + (int) highest + " is below lowest " + (int) lowest);
+        final int width = bitsFor(highest - lowest);
+        return new HuskyFieldCoder<>() {
+            public int bits() {
+                return width;
+            }
+
+            public long encode(final T value) {
+                final int c = charOf.applyAsInt(value);
+                // The type's constructor has already excluded anything outside the window, so
+                // the clamp is unreachable. Kept because it costs two comparisons once per
+                // element and the alternative, if a constructor were ever loosened, is a code
+                // wider than its declared width -- which corrupts the fields ABOVE it and
+                // inverts the composite ordering. See CompositeHuskyCoder.Field.checkWidth.
+                return c <= lowest ? 0L : c >= highest ? highest - lowest : c - lowest;
+            }
+
+            public boolean exact(final T value) {
+                final int c = charOf.applyAsInt(value);
+                return c >= lowest && c <= highest;
             }
 
             public String name() {
