@@ -3054,6 +3054,56 @@ is a defect; all are hardening or generalisation.
 
     ### What was built
 
+    Seven types in two families, all records, all carrying their width as a property of the type
+    and all discovered through the same `HUSKY_CODER` convention.
+
+    ```
+    type            holds           window                          bits
+    English         char            64..127                          6
+    Ascii           char            0..127                           7
+    ExtendedAscii   char            0..255                           8
+    IsoDate         LocalDate       0001-01-01 .. 9999-12-31        22
+    SecondOfDay     LocalTime       whole seconds                   17
+    TimeOfDay       LocalTime       the entire domain, nanoseconds  47
+    IsoTimestamp    LocalDateTime   ISO years, whole seconds        39
+    ```
+
+    ### The date family, added 2026-10-04
+
+    Dates differ from characters in a way worth stating: **characters have canonical windows and
+    dates do not.** ASCII is ASCII, but the right epoch for a date is a property of the data,
+    which is exactly why `@HuskyField(epoch, days)` asks for one --- `PermitCoder` wants
+    2013-01-01 and 1,879 days, and gets eleven bits for it where `IsoDate` costs twenty-two. The
+    annotation remains the better answer when you know your corpus.
+
+    The four-digit ISO year is the exception that earns a type: natural rather than chosen, needs
+    no declaration, and at 3,652,058 days costs only 22 bits.
+
+    **The arithmetic, measured rather than estimated:**
+
+    ```
+    ISO date, 0001-01-01 .. 9999-12-31      3,652,058 days          22 bits
+    LocalTime, full nanosecond resolution   86,399,999,999,999 ns   47 bits
+    LocalTime to the second                 86,399 s                17 bits
+    ISO date + second                                               39 bits   fits, 25 to spare
+    ISO date + nanosecond                                           69 bits   DOES NOT FIT
+    ```
+
+    That last line is **a fact about the method, not about this implementation**: a husky code is
+    64 bits and a nanosecond-resolution timestamp over four-digit years needs 69. Something has to
+    give, and sub-second precision is usually the cheapest thing to lose --- which is what
+    `IsoTimestamp` is, at 39 bits, encoded as one contiguous
+    `(epochDay - epochDay(0001-01-01)) * 86400 + secondOfDay` rather than two concatenated fields.
+    A record of `IsoDate` and `TimeOfDay` still *works*: the composite truncates from the low end,
+    losing resolution in the time rather than inverting anything, and reports itself never
+    perfect. There is a test for that, and one asserting the truncated form still never inverts.
+
+    `TimeOfDay` is the only one of the seven **with no invariant to enforce**, because
+    `LocalTime`'s entire domain fits its 47 bits. Its constructor has nothing to refuse and its
+    coder reports `exact` unconditionally, there being no value for which it could not.
+
+    ### The character family
+
     `English`, `Ascii` and `ExtendedAscii`: one-character value types, each a record whose
     constructor refuses anything outside its window.
 
@@ -3109,7 +3159,8 @@ is a defect; all are hardening or generalisation.
     general `BitsN` family is still not worth building: these three earn it by making the
     coding perfect, where a `Bits10` would only restate an annotation.
 
-    12 tests in `CharacterWindowTypesTest`. 529 unit and 551 with integration, both green.
+    12 tests in `CharacterWindowTypesTest` and 13 in `DateTimeWindowTypesTest`. 542 unit and 564
+    with integration, both green, javadoc clean.
 
     ### The original sketch, and why it narrowed to this
 
