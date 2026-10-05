@@ -1,0 +1,79 @@
+### date
+2026-09-26T08:18:38+00:00
+### uptime
+ 08:18:38 up 7 days,  1:16, 11 users,  load average: 0.37, 2.02, 1.81
+### lscpu
+Architecture:                            aarch64
+CPU op-mode(s):                          32-bit, 64-bit
+Byte Order:                              Little Endian
+CPU(s):                                  16
+On-line CPU(s) list:                     0-15
+Vendor ID:                               ARM
+Model:                                   1
+Thread(s) per core:                      1
+Core(s) per socket:                      16
+Socket(s):                               1
+Stepping:                                r1p1
+BogoMIPS:                                2100.00
+Flags:                                   fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 sm3 sm4 asimddp sha512 sve asimdfhm dit uscat ilrcpc flagm paca pacg dcpodp svei8mm svebf16 i8mm bf16 dgh rng
+L1d cache:                               1 MiB (16 instances)
+L1i cache:                               1 MiB (16 instances)
+L2 cache:                                16 MiB (16 instances)
+L3 cache:                                32 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-15
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; CSV2, BHB
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Not affected
+### free -h
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi        10Gi       8.5Gi       712Mi        11Gi        19Gi
+Swap:           39Gi       390Mi        39Gi
+### uname -r
+6.12.103-127.188.amzn2023.aarch64
+### java -version
+openjdk version "21.0.12" 2026-07-21 LTS
+OpenJDK Runtime Environment Corretto-21.0.12.8.1 (build 21.0.12+8-LTS)
+OpenJDK 64-Bit Server VM Corretto-21.0.12.8.1 (build 21.0.12+8-LTS, mixed mode, sharing)
+### mvn -v
+Apache Maven 3.9.16 (2bdd9fddda4b155ebf8000e807eb73fd829a51d5)
+Maven home: /workplace/liaoyunl/husky-sort/tools/apache-maven-3.9.16
+Java version: 21.0.12, vendor: Amazon.com Inc., runtime: /workplace/liaoyunl/husky-sort/tools/amazon-corretto-21.0.12.8.1-linux-aarch64
+Default locale: en, platform encoding: UTF-8
+OS name: "linux", version: "6.12.103-127.188.amzn2023.aarch64", arch: "aarch64", family: "unix"
+### cgroup
+0::/user.slice/user-13252749.slice/user@13252749.service/app.slice/husky-req11cd-20260926-0818.service
+### nproc
+16
+### git HEAD
+5eadb4651dafe5b2007d67e2078be15356ad45a2
+5eadb46 Draft request 11d: the parallel cleanup against the rank coder
+### git src freeze
+d947e77
+### git status src
+### jar
+7d5e0bffe227d4414e44b96f487b4daa1c4977be0ad3b36c70c0ceb026138295  /workplace/liaoyunl/husky-sort/prwork/target/benchmarks.jar
+76379654 bytes  mtime 2026-09-26 08:03:12.873602704 +0000
+### expected jar
+7d5e0bffe227d4414e44b96f487b4daa1c4977be0ad3b36c70c0ceb026138295  target/benchmarks.jar
+76379654 bytes mtime 2026-09-26 08:03:12.873602704 +0000
+previous jar (req11, 15cc2ff): 95ccd2c75924ecac33f104d1c2b1ab08467aa538d1548817c922c27779c1d408 76350880 bytes
+package: package_rc=0 end 2026-09-26T08:03:12Z [INFO] BUILD SUCCESS
+### steps
+step1 11c record 9bb0385 | step2-4 11d A/B/C d947e77 | step5 full suite d947e77
+### guard
+load1<2.0 swap<1048576KiB no other benchmark JVM, MainThread>=5.0%CPU <3

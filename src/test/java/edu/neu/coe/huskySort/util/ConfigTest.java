@@ -12,6 +12,32 @@ import static org.junit.Assert.*;
 
 public class ConfigTest {
 
+    /**
+     * {@code getString} is the one member of the typed-getter family with no callers, so nothing
+     * else in the project would notice if it broke. What distinguishes it from the plain
+     * {@code get(section, option, default)} it delegates to is that it maps an empty result onto
+     * the default as well as an absent one.
+     * <p>
+     * NOTE the last case is the regression test for TODO.md item 47. {@code getString} used to
+     * throw on a null default, because it tested {@code s.isEmpty()} without a null guard where its
+     * siblings {@code getInt}, {@code getLong} and {@code getDouble} all write {@code s == null ||}
+     * first. It now agrees with {@code get}, which returns null for an unset option quite happily.
+     */
+    @Test
+    public void testGetString() throws IOException {
+        final String s = "[x]\nempty=\npresent=Hello\nspaced= Hello World!";
+        final Config config = new Config(new ByteArrayInputStream(s.getBytes()));
+        assertEquals("Hello", config.getString("x", "present", "D"));
+        assertEquals("surrounding space is trimmed, as for get", "Hello World!", config.getString("x", "spaced", "D"));
+        assertEquals("an empty value yields the default", "D", config.getString("x", "empty", "D"));
+        assertEquals("an absent key yields the default", "D", config.getString("x", "absent", "D"));
+        assertEquals("an absent section yields the default", "D", config.getString("nosuch", "absent", "D"));
+        assertEquals("an empty default is returned as itself", "", config.getString("x", "absent", ""));
+        assertNull("a null default comes back as null, as it does from get", config.getString("x", "absent", null));
+        assertNull("and likewise for an option whose value is empty", config.getString("x", "empty", null));
+        assertNull("get itself has always behaved this way", config.get("x", "absent", (String) null));
+    }
+
     @Test
     public void testConfigFromString1() throws IOException {
         final String s = "[x]\nx1=\nx2= \nx3=Hello\nx4= Hello\nx5=Hello World!\nx6= Hello World!\nx7= \"Hello\"";

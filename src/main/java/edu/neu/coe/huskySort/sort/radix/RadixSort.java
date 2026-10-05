@@ -8,6 +8,7 @@ import java.util.function.Function;
 
 /**
  * Class to implement Radix Sort.
+ * TESTME untested in current tests.
  *
  * @param <T> the underlying type to be sorted.
  */
