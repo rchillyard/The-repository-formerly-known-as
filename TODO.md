@@ -2126,6 +2126,54 @@ is a defect; all are hardening or generalisation.
     - **Item 38's `AdaptiveInsertionSort`** now exists in the repo, so \S~A.5 can name and cite the
       $N + X$ algorithm rather than gesture at it.
 
+    ### H. How the encode figures were measured, and why that needs saying
+
+    Added 2026-10-05, out of Yunlu's request-12 A/B. **The paper's encode numbers rest on a
+    stricter method than its sort numbers do, and the reason is worth a short methods paragraph
+    rather than being left implicit.**
+
+    The occasion: `f43ff52` added a per-element exactness check whose commit message --- ours ---
+    said "No measurable cost". Yunlu's A/B put the masking english encode **11--15 % slower**. The
+    check runs on three elements out of a million, so the cost is not the work it does; C2 stops
+    inlining the override at that call site, and an out-of-line call on the cold branch of a hot
+    loop changes what the loop compiles to. A patch that removes the call from the loop body
+    recovers 66--84 %.
+
+    Three things follow, and all three are general rather than about this bug.
+
+    **1. The fork is the unit of replication, and JMH's `±` is not computed that way.** A fork is
+    a fresh JVM, so the ten iterations inside one share its compilation decisions: they are ten
+    looks at *one* draw, not ten independent samples. JMH's interval treats all 30 or 50 as
+    independent and is correspondingly too narrow. In the A/B the old jar's three fork means
+    spread 3.38 ms while the printed `±` was 1.66. So disjoint CIs are weak evidence; **complete
+    separation of the fork means** is the test, and it is nearly non-parametric --- with 3 against
+    3 one instance is about p = 0.05, which is why Yunlu's four instances (two rounds x two n),
+    not any one of them, are what make the finding solid.
+
+    **2. There is no single true runtime to estimate.** The JIT makes a discrete decision and each
+    fork draws one, so the quantity is a mixture over compilation states. Averaging within a fork
+    gives a precise estimate of the wrong thing --- the speed *given that fork's compilation*. The
+    remedy is more forks, not more iterations. Note the signature in the data: the new jar's three
+    forks sit within 0.48 ms of each other, which is a decision going the same way every time, not
+    noise.
+
+    **3. A tight loop's speed is a property of its compiled form, not of its source.** This is the
+    one that bears on the method itself. Husky sort's premise is extracting the key *once per
+    element*, so the encode is exactly the kind of loop whose cost cannot be reasoned about
+    locally --- which is why a line that executes three times can cost 11 %, and why two commits
+    we called timing-neutral moved the 11cd and request-12 encode rows by 10 %.
+
+    **What to write.** A few sentences in the methods section: encode figures come from an
+    interleaved A/B of two jars on one host, judged by separation of fork means rather than by
+    overlapping confidence intervals, because the effect being measured is a per-JVM compilation
+    decision. Say also what *not* to trust, since it is the mistake we made: a comparison of two
+    variants inside one JVM cannot see such an effect at all --- both arms share one set of
+    compilation decisions, and each pollutes the other's profile.
+
+    NOTE this does not change any published number. It is about how the encode numbers were
+    obtained and how a reader should weigh them, and it is cheap to say. See item 55 for the
+    open question of whether to take the fix before submission.
+
     ### What is NOT on this list
 
     No new claim that the cleanup parallelizes *in our implementation* (it does not yet); no
@@ -3292,3 +3340,45 @@ is a defect; all are hardening or generalisation.
     198,900-record corpus, using the probes in this item's history.
 
     See item 31 for stages one and two.
+
+55. **The `perfect` check costs the english encode 11--15 %; decide what to do before submission
+    (opened 2026-10-05, awaiting Yunlu's answer to request 13).**
+
+    Item 48 fixed a silent wrong-answer bug by replacing a length test with a per-element
+    exactness test. `f43ff52`'s commit message --- ours --- said "No measurable cost". Yunlu's
+    request-12 A/B says otherwise: masking english encode 11--15 % slower, every new fork slower
+    than every old fork at both n in both rounds. See item 43H for why that method is the right
+    one and ours was not.
+
+    **The cost is not the work.** The check stops at element 2 of a million. C2 stops inlining
+    the override at that call site and an out-of-line call stays in the body of a hot loop.
+    Yunlu's patch --- test until the first failure, then encode the rest in a loop with no call
+    --- recovers 66--84 %, gives bit-identical codes and the same `perfect` flag, and passes the
+    suite.
+
+    ### What is open
+
+    - **Take the fix, and in what shape.** Yunlu's two-loop split, or hoisting the test out of
+      the encode loop entirely (no call site at all, at the cost of scanning a perfect array
+      twice). His should win on exactly-encodable data, ours only on data that fails early, which
+      is what these corpora happen to be. Asked as question 1 of request 13.
+    - **Whether to run the line-50 revert.** It would turn the english attribution from inference
+      into measurement, and might settle the unexplained chinese `UNICODE_CODER` slowdown
+      (6.5--7.3 %, which the patch does *not* recover). Question 2.
+    - **How much needs re-running if we take it.** Changing the encode path again means the
+      request-12 english rows describe code we no longer ship --- the situation request 12 existed
+      to repair. Question 4, and the one that most changes what we do.
+    - **Whether to publish the shortfall attribution.** Yunlu's 35.4 % / 53.8 % figure is
+      conditional on the encode inside the sort paying the same penalty as the encode-only row,
+      which nobody has measured. Question 5.
+
+    ### The four facts nobody has explained
+
+    Recorded because they are the reason to treat the mechanism as open rather than settled:
+    the saturating coder keeps the identical call and pays 3.2--4.1 ns per element where masking
+    pays 10.9--14.0; masking at n = 32,000 did not move at all; the patch recovers only part of
+    the loss; and the chinese slowdown is flat in n where masking's is not.
+
+    **Do not quietly re-measure and move on.** Whatever is decided, the paper's encode figures and
+    the code that produced them have to describe each other, which is the whole reason request 12
+    was run.
