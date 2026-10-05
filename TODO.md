@@ -439,8 +439,8 @@ Robin asked Claude Chat for a venue recommendation previously and didn't get one
     as the cache-friendliness issue — added a short explanatory clause to
     `paper/HuskySort.tex` covering the mechanism and tying it to the `perfect()` cutoff.
 
-18. **Cite the "quicksort is cache-friendly" claim** (§Why Huskysort Works, near where it used
-    to be line 598). **DONE 2026-07-31.** Robin asked whether this bare assertion needed
+18. ~~**Cite the "quicksort is cache-friendly" claim** (§Why Huskysort Works, near where it used
+    to be line 598).~~ **DONE 2026-07-31.** Robin asked whether this bare assertion needed
     justification; recommended against reusing the Bentley & McIlroy citation for it (that paper
     is about partitioning robustness, not cache behavior — would have been a citation mismatch).
     Added the actual standard reference instead: LaMarca and Ladner, "The Influence of Caches on
@@ -904,7 +904,12 @@ is a defect; all are hardening or generalisation.
     composite key field needs. A visibility change and a home, plausibly `HuskyCoderFactory`.
     Prerequisite for item 31.
 
-31. **A composite-key coder: combinator first, derivation second.** The paper's appendix A.4
+31. ~~**A composite-key coder: combinator first, derivation second.**~~ **DONE 2026-09-30.**
+    Stage one is `CompositeHuskyCoder` (builder, budget, truncation from the low end, computed
+    `perfect`, derived `comparator()`); stage two is `RecordHuskyCoder`, which reads the packing
+    order off a record's declaration and reproduces `PermitCoder` bit for bit over all 198,900
+    records. Item 49 then spent the sign bit so that a field set filling a machine word is exact.
+    Item 54 is a possible stage three, not planned. The paper's appendix A.4
     argues this is what adoption would require, and Robin's framing on 2026-09-07 was that it is
     not essential for the paper but would be for anyone taking the method up. Two stages, and the
     second is the one that matters: a builder that folds N field encodings most-significant-first
@@ -913,6 +918,10 @@ is a defect; all are hardening or generalisation.
     ordering), deriving the encoding from that same declaration — which removes by construction
     the possibility that packing order and comparison order disagree, and lets `perfect()` be
     computed rather than asserted and separately verified by a corpus test.
+
+    Stages one and two are **DONE** (2026-09-29 and 2026-09-30); see also items 49 and 54. Item 54
+    is Robin's stage three: component types that carry their own widths, so that the annotation
+    goes away entirely.
 
 32. **Complete the two thin bibliography entries' provenance note.** Both were completed on
     2026-09-07 and neither blocks anything; recorded only so the reconstruction of
@@ -1282,7 +1291,9 @@ is a defect; all are hardening or generalisation.
     measured motivation, and item 11 looks like the larger lever. Names are at most 3 characters
     against the pinyin code's 5-character capacity, so there are spare bits for item 10 to use.
 
-37. **The husky coders are not order-preserving, and every string benchmark will need re-running.**
+37. ~~**The husky coders are not order-preserving, and every string benchmark will need
+    re-running.**~~ **RESOLVED 2026-09-28 by reversal** --- the observation stands, the remedy did
+    not. Masking is the default again; see the blockquote below.
     Found 2026-09-17 out of item 36. Robin's reading of it: "our husky coders that we've been
     tacitly assuming were ideal turn out not to be ideal, and for reasons that I should have thought
     of at the time. I think I was seduced by the idea of making the encoding as fast as possible,
@@ -2123,7 +2134,9 @@ is a defect; all are hardening or generalisation.
     figures in A and B are hand timings on a loaded eight-core Mac, consistent and directionally
     clear, but not JMH on the machine of record.
 
-44. **An exactly order-preserving pinyin coder, and the general principle behind it (2026-09-22).**
+44. ~~**An exactly order-preserving pinyin coder, and the general principle behind it.**~~
+    **DONE 2026-09-22, measured by Yunlu 2026-09-27, adopted as the chinesenames default
+    2026-09-28.** What remains is the paper subsection, which is tracked in item 43.
     Robin asked why the Chinese-names coder is the worst in the project, given that names are two or
     three characters and the coder packs five. The answer is that length was never the constraint,
     and the diagnosis generalises further than the fix.
@@ -2232,7 +2245,12 @@ is a defect; all are hardening or generalisation.
     - Every chinesenames figure in the paper is superseded by the coder change; 11d supplies the
       new ones for the cells it covers, and the next full suite supplies the rest.
 
-45. **Two latent failures in `src/it`, found 2026-09-23 when Robin enabled it to check a refactor.**
+45. ~~**Two latent failures in `src/it`, found 2026-09-23 when Robin enabled it to check a
+    refactor.**~~ **45a, 45b and 45d all DONE 2026-09-23/24**; `-Pintegration-test` and the default
+    build are green together for the first time. **45c remains open** and is a policy question
+    rather than a defect: whether to run `-Pintegration-test` in CI, or fold `src/it` into the
+    default build. Nothing rots while it is undecided, but the present arrangement --- tests that
+    exist and run only by accident --- is the one option with no upside.
     Neither is caused by anything recent: running `-Pintegration-test` on `parallel-redesign-Robin`
     and on `parallel-redesign` gives byte-identical results, 9 tests and 2 errors on both. They have
     simply been invisible, for the reason in the third bullet.
@@ -2515,3 +2533,762 @@ is a defect; all are hardening or generalisation.
       name. That cannot go stale the same way: a future cell needing a Collator is refused for what
       it is rather than for what it is called. Verified that the guard now fires for both `pinyin`
       and `pinyinRank` and still lets the natural-order cells through.
+
+49. ~~**Raise the composite budget from 63 bits to 64**~~ **DONE 2026-09-30** for
+    `CompositeHuskyCoder`; the `unicodeCoder` half is still open, see "What was not done" below.
+    Robin's observation while reviewing item 31: "it does seem odd that the one type that we cannot
+    perfectly encode is a long", and then the sharper form of it --- the change would affect far
+    more than longs.
+
+    ### Why 63 was chosen originally
+
+    `CompositeHuskyCoder.BUDGET` was 63 so that every code is non-negative and its numeric order is
+    its intended order. Bit 63 is the sign bit, and a code that sets it is a *negative* long, which
+    sorts below every code that does not --- inverting the most significant field, the worst
+    failure available.
+
+    ### Why 64 is nevertheless available
+
+    Husky codes are compared as **signed** longs, and the mapping from unsigned order to signed
+    order is one exclusive-or: fold into the full 64 bits and return `fold ^ Long.MIN_VALUE`. Then
+    signed comparison of the result is unsigned comparison of the fold, which is the order the
+    concatenation built. `RadixHuskySort` already does exactly this internally, at
+    `RadixHuskySort.java:197` and `:205`, to make unsigned digit extraction agree with signed order.
+    And negative husky codes are not novel here: `HuskyCoderFactory.longCoder` returns its argument
+    unchanged, so it has always produced them.
+
+    ### What it would buy, measured
+
+    Every field set summing to exactly 64 --- which is the natural shape of a packed record ---
+    currently loses its last bit and reports imperfect:
+
+    ```
+    record            declared  used  truncating
+    TwoInts(int,int)        64    63        true
+    FourChars(char x4)      64    63        true
+    EightBytes(byte x8)     64    63        true
+    IntTwoShorts            64    63        true
+    ```
+
+    So `record Point(int x, int y)`, about as ordinary a record as exists, cannot be exactly
+    encoded. The long case is separate and slightly different: an unannotated `long` is *narrowed*
+    at declaration to `[-2^62, 2^62-1]`, since the full span will not fit 63, so it does not
+    truncate --- it simply cannot represent its own type. Either way the type husky coding handles
+    most trivially is the one the composite handles worst.
+
+    **It would also apply outside this class.** `HuskyCoderFactory.unicodeCoder` packs 4 x 16 = 64
+    bits and resolves the overrun with `>>> 1`, declaring its maxLength as
+    `MAX_LENGTH_UNICODE - 1` = 3. Verified 2026-09-28: `"aaa`"` and `"aaaa"` differ only in the
+    fourth character's low bit and their codes collide. With the exclusive-or it could be exact at
+    four characters, which is the whole of the Chinese corpus's typical word length.
+
+    ### What was done
+
+    `BUDGET` is 64, `CompositeHuskyCoder.SIGN_BIAS` is applied at the end of every fold, and
+    `HuskyFieldCoder.ofLong` gives a `long` component its own full-width coder --- `ofRange` cannot
+    serve, its span being `2^64 - 1`, which overflows the `long` arithmetic it does. An unannotated
+    `long` component now takes that coder instead of being narrowed to `[-2^62, 2^62-1]`; a
+    declared range still narrows it, which is what the annotation is for.
+
+    The three reservations recorded below as reasons to defer all held, and none turned out to
+    matter:
+
+    - The bit-for-bit `PermitCoder` equivalence test survives with `^ CompositeHuskyCoder.SIGN_BIAS`
+      on one side, in both `CompositeHuskyCoderTest` and `RecordHuskyCoderTest`. It is a little less
+      direct and still the most valuable test in the class.
+    - Codes are indeed no longer non-negative. `SIGN_BIAS`'s javadoc says so explicitly, since it is
+      the thing that will surprise the next reader in a debugger.
+    - `unicodeCoder` was left alone --- see below.
+
+    ### What it bought, measured 2026-09-30
+
+    The payoff is not the extra bit as such but the **cleanup pass it lets a word-filling composite
+    skip**: `AbstractHuskySort.postSort` returns immediately when the coding is perfect. Sorting
+    1,000,000 random `Pair(int, int)`, best of 6, against a coder reproducing exactly what the
+    63-bit budget produced (same fold, shifted right one, unbiased, necessarily imperfect):
+
+    ```
+                        64-bit (no cleanup)   63-bit (cleanup)
+    RadixHuskySort              62.0 ms            75.6 ms      1.22x
+    QuickHuskySort             155.4 ms           228.9 ms      1.47x
+    ```
+
+    ### What it cost, measured
+
+    Nothing detectable. Two questions, both answered by A/B in a single process: the exclusive-or
+    itself, and the fact that a sub-word composite's codes now sit just above `Long.MIN_VALUE`
+    rather than just above zero, which changes the digits `RadixHuskySort`'s passes see.
+
+    ```
+                                        biased (now)   unbiased (before)
+    198,900 permits, 60 bits, radix         19.15 ms        18.90 / 19.88 ms
+    198,900 permits, 60 bits, quick         39.78 ms        40.73 / 41.80 ms
+    1,000,000 Pair, 48 bits, radix          92.55 ms        87.15 / 102.65 ms
+    1,000,000 Pair, 48 bits, quick         193.55 ms       191.53 / 176.65 ms
+    ```
+
+    Every difference is within +-6%, and --- the point --- **the sign of the difference flips when
+    the two are measured in the other order**, which is what a measurement artefact looks like and
+    what a real effect does not. The permit end-to-end figure against hand-written `PermitCoder` is
+    unchanged at 1.28x (18.63 ms against 14.58 ms), as is the encode-only penalty (1.19x for the
+    builder, 1.38x for the derived coder).
+
+    ### Nothing downstream assumed a non-negative code
+
+    Checked by running a word-filling composite --- codes spanning the whole signed range, with
+    `Long.MIN_VALUE` and `Long.MAX_VALUE` both present --- through every husky sort in the project.
+    `QuickHuskySort`, `IntroHuskySort`, `DutchHuskySort`, `HuskyBucketSort` (the `BigInteger` bucket
+    path, the one most likely to care), `RadixHuskySort` and `ParallelRadixHuskySort` all sort
+    correctly. `MergeHuskySort` does not --- but see item 50, which is not this change's doing.
+
+    ### What was not done
+
+    `HuskyCoderFactory.unicodeCoder` still packs 4 x 16 = 64 bits, still resolves the overrun with
+    `>>> 1`, and still declares `maxLength` as 3. Fixing it would make it exact at four characters,
+    which is the whole of the Chinese corpus's typical word length --- and would move every chinese
+    benchmark figure, while Yunlu is mid-run on request 12. It is the case with real figures
+    attached, so it wants its own before-and-after; do it when request 12 has landed.
+
+50. ~~**`MergeHuskySort` leaves inversions whenever the coding is perfect**~~ **FOUND and FIXED
+    2026-09-30.** Not an item-49 regression: it predated that change and had nothing to do with
+    the sign bit. Three separate defects, two of them Robin's fix, one found by testing it.
+
+    ### Why nothing caught it
+
+    `MergeHuskySort.sort` ends:
+
+    ```java
+    if (coding.perfect) return;
+    Arrays.sort(xs);
+    ```
+
+    Its merge sort is wrong, and that `Arrays.sort` has been hiding it. Every coder this project
+    sorts with in anger --- the string coders --- is imperfect, so the cleanup pass runs on every
+    sort and silently repairs the merge's output. Only a **perfect** coder takes the early return,
+    and then the defect reaches the caller as a wrong answer.
+
+    ### Measured
+
+    100,000 elements each, counting inversions left in the returned array:
+
+    ```
+    coder                                        perfect   inversions left
+    longCoder over random Long                     true           32
+    longCoder over non-negative Long               true           29
+    asciiCoder over 12-letter words                false           0
+    ```
+
+    The second row is the one that settles the cause: all codes non-negative, so nothing to do with
+    bit 63 or with `SIGN_BIAS`. It is the merge itself. Note the suspicious index arithmetic in
+    `mergeSort`: `final int mid = from + (to - from - 1) / 2;` and then recursive calls on
+    `[lo, mid + 1)` and `[mid, to)` --- the two halves **overlap at `mid`**, and `merge` is called
+    with `hi = to - 1`.
+
+    ### Why it matters more now than it did
+
+    Item 49 makes perfect codings **commoner**: a composite of two `int`s, four `char`s or eight
+    `byte`s is now exact where it used to truncate, so a caller pairing `MergeHuskySort` with a
+    composite coder now takes the early return that exposes the bug. The same class of latent
+    wrong answer as item 48, and found the same way --- by asking what happens when the coding
+    claims to be perfect.
+
+    ### The three defects
+
+    1. **Overlapping halves.** `mid = from + (to - from - 1) / 2` and then recursion on
+       `[lo, mid + 1)` and `[mid, to)`: element `mid` belonged to both.
+    2. **A merge one element short.** `merge` was called with `hi = to - 1` and looped `k < hi`, so
+       the last slot of every merged range was never written.
+    3. **The insurance check skipped the copy, not just the comparisons.** This is the one that
+       survived the first two fixes, and it is the interesting one. In an ordinary merge sort that
+       merges back into the array it read from, two partitions already in order need *no work at
+       all* and the check can simply `return`. This class implements "avoidance of copying between
+       the arrays": the two arrays swap roles at each level of the recursion, so `merge` reads
+       `xsOrdered` and writes `xsDst`, and **from the first merge onwards those hold different
+       permutations**. Returning early therefore left the caller reading a stale one. The fix keeps
+       the optimisation --- no comparisons --- but moves the elements with `System.arraycopy`.
+
+    Robin fixed 1 and 2 on 2026-09-30; 3 was found by testing that fix, which still corrupted 280
+    of 8,020 random arrays from n=36 upwards. Isolated by replicating the algorithm with the check
+    switchable: check-returns 280 failures, no-check 0, check-bulk-copies 0.
+
+    ### The check was worth keeping
+
+    Sorting 1,000,000 `Long` with `longCoder`, best of 5, after the fix:
+
+    ```
+    already ordered     11.8 ms
+    nearly ordered      67.5 ms
+    reverse ordered    104.1 ms
+    random             202.1 ms
+    ```
+
+    17x on ordered input, so `System.arraycopy` rather than deleting the branch.
+
+    ### Tests added
+
+    `MergeHuskySortTest` gained three tests using `longCoder`, the cheapest perfect coder there is:
+    every size from 0 to 320 at three value spreads, ordered/reversed/constant input at six sizes,
+    and random `long`s including both extremes. All three assert the **whole array** with
+    `assertArrayEquals` rather than `helper.sorted(xs)`, which every pre-existing test uses --- and
+    which cannot see this failure at all, since the corrupted output is perfectly ascending and
+    merely not a permutation of its input. Verified against the pre-fix code: two of the three fail
+    there, and the third (ordered input) passes because a fully ordered array is correct by
+    accident when nothing is ever copied.
+
+    ### The general lesson, which is item 48's lesson again
+
+    Both bugs were invisible because the cleanup pass masked them, and both became visible only by
+    asking what happens when the coding claims to be **perfect**. Item 49 makes perfect codings
+    commoner --- a composite of two `int`s, four `char`s or eight `byte`s is now exact --- so the
+    remaining sorts deserve the same question. `SortSweep` now runs a word-filling composite, codes
+    spanning the whole signed range, through all seven husky sorts; all seven pass.
+
+51. ~~**Sweep every husky sort for item-50's masked-bug pattern**~~ **DONE 2026-09-30.** Robin's
+    question after item 50: if `MergeHuskySort` was wrong for four years because the cleanup pass
+    hid it, what about the others?
+
+    ### The sweep
+
+    Every sort, with `longCoder` (the cheapest perfect coder there is, so no cleanup runs), over:
+    every size from 0 to 320 at three value spreads; ordered, reversed and constant input at six
+    sizes; and random `long`s to 1,000,000 with both extremes present. Assertions on the **whole
+    array** via `Arrays.equals`, never on sortedness --- item 50's failure produced output that
+    ascended perfectly and merely was not a permutation of its input, which `helper.sorted(xs)`
+    cannot see.
+
+    ```
+    QuickHuskySort (insertion cleanup)   all passed
+    QuickHuskySort (system cleanup)      all passed
+    QuickHuskySort (mayBeSorted)         all passed
+    MergeHuskySort                       all passed   (after item 50)
+    IntroHuskySort                       all passed
+    DutchHuskySort                       all passed
+    HuskyBucketSort                      54 failures  -> fixed, below
+    RadixHuskySort                       all passed
+    ParallelRadixHuskySort               all passed
+    ```
+
+    **So the masked-bug pattern was confined to `MergeHuskySort`.** Six sorts were already clean.
+    That is worth knowing rather than assuming, and it is the one question the project could not
+    answer before item 49 made perfect codings easy to produce for an arbitrary type.
+
+    ### The one failure was a different bug
+
+    `HuskyBucketSort` threw `ArithmeticException: BigInteger divide by zero` for **every array
+    smaller than `bucketSize`**. `HuskyBucketHelper` sizes its bucket array as `n / m`, integer
+    division, which is zero below one bucket's worth; `loadBuckets` then divides by the bucket
+    count. Not masked at all --- it throws loudly --- and nothing to do with perfection: it fails
+    for any coder. It survived because `HuskyBucketSortTest` uses n = 4 with bucketSize 2, and
+    n = 10,000 and 10,240 with bucketSize 16, so no test ever went below the bucket size.
+
+    Fixed with `Math.max(1, n / m)` in both constructors. One bucket is the right answer for a
+    small array: the sort degenerates to running the post-sorter over everything, which is what
+    should happen below one bucket's worth of data. Regression test added covering n = 0 to 15
+    against a bucket size of 16.
+
+    ### Unrelated flake noticed in passing --- FIXED 2026-10-01
+
+    `TimerTest` asserts measured times against a real sleep and failed twice during this session
+    under load, `testMillisecs` at 111.5 ms and `testPauseAndLapResume1` at 112.4 ms, each
+    passing on its own re-run.
+
+    NOTE the first description here was wrong: these were not tolerance-free assertions. They
+    read `assertEquals(TENTH_DOUBLE, time, 11)` --- a tolerance of 11 ms on a 100 ms sleep, so an
+    11% window. The defect was that the window was too narrow, not that there was none.
+
+    Widened to 50 ms, as a named `TOLERANCE` constant with the reasoning beside it. A sleep
+    cannot finish early but can overrun without limit when the scheduler is contended, so an 11%
+    window was really testing how idle the machine was. 50 ms still catches a timer that reports
+    zero, or the wrong unit, or forgets a pause. If these ever need to be exact, the fix is not a
+    tighter tolerance but a different assertion --- that the measured time is **at least** the
+    sleep, which is the direction a sleep actually guarantees.
+
+52. ~~**`HashCodeSort.verify` cannot repair more than two colliding elements**~~ **FIXED
+    2026-09-30** in `../INFO6205` (commit `64beda4f`), `sort/huskySort/sort/hashCode/HashCodeSort.java`.
+    Recorded here because it is the husky cleanup pass in miniature and the finding came out of
+    item 51.
+
+    It is the husky idea in miniature, and a student exercise: sort by `hashCode` as the proxy,
+    then `verify` repairs the ties. But `verify` is a **single adjacent-swap pass**:
+
+    ```java
+    for (int i = 1; i < n; i++)
+        if (hashes[i - 1] == hashes[i])
+            if (a.get(indices[i - 1]).compareTo(a.get(indices[i])) > 0)
+                exchange(indices, i);
+    ```
+
+    One pass of adjacent swaps sorts a run of two and nothing longer. Three elements sharing a
+    hash code, values `[3, 2, 1]`, come back `[2, 1, 3]`.
+
+    Measured over 200 random lists at each collision density:
+
+    ```
+    elements colliding in groups of 1    200/200 correct
+    elements colliding in groups of 2     46/200 wrong
+    elements colliding in groups of 3     92/200 wrong
+    elements colliding in groups of 8    161/200 wrong
+    ```
+
+    Groups of 2 already fail because duplicate *values* put three or more elements in one hash
+    class. `HashCodeSortTest` passes because it uses exactly one colliding pair.
+
+    `verify` is now an insertion sort restricted to runs of equal hashes, the inner guard
+    stopping at a run boundary so that elements of differing hashes are never compared --- the
+    first phase has ordered those already, and comparing them again would cost the lookups the
+    method exists to avoid. Four tests added; three of them fail against the old version.
+
+    ### The rest of INFO6205 is clean
+
+    `MergeSort` has the same no-copy/insurance structure that item 50 was about, and gets it
+    right: its no-copy branch calls `helper.copyBlock` where `MergeHuskySort` returned. Verified
+    rather than read --- all four `(nocopy, insurance)` combinations at two cutoffs, every size
+    from 1 to 320 at three spreads plus shaped inputs, asserting the whole array: all passed.
+    `MergeSortBasic` has no such optimisation. `BucketSort` takes its bucket count from the caller
+    instead of deriving it as `n / size`, so it cannot produce item 51's zero-bucket case, and its
+    zero-gap degenerate case is already guarded. Nothing in INFO6205 has a `perfect`-guarded
+    cleanup at all.
+
+    ### Why INFO6205's MergeSort tests would not have caught it --- and it is not the assertion
+
+    Recorded 2026-09-30, correcting what this item first said. The first note here claimed the
+    tests were blind because they assert only `helper.isSorted(sorted)`. **That was wrong.** In
+    INFO6205's scheme the corresponding failure mis-orders a permutation, which `isSorted` catches
+    perfectly well. The gap is coverage, not assertion strength.
+
+    Established by injecting the `MergeHuskySort` fault --- `return` in place of `copyBlock` ---
+    and running the suite: **all 28 tests passed.** Then:
+
+    - `testSort12`, `13` and `14` are the only tests that enable insurance, and all three sort
+      **8** elements against a default cutoff of 20. They never recurse; the merge code never
+      executes. The three tests aimed at the optimisation are pure insertion sorts.
+    - Every test with n past the cutoff (16, 128, 1024, 8192, and the 2^k ones) sets
+      `INSURANCE, "false"` explicitly.
+    - `testSort11_partialsorted` builds partially-ordered data, which is the right shape --- but
+      constructs its sorter with the unmodified `config` (insurance unset, so false) and asserts
+      nothing at all. It prints a timing.
+
+    **And simply enlarging those tests would not have sufficed.** The check fires only when the
+    left partition's maximum is at most the right partition's minimum:
+
+    ```
+    data shape (n = 1024, insurance on, cutoff 20)   branch fires   fault caught
+    uniform random nextInt(1000)  (what tests use)          0 / 50 sorts    no
+    duplicate-heavy nextInt(5)                              0 / 50 sorts    no
+    fully ascending                                     3,150 / 50 sorts    no
+    nearly sorted, 5 random swaps                       2,483 / 50 sorts    50/50
+    ```
+
+    Random halves essentially never satisfy the condition. Fully ascending input fires it
+    constantly and still cannot expose a fault, because both arrays then hold the same thing
+    anyway --- the same reason HuskySort's ordered-input case passed either way. Only *nearly*
+    sorted input does it, which is exactly the input the optimisation exists for and exactly what
+    no correctness test used.
+
+    A test covering all four `(nocopy, insurance)` combinations over nearly-sorted arrays of 64
+    to 1,024 elements is now in `MergeSortTest`, asserting the whole array. It catches the
+    injected fault that the previous 28 tests all passed.
+
+    ### And the three existing tests now turn the cutoff off (INFO6205 `5120532a`)
+
+    Robin's point, 2026-09-30: `testSort12`, `13` and `14` should disable the cutoff rather than
+    be left sorting 8 elements under a cutoff of 20. They now pass `cutoff = 1`, and with that
+    `testSort14` --- the `nocopy=true, insurance=true` case --- **fails against the injected
+    fault**, where before it passed. `testSort12` and `13` correctly still pass, neither reaching
+    that branch.
+
+    **The value is 1, not 0.** `BaseHelper.cutoff()` is
+    `(cutoff >= 1) ? cutoff : CUTOFF_DEFAULT`, so 0 and every negative value silently give 20
+    rather than disabling anything --- the change would have looked applied and done nothing.
+    Measured: unset, `0` and `-1` all yield 20; `1` yields 1. `config.ini` already says
+    "use the value 1 (not 0)", the rest of the suite passes `"1"`, and nothing in the repository
+    passes `"0"`, so these three were the only instance. This also answers the standing
+    `XXX check that a cutoff value of 1 effectively stops the cutoff mechanism` at
+    `MergeSort.java:148`: it does, because the test becomes `to <= from + 1`, true only for a
+    range of 0 or 1 elements, so insertion sort does nothing and every merge is still reached.
+
+    NOTE `testSort14` is one fixed 8-element array from a fixed seed, so it catches *this* fault
+    rather than that class of fault. The nearly-sorted test above covers the class.
+
+53. ~~**Audit every cutoff condition in both repositories**~~ **DONE 2026-09-30.** Robin's
+    request after item 52: the test should be `to <= from + cutoff`, or `from < to - cutoff` for
+    the recursion guard, and getting it wrong matters chiefly when `cutoff` is 1 or 0.
+
+    ### HuskySort
+
+    | site | form | verdict |
+    |---|---|---|
+    | `simple/QuickSort:75` | `to <= lo + getCutoff()` | canonical |
+    | `simple/MergeSortBasic:41` | `to <= lo + getCutoff()` | canonical |
+    | `huskySort/MergeHuskySort:88` | `to <= from + cutoff` | canonical (cutoff a private final 8) |
+    | `simple/MultikeyQuicksort:79` | `hi - lo < CUTOFF` | **correct**: `hi` is inclusive here, so this *is* `to <= from + CUTOFF` |
+    | `radix/MSDStringSort:65` | `hi < lo + cutoff` | **off by one** -- fixed |
+    | `radix/UnicodeMSDStringSort:89` | `n < getCutoff()` | **off by one** -- fixed |
+
+    The four helper classes --- `ComparableSortHelper`, `InstrumentedComparisonSortHelper`,
+    `BasicCountingSortHelper`, `InstrumentedCountingSortHelper` --- all read
+    `(cutoff >= 1) ? cutoff : default`, so a configured 0 means "unset" and cannot cause the
+    infinite recursion their comments warn about. Verified: `MergeSortBasic`, `QuickSort_3way`,
+    `QuickSort_DualPivot` and `IntroSort` all sort correctly at configured cutoffs of 0, 1, 2 and
+    8. NOTE the configured default in `config.ini` is empty, which reads as 0, so that guard is
+    load-bearing in ordinary use, not just in the odd case.
+
+    **`MSDStringSort` was the exception, because its cutoff is a `static` field with a public
+    setter and no guard.** `setCutoff(0)` made `hi < lo + 0` never true, so even an empty range
+    recursed: every sort ended in `StackOverflowError` (measured over random words, all-equal
+    strings and a shared long prefix). `setCutoff` now takes 0 or less to mean "unset", matching
+    the four helpers, and the condition is `<=`. The `<` had also made the effective cutoff one
+    less than the value set --- 14 rather than the declared 15.
+
+    `UnicodeMSDStringSort` had the same `<` but could not overflow: `n` is at least 2 by the test
+    above it and `getCutoff()` is at least 1. Corrected for consistency, which is what makes an
+    odd one visible.
+
+    ### INFO6205 (commit `429b0b4a`)
+
+    Canonical and correct: `MergeSort:153`, `MergeSortBasic:57`, `IntroSort.terminator`
+    (`sizeThreshold` is a private final 16), `MSDStringSort:103` (and it cuts to quicksort rather
+    than recursing), `InsertionSort:79`, the exact-size `sortPair`/`sortTrio` helpers.
+    `RandomSort`'s `CUTOFF` is not a recursion guard.
+
+    **`ParSort:38` was the one hazard.** Its sense is inverted --- `to - from >= cutoff` means
+    *go parallel* --- and it had no lower bound. At cutoff 1 a single-element range takes the
+    parallel path, where `mid == from`, so the second half is the whole range again. Measured:
+    cutoff 0 and 1 both ran forever, 2 and above were fine. `cutoff` is `public static` and
+    mutable, and choosing it is the point of that exercise, so it now splits only with at least
+    two elements.
+
+    ### The `- 1` in INFO6205's QuickSort: dropped
+
+    Robin's decision, 2026-09-30. `Math.max(getHelper().cutoff() - 1, 3)` made that sort's
+    effective cutoff one less than `MergeSort`'s for the same configuration --- 19 against 20 at
+    the default --- and the `- 1` was not needed for the reason its comment gave, since
+    `Math.max(..., 3)` already lets a cutoff of 1 disable the mechanism. (The comment also said 0
+    gives a default of 7. Not since `CUTOFF_DEFAULT` became 20 --- though 7 is still HuskySort's
+    default, which is presumably where the line came from.) Four counts in
+    `QuickSort_ClassicTest.testSortWithInstrumenting5a` move with it: compares 12,189 -> 12,168,
+    swaps 2,466 -> 2,614, hits 17,759 -> 17,956, lookups 11,915 -> 11,681. The stale
+    `// with cutoff = 16` comment there is replaced by the effective cutoff, which is 7.
+
+    ### And the condition itself now lives in one place
+
+    Robin's request, 2026-09-30: one method, taking `n = to - from`, that every cutoff condition
+    calls. `Config.shouldRecurse(n, cutoff)` here, `Config_Benchmark.shouldRecurse(n, cutoff)` in
+    INFO6205 (`949c8238`), both `n > Math.max(cutoff, 1)`, with an overload taking a `Config` and
+    a `getCutoff(Config)` that resolves 0 or less to the default.
+
+    Named `shouldRecurse` rather than `isRecurse`, since `is` reads as a property of a thing and
+    this is a question about what to do next.
+
+    **The `Math.max` is why it is worth being a method.** Every failure this audit found was a
+    cutoff of 0 or 1 reaching a condition that then let a one-element range recurse --- and a
+    one-element range splits into an empty half and itself. Putting the floor where the question
+    is asked means no call site can reintroduce that, whatever it passes. It deliberately does
+    *not* substitute a default: the right default differs by sort (`MSDStringSort` uses 15,
+    INFO6205's `msdcutoff` 256), so a caller that wants 0 to mean "my default" resolves it first,
+    as the helpers do.
+
+    All nine sites across the two projects now call it --- including
+    `MultikeyQuicksort`, where `hi` is inclusive and so passes `hi - lo + 1`, which makes a
+    conversion that a reader previously had to rediscover explicit. `ShouldRecurseTest` in each
+    project covers the convention, the disabling value, the termination floor at every
+    non-positive cutoff, and the `Config` resolution.
+
+    ### Did a cutoff of 0 change behaviour? Checked site by site
+
+    Robin's question, 2026-09-30, and a fair one: `shouldRecurse` applies `Math.max(cutoff, 1)`
+    where the old conditions did not, so a 0 reaching a condition would now behave differently.
+
+    Answered by writing out each site's *old* and *new* "stop here" predicate, together with how
+    its cutoff is resolved before the condition sees it and the smallest range size that can
+    reach the condition at all, then comparing them over every cutoff from -2 to 59 and every
+    reachable n. Sound because at each of the eight unchanged sites the diff is exactly one
+    import and one expression --- nothing else moved --- so equal predicates mean equal
+    behaviour.
+
+    ```
+    HuskySort  simple/QuickSort              IDENTICAL for every cutoff and every reachable n
+    HuskySort  simple/MergeSortBasic         IDENTICAL
+    HuskySort  huskySort/MergeHuskySort      IDENTICAL
+    HuskySort  simple/MultikeyQuicksort      IDENTICAL
+    HuskySort  radix/MSDStringSort           differs -- the intended <= fix
+    HuskySort  radix/UnicodeMSDStringSort    differs -- the intended <= fix
+    INFO6205   linearithmic/MergeSort        IDENTICAL
+    INFO6205   linearithmic/MergeSortBasic   IDENTICAL
+    INFO6205   linearithmic/IntroSort        IDENTICAL
+    INFO6205   counting/MSDStringSort        IDENTICAL
+    INFO6205   linearithmic/QuickSort        differs -- the intended "- 1" drop
+    INFO6205   par/ParSort                   differs -- the termination fix
+    ```
+
+    **No site changed behaviour because of a zero.** At the four sites that do differ, a cutoff
+    of 0 or less is either impossible or irrelevant:
+
+    - `simple/QuickSort`, `simple/MergeSortBasic`, `UnicodeMSDStringSort`, INFO6205's `MergeSort`,
+      `MergeSortBasic` and `QuickSort` all read the cutoff through a helper that already replaced
+      0 with a positive default (7 here, 20 there) *before* the condition saw it. The `Math.max`
+      is a no-op on those paths. Their differences sit at `n` equal to that default --- the
+      off-by-one and the `- 1`, not the zero.
+    - `MergeHuskySort` (8), `MultikeyQuicksort` (16) and `IntroSort` (16) have fixed positive
+      cutoffs.
+    - The two sites where a literal 0 really could arrive, HuskySort's `MSDStringSort` and
+      INFO6205's `ParSort`, did not terminate at 0 before. There is no old behaviour to preserve.
+
+    **The one that looked dangerous and is not:** INFO6205's `msdcutoff` is *unguarded* ---
+    `MSDCutoff()` returns it raw, and an explicit `msdcutoff = 0` does reach the condition as 0
+    (an *empty* entry yields 256, so the shipped configuration is unaffected). But `doSort`
+    returns at `n <= 1` before the test, so the `max(0, 1)` floor is unreachable and the site is
+    identical at every cutoff. Worth knowing, because it is unguarded by luck rather than by
+    design: if that early return were ever removed, `msdcutoff = 0` would matter again.
+
+    ### One real consequence, in `ParSort`
+
+    Routing it through the common method changed `n >= cutoff` to `n > cutoff`, so a range of
+    exactly `cutoff` elements now sorts sequentially rather than in parallel. That moves where
+    parallelism begins by one element and changes no answer. It is the price of "cutoff" meaning
+    the same thing there as everywhere else, and it is recorded in the source.
+
+54. ~~**Item 31 stage three: widths carried by the component types.**~~ **DONE 2026-10-04** for
+    the three character types; the general `BitsN` family remains a maybe and probably always
+    will, for the reasons below.
+
+    ### What was built
+
+    Seven types in two families, all records, all carrying their width as a property of the type
+    and all discovered through the same `HUSKY_CODER` convention.
+
+    ```
+    type            holds           window                          bits
+    English         char            64..127                          6
+    Ascii           char            0..127                           7
+    ExtendedAscii   char            0..255                           8
+    IsoDate         LocalDate       0001-01-01 .. 9999-12-31        22
+    SecondOfDay     LocalTime       whole seconds                   17
+    TimeOfDay       LocalTime       the entire domain, nanoseconds  47
+    IsoTimestamp    LocalDateTime   ISO years, whole seconds        39
+    ```
+
+    ### The date family, added 2026-10-04
+
+    Dates differ from characters in a way worth stating: **characters have canonical windows and
+    dates do not.** ASCII is ASCII, but the right epoch for a date is a property of the data,
+    which is exactly why `@HuskyField(epoch, days)` asks for one --- `PermitCoder` wants
+    2013-01-01 and 1,879 days, and gets eleven bits for it where `IsoDate` costs twenty-two. The
+    annotation remains the better answer when you know your corpus.
+
+    The four-digit ISO year is the exception that earns a type: natural rather than chosen, needs
+    no declaration, and at 3,652,058 days costs only 22 bits.
+
+    **The arithmetic, measured rather than estimated:**
+
+    ```
+    ISO date, 0001-01-01 .. 9999-12-31      3,652,058 days          22 bits
+    LocalTime, full nanosecond resolution   86,399,999,999,999 ns   47 bits
+    LocalTime to the second                 86,399 s                17 bits
+    ISO date + second                                               39 bits   fits, 25 to spare
+    ISO date + nanosecond                                           69 bits   DOES NOT FIT
+    ```
+
+    That last line is **a fact about the method, not about this implementation**: a husky code is
+    64 bits and a nanosecond-resolution timestamp over four-digit years needs 69. Something has to
+    give, and sub-second precision is usually the cheapest thing to lose --- which is what
+    `IsoTimestamp` is, at 39 bits, encoded as one contiguous
+    `(epochDay - epochDay(0001-01-01)) * 86400 + secondOfDay` rather than two concatenated fields.
+    A record of `IsoDate` and `TimeOfDay` still *works*: the composite truncates from the low end,
+    losing resolution in the time rather than inverting anything, and reports itself never
+    perfect. There is a test for that, and one asserting the truncated form still never inverts.
+
+    `TimeOfDay` is the only one of the seven **with no invariant to enforce**, because
+    `LocalTime`'s entire domain fits its 47 bits. Its constructor has nothing to refuse and its
+    coder reports `exact` unconditionally, there being no value for which it could not.
+
+    ### The character family
+
+    `English`, `Ascii` and `ExtendedAscii`: one-character value types, each a record whose
+    constructor refuses anything outside its window.
+
+    ```
+    type            window      bits   ten of them
+    English         64..127     6      60   (as HuskyCoderFactory.englishCoder packs)
+    Ascii             0..127    7      63 for nine (as asciiCoder packs)
+    ExtendedAscii     0..255    8
+    ```
+
+    `Unicode` was not built and is not needed: a plain `char` component is already 16 bits and
+    exact through `integralBounds`.
+
+    Each declares `public static final HuskyFieldCoder<Itself> HUSKY_CODER`, which
+    `RecordHuskyCoder` finds reflectively once per coder construction --- a convention rather
+    than an interface, because the width must be recoverable from the `Class` alone (the
+    derivation runs before any instance exists) and Java cannot require a static through an
+    interface. The derivation therefore knows nothing about these three in particular, and a
+    caller can add a width type this project has never heard of. Shared machinery is
+    `HuskyFieldCoder.ofCharacterWindow`, which exists because `ofRange` is bounded by
+    `N extends Number` and a `Character` is not one.
+
+    **The lookup must precede the nested-record flattening.** These types are records, and
+    flattening one reaches its `char` component and gives it sixteen bits --- discarding the very
+    width the type exists to carry. There is a test that says so.
+
+    ### What it buys, which is more than the readability I first credited it with
+
+    The constructor refusing out-of-window characters makes "in the window" an invariant, so
+    every code is exact, so **a record of these components is always `perfect`** --- and
+    `AbstractHuskySort.postSort` returns immediately when it is. An annotated `char` cannot
+    promise that: nothing stops the array holding a character outside the declared range, at
+    which point the field clamps, the coding reports imperfect, and the sort pays for a cleanup
+    pass. There is a test comparing the two forms directly: same width, same codes for in-window
+    data, and the annotated one going imperfect exactly where the typed one could not have been
+    constructed.
+
+    This is also item 43G's masking-versus-saturation question answered by construction rather
+    than by argument. `englishCoder` is only quasi-order-preserving because it narrows with a
+    mask, and masking is not monotonic outside the window. Here there is no such character to
+    narrow. For data that is not clean, `clamp` saturates --- but at construction, in the
+    caller's own code, where the loss is visible.
+
+    ### Cost: none measured
+
+    Robin predicted none and there is none. The reflective lookup is one `getField` per component
+    when the coder is built, never per element. The Permit probes are unchanged within noise:
+    encode 1.18x (builder) and 1.37x (derived) against hand-written `PermitCoder`, where before
+    this change they were 1.19x and 1.37x; end-to-end sort 1.32x against 1.28x, with the
+    hand-written baseline having moved by a comparable amount in the same runs.
+
+    An allocation per field per element remains the cost of *using* them, which is why the
+    general `BitsN` family is still not worth building: these three earn it by making the
+    coding perfect, where a `Bits10` would only restate an annotation.
+
+    ### Over-budget now warns, once
+
+    Robin, 2026-10-04: keep truncating rather than refusing, but say so. `Builder.build()` logs a
+    WARN naming the declared width, the budget, and --- the part worth knowing --- that the coder
+    can never report perfect, so a husky sort using it will always run its cleanup pass.
+
+    **Once per coder, never per element.** A coder is built once and then used for every element
+    of every array it codes, so a per-element log would be ruinous for a method whose premise is
+    doing work once per element rather than once per comparison. There is a test that attaches an
+    appender, builds a truncating coder, codes all 198,900 permits through it, and asserts
+    exactly one warning; and that a coder which fits says nothing at all.
+
+    12 tests in `CharacterWindowTypesTest`, 13 in `DateTimeWindowTypesTest`, 1 more in
+    `CompositeHuskyCoderTest`. 543 unit and 565 with integration, both green, javadoc clean.
+
+    ### The original sketch, and why it narrowed to this
+
+    Where stage two reads the packing order off a record's declaration, this would read the
+    *widths* off it too:
+
+    ```java
+    record Pair(Byte high, Bits10 low) { }
+    ```
+
+    `Bits10` being a 10-bit type exactly as `Byte` is an 8-bit type, so
+    `@HuskyField(min = 0, max = 1023)` disappears. An offset would come from a second
+    constructor, `Bits10(int value, int offset)`, with the one-argument form meaning offset zero.
+
+    ### Half of that example already works
+
+    Measured 2026-09-30:
+
+    ```
+    record ByteOnly(Byte b)                     -> 8 of 64 bits: b=8
+    record (Byte, @HuskyField(0..1023) int)     -> 18 of 64 bits: high=8 low=10
+    record (Byte, int)   [no annotation]        -> 40 of 64 bits: high=8 low=32
+    ```
+
+    A boxed `Byte` component is already exact and unannotated, because `integralBounds` knows the
+    type's own range. So what stage three adds is precisely the **non-power-of-two widths** ---
+    the 10 above, the 17 a zip code needs, the 11 `PermitCoder` spends on a date, the 5 per
+    character of the block alphabet. Those are the widths that make the difference between 18
+    bits and 40, and today only an annotation can state them.
+
+    ### The width has to be in the type, not in the value
+
+    This constrains the design more than it first appears. `RecordHuskyCoder.of(Class)` builds the
+    coder from the declaration, **before any instance exists** --- that is the whole point, since
+    the accessors are unreflected once and the coder is then reused for every element. So a single
+    `Bits(int value, int width)` class cannot work: `getRecordComponents()` would report the
+    component's type as `Bits` and there would be nothing to ask for the width.
+
+    The width must therefore be recoverable from the `Class` alone, which means either a class per
+    width (`Bits1` ... `Bits63`, generated or sealed), or a convention the derivation can read
+    reflectively --- a `public static final int BITS`, or a `public static final HuskyFieldCoder`
+    the type supplies for itself. The last is the most appealing: a type that ships its own field
+    coder needs no special case in `RecordHuskyCoder` at all, and the same mechanism would let a
+    caller add a width type this project has never heard of.
+
+    ### The offset has to be defined by the type --- which narrows the proposal
+
+    Robin confirmed this, 2026-09-30, and it rules out the `Bits10(int value, int offset)`
+    constructor from the original sketch. An offset held per *instance* is not the same thing as
+    one declared per *field*, and the concatenation needs the latter: if one element of a column
+    is `new Bits10(5, 0)` and another `new Bits10(600, 500)`, the two codes are not comparable,
+    and nothing says so --- both fields are still 10 bits wide and `exact()` is still true. That
+    is the shape of items 48 and 50, a wrong ordering reported as perfect.
+
+    So the offset belongs to the type. And **a `BitsN` type can then express only
+    `[0, 2^N - 1]`**: any other range needs a bespoke type per offset, which is absurd past a
+    handful of cases, or an annotation after all. Stage three therefore removes the annotation
+    only for **zero-based integral fields**. `Narrowed`'s `@HuskyField(min = 1850, max = 2020)`
+    --- the year field from `Tuple`, item 29 --- would keep it, as would `PermitCoder`'s date.
+
+    ### Which makes the annotation form look better than the sketch assumed
+
+    Robin's second point, same day, and it is the right one: `@HuskyField(min = 0, max = 1023)`
+    on a component is already fine, **because the range is stated in the record's own
+    declaration**. That is the property that matters --- the width travels with the type being
+    sorted, not with some remote call site --- and the annotation has it. What a width type adds
+    over it is reuse across records and a name for the width, not a new guarantee.
+
+    It also only ever applied to integral fields. For a `String` the declaration must carry the
+    **alphabet**, and for a `LocalDate` the **epoch**; no `BitsN` can hold either. So
+    `PermitRecord` --- the flagship case for the whole derivation, and the one checked bit for
+    bit against `PermitCoder` over 198,900 records --- would be **entirely unaffected** by stage
+    three. Its three components are `String`, `String`, `LocalDate`; it has no integral field at
+    all, which is why it uses `chars`/`alphabet` and `epoch`/`days` rather than `min`/`max`.
+
+    ### The convenience definitions are the part that earns its keep
+
+    Robin, 2026-09-30: rather than a numeric family, a few **named** types ---
+    `English`, `Ascii`, `ExtendedAscii` --- each fixing a width *and* an offset. That answers the
+    objection above, because the reason "a bespoke type per offset" looked absurd was the
+    unbounded numeric family; there are only a handful of character ranges anyone wants, and they
+    already have names in this project and in the paper.
+
+    The ranges, taken from `HuskyCoderFactory` rather than guessed, and verified 2026-09-30 to
+    give exactly those widths through the existing annotation:
+
+    ```
+    type            offset   width   range          @HuskyField equivalent today
+    English         64       6       64..127        (min = 64,  max = 127)  char
+    Ascii            0       7        0..127        (min = 0,   max = 127)  char
+    ExtendedAscii    0       8        0..255        (min = 0,   max = 255)  char
+    Unicode          0      16        0..65535      none needed -- plain char is already 16 and exact
+    ```
+
+    `English`'s window is 64..127, not 60..96: `OFFSET_ENGLISH` is 64 and the width 6, which is
+    what brings `'A'` = 65 through `'z'` = 122 into a six-bit slot. Measured: a record of four
+    such components declares 24 bits, so ten of them fit a machine word with four to spare.
+
+    **And a type can enforce what the coder can only hope for.** `englishCoder` is merely
+    quasi-order-preserving because it *masks* with `& 0x3F`, which is not monotonic outside the
+    window --- that is the masking-versus-saturation discussion of item 43G. An `English` *value
+    type* would reject or clamp out-of-window characters in its constructor, so the ordering
+    inside the type would be exact by construction. That is a real gain over the annotation, and
+    the strongest argument in this item: the annotation declares a range, the type can guarantee
+    it.
+
+    ### What it would cost
+
+    Narrowed as above, the case for it is reuse and readability rather than correctness, so cost
+    decides. A `Bits10` is a heap object, and Java has no value types until Valhalla lands. A record of
+    `BitsN` components therefore allocates per field per element, where `int` plus an annotation
+    stores primitives. That matters for a method whose premise is extracting the key *once* per
+    element: the generic coder already costs 1.19x (builder) and 1.38x (derived) against
+    hand-written `PermitCoder` on encode alone, and this would add to that rather than to the
+    comparison count it saves. **Measure it before adopting it** --- the honest comparison is
+    `record Permit(Bits5x5 block, ...)` against the annotated record of stage two, over the
+    198,900-record corpus, using the probes in this item's history.
+
+    See item 31 for stages one and two.

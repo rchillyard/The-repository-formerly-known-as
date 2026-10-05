@@ -47,10 +47,10 @@ public class HuskyCoderFactoryTest {
         final long expected1 = 0x61E1BF9F4E5BF868L;
         final HuskySequenceCoder<String> coder = HuskyCoderFactory.asciiCoder;
         assertEquals(expected1, coder.huskyEncode(apostroph));
-        assertTrue(coder.perfectForLength(length));
+        assertTrue(coder.couldBeExactAtLength(length));
         final long expected2 = 0x61E1BF9F4E5BF868L;
         assertEquals(expected2, coder.huskyEncode(apostroph + "e"));
-        assertFalse(coder.perfectForLength(length + 1));
+        assertFalse(coder.couldBeExactAtLength(length + 1));
     }
 
     @Test
@@ -70,9 +70,9 @@ public class HuskyCoderFactoryTest {
         final long expected2 = 0x870BF3D32BF0A25L;
         final HuskySequenceCoder<String> coder = HuskyCoderFactory.englishCoder;
         assertEquals(expected1, coder.huskyEncode(apostrophe));
-        assertTrue(coder.perfectForLength(length));
+        assertTrue(coder.couldBeExactAtLength(length));
         assertEquals(expected2, coder.huskyEncode(apostrophe + "s"));
-        assertFalse(coder.perfectForLength(length + 1));
+        assertFalse(coder.couldBeExactAtLength(length + 1));
     }
 
     @Test
@@ -136,19 +136,19 @@ public class HuskyCoderFactoryTest {
         final int lAase = sAase.length();
         final long expectedAase1 = 0x62803980328000L;
         assertEquals(expectedAase1, coder.huskyEncode(sAase));
-        assertTrue(coder.perfectForLength(lAase));
+        assertTrue(coder.couldBeExactAtLength(lAase));
         final long expectedAase2 = 0x6280398032803CL;
         assertEquals(expectedAase2, coder.huskyEncode(sAase + "x"));
         final String sMoskva = "Mосква";
         final int lMoskva = sMoskva.length();
         final long expectedM = 0x26821F0220821DL;
         assertEquals(expectedM, coder.huskyEncode(sMoskva));
-        assertFalse(coder.perfectForLength(lMoskva));
+        assertFalse(coder.couldBeExactAtLength(lMoskva));
         final String sSrebrenica = "Сребреница";
         final int lSrebrenica = sSrebrenica.length();
         final long expectedS = 0x2108220021A8218L;
         assertEquals(expectedS, coder.huskyEncode(sSrebrenica));
-        assertFalse(coder.perfectForLength(lSrebrenica));
+        assertFalse(coder.couldBeExactAtLength(lSrebrenica));
     }
 
     @Test
@@ -158,7 +158,7 @@ public class HuskyCoderFactoryTest {
         final int l你好世界 = s你好世界.length();
         final long expected你好世界 = 0x27B02CBEA70B3AA6L;
         assertEquals(expected你好世界, coder.huskyEncode(s你好世界));
-        assertFalse(coder.perfectForLength(l你好世界));
+        assertFalse(coder.couldBeExactAtLength(l你好世界));
         assertEquals(expected你好世界, coder.huskyEncode(s你好世界 + "人"));
     }
 
@@ -531,10 +531,10 @@ public class HuskyCoderFactoryTest {
      */
     @Test
     public void testSaturatingCodersDeclareImperfectionByLength() {
-        Assert.assertTrue("nine characters fit the ASCII coder", HuskyCoderFactory.asciiSaturatingCoder.perfectForLength(9));
-        Assert.assertFalse("ten do not", HuskyCoderFactory.asciiSaturatingCoder.perfectForLength(10));
-        Assert.assertTrue("ten characters fit the English coder", HuskyCoderFactory.englishSaturatingCoder.perfectForLength(10));
-        Assert.assertFalse("eleven do not", HuskyCoderFactory.englishSaturatingCoder.perfectForLength(11));
+        Assert.assertTrue("nine characters fit the ASCII coder", HuskyCoderFactory.asciiSaturatingCoder.couldBeExactAtLength(9));
+        Assert.assertFalse("ten do not", HuskyCoderFactory.asciiSaturatingCoder.couldBeExactAtLength(10));
+        Assert.assertTrue("ten characters fit the English coder", HuskyCoderFactory.englishSaturatingCoder.couldBeExactAtLength(10));
+        Assert.assertFalse("eleven do not", HuskyCoderFactory.englishSaturatingCoder.couldBeExactAtLength(11));
     }
 
     // ---------- Array-level perfection: TODO.md item 48, found by Yunlu in request 11c/11d. ----------

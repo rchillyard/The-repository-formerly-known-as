@@ -5,6 +5,7 @@ import edu.neu.coe.huskySort.sort.SortWithHelper;
 import edu.neu.coe.huskySort.util.Config;
 
 import java.util.Arrays;
+import static edu.neu.coe.huskySort.util.Config.shouldRecurse;
 
 /**
  * Class to implement Merge Sort.
@@ -37,8 +38,8 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
      * @param to   the index of the first element of the sub-array NOT to sort.
      */
     public void sort(final X[] xs, final int from, final int to) {
-        @SuppressWarnings("UnnecessaryLocalVariable") final int lo = from;
-        if (to <= lo + getHelper().getCutoff()) {
+        int n = to - from;
+        if (!shouldRecurse(n, getHelper().getCutoff())) {
             insertionSort.sort(xs, from, to);
             return;
         }
@@ -49,12 +50,12 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
         // already big enough by then. INFO6205's MergeSortBasic had the same defect
         // and the same fix.
         if (aux == null || aux.length < xs.length) aux = Arrays.copyOf(xs, xs.length);
-        final int mid = from + (to - from) / 2;
-        sort(xs, lo, mid);
+        final int mid = from + n / 2;
+        sort(xs, from, mid);
         sort(xs, mid, to);
-        System.arraycopy(xs, from, aux, from, to - from);
-        getHelper().incrementCopies(to - from);
-        merge(aux, xs, lo, mid, to);
+        System.arraycopy(xs, from, aux, from, n);
+        getHelper().incrementCopies(n);
+        merge(aux, xs, from, mid, to);
     }
 
     public static final String DESCRIPTION = "MergeSort";
@@ -82,14 +83,27 @@ public class MergeSortBasic<X extends Comparable<X>> extends SortWithHelper<X> {
         insertionSort = new InsertionSort<>(getHelper());
     }
 
-    private void merge(final X[] aux, final X[] a, final int lo, final int mid, final int hi) {
+    /**
+     * Merges two sorted subarrays into a single sorted array.
+     * The two subarrays are defined within the `aux` array as:
+     * - The first subarray ranges from `from` (inclusive) to `mid` (exclusive).
+     * - The second subarray ranges from `mid` (inclusive) to `to` (exclusive).
+     * The merged result is stored in the `a` array in the range from `from` to `to`.
+     *
+     * @param aux  the auxiliary array containing two sorted subarrays to merge.
+     * @param a    the array where the merged result will be stored.
+     * @param from the starting index of the first subarray in `aux`.
+     * @param mid  the starting index of the second subarray in `aux`.
+     * @param to   the index one past the last element to merge in `aux`.
+     */
+    private void merge(final X[] aux, final X[] a, final int from, final int mid, final int to) {
         final ComparisonSortHelper<X> helper = getHelper();
-        int i = lo;
+        int i = from;
         int j = mid;
-        int k = lo;
-        for (; k < hi; k++)
+        int k = from;
+        for (; k < to; k++)
             if (i >= mid) helper.copy(aux, j++, a, k);
-            else if (j >= hi) helper.copy(aux, i++, a, k);
+            else if (j >= to) helper.copy(aux, i++, a, k);
             else if (helper.inverted(aux[i], aux[j])) {
                 helper.incrementFixes(mid - i);
                 helper.copy(aux, j++, a, k);

@@ -6,14 +6,16 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements HuskySequenceCoder<X> {
 
     /**
-     * Method to determine if this Husky Coder is perfect for a sequence of the given length.
-     * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
-     * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
+     * {@inheritDoc}
+     * <p>
+     * Here that is simply whether the sequence fits the coder's window. NOTE the result being
+     * true does not make a value exact --- see {@link #exactlyEncodable}, which calls this and
+     * then goes on to ask about the characters themselves.
      *
      * @param length the length of a particular String.
-     * @return true if length <= maxLength.
+     * @return true if {@code length <= maxLength}.
      */
-    public final boolean perfectForLength(final int length) {
+    public final boolean couldBeExactAtLength(final int length) {
         return length <= maxLength;
     }
 
@@ -58,7 +60,7 @@ public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements 
      * anything else this coder also encodes exactly.
      * <p>
      * <b>Length is necessary but not sufficient, and assuming otherwise returned wrong answers.</b>
-     * Until 2026-09-28 {@link #huskyEncode(CharSequence[])} tested only {@link #perfectForLength},
+     * Until 2026-09-28 {@link #huskyEncode(CharSequence[])} tested only {@link #couldBeExactAtLength},
      * so a coder that narrows each character -- the ASCII pair to 7 bits, the English pair to 6 --
      * reported a whole array perfect whenever every word was short, even when some word held a
      * character outside the window it can represent. The sort then skipped its cleanup pass and
@@ -79,7 +81,7 @@ public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements 
      * @return true if the code for x preserves order exactly.
      */
     protected boolean exactlyEncodable(final X x) {
-        return perfectForLength(x.length());
+        return couldBeExactAtLength(x.length());
     }
 
     /**
