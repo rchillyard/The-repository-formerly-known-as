@@ -1,0 +1,44 @@
+### date
+2026-10-05T07:16:11+00:00
+### uptime
+ 07:16:11 up 1 day, 10:51,  0 users,  load average: 0.46, 1.05, 2.18
+### free -m
+               total        used        free      shared  buff/cache   available
+Mem:           31492        9879        3043          33       18569       21201
+Swap:          40959           1       40958
+### nproc
+16
+### uname -r
+6.12.110-135.202.amzn2023.aarch64
+### java -version
+openjdk version "21.0.12" 2026-07-21 LTS
+OpenJDK Runtime Environment Corretto-21.0.12.8.1 (build 21.0.12+8-LTS)
+OpenJDK 64-Bit Server VM Corretto-21.0.12.8.1 (build 21.0.12+8-LTS, mixed mode, sharing)
+### cgroup
+0::/user.slice/user-13252749.slice/user@13252749.service/app.slice/husky-req12-encode-ab-20261005-0716.service
+### unit
+husky-req12-encode-ab-20261005-0716 launch=20261005T071610Z
+### jars
+5f088118169f9ea0f5445bfe61c486a6fbcbfd1ae62f05f07476023d54a800d6  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d947e77.jar
+0f9e5d4a4e57b7c881c936fc1f95cc02bc0904b5f7e87235aada6cf702678829  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf.jar
+0a72b68388aa7428c0f389ce83d52c9adba3b6e5631ac6b0addbf8800fa20a9b  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf-patched.jar
+76379654 bytes  mtime 2026-10-05 07:07:51.241555292 +0000  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d947e77.jar
+76380538 bytes  mtime 2026-10-04 02:14:00.171343170 +0000  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf.jar
+76380540 bytes  mtime 2026-10-05 07:12:47.107404353 +0000  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf-patched.jar
+### prwork jar
+0f9e5d4a4e57b7c881c936fc1f95cc02bc0904b5f7e87235aada6cf702678829  /workplace/liaoyunl/husky-sort/prwork/target/benchmarks.jar
+### recorded 11cd jar (req11cd/env-before.txt)
+7d5e0bffe227d4414e44b96f487b4daa1c4977be0ad3b36c70c0ceb026138295 76379654 bytes
+### git heads
+prwork: 39ef74fc4b748c7debec8dd3987dc6d5ce530832 Point request 12 at parallel-redesign, now that the freeze is merged there
+abwork-d947e77: d947e773652fa0a742003e81676c4eaef7cc3916 Add an exactly order-preserving pinyin coder: rank, do not decompose
+abwork-d8958bf-patch: d8958bf12e2f4554d3bf052e46816b188081e684 Revert item 37: masking is the default english coder again
+### git src freeze prwork
+d8958bf
+### patch worktree diff
+ .../coe/huskySort/sort/huskySortUtils/BaseHuskySequenceCoder.java  | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+### plan
+pass1 old E,C | pass2 new E,C | pass3 old E,C | pass4 new E,C | pass5 patch E,C | diag old/new/patch E,C; flags -r 2s -w 2s -f 3 -wi 5 -i 10; settle 30s
+### guard
+load1<2.0 swap<1048576KiB no other benchmark JVM, MainThread>=5.0%CPU <3
