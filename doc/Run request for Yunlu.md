@@ -15,7 +15,8 @@
 | 11 | the cleanup pass sort choice (short), and a full-suite re-run (long) | **done 2026-09-21** — PR #67, `doc/Run results from Yunlu 2026-09-21.md`; thank you, and the withdrawal of your own step-4 figure on convergence grounds was exactly right |
 | 11c | the masking cleanup cells 11a had no parameter for (short) | **done 2026-09-27** — PR #69, `doc/Run results from Yunlu 2026-09-27.md` |
 | 11d | the parallel cleanup, and an exactly order-preserving pinyin coder | **done 2026-09-27** — PR #69, `doc/Run results from Yunlu 2026-09-27.md`, same jar as 11c; the full-suite re-run is in the same file and its appendix |
-| 12 | the string classes again, both coder decisions having been made | **done 2026-10-05** — `doc/Run results from Yunlu 2026-10-05.md`, option B (the full suite) |
+| 12 | the string classes again, both coder decisions having been made | **done 2026-10-05** — PR #71, `doc/Run results from Yunlu 2026-10-05.md` and its appendix, option B (the full suite); thank you, and the encode A/B you ran unasked is the most useful thing in it |
+| 13 | what to do about the `perfect` check — a request for your judgement, not your machine | **requested 2026-10-05** — see below |
 
 **Requests 1 to 7 are all answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -23,10 +24,11 @@ Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseli
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**Request 12 is the only outstanding one.** Requests 11c and 11d were answered together in PR #69,
-along with a full suite we had asked you to hold off on --- thank you, and as it turned out you were
-right to run it: it already contains the rows that settle the Chinese-names question, so nothing
-there needs measuring again.
+**Request 13 is the only outstanding one, and it asks for your opinion rather than your hours.**
+Request 12 came back on 2026-10-05 with a finding we had not asked for and would not have found:
+the `perfect` character check costs the english encode 11--15 %, on code whose commit message ---
+ours --- said "No measurable cost". What to do about that is a judgement call with several parts,
+and you are better placed than we are to make most of them.
 
 <details><summary>Superseded preamble for 11c and 11d (both now done)</summary>
 
@@ -54,6 +56,104 @@ only as qualitative cross-checks, with no figures quoted from them. Your request
 that possible.
 
 Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs acting on.
+
+---
+
+## Request 13 — what to do about the `perfect` check
+
+Requested 2026-10-05. **This one is mostly questions.** We are not asking you to run a suite; we are
+asking what you would do, and the machine time is whatever you judge the answers need. Where we have
+a view we have said so briefly and marked it, but please treat each as genuinely open --- on the two
+occasions this autumn where your judgement and ours differed (your withdrawal of the step-4
+convergence figure in request 11, and your decision to run the full suite in 11c/11d rather than
+hold off as we asked) you were right both times.
+
+### What we did with request 12 before writing this
+
+We checked your numbers rather than taking them. Every figure we re-derived from the committed
+JSONs matched: `radixHuskySortAuto` on english at 4.069 ± 0.174 / 51.224 ± 0.968 / 220.857 ± 2.819;
+Cnt = 50 on all 171 `StringSortBenchmarks` rows; the A/B's `new ÷ old` at 1.127 / 1.132 and 1.111 /
+1.146; and, the claim everything rests on, **every new fork slower than every old fork** on masking
+at both n in both rounds, which we recomputed from `rawData` and confirms. We also confirmed that on
+saturating the fork ranges do overlap, which is what you said, and that your patch recovers 77 % and
+72 % of the masking loss at the two n. The chinese picture reproduces too: 42 of the husky rows we
+could match by name read 0.973--1.112 with a median of 1.018, and only 3 of them faster.
+
+Two corrections on our side, for the record. The 26--28 % prediction in request 12 was ours and was
+too optimistic; the real figure is 17.6 / 21.1 %. And `f43ff52`'s "No measurable cost" was ours and
+was wrong --- we compared the array coder against a bare loop inside one JVM, which cannot see an
+inlining decision that depends on the shape of the whole compiled loop. Your interleaved two-jar A/B
+can, and did.
+
+### The questions
+
+**1. Is the fix worth taking, and in what shape?** Your patch recovers 66--84 %. We would take it;
+it is semantically identical, we have confirmed the loop it patches is byte-for-byte what you
+measured, and the residual 16--34 % is unexplained but small. But there is a variant we have not
+measured and you may think better or worse: hoist the test out of the encode loop entirely ---
+
+```java
+boolean isPerfect = true;
+for (final X x : xs) if (!exactlyEncodable(x)) { isPerfect = false; break; }
+for (int i = 0; i < xs.length; i++) result[i] = huskyEncode(xs[i]);
+```
+
+--- which leaves the encode loop with no call site at all, rather than one on a cold branch. The
+cost is that a **perfect** array is then scanned twice, where your version fuses the two passes
+while the array is still perfect and only splits after the first failure. So yours should be better
+whenever the data is exactly encodable and ours only on data that fails early, which is the case
+the corpora happen to exercise. Which would you ship? Is the double scan on perfect arrays worth
+paying to get a provably call-free encode loop, or is that trading a measured 66--84 % for an
+unmeasured remainder?
+
+**2. Is the line-50 revert worth the hours?** You propose rebuilding `d8958bf` with only
+`BaseHuskySequenceCoder:50` reverted and A/B-ing it against `d947e77`, which would turn both
+attributions into measurements instead of one measurement and one inference. We think yes --- the
+chinese 6.5--7.3 % is currently unexplained and unrecovered by the patch, and an unexplained
+regression in the paper's Chinese numbers is worse than a known one. But you know what it costs in
+wall-clock and whether the host is free. If you would rather spend those hours elsewhere, say so.
+
+**3. What is your instinct on the saturating/masking asymmetry?** It is the fact in your report that
+we find hardest to set aside. Same call site, same corpus, and masking pays 10.9--14.0 ns per
+element against saturating's 3.2--4.1. As a fraction of each loop it is about 12 % against about
+2 %, so the tighter loop loses proportionally *more*, not less. Our guess --- and it is only that
+--- is that the masking loop is simple enough for C2 to do something to it (unroll, or vectorise the
+shift-and-mask) that the saturating loop, with a branch per character, never had; losing it to an
+un-inlined call would then cost masking much and saturating little. If that is right, the `32,000`
+non-result (1.007×†) might be the same thing seen from the other side: too few iterations to reach
+the compilation state where the optimisation exists. Does that match what you saw in the inlining
+logs, and is it worth a `-XX:+PrintCompilation` or a loop-unrolling flag to check? We are not asking
+you to chase it --- only whether you think it is chaseable.
+
+**4. How much needs re-running, and when?** This is the one where your answer most changes what we
+do. Taking the fix changes the encode path again, so the request-12 english rows would describe code
+we no longer ship --- exactly the situation request 12 existed to repair. The options we can see:
+
+- take the fix and re-run only the affected string rows (the english and chinese husky rows of the
+  two string classes, plus the `huskyEncodeOnly*` rows), leaving the other six classes standing on
+  request 12;
+- take the fix and re-run nothing, quoting request 12 and noting in the paper that the encode has
+  since improved by a few per cent, with the direction stated;
+- do not take the fix before submission, and keep request 12 as the description of shipped code.
+
+We lean to the first and would want your view on what "the affected rows" should actually be --- you
+have a better map of which rows touch that loop than our commit messages do, as (e) in your report
+shows. If it is the first, roughly what would it cost?
+
+**5. Is the shortfall attribution solid enough to publish?** You write that if the encode inside the
+sort pays the same penalty as the encode-only row --- which you did not measure --- it accounts for
+35.4 % / 53.8 % of the gap between our 26--28 % prediction and the measured 17.6 / 21.1 %. You are
+careful to flag the conditional, and your own `sharedPrefixQuickHuskySort` row neither establishes
+nor excludes it. Would you put that number in a paper, or only the measured gap with the cause left
+as a hypothesis? We are inclined to the latter, but it is your measurement.
+
+### What we are *not* asking
+
+Nothing in request 12 needs re-doing. The suite reproduced 11cd on the six unchanged classes and on
+chinese, the chinesenames renames came back 0.983--1.036 the right way round, and the rank coder's
+54 new rows at 0.07--0.85× are the strongest single result we have. If the answer to every question
+above is "leave it alone until after submission", that is a perfectly good answer and we will take
+it.
 
 ---
 
