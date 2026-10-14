@@ -23,20 +23,6 @@ import static java.util.Arrays.binarySearch;
  */
 public class QuickHuskySort<X extends Comparable<X>> {
 
-    public static void main(final String[] args) {
-
-        final int N = 50000;
-        final int m = 10000;
-        logger.info("QuickHuskySort.main: sorting " + N + " random alphabetic ASCII words " + m + " times");
-        // Just for test purpose: this should take about 3 minutes
-        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
-        for (int i = 0; i < m; i++) {
-            final String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
-            sorter.sort(alphaBetaArray);
-        }
-        logger.info("QuickHuskySort.main: finished");
-    }
-
     /**
      * The main sort method.
      *
@@ -95,6 +81,27 @@ public class QuickHuskySort<X extends Comparable<X>> {
         this.huskyCoder = huskyCoder;
         this.mayBeSorted = mayBeSorted;
         this.useInsertionSort = useInsertionSort;
+    }
+
+    /**
+     * The main method that initializes the sorting process for testing purposes.
+     * It generates random alphabetic ASCII words and sorts them multiple times using the QuickHuskySort.
+     * The method logs the start and completion of the process.
+     *
+     * @param args the command line arguments passed to the program.
+     */
+    public static void main(final String[] args) {
+
+        final int N = 50000;
+        final int m = 10000;
+        logger.info("QuickHuskySort.main: sorting " + N + " random alphabetic ASCII words " + m + " times");
+        // Just for test purpose: this should take about 3 minutes
+        final QuickHuskySort<String> sorter = new QuickHuskySort<>(HuskyCoderFactory.asciiCoder, false, false);
+        for (int i = 0; i < m; i++) {
+            final String[] alphaBetaArray = HuskySortHelper.generateRandomAlphaBetaArray(N, 4, 9);
+            sorter.sort(alphaBetaArray);
+        }
+        logger.info("QuickHuskySort.main: finished");
     }
 
     // CONSIDER invoke method in IntroSort

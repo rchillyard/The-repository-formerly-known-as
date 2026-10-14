@@ -6,14 +6,16 @@ package edu.neu.coe.huskySort.sort.huskySortUtils;
 public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements HuskySequenceCoder<X> {
 
     /**
-     * Method to determine if this Husky Coder is perfect for a sequence of the given length.
-     * If the result is false for a particular length, it implies that inversions will remain after the first pass of Husky Sort.
-     * If the result is true for all actual lengths, then the second pass of Husky Sort would be superfluous.
+     * {@inheritDoc}
+     * <p>
+     * Here that is simply whether the sequence fits the coder's window. NOTE the result being
+     * true does not make a value exact --- see {@link #exactlyEncodable}, which calls this and
+     * then goes on to ask about the characters themselves.
      *
      * @param length the length of a particular String.
-     * @return true if length <= maxLength.
+     * @return true if {@code length <= maxLength}.
      */
-    public final boolean perfectForLength(final int length) {
+    public final boolean couldBeExactAtLength(final int length) {
         return length <= maxLength;
     }
 
@@ -47,28 +49,53 @@ public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements 
         final long[] result = new long[xs.length];
         for (int i = 0; i < xs.length; i++) {
             final X x = xs[i];
-            if (isPerfect) isPerfect = perfectForLength(x.length());
+            if (isPerfect) isPerfect = exactlyEncodable(x);
             result[i] = huskyEncode(x);
         }
         return new Coding(result, isPerfect);
     }
 
     /**
-     * NOTE: this implementation of perfect() is never called because perfection is
-     * determined solely by the huskyEncoder(X[]) method.
+     * Whether this coder encodes x exactly, so that comparing codes orders x correctly against
+     * anything else this coder also encodes exactly.
+     * <p>
+     * <b>Length is necessary but not sufficient, and assuming otherwise returned wrong answers.</b>
+     * Until 2026-09-28 {@link #huskyEncode(CharSequence[])} tested only {@link #couldBeExactAtLength},
+     * so a coder that narrows each character -- the ASCII pair to 7 bits, the English pair to 6 --
+     * reported a whole array perfect whenever every word was short, even when some word held a
+     * character outside the window it can represent. The sort then skipped its cleanup pass and
+     * returned an array that was not sorted:
+     * <pre>
+     *     englishSaturatingCoder on {"caf\u00ff", "caf\u00e9", "cafa", "cafz"}
+     *         -> perfect = true, result [cafa, cafz, caf\u00ff, caf\u00e9]
+     * </pre>
+     * because {@code \u00e9} and {@code \u00ff} both saturate to 63 and the codes tie. Yunlu found
+     * it in request 11c/11d (TODO.md item 48); no benchmark array is short enough throughout to
+     * have been affected, which is why it survived so long.
+     * <p>
+     * The default remains the length test, which is right for a coder that stores each character
+     * faithfully -- {@code unicodeCoder} keeps a whole 16-bit char per slot, so for it length really
+     * is the only limit. A narrowing coder must override this and say what its window is.
      *
-     * @return false.
+     * @param x an element about to be encoded.
+     * @return true if the code for x preserves order exactly.
      */
-    @Override
-    final public boolean perfect() {
-        return false;
+    protected boolean exactlyEncodable(final X x) {
+        return couldBeExactAtLength(x.length());
     }
 
-    @Override
-    final public String toString() {
-        return "BaseHuskySequenceCoder{" +
-                "name='" + name + '\'' +
-                '}';
+    /**
+     * @param x  a sequence.
+     * @param lo the lowest character this coder represents faithfully.
+     * @param hi the highest.
+     * @return true if every character of x lies in [lo, hi].
+     */
+    protected static boolean charactersWithin(final CharSequence x, final char lo, final char hi) {
+        for (int i = 0; i < x.length(); i++) {
+            final char c = x.charAt(i);
+            if (c < lo || c > hi) return false;
+        }
+        return true;
     }
 
     private final String name;

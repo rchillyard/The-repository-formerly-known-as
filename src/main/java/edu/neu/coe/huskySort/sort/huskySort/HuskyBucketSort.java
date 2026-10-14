@@ -20,7 +20,7 @@ public final class HuskyBucketSort<X extends Comparable<X>> extends AbstractHusk
 
     /**
      * Perform the pre-processing before we do bucket sort.
-     * Sets up the bucketHelper to be an instance of HuskyBucketHelper<X>.</X>
+     * Sets up the bucketHelper to be an instance of {@code HuskyBucketHelper<X>}.
      *
      * @param xs the elements to be pre-processed.
      * @return the value of xs (unchanged in any way).

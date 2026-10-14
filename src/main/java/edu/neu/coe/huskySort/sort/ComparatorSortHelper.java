@@ -7,6 +7,7 @@ import java.util.Random;
  * Concrete implementation of ComparisonSortHelper.
  * <p>
  * NOTE that this Helper is not affected in any way by the configuration.
+ * TESTME untested in current tests.
  *
  * @param <X> the type of elements to be compared (must be Comparable).
  */

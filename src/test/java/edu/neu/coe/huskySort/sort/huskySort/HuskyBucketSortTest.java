@@ -11,13 +11,35 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("ALL")
 public class HuskyBucketSortTest {
+
+    /**
+     * An array smaller than one bucket. {@code n / bucketSize} is then zero, and a zero-length
+     * bucket array made {@code HuskyBucketHelper.loadBuckets} divide by zero -- so every array of
+     * fewer than {@code bucketSize} elements threw, which is every small sort. Found 2026-09-30 by
+     * sweeping all the husky sorts over every size from 0 upwards; no existing test went below
+     * {@code bucketSize}. One bucket is the right answer: the sort degenerates to the post-sorter.
+     */
+    @Test
+    public void sortsAnArraySmallerThanOneBucket() throws Exception {
+        for (int n = 0; n < 16; n++) {
+            final Integer[] xs = new Integer[n];
+            for (int i = 0; i < n; i++) xs[i] = (n - i) * 7 % 100;
+            final Integer[] expected = Arrays.copyOf(xs, n);
+            Arrays.sort(expected);
+            final HuskyBucketSort<Integer> sorter = new HuskyBucketSort<>(16, HuskyCoderFactory.integerCoder, config);
+            sorter.preProcess(xs);
+            assertArrayEquals("n=" + n + ", which is below the bucket size of 16", expected, sorter.sort(xs));
+        }
+    }
 
     @Test
     public void sort4() throws Exception {
