@@ -3424,6 +3424,10 @@ is a defect; all are hardening or generalisation.
     but not a reason to hold the fix --- and not a thing to settle with an in-JVM A/B, which is
     exactly the method that produced "No measurable cost" in the first place.
 
+    **Item 56 records a third shape, raised after the merge, that would retire this caveat
+    altogether**: make the character window two final fields on the base so the predicate stops
+    being virtual, giving no call site *and* no double scan. It is deliberately not acted on.
+
     ### Verified before merge
 
     Every headline figure re-derived from the raw JSONs under `doc/`, not read from the tables:
@@ -3446,3 +3450,81 @@ is a defect; all are hardening or generalisation.
 
     **What is left is the paper, not the code**: items 43 and 43H. The encode figures and the code
     that produced them now describe each other, which is what request 12 existed to repair.
+
+56. **A third shape for the exactness test: make the window data instead of dispatch (opened
+    2026-10-19, on Robin's question; deliberately not acted on --- see "When to act").**
+
+    Robin asked whether we had considered inlining the test *in place* before hoisting it out, and
+    whether that is even possible in Java. We had not: request 13's question 1 offered exactly two
+    shapes, Yunlu's split loop and the hoist, and the hoist shipped. This records the third, which
+    may be the best of them.
+
+    ### Literal inlining is not possible, and why
+
+    `exactlyEncodable` is virtual. The call site is in `BaseHuskySequenceCoder.huskyEncode(X[])`
+    and the bodies are in four anonymous subclasses in `HuskyCoderFactory`; a base class cannot
+    inline a body it does not know, and that polymorphism is the mechanism distinguishing the
+    coders. Java has no `inline` keyword. JIT inlining is C2's decision, and C2 declined it here
+    --- `low call site frequency` --- because the test stops at about element 2 of a million.
+
+    ### What is possible
+
+    All four overrides have the identical shape, `super.exactlyEncodable(x) && charactersWithin(x,
+    (char) LO, (char) 0x7F)`, differing only in `LO` (0 for the ASCII pair, `OFFSET_ENGLISH` for
+    the English pair). So the window can be two final fields on the base and the predicate can be
+    non-virtual:
+
+    ```java
+    public final boolean exactlyEncodable(final X x) {
+        return couldBeExactAtLength(x.length()) && (!narrowing || charactersWithin(x, lo, hi));
+    }
+    ```
+
+    `couldBeExactAtLength` is already `public final` and `charactersWithin` already `protected
+    static`, so nothing there dispatches virtually. All four overrides then delete and each coder
+    declares its window as a constructor argument --- the same idea as the `English` / `Ascii` /
+    `ExtendedAscii` window types built for item 54, which is an argument for doing it on
+    consistency grounds alone. **The `narrowing` flag is required, not cosmetic**: `unicodeCoder`
+    has no override today, and without the flag it would begin scanning every character of every
+    string to no purpose.
+
+    ### The evidence that it would have worked
+
+    `rev` is close to this experiment already. It puts a **non-virtual, trivially inlinable** test
+    (`couldBeExactAtLength`, which is `final`) at the same point in the same loop, and like the
+    real check it stops after about two elements, so it executes nearly the same work.
+
+    | arm | test at the call site | masking vs old, 200,000 / 1,000,000 |
+    | --- | --- | --- |
+    | new | virtual override, not inlined | 1.135 / 1.124 |
+    | rev | final method, inlined | **0.998 / 0.991** |
+    | F1, shipped | hoisted out of the loop | 0.975 / 0.977 |
+
+    `rev` pays no penalty. The cost therefore attaches to the un-inlined virtual call sitting in
+    the loop body, not to the testing. De-virtualizing in place should recover it with **no call
+    site and no double scan of a perfect array**, which would retire the one caveat still attached
+    to the shipped fix (item 55), and delete code while doing it.
+
+    Two reasons not to treat that as settled. The chinese side may not be cured: on the base path
+    even `CharSequence::length` stays a virtual call with `low call site frequency`, which is a
+    separate problem, and the 32,000 chinese residual survived the line-50 revert. And F3 ---
+    which executes what `rev` executes yet reads 1.034 / 1.044 against rev's 0.998 / 0.991 --- is
+    a standing warning that predicting these effects from the shape of the source is unreliable.
+    Nothing here is a measurement; `rev` is evidence for the mechanism, not for this variant.
+
+    ### When to act
+
+    **Not before the ACDA27 review comes back.** Any change to the encode path re-invalidates the
+    205 rows Yunlu ran for request 13 and puts us back in the position item 55 named: the paper's
+    encode figures and the code that produced them have to describe each other. Two of Yunlu's
+    runs went on restoring that correspondence, and this is a speculative improvement to a penalty
+    we have already removed.
+
+    Act if any of these becomes true: the paper is accepted and the camera-ready window leaves
+    room for a re-run; the reviews ask for changes that reopen the encode path anyway; or the
+    double scan on perfect arrays stops being hypothetical, which it would if a corpus of short
+    exactly-encodable strings entered the benchmark matrix. If acted on, it needs its own
+    interleaved two-jar A/B on Yunlu's host --- not an in-JVM comparison, for the reason in 43H
+    --- and `HoistEquivalenceTest` should be extended to cover it, since collapsing four overrides
+    into two fields is exactly the kind of change that keeps the output right while altering the
+    mechanism underneath.
