@@ -16,7 +16,7 @@
 | 11c | the masking cleanup cells 11a had no parameter for (short) | **done 2026-09-27** — PR #69, `doc/Run results from Yunlu 2026-09-27.md` |
 | 11d | the parallel cleanup, and an exactly order-preserving pinyin coder | **done 2026-09-27** — PR #69, `doc/Run results from Yunlu 2026-09-27.md`, same jar as 11c; the full-suite re-run is in the same file and its appendix |
 | 12 | the string classes again, both coder decisions having been made | **done 2026-10-05** — PR #71, `doc/Run results from Yunlu 2026-10-05.md` and its appendix, option B (the full suite); thank you, and the encode A/B you ran unasked is the most useful thing in it |
-| 13 | what to do about the `perfect` check — a request for your judgement, not your machine | **done 2026-10-18** — `doc/Run results from Yunlu 2026-10-18.md` and its appendix, the first option: Robin's hoist as the fix, and the 173 affected rows re-run with 32 baselines |
+| 13 | what to do about the `perfect` check — a request for your judgement, not your machine | **done 2026-10-18** — PR #73, `doc/Run results from Yunlu 2026-10-18.md` and its appendix, the first option: Robin's hoist as the fix, and the 173 affected rows re-run with 32 baselines |
 
 **Requests 1 to 7 are all answered.** Requests 6 and 7 both arrived in PR #64, whose commit reads
 "pinyin and adversarial included"; this table had not been updated to say so, which is corrected here.
@@ -24,11 +24,17 @@ Both datasets are in the paper: `pinyin.json` supplies the pinyin-correct baseli
 abstract and Table `HS_BM`, and `adversarial.json` supplies both columns of the guarded/unguarded
 dual-pivot comparison in the appendix.
 
-**Request 13 is the only outstanding one, and it asks for your opinion rather than your hours.**
-Request 12 came back on 2026-10-05 with a finding we had not asked for and would not have found:
-the `perfect` character check costs the english encode 11--15 %, on code whose commit message ---
-ours --- said "No measurable cost". What to do about that is a judgement call with several parts,
-and you are better placed than we are to make most of them.
+**All thirteen requests are now answered, and there is no outstanding one.** Request 13 came back on
+2026-10-18 and was merged as PR #73 on 2026-10-19. It was the one request that asked for your opinion
+rather than your hours, and the answers decided four things we could not have decided here: which
+shape of the fix to ship, that the line-50 revert was worth the hours and changed the diagnosis, that
+205 rows needed re-running while 377 stood, and that the shortfall attribution should not be
+published as it stood. Thank you --- and the part of it we value most is the part that went against
+the grain: you ran your own split loop as an arm against ours, found it recovered less than request
+12 had suggested and nothing at all on chinese, and said so.
+
+The next thing on our side is the paper, not the bench, so nothing is being asked of your machine at
+present. If that changes it will appear here as request 14.
 
 <details><summary>Superseded preamble for 11c and 11d (both now done)</summary>
 
@@ -60,6 +66,14 @@ Requests 3, 4 and 5 and their reasoning are in Appendix B; nothing there needs a
 ---
 
 ## Request 13 — what to do about the `perfect` check
+
+**Answered 2026-10-18, merged as PR #73 on 2026-10-19.** The report is
+`doc/Run results from Yunlu 2026-10-18.md` and its appendix; the outcome is recorded as item 55 of
+`TODO.md`, where every headline figure was re-derived from the raw JSONs before the merge. In short:
+ship the hoist (question 1), the line-50 revert was worth it and changed the diagnosis (2), the
+saturating/masking asymmetry remains a hypothesis and both our guesses were refuted (3), 205 rows
+re-run and 377 stand (4), and publish 22.8--24.1 % / 25.9--27.8 % rather than the 35.4 % / 53.8 %
+shares of a penalty the shipped code no longer has (5). The request as written follows, unchanged.
 
 Requested 2026-10-05. **This one is mostly questions.** We are not asking you to run a suite; we are
 asking what you would do, and the machine time is whatever you judge the answers need. Where we have
