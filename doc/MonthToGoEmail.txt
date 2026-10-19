@@ -1,0 +1,32 @@
+Esteemed co-authors:
+
+We’ve made a huge amount of progress on the RadixHuskySort paper (mostly in the coding, less so in the actual paper itself).
+
+Yunlu has been a tower of strength in the important aspects of benchmarking and making insights into the method.
+I have also made many suggestions for optimizations that worked out in a positive way.
+In short, the evidence for the paper has improved almost beyond recognition since the submission.
+
+Currently, all the recent work is in the parallel-redesign branch.
+I will merge that into the Revision branch soon.
+
+November 2nd is the due date for reviews/acceptance notices.
+Let’s hope that we get accepted!  November 23rd is the due date for the camera-ready copy.
+
+I imagine that there might be some final benchmarks to run during this period of three weeks.
+Yunlu, please let me know if you foresee any problems if I request benchmarks.
+
+I am currently performing an AI audit.
+Please see the document: doc/AI use and the SIAM disclosure policy.md
+
+I could really use some help in this area—and in general,
+ensuring that the paper does not read like it was authored by AI.
+Sai Vineeth, if you could help with this please let me know.
+But I’ll need you to commit to some tasks that I can rely on.
+
+If we are rejected, we should consider publishing on arXiv as we did last time.
+And then perhaps look for a different venue.
+
+Finally, I’m assuming that I will deliver the paper in Pittsburgh (February 22-26) if we’re accepted.
+But if either of you really wants to do it, let me know.
+
+Robin
