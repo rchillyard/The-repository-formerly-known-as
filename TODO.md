@@ -2025,7 +2025,25 @@ is a defect; all are hardening or generalisation.
        characters reaching outside a 6- or 7-bit window are letters at or above 128. Both masking
        coders therefore fail on exactly the same words.
 
-    ### D. The parallel claims are now too pessimistic --- item 40's precondition is met
+    ### D. ~~The parallel claims are now too pessimistic --- item 40's precondition is met~~ **DONE 2026-10-19** (`e1ef6ae`)
+
+    Done against request 12 and 13 rather than against the request-11 figures this section was
+    written from, which had moved. Four claim sites replaced --- the conclusion, the introduction,
+    the use-case guidance and the abstract --- and three tables rebuilt, because the figures were
+    wrong in direction and not merely stale. The permits went from "the least flattering case,
+    beats its own serial form at no size" to leading the baseline at all three sizes (1.25--1.59x)
+    and its own serial form at the two larger ones (2.88x, 3.41x). A new table
+    `tab:ParallelStrings` gives parallel against parallel over three corpora and three sizes, with
+    and without the parallel cleanup. `Long[]` is now 1.40x at ten million and 1.09x slower at
+    two, against the 1.19x / 1.25x carried before. **english is marked unconverged and no english
+    claim is made**, per Yunlu's caveat. The paper grows 21 -> 22 pages. The figures below are
+    superseded by the commit; they are left for the reasoning, not the numbers.
+
+    **The other half of item 40 has been run**: `parallelRadixHuskySortAuto_pAll_parCleanup` is in
+    both the request-12 suite and the request-13 re-run. It wins every chinese and chinesenames
+    cell (1.10--1.49x and 5.74--7.17x) and moves chinese at 200,000 from 0.64x to 1.10x --- so the
+    projection below, which expected chinese at 200,000 to **regress** to ~0.6x, was wrong in sign.
+    Kept as written, since being wrong about it is the point of recording projections separately.
 
     Item 40 says "do not rewrite the conclusion a fourth time without measuring" and names the
     deciding benchmark. Half of it has now been run. With the encode parallel (`15cc2ff`) but the
