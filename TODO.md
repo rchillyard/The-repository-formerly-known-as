@@ -2171,8 +2171,15 @@ is a defect; all are hardening or generalisation.
     compilation decisions, and each pollutes the other's profile.
 
     NOTE this does not change any published number. It is about how the encode numbers were
-    obtained and how a reader should weigh them, and it is cheap to say. See item 55 for the
-    open question of whether to take the fix before submission.
+    obtained and how a reader should weigh them, and it is cheap to say. Item 55, which asked
+    whether to take the fix before submission, is **done** --- the hoist shipped in PR #73 --- so
+    the encode figures to be written up are the request-13 ones.
+
+    NOTE also the sharpest illustration of point 3, found after this section was written:
+    request 13's F3 arm executes exactly what the `rev` arm executes on these arrays, yet reads
+    1.034 / 1.044 of the old jar on masking where rev reads 0.998 / 0.991. Two variants that
+    perform the same instructions differ by 4 %, because C2 compiles the enclosing method
+    differently. If a sentence is wanted to make the point concrete, that is the one.
 
     ### What is NOT on this list
 
@@ -3341,44 +3348,101 @@ is a defect; all are hardening or generalisation.
 
     See item 31 for stages one and two.
 
-55. **The `perfect` check costs the english encode 11--15 %; decide what to do before submission
-    (opened 2026-10-05, awaiting Yunlu's answer to request 13).**
+55. ~~**The `perfect` check costs the english encode 11--15 %; decide what to do before
+    submission**~~ **DONE 2026-10-19** by Yunlu's request-13 report, PR #73 (`cfc0522`),
+    `doc/Run results from Yunlu 2026-10-18.md` and its appendix. Opened 2026-10-05.
 
     Item 48 fixed a silent wrong-answer bug by replacing a length test with a per-element
     exactness test. `f43ff52`'s commit message --- ours --- said "No measurable cost". Yunlu's
-    request-12 A/B says otherwise: masking english encode 11--15 % slower, every new fork slower
+    request-12 A/B said otherwise: masking english encode 11--15 % slower, every new fork slower
     than every old fork at both n in both rounds. See item 43H for why that method is the right
     one and ours was not.
 
-    **The cost is not the work.** The check stops at element 2 of a million. C2 stops inlining
-    the override at that call site and an out-of-line call stays in the body of a hot loop.
-    Yunlu's patch --- test until the first failure, then encode the rest in a loop with no call
-    --- recovers 66--84 %, gives bit-identical codes and the same `perfect` flag, and passes the
-    suite.
+    **The cost was not the work.** The check stops at element 2 of a million. C2 stopped inlining
+    the override at that call site and an out-of-line call stayed in the body of a hot loop.
 
-    ### What is open
+    ### What was decided
 
-    - **Take the fix, and in what shape.** Yunlu's two-loop split, or hoisting the test out of
-      the encode loop entirely (no call site at all, at the cost of scanning a perfect array
-      twice). His should win on exactly-encodable data, ours only on data that fails early, which
-      is what these corpora happen to be. Asked as question 1 of request 13.
-    - **Whether to run the line-50 revert.** It would turn the english attribution from inference
-      into measurement, and might settle the unexplained chinese `UNICODE_CODER` slowdown
-      (6.5--7.3 %, which the patch does *not* recover). Question 2.
-    - **How much needs re-running if we take it.** Changing the encode path again means the
-      request-12 english rows describe code we no longer ship --- the situation request 12 existed
-      to repair. Question 4, and the one that most changes what we do.
-    - **Whether to publish the shortfall attribution.** Yunlu's 35.4 % / 53.8 % figure is
-      conditional on the encode inside the sort paying the same penalty as the encode-only row,
-      which nobody has measured. Question 5.
+    - **The fix, and its shape (q1).** Shipped: Robin's hoist --- test `exactlyEncodable` up to
+      the first failure in a loop of its own, then encode in a loop with no call in it. Chosen by
+      a gate fixed before the run (pooled X/old <= 1.025 in six key cells, lowest geometric mean
+      wins): F1 passed 6/6 at 0.984, F2 6/6 at 0.990, F3 4/6 at 1.010, control rev 6/6 at 0.995.
+      Re-derived here from the raw JSONs: 0.9838, 0.9896, 1.0104, 0.9951. **F2 is 1.006 of F1, so
+      the tie-break picked the shape and the run did not separate them** --- worth remembering if
+      anyone later reads the choice as evidence. Masking now reads 0.975 / 0.977 of `d947e77`.
+    - **The line-50 revert (q2).** Worth the hours, and it changed the diagnosis. Reverting line 50
+      alone recovers 0.779 of the chinese new - old at 200,000 and 1.463 at 1,000,000. We had
+      expected line 50 *not* to be the chinese cause; that did not hold.
+    - **How much to re-run (q4).** 205 rows: the 173 whose timed path changed (170 the loop, 3
+      `msdStringSort` for `8b4639b`) plus 32 baselines in the same invocations. The other 377
+      request-12 rows stand. This is the answer item 43 was waiting on.
+    - **The shortfall attribution (q5).** Do **not** publish 35.4 % / 53.8 % --- they are shares of
+      a penalty the shipped code no longer has. Publish instead: english `radixHuskySortAuto` is
+      22.8--24.1 % / 25.9--27.8 % faster at 200,000 / 1,000,000 (ms across sessions at the low end,
+      ratio to `Arrays.sort` within an invocation at the high end), against 26.9 % / 27.7 %
+      predicted from the encode saving alone.
 
-    ### The four facts nobody has explained
+    ### The four facts, as they now read
 
-    Recorded because they are the reason to treat the mechanism as open rather than settled:
-    the saturating coder keeps the identical call and pays 3.2--4.1 ns per element where masking
-    pays 10.9--14.0; masking at n = 32,000 did not move at all; the patch recovers only part of
-    the loss; and the chinese slowdown is flat in n where masking's is not.
+    - *Saturating's smaller cost* --- consistent with unrolling but not shown. Under
+      `-XX:LoopUnrollLimit=0` the masking gap at 1,000,000 falls from 12.152 to 6.644 ms while
+      saturating barely moves; but the flag changes every loop in the JVM, so it cannot name the
+      transformation.
+    - *Masking at 32,000 did not move* --- still unexplained, and **both** guesses were refuted.
+      PrintInlining shows the same out-of-line call at 32,000 as at 1,000,000, so C2 does not
+      inline it there (ours); and both C2 compiles do happen there, so it is not too short to
+      reach the optimised state (Robin's). Yunlu's untested hypothesis: the lost optimisation
+      matters only when the loop waits on memory. Testing it needs hardware counters and the host
+      has no `perf`.
+    - *The partial recovery* --- that was the shape of Yunlu's split loop, not a property of the
+      problem. The hoist recovers all of it.
+    - *The chinese slowdown* --- line 50, at 200,000. Reverting line 50 does **not** remove the
+      32,000 part, which is still unexplained.
 
-    **Do not quietly re-measure and move on.** Whatever is decided, the paper's encode figures and
-    the code that produced them have to describe each other, which is the whole reason request 12
-    was run.
+    ### Residuals carried forward, none blocking
+
+    - 8 chinese rows at 200,000 read 1.018--1.048 of request 12 with disjoint CIs, against
+      baselines at 0.993--1.018. Unexplained.
+    - `msdStringSort` is warm-up-flagged in both runs, so the effect of `8b4639b` is not
+      resolvable; the 1--2 % estimate stands as an estimate.
+    - **F3 is the one worth remembering.** It executes exactly what rev executes on these arrays,
+      yet reads 1.034 / 1.044 of old on masking where rev reads 0.998 / 0.991. The cost tracks how
+      C2 compiles the whole method, not the shape of the source --- which is a standing caution
+      against reading any of these attributions too confidently.
+    - 29 of the 205 re-run rows are warm-up-flagged, among them the english pAll rows, so this run
+      supports no english claim of pAll against `Arrays.parallelSort`.
+
+    ### The double scan, and why it did not block shipping
+
+    Yunlu's one open caveat is that the hoist scans a perfect array twice and no benchmark corpus
+    feeds this loop a perfect array, so the case is unmeasured. It is a smaller exposure than it
+    sounds: **on a perfect array the old loop also called `exactlyEncodable` on every element**,
+    because `isPerfect` never goes false and the guard never short-circuits, and
+    `exactlyEncodable` scans every character. The hoist makes the identical calls in the identical
+    count. The only difference on perfect data is that the array is traversed twice rather than
+    once, so the exposure is bounded to memory locality and cannot be extra computation. Not zero,
+    but not a reason to hold the fix --- and not a thing to settle with an in-JVM A/B, which is
+    exactly the method that produced "No measurable cost" in the first place.
+
+    ### Verified before merge
+
+    Every headline figure re-derived from the raw JSONs under `doc/`, not read from the tables:
+    the gate geometric means and pass counts above; 22.8 % / 25.9 %; patch recovery 0.589 / 0.663
+    on masking and -0.166 on chinese; rev's chinese recovery 0.779 / 1.463; 205 rows in 5
+    invocations; 32 baselines at median 1.013 (0.943--1.047); 45 english String rows at median
+    0.957 with 20 faster on disjoint CIs and none slower; exactly 8 chinese 200,000 rows at
+    1.018--1.048; 29 of 205 warm-up-flagged, 4 of the 6 english pAll rows among them; 23 commits
+    since the request-12 jar touching `src/main`, none in `src/jmh`. The build commit `52b0894` is
+    not in this repository --- it is local to Yunlu's machine --- but he quoted its `src` tree
+    hash, `5ade192`, which is the tree of the merged commit, so the provenance of the jar that ran
+    the 205 rows is checkable without it. `mvn -B test`: 548 tests, 0 failures.
+
+    `HoistEquivalenceTest` was added at merge time and is the mechanism check the change itself
+    did not carry: it runs the pre-hoist loop as a reference against the shipped one over five
+    sequence coders, with the first inexact element at every position, on perfect arrays, on empty
+    input and on 200 random trials each. Confirmed to have teeth by injecting an off-by-one into
+    the scan, which fails it. The project's last four defects all produced correct output over a
+    broken mechanism, which is why equivalence is asserted rather than inferred.
+
+    **What is left is the paper, not the code**: items 43 and 43H. The encode figures and the code
+    that produced them now describe each other, which is what request 12 existed to repair.
