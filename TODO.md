@@ -465,15 +465,29 @@ against all four original reviews, plus venue recommendations. It confirmed ever
 reviewer-mapping item above is addressed, flagged three small items, and recommended among SIAM
 ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
 
-19. **Venue decided: SIAM ACDA27.** Submission deadline confirmed mid-September 2026 via SIAM's
-    own EasyChair CFP page (`easychair.org/cfp/ACDA27`) — the SIAM.org page itself blocks
-    automated fetches (403). The detailed CFP (page limits, required LaTeX template/style) is
-    **not yet published** as of 2026-08-04 — both the assessment (2026-07-31) and this direct
-    check found the same "will be published in Spring 2026" placeholder with no specifics yet.
-    This is a real external blocker, not a research gap: the Phase D document-class/template
-    swap (item to be added once real requirements exist) cannot start until SIAM actually
-    publishes them — expected before the deadline, but not yet available. Worth checking back
-    periodically.
+19. **Venue decided: SIAM ACDA27. Submitted 2026-09-15.** The requirements that were unpublished
+    when this item was opened are now known, from the submissions page saved at submission time
+    as `paper/ACDA27 Submissions | SIAM.pdf` (the SIAM.org page blocks automated fetches, 403, so
+    that saved copy is the record):
+
+    | | |
+    | --- | --- |
+    | Length | **up to 12 pages excluding references** |
+    | Appendix | **optional and outside the limit** — "read by the program committee members at their discretion" |
+    | Abstract + registration | 2026-09-08 |
+    | Paper | 2026-09-15 — **met**, `Revisions` at `8660534` |
+    | **Author notification** | **2026-11-02** |
+    | Posters | 2026-11-09 |
+    | **Camera-ready** | **2026-11-23** |
+
+    Note the limit is 12 pages, not the 16 we had been working from. The submitted paper ran to
+    exactly 12 body pages with references starting on page 13 and an eight-page appendix, so it
+    fitted, but with nothing in hand. As of 2026-10-19 the body is about half a page shorter and
+    the appendix has grown to ten pages; the counted length is what matters, but an appendix read
+    "at their discretion" gets less discretion the longer it is.
+
+    **Three weeks between notification and camera-ready**, which is the window any re-measurement
+    has to fit into — see item 56, which is parked on exactly that question.
 
 20. ~~**Add classic string-sorting literature** (MSD radix sort, three-way/multikey radix
     quicksort, burstsort).~~ **DONE 2026-08-04.** The assessment flagged this as a real gap:
