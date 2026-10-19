@@ -1,4 +1,87 @@
-# Tasks for Sai Vineeth — ACDA27 submission, due 2026-09-15
+# Tasks for Sai Vineeth
+
+Two rounds. **Round 2 is the live one**; round 1 is the submission round, kept below as the record of
+how the paper was built and anonymised.
+
+---
+
+# Round 2 — camera-ready, due 2026-11-23
+
+**Contingent on acceptance.** ACDA27 notifies on **2026-11-02**; camera-ready is **2026-11-23**, so
+there are three weeks and they are the only three weeks. Nothing below is research. All of it fails
+quietly if nobody owns it, which is why it is written down. Recorded as item 57 of `TODO.md`.
+
+**Read first:** `doc/AI use and the SIAM disclosure policy.md`, and item 19 of `TODO.md` for the
+requirements. One correction to carry into everything: **the page limit is 12 pages excluding
+references**, not the 16 we worked from for weeks. The appendix is explicitly outside the limit —
+SIAM says it is "read by the program committee members at their discretion", so length there costs
+attention rather than compliance.
+
+## 2.1 Verify all 23 bibliography entries against source — **the one with real risk**
+
+`paper/sample-base.bib` was reconstructed with AI assistance in `1f0697a`, because leaving `acmart`
+required regenerating the bibliography and no `.bib` existed. SIAM's AI policy names fabricated
+references as the first of its four failure modes, so this is the item a referee could actually
+catch us on.
+
+What was done right at the time, so you know what you are and are not re-checking:
+
+- entries were produced **by transcription from the existing `.bbl`**, not from a model's memory of
+  the literature;
+- the citation keys are identical before and after, so nothing was invented and nothing lost;
+- two thin entries were marked INCOMPLETE rather than guessed at — Jugé's *Adaptive Shivers Sort* and
+  Zhang, Meng and Liang's *Sort Race* — and both have since been completed.
+
+**What that does not cover, and what you are actually doing.** Transcription guarantees fidelity to
+the *previous bibliography*, not to the publications. Any error already in the `.bbl` was carried
+forward faithfully. And it gives no coverage at all of SIAM's sharpest wording — references that
+"cite results not actually present in the source paper". So for each of the 23 entries:
+
+1. Resolve the DOI and confirm title, authors, venue, year and pages against the publisher's record.
+   Crossref (`https://api.crossref.org/works/<doi>`) is the quickest authoritative source and returns
+   the publisher's own metadata.
+2. Find where the paper cites it, and confirm the source **says what we say it says**. This is
+   per-citation, it cannot be done mechanically, and it is the part that matters.
+
+Two entries added 2026-10-19 — López-Ortiz et al., *JEA* 10 (2005), and Antoshenkov, Lomet and
+Murray, ICDE 1996 — are already Crossref-resolved. They need only the ACM article number for the
+first, which Crossref does not carry; ACM's own BibTeX export has it.
+
+## 2.2 Confirm the live SIAM AI policy, and place the disclosure
+
+Our copy of the policy came via Robin, because siam.org returns 403 to automated fetches. Confirm the
+wording, and in particular **where the disclosure must appear** — publishers differ between a methods
+section, a separate disclosure statement, and the acknowledgments.
+
+A draft statement is in `doc/AI use and the SIAM disclosure policy.md`. Place it according to what
+the policy actually says. It is a *disclosure*, not a thank-you: acknowledgment credits a
+contributor, disclosure states what tool was used and for what, and only the second is being asked
+for.
+
+## 2.3 The acknowledgments
+
+They are wrapped in `\ifanonymous`, so they never appeared in the review copy — the camera-ready is
+the first build that shows them. Cutting them frees **no page space at all**: measured, the spill
+threshold is identical with and without, because they sit after the body prose. So this is purely a
+question of who should be credited.
+
+The current line names Darshan Dedhia, Akshay Bhusare and Kartik Kumar. For context: Dedhia's single
+2020 commit implemented the first version of the encoded-exactly test in `HuskyCoder` and
+`HuskySequenceCoder` — the direct ancestor of the `exactlyEncodable` machinery that items 48, 55 and
+56 are about, and that two of Yunlu's benchmark runs were spent on. Bhusare's commit is the maven
+profiles still in `pom.xml`. Kartik Kumar has no commits in this repository. Robin's call.
+
+## 2.4 Check the camera-ready build and its artifact
+
+The repository link switches automatically with `\ifanonymous`, from
+`anonymous.4open.science/r/radix-proxy-key-sort-artifact-D8B1/` to `github.com/rchillyard/HuskySort`,
+so there is nothing to edit. The task is to confirm that the public repository **is** public, **does**
+contain the artifact the paper describes, and matches the version measured. Round 1's §2 below is the
+record of what the anonymous mirror contained and why.
+
+---
+
+# Round 1 — ACDA27 submission, due 2026-09-15 (historical)
 
 **Task 1 is done** — Robin downloaded the macros himself on 2026-09-08, and the conversion has been
 trialled successfully. **Task 2 is the only thing outstanding for you**: the anonymised code mirror,

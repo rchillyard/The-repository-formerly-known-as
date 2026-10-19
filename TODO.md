@@ -1857,7 +1857,16 @@ is a defect; all are hardening or generalisation.
     one list. This is it: everything the paper needs, in one place, so that whichever of item 39's
     four options is chosen the work is already scoped. Nothing here is started.
 
-    ### A. The cleanup cost model is the wrong algorithm's, and the paper already knows it
+    ### A. ~~The cleanup cost model is the wrong algorithm's, and the paper already knows it~~ **DONE 2026-10-19** (`6322144`)
+
+    The body now attributes $N + pX$ to the adaptive insertion sort and says why ("$N$ to scan, plus
+    one move per inversion that remains"); $T_3$ is "the time for the cleanup pass ... in the adaptive
+    insertion sort's form"; a new sentence states that we use Timsort and gives its bound,
+    $\mathbf{O}(N + N \log r)$ in ascending runs $r$. **The two forms meet at $r = 1$, which is the
+    case \S~`sec:pcrit` goes on to measure**, so the correction strengthens the section rather than
+    patching it, and point 3 below holds as written. `tab:PriorAlgorithms` stops writing that bound
+    in $p$. The analysis below is left for its reasoning.
+
 
     \S~`sec:pcrit` says "for Timsort **or insertion sort**, the time to re-sort the array will be
     $t = k (N + pX)$", then defines $T_3 = k_3 (N + pX)$ as "the time to **Timsort** the element
@@ -1902,10 +1911,41 @@ is a defect; all are hardening or generalisation.
     3. The $T_3$-at-$p=0$ argument (the permits, one full composite comparison per element) is
        **unaffected and stays** --- at $p = 0$ there is one run and both models agree on $N-1$.
 
-    ### B. Masking versus saturation, and "quasi-order-preserving" as a stated concept
+    ### B. Masking versus saturation, and naming the property --- **SPLIT 2026-10-19**
 
-    Robin's call (2026-09-22): this is a genuine discussion point and the paper should have it
-    rather than quietly shipping one coder. The shape of the argument:
+    **B1, naming the property: DONE 2026-10-19 (`6322144`). B2, the coder argument: moved to the
+    second paper, `doc/Second paper.md`.** The split was made after checking what the paper already
+    says, and this item's premise turned out to be wrong in two ways.
+
+    **First, the concept was already there.** This item said the paper "treats order preservation as
+    the requirement and imperfection as a matter of ties only". It does not. \S~`sec:coding` already
+    defines the code probabilistically --- order preserved "with probability $1 - p$" --- and already
+    distinguishes a code that is *positively wrong* from one that merely ties, saying only step 3 can
+    settle either. The abstract hedged at "order-preserving as far as possible" and \S~`sec:why-husky`
+    said "need not be perfect, only good". So the idea appeared three times, in three registers,
+    **unnamed**, and therefore did no work. B1 named it rather than adding it, which is also why it was
+    proper to do at camera-ready: it is exposition of reviewed content, not a new contribution.
+
+    **Second, `quasi-` is the wrong prefix, and so is `pseudo-`.** *Quasi-order* is a standard synonym
+    for *preorder*, and *pseudo-order* is the constructive-mathematics strict total order; but the
+    decisive objection is not collision. Both prefixes mark a **structurally weakened but still exact**
+    axiom set --- in the metric family `pseudo-` drops separation and `quasi-` drops symmetry --- and a
+    husky code satisfies the ordinary condition and is *sometimes simply wrong*. A prefix would fit a
+    code whose only failure is ties, which is the saturating coder we rejected.
+
+    **Shipped term: *approximately order-preserving*, or *$p$-order-preserving* where the fraction
+    matters**, with *perfect* falling out as the case $p = 0$ and $p_{crit}$ as the largest $p$ one can
+    afford. The parameterised form is the term; the phrase is the gloss on first use.
+
+    **Naming it exposed an uncited literature**, now cited: order-preserving compression for sorting,
+    which keeps exactness and pays in variable-length codes where we fix the width and pay in $p$.
+    Lopez-Ortiz et al., *JEA* 10 (2005), and Antoshenkov, Lomet and Murray, ICDE 1996 --- both resolved
+    through Crossref from the DOI rather than transcribed.
+
+    **B2, deferred.** The coder argument proper --- masking against saturation, the measured trade, and
+    the conditional that all of it holds *because the cleanup is Timsort* --- is new argument the
+    referees have not seen, and adding it at camera-ready would be wrong even if the pages existed.
+    It is the spine of the second paper. The shape of that argument, as recorded 2026-09-22:
 
     - A husky code does **not** have to be order-preserving. It has to be *quasi* order-preserving:
       wrong often enough to matter is fine, because step 3 repairs whatever step 2 leaves. The paper
@@ -3560,3 +3600,40 @@ is a defect; all are hardening or generalisation.
     --- and `HoistEquivalenceTest` should be extended to cover it, since collapsing four overrides
     into two fields is exactly the kind of change that keeps the output right while altering the
     mechanism underneath.
+
+57. **Camera-ready submission hygiene: the things that are nobody's job until they are (opened
+    2026-10-19). Intended owner: Sai Vineeth. Deadline 2026-11-23, contingent on acceptance on
+    2026-11-02.**
+
+    These came out of writing `doc/AI use and the SIAM disclosure policy.md` and the ACDA27
+    requirements in item 19. None is research; all of them fail quietly if nobody owns them. The
+    working list, with instructions, is round 2 of `doc/Tasks for Sai Vineeth.md`.
+
+    1. **Verify all 23 bibliography entries against source.** The highest-risk item here, and the
+       only one with a named external consequence: SIAM's AI policy calls out fabricated references
+       first among its four failure modes. `paper/sample-base.bib` was reconstructed with AI
+       assistance in `1f0697a` **by transcription from the `.bbl`** --- keys identical before and
+       after, nothing invented, two thin entries marked INCOMPLETE rather than guessed and both
+       since completed. But transcription guarantees fidelity to the *previous bibliography*, not to
+       the publications: an error already present was carried forward faithfully, and it gives no
+       coverage at all of SIAM's sharpest wording, "cite results not actually present in the source
+       paper". That last check is per-citation and cannot be done mechanically. The two entries added
+       2026-10-19 are already Crossref-resolved and need only the ACM article number.
+    2. **Confirm the live SIAM AI policy wording**, in particular where the disclosure must appear.
+       Our copy came via Robin because siam.org returns 403 to automated fetches; the saved
+       `paper/ACDA27 Submissions | SIAM.pdf` is the record for everything else.
+    3. **Place the disclosure statement.** Draft in the policy document. It is a *disclosure*, not an
+       acknowledgment --- acknowledgment credits a contributor, disclosure states what tool did what,
+       and only the second is what the policy asks for.
+    4. **Decide the acknowledgments.** They are suppressed by `\ifanonymous` and so never appeared in
+       the review copy; the camera-ready is the first build that shows them. Cutting them frees **no
+       page space** (measured: none --- they sit after the body prose). It is purely an attribution
+       question, and Dedhia's single 2020 commit is the ancestor of the `exactlyEncodable` machinery
+       that items 48, 55 and 56 are about.
+    5. **Check the camera-ready build and its artifact.** The repository link switches automatically
+       with `\ifanonymous` (anonymous.4open.science to github.com/rchillyard/HuskySort), so the task
+       is not editing it but confirming the public repository is actually public, actually contains
+       the artifact, and matches what the paper describes.
+
+    Note for whoever picks this up: **the page limit is 12 excluding references**, not the 16 we
+    worked from for weeks, and the appendix is explicitly outside it. See item 19.
