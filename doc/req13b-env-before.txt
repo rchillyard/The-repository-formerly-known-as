@@ -1,0 +1,134 @@
+### date
+2026-10-18T07:18:46Z
+### uptime
+ 07:18:46 up 2 days,  8:06,  0 users,  load average: 0.71, 0.92, 1.55
+### lscpu
+Architecture:                            aarch64
+CPU op-mode(s):                          32-bit, 64-bit
+Byte Order:                              Little Endian
+CPU(s):                                  16
+On-line CPU(s) list:                     0-15
+Vendor ID:                               ARM
+Model:                                   1
+Thread(s) per core:                      1
+Core(s) per socket:                      16
+Socket(s):                               1
+Stepping:                                r1p1
+BogoMIPS:                                2100.00
+Flags:                                   fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 sm3 sm4 asimddp sha512 sve asimdfhm dit uscat ilrcpc flagm paca pacg dcpodp svei8mm svebf16 i8mm bf16 dgh rng
+L1d cache:                               1 MiB (16 instances)
+L1i cache:                               1 MiB (16 instances)
+L2 cache:                                16 MiB (16 instances)
+L3 cache:                                32 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-15
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; CSV2, BHB
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Not affected
+### free -h
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi       4.6Gi       5.7Gi       935Mi        20Gi        24Gi
+Swap:           39Gi       929Mi        39Gi
+### swapon --show
+NAME       TYPE      SIZE   USED PRIO
+/swapfile  file       32G     0B   10
+/dev/zram0 partition   8G 929.1M  100
+### swapon --show before swap clearing
+NAME       TYPE      SIZE   USED PRIO
+/swapfile  file       32G     0B   10
+/dev/zram0 partition   8G 929.1M  100
+### swapon --show after swap clearing
+(not cleared, same as before)
+### uname -r
+6.12.111-136.204.amzn2023.aarch64
+### java -version
+openjdk version "21.0.12" 2026-07-21 LTS
+OpenJDK Runtime Environment Corretto-21.0.12.8.1 (build 21.0.12+8-LTS)
+OpenJDK 64-Bit Server VM Corretto-21.0.12.8.1 (build 21.0.12+8-LTS, mixed mode, sharing)
+### mvn -v
+Apache Maven 3.9.16 (2bdd9fddda4b155ebf8000e807eb73fd829a51d5)
+Maven home: /workplace/liaoyunl/husky-sort/tools/apache-maven-3.9.16
+Java version: 21.0.12, vendor: Amazon.com Inc., runtime: /workplace/liaoyunl/husky-sort/tools/amazon-corretto-21.0.12.8.1-linux-aarch64
+Default locale: en, platform encoding: UTF-8
+OS name: "linux", version: "6.12.111-136.204.amzn2023.aarch64", arch: "aarch64", family: "unix"
+### cgroup
+0::/user.slice/user-13252749.slice/user@13252749.service/app.slice/husky-req13b-20261018-0718.service
+### unit
+husky-req13b-20261018-0718 source=/proc/self/cgroup leaf phases=pre,ab,gate,rerun,post smoke=0 baselines=1 clear_swap=1 force_choice=none smoke_choice=F1 skip_done=0 settle=120 guard_max_wait_min=120 launch=20261018T071844Z
+### nproc
+16
+### git prwork HEAD
+549976a9ebec73e48d8d75ee32764d1290266164
+549976a Test the perfect check only until the first failure (item 55)
+### git prwork HEAD:src
+8298ae70a0dd864950e3e06a07951d1703defe74
+### fix branches (git rev-parse req13-fix-F1 req13-fix-F2 req13-fix-F3, then their :src)
+52b08944163d9f1d2ec68b709e37cbe899279562
+0848a370e38a7a6f6dacd9fb04980fa56eee735c
+886c578ad831b54732fc3a0322f0f33d2f557fb9
+5ade1926360b1e41783cb3a4f13ec05c9fa91809
+1be7122c30443dbb255f8b4d3e1bf9d15156ecf2
+b28fd8e217674ea6f79ce33336863b1b39377a8e
+### fix commits (from the jar names)
+fixF1
+52b0894 Test exactness to the first failure, then encode (item 55)
+5ade1926360b1e41783cb3a4f13ec05c9fa91809
+fixF2
+0848a37 Encode first, then test exactness to the first failure (item 55)
+1be7122c30443dbb255f8b4d3e1bf9d15156ecf2
+fixF3
+886c578 Settle exactness after the encode loop, not inside it (item 55)
+b28fd8e217674ea6f79ce33336863b1b39377a8e
+### git status src
+### jars (/workplace/liaoyunl/husky-sort/req13b/jars/sha256.txt)
+old 5f088118169f9ea0f5445bfe61c486a6fbcbfd1ae62f05f07476023d54a800d6 /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d947e77.jar
+rev ef3375bb38722a74e5b1e31ab3017a4dcfe1bc3ac59d64f57840a4bb7517c1fa /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-d8958bf-rev50.jar
+F1 028f61a2987ead16c83bfa3144fa88b9d96dde5b44986f5a523277f90bc118da /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F1.jar
+F2 a7fe2d71038564bd0d2f22f7e618cd20e615689761d5acf517b416530c197d68 /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F2.jar
+F3 6af261ddee04ad54a7b5a9fda5f3948f205ab241ff91626631d68678c5bb4b34 /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F3.jar
+fixF1 46bb30fc687cb981d9a903eaec9c55ea4cb317c903970459d6d1302d7be57114 /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F1-52b0894.jar
+fixF2 7a3b7264b3717752bec05f40997b1b9391bb926ab61f97a3fb7f3258dfbecafd /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F2-0848a37.jar
+fixF3 e8f53ab8fb3fc7c97ac0776817462eaba0b06c62e780fb17a9670fe4ce59304f /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F3-886c578.jar
+### jars sha256sum now
+5f088118169f9ea0f5445bfe61c486a6fbcbfd1ae62f05f07476023d54a800d6  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d947e77.jar
+76379654 bytes  mtime 2026-10-05 07:07:51.241555292 +0000  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d947e77.jar
+ef3375bb38722a74e5b1e31ab3017a4dcfe1bc3ac59d64f57840a4bb7517c1fa  /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-d8958bf-rev50.jar
+76380523 bytes  mtime 2026-10-14 18:48:20.067012547 +0000  /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-d8958bf-rev50.jar
+028f61a2987ead16c83bfa3144fa88b9d96dde5b44986f5a523277f90bc118da  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F1.jar
+76380576 bytes  mtime 2026-10-18 06:22:23.817230202 +0000  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F1.jar
+a7fe2d71038564bd0d2f22f7e618cd20e615689761d5acf517b416530c197d68  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F2.jar
+76380583 bytes  mtime 2026-10-18 06:23:07.988310388 +0000  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F2.jar
+6af261ddee04ad54a7b5a9fda5f3948f205ab241ff91626631d68678c5bb4b34  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F3.jar
+76380668 bytes  mtime 2026-10-18 06:23:53.149410636 +0000  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-d8958bf-F3.jar
+46bb30fc687cb981d9a903eaec9c55ea4cb317c903970459d6d1302d7be57114  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F1-52b0894.jar
+76420802 bytes  mtime 2026-10-18 06:24:40.680568157 +0000  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F1-52b0894.jar
+7a3b7264b3717752bec05f40997b1b9391bb926ab61f97a3fb7f3258dfbecafd  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F2-0848a37.jar
+76420806 bytes  mtime 2026-10-18 06:25:27.991718095 +0000  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F2-0848a37.jar
+e8f53ab8fb3fc7c97ac0776817462eaba0b06c62e780fb17a9670fe4ce59304f  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F3-886c578.jar
+76420893 bytes  mtime 2026-10-18 06:26:15.102861417 +0000  /workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F3-886c578.jar
+### plan
+phases pre,ab,gate,rerun,post; A/B -r 2s -w 2s -f 3 -wi 5 -i 10 n=32000,200000,1000000, r1 old rev F1 F2 F3 r2 reversed; gate /workplace/liaoyunl/husky-sort/runner/req13b-gate.py (choice=F<k> in ab/gate.txt; FORCE_CHOICE=none); rerun jar fix<choice>, /workplace/liaoyunl/husky-sort/req13b/plan/rerun-invocations.tsv (6dd72647c1430417ab7e7eb4cc655bfa9110438d2587ef6b59e02d1d03ad59e3), /workplace/liaoyunl/husky-sort/req13b/plan/expected-rows.json; settle 120s
+### guard
+pre: load1<2.0 swap<1048576KiB (waived after 30 polls if only swap fails) no other benchmark JVM, MainThread>=5.0%CPU <3; per invocation the same without swap, swap growth > 256 MiB logged; STALLED logged every 30 polls, TIMEOUT proceeds after 120 min
+### chosen jar (2026-10-18T11:19:44Z)
+choice=F1 source=gate label=fixF1 sha256=46bb30fc687cb981d9a903eaec9c55ea4cb317c903970459d6d1302d7be57114 path=/workplace/liaoyunl/husky-sort/req13b/jars/benchmarks-fix-F1-52b0894.jar
+52b0894 Test exactness to the first failure, then encode (item 55)
+5ade1926360b1e41783cb3a4f13ec05c9fa91809
+### fix branches at the choice
+52b08944163d9f1d2ec68b709e37cbe899279562
+0848a370e38a7a6f6dacd9fb04980fa56eee735c
+886c578ad831b54732fc3a0322f0f33d2f557fb9

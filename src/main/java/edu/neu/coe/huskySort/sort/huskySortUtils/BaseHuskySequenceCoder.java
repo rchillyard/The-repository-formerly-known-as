@@ -45,13 +45,16 @@ public abstract class BaseHuskySequenceCoder<X extends CharSequence> implements 
      */
     @Override
     public Coding huskyEncode(final X[] xs) {
+        // Test exactness before encoding, stopping at the first failure, so the encode loop carries no test.
         boolean isPerfect = true;
-        final long[] result = new long[xs.length];
-        for (int i = 0; i < xs.length; i++) {
-            final X x = xs[i];
-            if (isPerfect) isPerfect = exactlyEncodable(x);
-            result[i] = huskyEncode(x);
+        for (final X x : xs) {
+            if (!exactlyEncodable(x)) {
+                isPerfect = false;
+                break;
+            }
         }
+        final long[] result = new long[xs.length];
+        for (int i = 0; i < xs.length; i++) result[i] = huskyEncode(xs[i]);
         return new Coding(result, isPerfect);
     }
 
