@@ -5,45 +5,45 @@ The style file: siamplain.bst
 Database file #1: sample-base.bib
 Warning--empty publisher in Timsort
 Warning--empty publisher in Dual-pivot
-You've used 20 entries,
+You've used 22 entries,
             2244 wiz_defined-function locations,
-            685 strings with 8166 characters,
-and the built_in function-call counts, 7081 in all, are:
-= -- 606
-> -- 286
+            702 strings with 8729 characters,
+and the built_in function-call counts, 7886 in all, are:
+= -- 675
+> -- 327
 < -- 0
-+ -- 113
-- -- 91
-* -- 543
-:= -- 1032
-add.period$ -- 27
-call.type$ -- 20
-change.case$ -- 99
++ -- 129
+- -- 105
+* -- 610
+:= -- 1150
+add.period$ -- 29
+call.type$ -- 22
+change.case$ -- 112
 chr.to.int$ -- 0
-cite$ -- 22
-duplicate$ -- 389
-empty$ -- 692
-format.name$ -- 91
-if$ -- 1560
+cite$ -- 24
+duplicate$ -- 430
+empty$ -- 764
+format.name$ -- 105
+if$ -- 1735
 int.to.chr$ -- 0
-int.to.str$ -- 20
-missing$ -- 21
-newline$ -- 70
-num.names$ -- 42
-pop$ -- 162
+int.to.str$ -- 22
+missing$ -- 23
+newline$ -- 76
+num.names$ -- 46
+pop$ -- 181
 preamble$ -- 1
-purify$ -- 81
+purify$ -- 92
 quote$ -- 0
-skip$ -- 239
+skip$ -- 263
 stack$ -- 0
-substring$ -- 383
-swap$ -- 114
+substring$ -- 425
+swap$ -- 126
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 74
+type$ -- 82
 warning$ -- 2
-while$ -- 66
-width$ -- 22
-write$ -- 213
+while$ -- 73
+width$ -- 24
+write$ -- 233
 (There were 2 warnings)

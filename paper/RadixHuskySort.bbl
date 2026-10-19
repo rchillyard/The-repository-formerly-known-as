@@ -5,6 +5,12 @@
   and related problems}, Commun. ACM, 31 (1988), pp.~1116--1127,
   \url{https://doi.org/10.1145/48529.48535}.
 
+\bibitem{doi:10.1109/ICDE.1996.492216}
+{\sc G.~Antoshenkov, D.~Lomet, and J.~Murray}, {\em Order preserving string
+  compression}, in Proceedings of the Twelfth International Conference on Data
+  Engineering, IEEE Computer Society Press, 1996, pp.~655--663,
+  \url{https://doi.org/10.1109/ICDE.1996.492216}.
+
 \bibitem{DBLP:journals/corr/abs-1805-08612}
 {\sc N.~Auger, V.~Jug{\'{e}}, C.~Nicaud, and C.~Pivoteau}, {\em On the
   worst-case complexity of timsort}, CoRR, abs/1805.08612 (2018),
@@ -75,6 +81,12 @@
 {\sc A.~LaMarca and R.~E. Ladner}, {\em The influence of caches on the
   performance of sorting}, Journal of Algorithms, 31 (1999), pp.~66--104,
   \url{https://www.sciencedirect.com/science/article/pii/S0196677498909853}.
+
+\bibitem{doi:10.1145/1064546.1180611}
+{\sc A.~L{\'o}pez-Ortiz, M.~Mirzazadeh, M.~A. Safari, and H.~Sheikhattar}, {\em
+  Fast string sorting using order-preserving compression}, ACM Journal of
+  Experimental Algorithmics, 10 (2005),
+  \url{https://doi.org/10.1145/1064546.1180611}.
 
 \bibitem{10.5555/313559.313859}
 {\sc P.~McIlroy}, {\em Optimistic sorting and information theoretic

@@ -338,7 +338,7 @@
     which, for a divide-and-conquer sort, falls into a linearithmic phase and possibly a linear one:
     moving work out of the first and into the second reduces the total.
     This is particularly true where comparison itself is expensive likely leading to a reduction in running time as well.
-    The mechanism we present is based a 64-bit code, order-preserving as far as possible,
+    The mechanism we present is based a 64-bit code, approximately order-preserving,
     that stands as a proxy for each element; we call it a husky code.
     Its effect is to extract each element's sort key once, or at most twice, rather than at each level of recursion.
     Earlier work sorted such codes with quicksort.
@@ -720,6 +720,15 @@ If $x > y$ but $x.huskyCode() = y.huskyCode()$, the codes say nothing about the 
 whatever order step 2 leaves it in is arbitrary with respect to the true one, and it may be inverted.
 Only step 3 can settle either case.
 
+We call such a code \textit{approximately order-preserving}, or \mbox{$p$-order-preserving} where the
+fraction matters.
+The relaxation is what the method trades on: an \emph{exactly} order-preserving fixed-width code
+exists only for bounded domains, whereas allowing a fraction $p$ of pairs to come out wrong buys a
+64-bit code for domains admitting no exact one, at the price of a cleanup pass.
+Order-preserving compression for sorting keeps exactness and pays for it in variable-length
+codes~\cite{doi:10.1109/ICDE.1996.492216,doi:10.1145/1064546.1180611}; we fix the width and pay in
+$p$ instead.
+
 For a successful encoding, the value of $p$, the probability of a potential inversion, should be less than some critical probability, $p_{crit}$.
 Leaving a more detailed discussion of $p_{crit}$ until later, we note that, for some domains of $X$, we
 can definitely assert that $p = 0$ --- which is the \textit{perfect} encoding of \S~\ref{sec:overview},
@@ -747,7 +756,8 @@ QuickHuskySort sorts in 698 ms against the system sort's 1,121 ms, a factor of 1
 When $p > 0$, there is a finite probability of any pair of elements remaining inverted after step 2.
 For an array of N randomly ordered elements, the average number of inversions before sorting is $X = N (N -1 ) / 4$.
 The number of inversions remaining after step 2 is simply $p X$.
-And, for Timsort or insertion sort, the time to re-sort the array will be $t = k (N + p X)$ where $k$ is some system-dependent constant.
+And, for an adaptive insertion sort, the time to re-sort the array will be $t = k (N + p X)$ where
+$k$ is some system-dependent constant --- $N$ to scan, plus one move per inversion that remains.
 The total time to sort the array is made up of these three time-consuming steps where $k_1, k_2, k_3$ are system- and algorithm-dependent constants:
 
 \begin{steps}
@@ -756,9 +766,13 @@ The total time to sort the array is made up of these three time-consuming steps 
 \item{}  $T_2$ is the (average) time for step 2, sorting the husky code array while permuting the
 element array alongside it, with a comparison sort:
 \[T_2 = 2 k_2 N \ln N\]
-\item{}  $T_3$  is the time to Timsort the element array (only required if $p>0$):
+\item{}  $T_3$ is the time for the cleanup pass (only required if $p>0$), in the adaptive
+insertion sort's form:
  \[T_3 = k_3 (N + p X)\]
 \end{steps}
+We in fact use Timsort, whose cost is not $N + p X$ but $\textbf{O}(N + N \log r)$ in the number of
+ascending runs $r$ (Table ~\ref{tab:PriorAlgorithms}); the two forms meet at $r = 1$, which is the
+case measured below, and \S~\ref{sec:cleanup-choice} settles the choice between them.
 Provided that the total time $T = T_1 + T_2 + T_3$ is less than the time required to use Timsort on the original element array,
 the method wins.
 This same three-step decomposition ($T_1$/$T_2$/$T_3$, i.e., encode/sort/cleanup) is revisited in \S~\ref{sec:analysis}
@@ -785,25 +799,11 @@ which is precisely the comparison the husky encoding was introduced to avoid.
 The cleanup pass reintroduces one full composite comparison per element,
 having just removed it from all $\textbf{O}(N \log N)$ of them.
 
-That comparison costs 16.1\,ns at $N = 32{,}000$, 60.3\,ns at $N = 100{,}000$ and 74.2\,ns at
-$N = 198{,}900$ --- 7.3\%, 17.2\% and 17.3\% of the running time of the sort that contains it ---
-with non-overlapping 99.9\% confidence intervals throughout.
-Three further runs, one of them on different hardware, agree on the shape at different levels;
-across all four the pass costs between a sixteenth and a quarter of the total,
-and between a sixth and a quarter at the two larger sizes.
-The percentages are the less stable figures, being ratios of two quantities that both move.
-The shape is a threshold rather than a trend --- a rise by a factor of roughly three to four between the first two sizes,
-then a levelling off --- and it falls where the records stop fitting in cache.
-That last reading is inference, but the magnitudes support it:
-the system sort compares these same records 3.25 million times in 151\,ms, or 46\,ns each,
-so the cleanup pass at 74\,ns costs about 1.6 times as much per comparison using the same comparator.
-Step 2 permutes references without moving the records, so neither sort walks the heap in order ---
-but the system sort touches each record some thirty times as a comparison operand, where the cleanup
-pass touches it twice.
-A cache miss is amortised over the first and paid in full by the second.
-
-Whether this share must shrink as $N$ grows --- the pass being linear where the sort containing it is
-linearithmic --- is a fair question, and \S~\ref{sec:cleanup-scaling} answers it.
+Measured on those records the pass costs between a sixteenth and a quarter of the total, rising by a
+factor of three to four between $N = 32{,}000$ and $N = 100{,}000$ and then levelling off where the
+records stop fitting in cache.
+\S~\ref{sec:cleanup-scaling} gives the per-size figures, the evidence for that reading, and what
+becomes of the share as $N$ grows.
 
 Two conclusions follow.
 First, $k_3$ is not a constant: it varies more than fourfold across three sizes on one machine,
@@ -1437,7 +1437,7 @@ characteristics referred to there.
     Insertion sort & $\textbf{O}(N + I)$ & $\textbf{O}(N^2)$ & Yes & $I$ = number of inversions; fast only for small or nearly-sorted $N$ \\
     Merge sort & $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Linearithmic regardless of input order; $\textbf{O}(N)$ extra space \\
     Quicksort & $\textbf{O}(N \log N)$ & $\textbf{O}(N^2)$ & No & In-place, cache-friendly; the quadratic worst case is mitigated in practice (e.g., Introsort's heapsort fallback~\cite{doi:10.1002}) \\
-    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs; more precisely $\textbf{O}(N + N \log p)$ for $p$ runs~\cite{DBLP:journals/corr/abs-1805-08612} \\
+    Timsort & $\textbf{O}(N + I)$ to $\textbf{O}(N \log N)$ & $\textbf{O}(N \log N)$ & Yes & Hybrid of merge sort and insertion sort, adaptive to existing ascending/descending runs; more precisely $\textbf{O}(N + N \log r)$ for $r$ runs~\cite{DBLP:journals/corr/abs-1805-08612} \\
     \bottomrule
   \end{tabularx}
 \end{table*}
@@ -1758,8 +1758,27 @@ $N$, and \S~\ref{sec:parallel-baseline} finds exactly that on the permits.
 \subsection{The cleanup pass as \texorpdfstring{$N$}{N} grows.}
 \label{sec:cleanup-scaling}
 
-\S~\ref{sec:pcrit} measures the cleanup pass at $p = 0$ and reports a share of total running time that
-\emph{rises} with $N$, from 7.3\% to 17.3\%.
+\S~\ref{sec:pcrit} isolates the cleanup pass at $p = 0$ on the municipal records. The figures are
+these.
+
+That comparison costs 16.1\,ns at $N = 32{,}000$, 60.3\,ns at $N = 100{,}000$ and 74.2\,ns at
+$N = 198{,}900$ --- 7.3\%, 17.2\% and 17.3\% of the running time of the sort that contains it ---
+with non-overlapping 99.9\% confidence intervals throughout.
+Three further runs, one of them on different hardware, agree on the shape at different levels;
+across all four the pass costs between a sixteenth and a quarter of the total,
+and between a sixth and a quarter at the two larger sizes.
+The percentages are the less stable figures, being ratios of two quantities that both move.
+The shape is a threshold rather than a trend --- a rise by a factor of roughly three to four between the first two sizes,
+then a levelling off --- and it falls where the records stop fitting in cache.
+That last reading is inference, but the magnitudes support it:
+the system sort compares these same records 3.25 million times in 151\,ms, or 46\,ns each,
+so the cleanup pass at 74\,ns costs about 1.6 times as much per comparison using the same comparator.
+Step 2 permutes references without moving the records, so neither sort walks the heap in order ---
+but the system sort touches each record some thirty times as a comparison operand, where the cleanup
+pass touches it twice.
+A cache miss is amortised over the first and paid in full by the second.
+
+The share therefore \emph{rises} with $N$, from 7.3\% to 17.3\%.
 One objection should be met head on: the pass is linear where the sort containing it is linearithmic,
 so its share is bound to fall as $1/\log N$.
 
