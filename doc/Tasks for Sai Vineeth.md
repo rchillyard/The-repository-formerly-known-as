@@ -43,8 +43,38 @@ forward faithfully. And it gives no coverage at all of SIAM's sharpest wording �
 2. Find where the paper cites it, and confirm the source **says what we say it says**. This is
    per-citation, it cannot be done mechanically, and it is the part that matters.
 
+### A first pass has been done — here is what it cleared, and what it did not
+
+Run 2026-10-19 against Crossref. **Do not repeat the DOI resolution; start from step 2.**
+
+Of 25 entries, 13 carry a DOI. **Twelve resolve and their titles match ours.** The thirteenth did
+not, and the error is instructive:
+
+> `1064546.1180622` — Sinha and Zobel, *Cache-Conscious Sorting of Large Sets of Strings with
+> Dynamic Tries*. The DOI in the entry, `10.1145/1064546.1180622`, resolves to a **different real
+> paper**: Sinha, Ring and Zobel, *Using random sampling to build approximate tries for efficient
+> string sorting*, JEA vol. 10 (2005) — a neighbouring article in the same journal. Author, title,
+> journal, volume, year and article number were all correct; only the identifier was wrong.
+> **Corrected** to `10.1145/1005813.1041517`, confirmed through Crossref.
+
+That is exactly the error transcription from a `.bbl` carries forward faithfully, and exactly what
+SIAM's first failure mode describes. It is also the reason step 2 below cannot be skipped: a wrong
+identifier on an otherwise correct entry is invisible to every check except resolving it.
+
+One further note: `10.5555/313559.313859` (McIlroy, *Optimistic Sorting*) returns 404. The `10.5555`
+prefix is ACM's placeholder namespace for items without a real DOI, so this is probably not an error
+— but confirm the paper exists and that the entry's details are right, and consider dropping a DOI
+field that resolves to nothing.
+
+**The twelve entries with no DOI were not cleared and need eyes.** Crossref is the wrong instrument
+for most of them — a textbook (CLRS), web pages (Python's `listsort.txt`, Yaroslavskiy's dual-pivot
+PDF), arXiv preprints (HuskySort, *Sort Race*, the Hash sort report), a dataset (SF building
+permits), a GitHub corpus (Chinese-Names-Corpus), and conference proceedings not indexed there
+(Bentley and Sedgewick, LREC). Check each against its actual source by hand. The arXiv ones are
+quick; the web pages need a retrieval date that is still accurate.
+
 Two entries added 2026-10-19 — López-Ortiz et al., *JEA* 10 (2005), and Antoshenkov, Lomet and
-Murray, ICDE 1996 — are already Crossref-resolved. They need only the ACM article number for the
+Murray, ICDE 1996 — were Crossref-resolved when added. They need only the ACM article number for the
 first, which Crossref does not carry; ACM's own BibTeX export has it.
 
 ## 2.2 Confirm the live SIAM AI policy, and place the disclosure
