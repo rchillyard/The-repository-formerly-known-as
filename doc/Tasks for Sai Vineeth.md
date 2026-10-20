@@ -101,6 +101,62 @@ The current line names Darshan Dedhia, Akshay Bhusare and Kartik Kumar. For cont
 56 are about, and that two of Yunlu's benchmark runs were spent on. Bhusare's commit is the maven
 profiles still in `pom.xml`. Kartik Kumar has no commits in this repository. Robin's call.
 
+## 2.5 Read the paper for voice: does any paragraph read as machine-written?
+
+Robin's request, 2026-10-19. A substantial part of the text was drafted with Claude. He and Claude
+write similarly enough that it mostly blends, but he wants to know whether **any paragraph screams
+that a machine wrote it**. This needs someone who is neither of them, which is why it is your task
+and not Claude's — self-assessment is exactly what does not work here.
+
+**First, be clear what this is and is not for.** We are *disclosing* the AI use (§2.2), so the goal
+is not concealment and nothing here should be done in that spirit. The goal is that the paper reads
+as one voice and reads well. A paragraph that is bland, over-signposted or mechanically balanced is
+a bad paragraph whoever wrote it; the AI question is just a good lens for finding them.
+
+**Do not use an AI-detector tool.** They are unreliable on technical prose, their false-positive
+rate on edited academic writing is high, and a score would tell us nothing we could act on. Read it.
+
+### You do not have to guess which parts are which
+
+The repository records it. 296 of the 580 commits on `parallel-redesign` end with a
+`Co-Authored-By: Claude` trailer, so authorship is attributable line by line:
+
+```bash
+git blame -w --line-porcelain paper/RadixHuskySort.tex | grep '^commit ' | sort -u
+```
+
+Map each blank-line-separated paragraph to the commits touching its lines, then mark the paragraph
+AI-involved if any of those commits carries the trailer. That turns the whole exercise from a
+guessing game into a targeted read of a known subset. Ask Claude to generate that mapping if it
+would save time — producing the list is mechanical and is not the part that needs your judgement.
+
+Expect the newest material to be the most exposed: the parallel-baseline section and the conclusion
+were rewritten on 2026-10-19 (`e1ef6ae`), and the $p_{crit}$ and coding sections were edited the same
+day (`6322144`). The oldest body text is largely Robin's and derives from the 2020 paper.
+
+### What to look for
+
+Concrete tells, rather than a general impression. Claude's own habits in this repository, which it
+named when asked:
+
+- **Em-dash density.** The paper uses `---` heavily. Some is Robin's style; a paragraph with three
+  or more is worth a second look.
+- **The rule of three.** "Two conclusions follow", "three properties account for it", triads of
+  clauses where two would do.
+- **Antithesis as a default rhythm.** "not X, but Y", "X rather than Y", "the design working, not
+  failing". One is fine. Several in a paragraph is a tic.
+- **Signposted conclusions** — "the honest summary", "that is the finding rather than a caveat on
+  it", "worth stating plainly" — where the sentence could simply make the point.
+- **Uniform paragraph and sentence length.** Human technical prose is lumpier.
+- **Hedges that carry no information**: "it is worth noting that", "importantly", "notably".
+- **Explanations of the obvious** immediately after a clear statement.
+
+### What to report
+
+A list of paragraph references with a one-line verdict each — fine / slightly off / rewrite — and
+for anything flagged, which tell triggered it. Robin rewrites; you diagnose. A short note on whether
+the paper reads as one voice overall is worth as much as the individual flags.
+
 ## 2.4 Check the camera-ready build and its artifact
 
 The repository link switches automatically with `\ifanonymous`, from

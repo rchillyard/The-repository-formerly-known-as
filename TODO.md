@@ -3630,7 +3630,14 @@ is a defect; all are hardening or generalisation.
        page space** (measured: none --- they sit after the body prose). It is purely an attribution
        question, and Dedhia's single 2020 commit is the ancestor of the `exactlyEncodable` machinery
        that items 48, 55 and 56 are about.
-    5. **Check the camera-ready build and its artifact.** The repository link switches automatically
+    5. **Read the paper for voice** --- Robin's request, 2026-10-19: does any paragraph read as
+       machine-written? Needs an outside eye, so not Claude's to judge. Authorship is attributable
+       rather than guessable (`git blame` against the 296 commits carrying the `Co-Authored-By:
+       Claude` trailer), and the newest text is the most exposed. **Not** an exercise in
+       concealment --- the AI use is being disclosed either way; the point is that the paper reads
+       as one voice and reads well. No detector tools: unreliable on technical prose and not
+       actionable. Tells to look for are listed in the task file.
+    6. **Check the camera-ready build and its artifact.** The repository link switches automatically
        with `\ifanonymous` (anonymous.4open.science to github.com/rchillyard/HuskySort), so the task
        is not editing it but confirming the public repository is actually public, actually contains
        the artifact, and matches what the paper describes.
