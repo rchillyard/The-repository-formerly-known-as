@@ -12,8 +12,8 @@ import edu.neu.coe.huskySort.sort.radix.Alphabet;
 import edu.neu.coe.huskySort.sort.radix.CharacterMap;
 import edu.neu.coe.huskySort.sort.radix.MSDStringSort;
 import edu.neu.coe.huskySort.sort.radix.UnicodeMSDStringSort;
-import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.sort.simple.*;
+import edu.neu.coe.huskySort.sort.simple.TimSort;
 import edu.neu.coe.huskySort.util.*;
 
 import java.io.IOException;
@@ -26,7 +26,6 @@ import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.*;
 import java.util.function.*;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static edu.neu.coe.huskySort.sort.huskySort.AbstractHuskySort.UNICODE_CODER;
@@ -34,6 +33,9 @@ import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderFactory.englis
 import static edu.neu.coe.huskySort.sort.huskySortUtils.HuskySortHelper.generateRandomLocalDateTimeArray;
 import static edu.neu.coe.huskySort.util.Utilities.*;
 
+/**
+ * NOTE Much of this class is not unit-tested.
+ */
 public final class HuskySortBenchmark {
 
     public HuskySortBenchmark(final Config config) {
@@ -303,7 +305,7 @@ public final class HuskySortBenchmark {
             final boolean quickhuskysortwithinsertionsort = isConfigBenchmarkStringSorter("quickhuskysortwithinsertionsort");
             final boolean preSorted = false;
             final String s2 = ") words from " + corpus;
-            final HuskyCoder<String> coder = HuskyCoderFactory.chineseEncoderPinyin;
+            final HuskyCoder<String> coder = HuskyCoderFactory.chineseEncoderPinyinRank;
             final QuickHuskySort<String> quickHuskySort = new QuickHuskySort<>(coder, preSorted, quickhuskysortwithinsertionsort);
             final String s1 = "QuickHuskySort" + (quickhuskysortwithinsertionsort ? " with insertion sort" : "");
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, s1, s2), null, quickHuskySort::sort, null);
@@ -336,7 +338,7 @@ public final class HuskySortBenchmark {
             final boolean quickhuskysortwithinsertionsort = isConfigBenchmarkStringSorter("quickhuskysortwithinsertionsort");
             final boolean preSorted = false;
             final String s2 = ") words from " + corpus;
-            final HuskyCoder<String> huskyCoder = HuskyCoderFactory.chineseEncoderPinyin;
+            final HuskyCoder<String> huskyCoder = HuskyCoderFactory.chineseEncoderPinyinRank;
             final QuickHuskySort<String> quickHuskySort = new QuickHuskySort<>(huskyCoder, preSorted, quickhuskysortwithinsertionsort);
             final String s1 = "QuickHuskySort" + (quickhuskysortwithinsertionsort ? " with insertion sort" : "");
             final Benchmark<String[]> benchmark = new Benchmark<>(getDescription(nWords, s1, s2), null, quickHuskySort::sort, null);
@@ -520,8 +522,6 @@ public final class HuskySortBenchmark {
 
     final static LazyLogger logger = new LazyLogger(HuskySortBenchmark.class);
 
-    final static Pattern REGEX_LEIPZIG = Pattern.compile("[~\\t]*\\t(([\\s\\p{Punct}\\uFF0C]*\\p{L}+)*)");
-
     public static final Function<Random, Byte> byteFunction = r -> {
         byte[] bytes = new byte[1];
         r.nextBytes(bytes);
@@ -569,7 +569,7 @@ public final class HuskySortBenchmark {
     }
 
     private static List<String> getLeipzigWords(final String line) {
-        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmarkHelper.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
     }
 
     private static <Y> Benchmark<Y[]> benchmarkFactory(final String description, final Consumer<Y[]> sorter, final Predicate<Y[]> checker) {

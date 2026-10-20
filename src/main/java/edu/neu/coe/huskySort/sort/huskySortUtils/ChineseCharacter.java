@@ -61,7 +61,8 @@ public class ChineseCharacter extends UnicodeCharacter {
                         break;
                     }
             return toAltFormat(chosen);
-        } else throw new RuntimeException("no pinyin available for: " + unicode);
+        }
+        else throw new RuntimeException("no pinyin available for: " + unicode);
     }
 
     /**
@@ -113,6 +114,8 @@ public class ChineseCharacter extends UnicodeCharacter {
     /**
      * Determine the number of bits required to encode the property.
      *
+     * TESTME not currently used.
+     *
      * @param property the sequence number of the property to be encoded.
      * @return the number of bits required for the property.
      */
@@ -128,6 +131,8 @@ public class ChineseCharacter extends UnicodeCharacter {
 
     /**
      * Determine the (ordered) data value for the String s in the property.
+     *
+     * TESTME not currently used.
      *
      * @param property the sequence number of the property to be encoded.
      * @param s        the value of the property.
@@ -248,7 +253,7 @@ public class ChineseCharacter extends UnicodeCharacter {
      * whether a previously-trained resource is already on the classpath) and an honest AFTER
      * measurement (the freshly-trained table) within one JVM. Callers must also invalidate
      * HuskyCoderChinesePinyin's alt() memoization (clearAltCache), which is likewise static.
-     * Never called on any production path.
+     * TESTME not currently used.
      *
      * @param overrides the table to install (copied into the live map).
      */

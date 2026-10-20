@@ -142,6 +142,59 @@ public class PermitSortBenchmarks {
         return new ParallelRadixHuskySort<>("p8", 0, 16, PermitCoder.INSTANCE, Arrays::sort, state.config, 8).sort(copy);
     }
 
+    /**
+     * The same sort as parallelRadixHuskySort16_p8, differing only in that the digit width is
+     * derived from n and the chunk count rather than fixed at 16 (see TODO.md items 34 and 35). At
+     * these sizes the derivation picks 12 bits at n = 198,900 and 11 at n = 100,000, trading more
+     * passes over the keys for far less per-pass bucket bookkeeping. Kept alongside the fixed-16
+     * benchmark rather than replacing it, so that the two are measured in the same JMH invocation
+     * under the same machine conditions -- desktop drift between separate runs has been observed
+     * to exceed the effect being measured.
+     */
+    @Benchmark
+    public Permit[] parallelRadixHuskySortAuto_p8(final PermitState state) {
+        final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new ParallelRadixHuskySort<>("auto", 0, ParallelRadixHuskySort.AUTO_DIGIT_BITS, PermitCoder.INSTANCE, Arrays::sort, state.config, 8).sort(copy);
+    }
+
+    /**
+     * As parallelRadixHuskySortAuto_p8, but allowing chunks as small as 4,096 elements instead of
+     * the default 16,384. The default leaves the middle size short of the threads it asked for --
+     * at n = 100,000 it permits only 6 chunks of the 8 requested, and at n = 32,000 only 1, so
+     * that size runs entirely serially -- and n = 100,000 is the one size where the husky sort does
+     * not beat Arrays.parallelSort. This benchmark is what decides whether that is the reason. See
+     * TODO.md item 34's last paragraph.
+     */
+    /**
+     * As parallelRadixHuskySortAuto_p8, but with as many chunks as the machine has processors,
+     * rather than a hardcoded eight.
+     * <p>
+     * This is the only husky row directly comparable with systemSortParallel, because
+     * Arrays.parallelSort sizes itself from the machine too -- via the common ForkJoinPool, whose
+     * parallelism is availableProcessors() - 1 (or the cgroup CPU quota, where one applies). On
+     * eight cores p8 and the system sort get comparable resources and the comparison is fair by
+     * accident; on Yunlu's sixteen-core instance the common pool reported **15 workers** while our
+     * rows asked for 8, so request 9's permits result -- Arrays.parallelSort 2.77x faster than p8 --
+     * compared a 15-thread sort against an 8-thread one. His notes say as much: "no p15/p16 husky
+     * row was requested or run". Added 2026-09-16 so that request 10 does not repeat that.
+     * <p>
+     * NOTE: deliberately machine-dependent, so this row's thread count is not reproducible from the
+     * label alone. Record availableProcessors() alongside the result. That is the price of
+     * comparing against a baseline which is itself machine-sized; the fixed p4/p8 rows remain for
+     * the scaling sweep, where a fixed count is the point.
+     */
+    @Benchmark
+    public Permit[] parallelRadixHuskySortAuto_pAll(final PermitState state) {
+        final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new ParallelRadixHuskySort<>("autoAll", 0, ParallelRadixHuskySort.AUTO_DIGIT_BITS, PermitCoder.INSTANCE, Arrays::sort, state.config, Runtime.getRuntime().availableProcessors()).sort(copy);
+    }
+
+    @Benchmark
+    public Permit[] parallelRadixHuskySortAuto_p8_chunk4k(final PermitState state) {
+        final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new ParallelRadixHuskySort<>("auto4k", 0, ParallelRadixHuskySort.AUTO_DIGIT_BITS, 1 << 12, PermitCoder.INSTANCE, Arrays::sort, state.config, 8).sort(copy);
+    }
+
     @Benchmark
     public Permit[] radixHuskySort8(final PermitState state) {
         final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
@@ -152,6 +205,19 @@ public class PermitSortBenchmarks {
     public Permit[] radixHuskySort11(final PermitState state) {
         final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
         return new RadixHuskySort<>(11, PermitCoder.INSTANCE, state.config).sort(copy);
+    }
+
+    /**
+     * The serial sorter with the digit width derived from n rather than fixed (TODO.md item 35,
+     * second bullet). The permits table has /11 ahead of /16 at n = 32,000 and behind it at 198,900;
+     * the rule picks 12 and 15 respectively, so this row is what tests whether choosing per size
+     * beats any single fixed width. Kept alongside the fixed widths, which still run at exactly the
+     * width they name.
+     */
+    @Benchmark
+    public Permit[] radixHuskySortAuto(final PermitState state) {
+        final Permit[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, PermitCoder.INSTANCE, state.config).sort(copy);
     }
 
     @Benchmark

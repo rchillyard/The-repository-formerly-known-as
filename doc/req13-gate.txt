@@ -1,0 +1,63 @@
+# request 13 gate, 2026-10-17T08:47:47Z, results dir /workplace/liaoyunl/husky-sort/req13/ab, preset req13, smoke=False
+rule: HOLD if any A/B JSON is invalid, or if on StringSortBenchmarks.huskyEncodeOnly corpus=chinese at n=1000000 or n=200000, with each arm pooled over rounds [1, 2] (mean of the fork means of all its forks): new/old >= 1.02 AND share = (new - rev)/(new - old) > 0.5; else PASS
+
+validation (validate-json.py --preset req13):
+  ab-r1-old-E.json rc=0 sha256=974a18144f66de62eada11e1afdff6de9c39c89b0e327ebc010f2b82f5f3ba34 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r1-old-E.json
+  ab-r1-old-C.json rc=0 sha256=f2611cef5b67fc0d37faba833be187e32ac8a1a54d1a3b2117fdeabdaed821eb :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r1-old-C.json
+  ab-r1-new-E.json rc=0 sha256=c4ff9df6c0330f2f432ad2c6ed5318bb14e6832b24b79a99095eab5e1b48b494 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r1-new-E.json
+  ab-r1-new-C.json rc=0 sha256=8b6bc3111463434155fdbfd130102032f2b2df7cfc548515c3539c23fffeaebe :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r1-new-C.json
+  ab-r1-rev-E.json rc=0 sha256=718aeca127dc6656e78637f48d2c59c9189ce564036b40c9a9fe158a4afd4cf7 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r1-rev-E.json
+  ab-r1-rev-C.json rc=0 sha256=b37baa49847501e65fa74d9c1c06454415378d00918357d480271df1d5f216cc :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r1-rev-C.json
+  ab-r1-patch-E.json rc=0 sha256=2678036d2d39b6cc31f40259a01c2374cf3891d022274728adad7741ad7db1ce :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r1-patch-E.json
+  ab-r1-patch-C.json rc=0 sha256=6534d1a9c60c7006ed06f40ad152c81759280b9a2d01924c2d2dfecad8ef7b4a :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r1-patch-C.json
+  ab-r2-old-E.json rc=0 sha256=4be5fd00dd44f11af09738ff1a5d7360d7dea1172b1cfd17ef7c597259084f94 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r2-old-E.json
+  ab-r2-old-C.json rc=0 sha256=d5087ddfd70db7a68d90604a53fb6451df3e587a9fae80fb3121284c030c2961 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r2-old-C.json
+  ab-r2-new-E.json rc=0 sha256=8424ed6f70674b1bdff0f4df0c9cf8b9e97822766f0ebf67504eed34309fa47a :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r2-new-E.json
+  ab-r2-new-C.json rc=0 sha256=c70e4e037b1582f47e6a00e5f111e29194714578f32c4322e2a5b752dfb68319 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r2-new-C.json
+  ab-r2-rev-E.json rc=0 sha256=6f22b32817bd77dc2d5e6d211a758012db6ffc34d723c3ced8770b33d3d7791e :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r2-rev-E.json
+  ab-r2-rev-C.json rc=0 sha256=d2a500b378354b520765d93f64b971c52931523836d41c4129be7861b861a7f9 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r2-rev-C.json
+  ab-r2-patch-E.json rc=0 sha256=fae39cfd3acff92467b30fd205c3d18c3188763a7e54d881d7e531905bb7eeb2 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r2-patch-E.json
+  ab-r2-patch-C.json rc=0 sha256=6d35ced86e35172db8575b453a84cd66c3aa049d43af900432e37b1859e17230 :: VALID: preset req13: /workplace/liaoyunl/husky-sort/req13/ab/ab-r2-patch-C.json
+  invalid or missing: 0
+
+numbers (huskyEncodeOnly chinese n=1000000; ms/op; unrounded repr, 3 dp HALF_UP in brackets):
+  r1 old: score 19.050657594051422 [19.051] error 0.302876650114935 fork means ['19.53860427669903', '18.656655056398634', '18.956713449056604']
+  r1 new: score 19.913677459805815 [19.914] error 0.40847542632338074 fork means ['20.60168349805386', '19.170606056483518', '19.96874282488006']
+  r1 rev: score 18.621805518502633 [18.622] error 0.17494213763231675 fork means ['18.419235926605506', '18.980433079344117', '18.465747549558273']
+  r1 (information only): new/old 1.045, share 1.497
+  r2 old: score 19.056622113890604 [19.057] error 0.36835294623893294 fork means ['19.723371364879508', '18.516572375848906', '18.929922600943396']
+  r2 new: score 19.940667703339376 [19.941] error 0.07692112905422953 fork means ['19.8240333038245', '19.953326236643566', '20.044643569550054']
+  r2 rev: score 18.676836189331844 [18.677] error 0.27197364650137856 fork means ['18.9421637114106', '18.974237865094338', '18.11410699149058']
+  r2 (information only): new/old 1.046, share 1.430
+  pooled n=1000000: forks old 6, new 6, rev 6; means old 19.053639853971013 [19.054] new 19.92717258157259 [19.927] rev 18.649320853917235 [18.649]
+  pooled n=1000000: slowdown new/old = 1.045845976637347 [1.046] (>= 1.02: True); share = (new - rev)/(new - old) = 1.4628550107835112 [1.463] (> 0.5: True)
+  condition at n=1000000, line 50 explains a reproduced slowdown: True
+
+numbers (huskyEncodeOnly chinese n=200000; ms/op; unrounded repr, 3 dp HALF_UP in brackets):
+  r1 old: score 3.4562113785721365 [3.456] error 0.08178125566322988 fork means ['3.3368938808009987', '3.5797551730222366', '3.4519850818931745']
+  r1 new: score 3.75313794359239 [3.753] error 0.054010617212800024 fork means ['3.814272066038745', '3.6960459059457462', '3.7490958587926775']
+  r1 rev: score 3.5336314802382898 [3.534] error 0.0559842927777 fork means ['3.4797380068584', '3.5868423099851303', '3.534314123871341']
+  r1 (information only): new/old 1.086, share 0.739
+  r2 old: score 3.5211013162362197 [3.521] error 0.06206824783136148 fork means ['3.441758635802082', '3.546199216079442', '3.5753460968271327']
+  r2 new: score 3.756135503533902 [3.756] error 0.06047464614074918 fork means ['3.673875983907345', '3.799972891778283', '3.7945576349160746']
+  r2 rev: score 3.561331784719302 [3.561] error 0.07417691055410634 fork means ['3.576400985635685', '3.4539432286347718', '3.6536511398874487']
+  r2 (information only): new/old 1.067, share 0.829
+  pooled n=200000: forks old 6, new 6, rev 6; means old 3.4886563474041776 [3.489] new 3.754636723563145 [3.755] rev 3.547481632478796 [3.547]
+  pooled n=200000: slowdown new/old = 1.0762414951982522 [1.076] (>= 1.02: True); share = (new - rev)/(new - old) = 0.7788359956320221 [0.779] (> 0.5: True)
+  condition at n=200000, line 50 explains a reproduced slowdown: True
+
+informational (not used by the rule): new/old, rev/old, patch/new and share per row, round 1 / round 2
+  huskyEncodeOnlyEnglishMasking english n=32000: new/old 1.009 rev/old 0.974 patch/new 0.991 share 3.912 | new/old 0.982 rev/old 0.986 patch/new 1.042 share n/a
+  huskyEncodeOnlyEnglishMasking english n=200000: new/old 1.137 rev/old 1.040 patch/new 0.924 share 0.711 | new/old 1.134 rev/old 0.984 patch/new 0.936 share 1.122
+  huskyEncodeOnlyEnglishMasking english n=1000000: new/old 1.126 rev/old 1.002 patch/new 0.928 share 0.987 | new/old 1.122 rev/old 0.997 patch/new 0.925 share 1.026
+  huskyEncodeOnlyEnglishSaturating english n=32000: new/old 1.046 rev/old 0.938 patch/new 1.029 share 2.363 | new/old 1.048 rev/old 0.977 patch/new 1.042 share 1.485
+  huskyEncodeOnlyEnglishSaturating english n=200000: new/old 1.006 rev/old 0.978 patch/new 1.015 share 4.926 | new/old 1.024 rev/old 0.994 patch/new 1.012 share 1.262
+  huskyEncodeOnlyEnglishSaturating english n=1000000: new/old 1.006 rev/old 0.987 patch/new 0.998 share 3.341 | new/old 1.010 rev/old 1.007 patch/new 1.023 share 0.295
+  huskyEncodeOnly chinese n=32000: new/old 1.044 rev/old 1.029 patch/new 1.075 share 0.353 | new/old 1.107 rev/old 1.036 patch/new 1.013 share 0.662
+  huskyEncodeOnly chinese n=200000: new/old 1.086 rev/old 1.022 patch/new 1.008 share 0.739 | new/old 1.067 rev/old 1.011 patch/new 1.015 share 0.829
+  huskyEncodeOnly chinese n=1000000: new/old 1.045 rev/old 0.977 patch/new 1.004 share 1.497 | new/old 1.046 rev/old 0.980 patch/new 0.982 share 1.430
+  radixHuskySortAuto chinese n=32000: new/old 1.003 rev/old 0.957 patch/new 0.951 share 17.827 | new/old 1.043 rev/old 0.998 patch/new 0.984 share 1.040
+  radixHuskySortAuto chinese n=200000: new/old 1.000 rev/old 0.996 patch/new 1.059 share n/a | new/old 0.988 rev/old 0.999 patch/new 0.993 share n/a
+  radixHuskySortAuto chinese n=1000000: new/old 0.977 rev/old 0.984 patch/new 1.010 share n/a | new/old 1.018 rev/old 0.998 patch/new 0.992 share 1.093
+
+VERDICT HOLD: line 50 explains the chinese slowdown at n=1000000,200000, which the fix does not address

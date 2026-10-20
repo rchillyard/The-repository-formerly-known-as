@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.REGEX_LEIPZIG;
+import static edu.neu.coe.huskySort.sort.huskySort.HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER;
+
 /**
  * JMH benchmarks answering Reviewer 4's adversarial-input question (TODO.md item 7): the
  * original paper never showed what happens when the husky encoding has poor entropy in its
@@ -133,7 +136,7 @@ public class AdversarialSortBenchmarks {
     // NOTE: same reconstruction of HuskySortBenchmark's private getLeipzigWords used in
     // StringSortBenchmarks -- see that class for why this one-line wrapper needs duplicating.
     private static List<String> getLeipzigWords(final String line) {
-        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, REGEX_LEIPZIG, REGEX_STRING_SPLITTER);
     }
 
     @Benchmark

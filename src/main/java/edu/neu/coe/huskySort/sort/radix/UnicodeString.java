@@ -21,7 +21,7 @@ public class UnicodeString implements StringComparable<UnicodeString, UnicodeCha
     }
 
     /**
-     * Method to determine if the ith unicode character is valid, i.e. is i < the length of the string.
+     * Method to determine if the ith unicode character is valid, i.e. is {@code i < the length of the string}.
      *
      * @param i the index of the desired unicode character (equivalent to "d" in UnicodeMSDStringSort).
      * @return true or false.

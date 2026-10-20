@@ -7,6 +7,7 @@ package edu.neu.coe.huskySort.sort.simple;
 import edu.neu.coe.huskySort.sort.huskySortUtils.HuskyCoderChinesePinyin;
 
 import java.util.Arrays;
+import static edu.neu.coe.huskySort.util.Config.shouldRecurse;
 
 /**
  * Three-way radix quicksort, also called multikey quicksort, for String arrays, per Bentley and
@@ -76,7 +77,12 @@ public class MultikeyQuicksort {
      */
     private static void sort(final String[] a, int lo, int hi, int d, final CharacterKey keyAt, final RangeSorter smallRangeSorter) {
         while (true) {
-            if (hi - lo < CUTOFF) {
+            // NOTE hi is INCLUSIVE here, unlike everywhere else in this package, so the range
+            // holds hi - lo + 1 elements. That is why the old test read "hi - lo < CUTOFF" and
+            // was nevertheless correct: it is the same as "to <= from + CUTOFF" once hi + 1 is
+            // substituted for to. Going through shouldRecurse makes the conversion explicit
+            // rather than leaving a reader to rediscover it.
+            if (!shouldRecurse(hi - lo + 1, CUTOFF)) {
                 if (hi > lo) smallRangeSorter.sort(a, lo, hi + 1, d);
                 return;
             }
@@ -158,7 +164,7 @@ public class MultikeyQuicksort {
          * @param d the number of leading characters common to the whole range, which a fallback may
          *          skip when comparing. The pinyin fallback ignores it and compares whole names.
          */
-        void sort(String[] a, int lo, int hiExclusive, int d);
+        void sort(String[] a, int from, int to, int d);
     }
 
     /**
