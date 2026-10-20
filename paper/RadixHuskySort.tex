@@ -903,6 +903,18 @@ machines and JVM versions rather than being an artifact of one environment.
 It does: QuickHuskySort, and now RHSort, beat the system sort on all three,
 which differ in vendor, instruction set, core design and JVM generation.
 
+Two kinds of figure here rest on different methods.
+Where one compares two \emph{versions of the code} rather than two algorithms --- as the encode
+measurements behind \S~\ref{sec:coding} do --- we ran the builds interleaved on one host and judged
+them by complete separation of the fork means rather than by disjoint confidence intervals.
+A fork is a fresh JVM, so the iterations within one share its compilation decisions: they are repeated
+looks at a single draw rather than independent samples, and an interval computed across all of them is
+too narrow.
+In one such comparison an arm's three fork means spread 3.38\,ms where the printed interval was 1.66.
+The remedy is more forks, not more iterations --- and a comparison of two variants inside a single JVM
+cannot show such an effect at all, since both arms share one set of compilation decisions and each
+pollutes the other's profile.
+
 
 
 \begin{table}
@@ -924,8 +936,17 @@ which differ in vendor, instruction set, core design and JVM generation.
 
 \subsection{Data Source.}
 \label{sec:data-source}
-The English and Chinese strings come from the Leipzig Corpora Collection~\cite{GOLDHAHN12.327}, taking the appropriate
-\emph{sentences.txt} file and splitting each line on whitespace and punctuation.
+The English and Chinese strings come from the Leipzig Corpora Collection~\cite{GOLDHAHN12.327},
+taking the appropriate \emph{sentences.txt} file.
+Each line is an identifier, a tab and a sentence; we take everything after the first tab and split it
+on runs of non-letter characters, so every token is a maximal run of Unicode letters.
+That is worth stating because it fixes which characters a coder ever sees: no token holds a digit or a
+punctuation mark, so the only characters falling outside a 6- or 7-bit window are letters at or above
+128.
+The natural intuition --- that the wider window is the safer one because it preserves apostrophes and
+hyphens --- is therefore wrong here, since it preserves characters this corpus never presents.
+The two masking coders fail on precisely the same words, and widening from six bits to seven slightly
+\emph{increases} the residual disorder, 185.2M inversions against 180.4M at $N = 1{,}000{,}000$.
 Chinese personal names, used for the pinyin-order comparisons of \S~\ref{sec:radix-results}, are a
 separate corpus~\cite{wainshine2020chinesenames}.
 The building-permit records of \S~\ref{sec:radix-results} are 198,900 permits filed between January
