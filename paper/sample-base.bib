@@ -81,15 +81,18 @@
   url     = {http://arxiv.org/abs/cs.DS/0408040}
 }
 
+%% editor list trimmed and note dropped, 2026-11-05. The first editor read "Nicoletta Calzolari
+%% (Conference Chair)", which siamplain.bst abbreviated to the nonsense "N. C. C. Chair)" in the
+%% rendered bibliography; the note read simply "23-25", which rendered as a dangling fragment after
+%% the publisher and is not a page range for this paper.
 @inproceedings{GOLDHAHN12.327,
   author    = {Goldhahn, Dirk and Eckart, Thomas and Quasthoff, Uwe},
   title     = {Building Large Monolingual Dictionaries at the Leipzig Corpora Collection: From 100 to 200 Languages},
   booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
-  editor    = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet U{\u{g}}ur Do{\u{g}}an and Bente Maegaard and Joseph Mariani and Asuncion Moreno and Jan Odijk and Stelios Piperidis},
+  editor    = {Nicoletta Calzolari and Khalid Choukri and Thierry Declerck and Mehmet U{\u{g}}ur Do{\u{g}}an and Bente Maegaard and Joseph Mariani and Asuncion Moreno and Jan Odijk and Stelios Piperidis},
   publisher = {European Language Resources Association (ELRA)},
   address   = {Istanbul, Turkey},
   year      = {2012},
-  note      = {23-25},
   isbn      = {978-2-9517408-7-7}
 }
 
@@ -140,6 +143,7 @@
   number  = {1},
   year    = {1999},
   pages   = {66--104},
+  doi     = {10.1006/jagm.1998.0985},
   url     = {https://www.sciencedirect.com/science/article/pii/S0196677498909853}
 }
 
@@ -224,12 +228,16 @@
   doi       = {10.1109/ICIII.2011.104}
 }
 
+%% URL updated 2026-11-05. The original host, codeblab.com, no longer resolves at all (the site
+%% root times out, not just the file), so the 2020 link is dead. Replaced with the Internet Archive
+%% snapshot, which serves the same PDF and returns 200. The original URL is kept in the note so the
+%% provenance is still legible.
 @book{Dual-pivot,
   author = {Yaroslavskiy, Vladimir},
   title  = {Dual Pivot Quicksort},
   year   = {2009},
-  url    = {https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf},
-  note   = {Retrieved November 3, 2020}
+  url    = {http://web.archive.org/web/20260715221614/https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf},
+  note   = {Originally at \url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}, retrieved November 3, 2020; that host no longer resolves, so the Internet Archive copy is cited}
 }
 
 %% The .bbl carried only a title and an eprint id here, with the eprint type misspelled

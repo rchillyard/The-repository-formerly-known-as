@@ -56,10 +56,9 @@
 {\sc D.~Goldhahn, T.~Eckart, and U.~Quasthoff}, {\em Building large monolingual
   dictionaries at the leipzig corpora collection: From 100 to 200 languages},
   in Proceedings of the Eight International Conference on Language Resources
-  and Evaluation (LREC'12), N.~C.~C. Chair), K.~Choukri, T.~Declerck, M.~U.
+  and Evaluation (LREC'12), N.~Calzolari, K.~Choukri, T.~Declerck, M.~U.
   Do{\u{g}}an, B.~Maegaard, J.~Mariani, A.~Moreno, J.~Odijk, and S.~Piperidis,
   eds., Istanbul, Turkey, 2012, European Language Resources Association (ELRA).
-\newblock 23-25.
 
 \bibitem{huskysort2020}
 {\sc R.~C. Hillyard, Y.~Liaozheng, and S.~V. K~R}, {\em Huskysort}, CoRR,
@@ -80,6 +79,7 @@
 \bibitem{LAMARCA199966}
 {\sc A.~LaMarca and R.~E. Ladner}, {\em The influence of caches on the
   performance of sorting}, Journal of Algorithms, 31 (1999), pp.~66--104,
+  \url{https://doi.org/10.1006/jagm.1998.0985},
   \url{https://www.sciencedirect.com/science/article/pii/S0196677498909853}.
 
 \bibitem{doi:10.1145/1064546.1180611}
@@ -122,8 +122,11 @@
 
 \bibitem{Dual-pivot}
 {\sc V.~Yaroslavskiy}, {\em Dual Pivot Quicksort}, 2009,
-  \url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}.
-\newblock Retrieved November 3, 2020.
+  \url{http://web.archive.org/web/20260715221614/https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}.
+\newblock Originally at
+  \url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf},
+  retrieved November 3, 2020; that host no longer resolves, so the Internet
+  Archive copy is cited.
 
 \bibitem{sort}
 {\sc H.~Zhang, B.~Meng, and Y.~Liang}, {\em Sort race}, CoRR, abs/1609.04471
