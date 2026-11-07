@@ -42,6 +42,21 @@ it has to be made in the first two pages, not discovered by a reader on page fiv
 A rewrite that fixes the structure but keeps the old framing will produce a clearer presentation of
 a small idea. **Section 2 below is the section that decides whether this is worth submitting.**
 
+**Decided 2026-11-07: Robin agrees the reframing is real, and the rewrite proceeds on that basis.**
+The question was put deliberately --- if the relaxation were only a renaming of what the 2020 paper
+did implicitly, the honest move was arXiv rather than months of rewriting. It is settled; do not
+reopen it, but do keep the shape of the claim precise, because the strongest objection is available
+and should be met head-on rather than hoped past:
+
+- The *probabilistic definition* was already in the 2020 paper. What is new here is **naming the
+  property, the cost model for it, the measured price, and the coupling result** --- that coder
+  choice and cleanup choice are not independent.
+- So this is an **empirical** contribution, not a conceptual one. That is precisely why TALG's
+  Empirical Track fits and ACDA did not.
+- The attack to expect: *"you have renamed something your own prior work already did, and measured
+  it."* The answer is the measurement programme and the coupling result. Section 2 should make that
+  answer unnecessary by stating the scope of the claim plainly in the first place.
+
 ## Proposed structure
 
 Each section names the criticism it answers. Reviewer quotations are in
