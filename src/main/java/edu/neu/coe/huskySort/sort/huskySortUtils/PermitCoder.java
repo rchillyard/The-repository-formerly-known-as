@@ -8,7 +8,6 @@ import java.time.LocalDate;
 
 /**
  * An exact husky encoding of {@link Permit}, packing its whole ordering into 60 of the available 64 bits.
- * <p>
  * <pre>
  *   block      5 characters x 5 bits over a 31-symbol alphabet   25 bits
  *   lot        4 characters x 6 bits over a 63-symbol alphabet   24 bits
@@ -102,12 +101,23 @@ public class PermitCoder implements HuskyCoder<Permit> {
         if (index >= 0) return index + 1L;
         // Outside the alphabet: take the largest symbol at or below x, so the ordering weakens rather
         // than inverts. See the class comment.
+        // TESTME this section isn't visited.
         int below = 0;
         for (int i = 0; i < alphabet.length(); i++)
             if (alphabet.charAt(i) < x) below = i + 1;
         return below;
     }
 
+    /**
+     * Encodes a given {@link LocalDate} into a long value, representing the number of days
+     * since a predefined epoch. The encoding ensures that the date fits within the specified
+     * number of bits for storage.
+     *
+     * @param date the {@link LocalDate} to be encoded; must not be null.
+     * @return a long value representing the encoded date, measured as days since the predefined epoch.
+     * @throws IllegalArgumentException if the given date lies outside the range of encodable dates
+     *                                  defined by the bit-width constraint.
+     */
     private static long encodeDate(final LocalDate date) {
         final long days = date.toEpochDay() - EPOCH.toEpochDay();
         if (days < 0 || days >= (1L << DATE_BITS))

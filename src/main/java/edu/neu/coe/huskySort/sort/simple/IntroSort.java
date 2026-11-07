@@ -7,6 +7,7 @@ import edu.neu.coe.huskySort.sort.ComparableSortHelper;
 import edu.neu.coe.huskySort.sort.ComparisonSortHelper;
 import edu.neu.coe.huskySort.util.Config;
 import edu.neu.coe.huskySort.util.Utilities;
+import static edu.neu.coe.huskySort.util.Config.shouldRecurse;
 
 /**
  * Class to implement Intro Sort.
@@ -41,7 +42,11 @@ public class IntroSort<X extends Comparable<X>> extends QuickSort_DualPivot<X> {
      */
     @Override
     protected final boolean terminator(final X[] xs, final int from, final int to, final int depth) {
-        if (to - from <= sizeThreshold) {
+        // NOTE goes through Config.shouldRecurse like every other size test, although
+        // sizeThreshold is a constant rather than a configured cutoff. Missed in the audit of
+        // 2026-09-30 because that swept for the word "cutoff" and this one is called a
+        // threshold. Behaviour is unchanged: sizeThreshold is 16, so Math.max(16, 1) is 16.
+        if (!shouldRecurse(to - from, sizeThreshold)) {
             if (to > from + 1)
                 getInsertionSort().sort(xs, from, to);
             return true;

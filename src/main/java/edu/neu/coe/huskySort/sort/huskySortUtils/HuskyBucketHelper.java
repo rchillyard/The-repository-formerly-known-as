@@ -85,7 +85,11 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
     public HuskyBucketHelper(final String description, final int m, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter, final long seed, final boolean makeCopy) {
         super(description, n, coder, postSorter, seed, makeCopy);
         // CONSIDER merge with HuskyBucketHelper lines 103-104
-        buckets = (Bag<X>[]) Array.newInstance(Bag.class, n / m);
+        // NOTE Math.max, because n / m is zero for any array smaller than one bucket, and a
+        // zero-length bucket array makes loadBuckets divide by zero. One bucket is the right
+        // answer there: a bucket sort with a single bucket degenerates to sorting the whole array
+        // with the post-sorter, which is what should happen below one bucket's worth of data.
+        buckets = (Bag<X>[]) Array.newInstance(Bag.class, Math.max(1, n / m));
         for (int i = 0; i < buckets.length; i++) buckets[i] = new Bag_Array<>();
     }
 
@@ -101,7 +105,11 @@ public class HuskyBucketHelper<X extends Comparable<X>> extends HuskyHelper<X> {
     @SuppressWarnings("unchecked")
     public HuskyBucketHelper(final String description, final int m, final int n, final HuskyCoder<X> coder, final Consumer<X[]> postSorter) {
         super(description, n, coder, postSorter);
-        buckets = (Bag<X>[]) Array.newInstance(Bag.class, n / m);
+        // NOTE Math.max, because n / m is zero for any array smaller than one bucket, and a
+        // zero-length bucket array makes loadBuckets divide by zero. One bucket is the right
+        // answer there: a bucket sort with a single bucket degenerates to sorting the whole array
+        // with the post-sorter, which is what should happen below one bucket's worth of data.
+        buckets = (Bag<X>[]) Array.newInstance(Bag.class, Math.max(1, n / m));
         for (int i = 0; i < buckets.length; i++) buckets[i] = new Bag_Array<>();
     }
 

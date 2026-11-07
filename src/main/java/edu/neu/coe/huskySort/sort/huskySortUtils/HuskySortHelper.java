@@ -70,8 +70,10 @@ public final class HuskySortHelper {
     static {
         sequenceCoderMap = new HashMap<>();
         addToSequenceCoderMap(asciiCoder);
+        addToSequenceCoderMap(asciiSaturatingCoder);
         addToSequenceCoderMap(chineseEncoderCollator);
         addToSequenceCoderMap(englishCoder);
+        addToSequenceCoderMap(englishSaturatingCoder);
         addToSequenceCoderMap(unicodeCoder);
     }
 
@@ -81,7 +83,7 @@ public final class HuskySortHelper {
 
     public final static boolean isPreJava11 = Double.parseDouble((String) System.getProperties().get("java.class.version")) < 55.0;
 
-    // NOTE: not used.
+    // TESTME not used.
     public static double checkUnidentified(final String[] words, final int offset) {
         final int total = words.length;
         int count = 0;
@@ -99,7 +101,7 @@ public final class HuskySortHelper {
         return (double) count / (double) total * 100.0;
     }
 
-    // NOTE: not used.
+    // TESTME: not used.
     public static Date[] generateRandomDateArray(final int number) {
         final Date[] result = new Date[number];
         final ThreadLocalRandom random = ThreadLocalRandom.current();

@@ -1,0 +1,103 @@
+### date
+2026-10-17T04:59:40Z
+### uptime
+ 04:59:40 up 1 day,  5:47,  0 users,  load average: 0.24, 0.19, 0.16
+### lscpu
+Architecture:                            aarch64
+CPU op-mode(s):                          32-bit, 64-bit
+Byte Order:                              Little Endian
+CPU(s):                                  16
+On-line CPU(s) list:                     0-15
+Vendor ID:                               ARM
+Model:                                   1
+Thread(s) per core:                      1
+Core(s) per socket:                      16
+Socket(s):                               1
+Stepping:                                r1p1
+BogoMIPS:                                2100.00
+Flags:                                   fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 sm3 sm4 asimddp sha512 sve asimdfhm dit uscat ilrcpc flagm paca pacg dcpodp svei8mm svebf16 i8mm bf16 dgh rng
+L1d cache:                               1 MiB (16 instances)
+L1i cache:                               1 MiB (16 instances)
+L2 cache:                                16 MiB (16 instances)
+L3 cache:                                32 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-15
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; CSV2, BHB
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Not affected
+### free -h
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi       5.8Gi       2.3Gi       988Mi        22Gi        23Gi
+Swap:           39Gi       880Mi        39Gi
+### swapon --show
+NAME       TYPE      SIZE   USED PRIO
+/swapfile  file       32G     0B   10
+/dev/zram0 partition   8G 880.2M  100
+### swapon --show before swap clearing
+NAME       TYPE      SIZE   USED PRIO
+/swapfile  file       32G     0B   10
+/dev/zram0 partition   8G 880.2M  100
+### swapon --show after swap clearing
+(not cleared, same as before)
+### uname -r
+6.12.111-136.204.amzn2023.aarch64
+### java -version
+openjdk version "21.0.12" 2026-07-21 LTS
+OpenJDK Runtime Environment Corretto-21.0.12.8.1 (build 21.0.12+8-LTS)
+OpenJDK 64-Bit Server VM Corretto-21.0.12.8.1 (build 21.0.12+8-LTS, mixed mode, sharing)
+### mvn -v
+Apache Maven 3.9.16 (2bdd9fddda4b155ebf8000e807eb73fd829a51d5)
+Maven home: /workplace/liaoyunl/husky-sort/tools/apache-maven-3.9.16
+Java version: 21.0.12, vendor: Amazon.com Inc., runtime: /workplace/liaoyunl/husky-sort/tools/amazon-corretto-21.0.12.8.1-linux-aarch64
+Default locale: en, platform encoding: UTF-8
+OS name: "linux", version: "6.12.111-136.204.amzn2023.aarch64", arch: "aarch64", family: "unix"
+### cgroup
+0::/user.slice/user-13252749.slice/user@13252749.service/app.slice/husky-req13-20261017-0459.service
+### unit
+husky-req13-20261017-0459 source=/proc/self/cgroup leaf phases=pre,ab,probes,gate,rerun,post smoke=0 baselines=1 clear_swap=1 force_rerun=0 skip_done=0 settle=120 guard_max_wait_min=120 launch=20261017T045938Z
+### nproc
+16
+### git prwork HEAD
+549976a9ebec73e48d8d75ee32764d1290266164
+549976a Test the perfect check only until the first failure (item 55)
+### git prwork HEAD:src
+8298ae70a0dd864950e3e06a07951d1703defe74
+### fix commit
+549976a Test the perfect check only until the first failure (item 55)
+8298ae70a0dd864950e3e06a07951d1703defe74
+### git status src
+### jars (/workplace/liaoyunl/husky-sort/req13/jars/sha256.txt)
+old 5f088118169f9ea0f5445bfe61c486a6fbcbfd1ae62f05f07476023d54a800d6 /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d947e77.jar
+new 0f9e5d4a4e57b7c881c936fc1f95cc02bc0904b5f7e87235aada6cf702678829 /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf.jar
+rev ef3375bb38722a74e5b1e31ab3017a4dcfe1bc3ac59d64f57840a4bb7517c1fa /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-d8958bf-rev50.jar
+patch 0a72b68388aa7428c0f389ce83d52c9adba3b6e5631ac6b0addbf8800fa20a9b /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf-patched.jar
+fix 8baf277b6fddef0bf31d1de0451730e6656d6c0bf292b48364ba0bd77663dcf7 /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-fix-549976a.jar
+### jars sha256sum now
+5f088118169f9ea0f5445bfe61c486a6fbcbfd1ae62f05f07476023d54a800d6  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d947e77.jar
+76379654 bytes  mtime 2026-10-05 07:07:51.241555292 +0000  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d947e77.jar
+0f9e5d4a4e57b7c881c936fc1f95cc02bc0904b5f7e87235aada6cf702678829  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf.jar
+76380538 bytes  mtime 2026-10-04 02:14:00.171343170 +0000  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf.jar
+ef3375bb38722a74e5b1e31ab3017a4dcfe1bc3ac59d64f57840a4bb7517c1fa  /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-d8958bf-rev50.jar
+76380523 bytes  mtime 2026-10-14 18:48:20.067012547 +0000  /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-d8958bf-rev50.jar
+0a72b68388aa7428c0f389ce83d52c9adba3b6e5631ac6b0addbf8800fa20a9b  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf-patched.jar
+76380540 bytes  mtime 2026-10-05 07:12:47.107404353 +0000  /workplace/liaoyunl/husky-sort/req12-extra/jars/benchmarks-d8958bf-patched.jar
+8baf277b6fddef0bf31d1de0451730e6656d6c0bf292b48364ba0bd77663dcf7  /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-fix-549976a.jar
+76420765 bytes  mtime 2026-10-14 18:39:56.754046284 +0000  /workplace/liaoyunl/husky-sort/req13/jars/benchmarks-fix-549976a.jar
+### plan
+phases pre,ab,probes,gate,rerun,post; A/B -r 2s -w 2s -f 3 -wi 5 -i 10 n=32000,200000,1000000, r1 old,new,rev,patch r2 reversed; diag -r 2s -w 2s -f 1 -wi 5 -i 1 n=32000; lu0 -r 2s -w 2s -f 3 -wi 5 -i 10 -XX:LoopUnrollLimit=0; rerun /workplace/liaoyunl/husky-sort/req13/rerun-invocations.tsv (6dd72647c1430417ab7e7eb4cc655bfa9110438d2587ef6b59e02d1d03ad59e3), /workplace/liaoyunl/husky-sort/req13/expected-rows.json; settle 120s
+### guard
+pre: load1<2.0 swap<1048576KiB (waived after 30 polls if only swap fails) no other benchmark JVM, MainThread>=5.0%CPU <3; per invocation the same without swap, swap growth > 256 MiB logged; STALLED logged every 30 polls, TIMEOUT proceeds after 120 min

@@ -15,7 +15,7 @@ public final class HelperFactory {
      * @param nElements   the number of elements to be sorted.
      * @param config      the configuration.
      * @param <X>         the underlying type.
-     * @return a ComparisonSortHelper<X></X>
+     * @return a {@code ComparisonSortHelper<X>}
      */
     public static <X extends Comparable<X>> ComparisonSortHelper<X> create(final String description, final int nElements, final Config config) {
         return create(description, nElements, config.isInstrumented(), config);
@@ -29,7 +29,7 @@ public final class HelperFactory {
      * @param instrumented an explicit value of instrumented, not derived from the config.
      * @param config       the configuration.
      * @param <X>          the underlying type.
-     * @return a ComparisonSortHelper<X></X>
+     * @return a {@code ComparisonSortHelper<X>}
      */
     public static <X extends Comparable<X>> ComparisonSortHelper<X> create(final String description, final int nElements, final boolean instrumented, final Config config) {
         // NOTE both branches are given the config, so that the cutoff does not depend on whether we are instrumented.
@@ -43,7 +43,7 @@ public final class HelperFactory {
      * @param nElements   the number of elements to be sorted.
      * @param config      the configuration.
      * @param <X>         the underlying type.
-     * @return a CountingSortHelper<X></X>
+     * @return a {@code CountingSortHelper<X>}
      */
     public static <X extends StringComparable<X, Y>, Y extends Comparable<Y>> CountingSortHelper<X, Y> createCountingSortHelper(final String description, final int nElements, final Config config) {
         return createCountingSortHelper(description, nElements, config.isInstrumented(), config);
@@ -55,7 +55,7 @@ public final class HelperFactory {
      * @param instrumented an explicit value of instrumented, not derived from the config.
      * @param config       the configuration (ignored if instrumented is false).
      * @param <X>          the underlying type.
-     * @return a CountingSortHelper<X></X>
+     * @return a {@code CountingSortHelper<X>}
      */
     public static <X extends StringComparable<X, Y>, Y extends Comparable<Y>> CountingSortHelper<X, Y> createCountingSortHelper(final String description, final int nElements, final boolean instrumented, final Config config) {
         return instrumented ? new InstrumentedCountingSortHelper<>(description, nElements, config) : new BasicCountingSortHelper<>(description, nElements);

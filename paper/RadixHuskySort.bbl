@@ -5,6 +5,12 @@
   and related problems}, Commun. ACM, 31 (1988), pp.~1116--1127,
   \url{https://doi.org/10.1145/48529.48535}.
 
+\bibitem{doi:10.1109/ICDE.1996.492216}
+{\sc G.~Antoshenkov, D.~Lomet, and J.~Murray}, {\em Order preserving string
+  compression}, in Proceedings of the Twelfth International Conference on Data
+  Engineering, IEEE Computer Society Press, 1996, pp.~655--663,
+  \url{https://doi.org/10.1109/ICDE.1996.492216}.
+
 \bibitem{DBLP:journals/corr/abs-1805-08612}
 {\sc N.~Auger, V.~Jug{\'{e}}, C.~Nicaud, and C.~Pivoteau}, {\em On the
   worst-case complexity of timsort}, CoRR, abs/1805.08612 (2018),
@@ -50,10 +56,9 @@
 {\sc D.~Goldhahn, T.~Eckart, and U.~Quasthoff}, {\em Building large monolingual
   dictionaries at the leipzig corpora collection: From 100 to 200 languages},
   in Proceedings of the Eight International Conference on Language Resources
-  and Evaluation (LREC'12), N.~C.~C. Chair), K.~Choukri, T.~Declerck, M.~U.
+  and Evaluation (LREC'12), N.~Calzolari, K.~Choukri, T.~Declerck, M.~U.
   Do{\u{g}}an, B.~Maegaard, J.~Mariani, A.~Moreno, J.~Odijk, and S.~Piperidis,
   eds., Istanbul, Turkey, 2012, European Language Resources Association (ELRA).
-\newblock 23-25.
 
 \bibitem{huskysort2020}
 {\sc R.~C. Hillyard, Y.~Liaozheng, and S.~V. K~R}, {\em Huskysort}, CoRR,
@@ -74,7 +79,14 @@
 \bibitem{LAMARCA199966}
 {\sc A.~LaMarca and R.~E. Ladner}, {\em The influence of caches on the
   performance of sorting}, Journal of Algorithms, 31 (1999), pp.~66--104,
+  \url{https://doi.org/10.1006/jagm.1998.0985},
   \url{https://www.sciencedirect.com/science/article/pii/S0196677498909853}.
+
+\bibitem{doi:10.1145/1064546.1180611}
+{\sc A.~L{\'o}pez-Ortiz, M.~Mirzazadeh, M.~A. Safari, and H.~Sheikhattar}, {\em
+  Fast string sorting using order-preserving compression}, ACM Journal of
+  Experimental Algorithmics, 10 (2005),
+  \url{https://doi.org/10.1145/1064546.1180611}.
 
 \bibitem{10.5555/313559.313859}
 {\sc P.~McIlroy}, {\em Optimistic sorting and information theoretic
@@ -96,7 +108,7 @@
 \bibitem{1064546.1180622}
 {\sc R.~Sinha and J.~Zobel}, {\em Cache-conscious sorting of large sets of
   strings with dynamic tries}, ACM J. Exp. Algorithmics, 9 (2004),
-  \url{https://doi.org/10.1145/1064546.1180622}.
+  \url{https://doi.org/10.1145/1005813.1041517}.
 
 \bibitem{wainshine2020chinesenames}
 {\sc Wainshine}, {\em Chinese-names-corpus}.
@@ -110,8 +122,11 @@
 
 \bibitem{Dual-pivot}
 {\sc V.~Yaroslavskiy}, {\em Dual Pivot Quicksort}, 2009,
-  \url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}.
-\newblock Retrieved November 3, 2020.
+  \url{http://web.archive.org/web/20260715221614/https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf}.
+\newblock Originally at
+  \url{https://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf},
+  retrieved November 3, 2020; that host no longer resolves, so the Internet
+  Archive copy is cited.
 
 \bibitem{sort}
 {\sc H.~Zhang, B.~Meng, and Y.~Liang}, {\em Sort race}, CoRR, abs/1609.04471

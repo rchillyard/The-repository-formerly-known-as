@@ -20,6 +20,25 @@
                     <target>21</target>
                 </configuration>
             </plugin>
+            <!--NOTE declared with a version but NO executions, so it is not bound to a
+                lifecycle phase: "mvn test", "mvn verify" and the profiles are unaffected, and it
+                runs only when asked for by "mvn javadoc:javadoc". Added 2026-10-01 because
+                without a declaration Maven has to resolve a version from the network every time,
+                which fails outright in offline mode with "Plugin not found in any plugin
+                repository", even though nothing about generating javadoc needs the network.
+                The doclint setting is all minus missing: check syntax, HTML and link references,
+                but do not require every parameter to be documented, which an existing codebase
+                of this size would drown in. Worth having on: a malformed HTML error in
+                BaseHuskySequenceCoder was found exactly this way.-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.12.0</version>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <quiet>true</quiet>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <properties>

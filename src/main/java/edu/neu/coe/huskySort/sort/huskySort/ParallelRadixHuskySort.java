@@ -62,7 +62,45 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
     public static final int MIN_CHUNK_SIZE = 1 << 14;
 
     /**
+     * Pass this as {@code digitBits} to have the digit width derived from n and the chunk count
+     * rather than fixed in advance -- see {@link RadixHuskySort#chooseDigitBits}. An
+     * explicitly-given width is always honoured exactly, so that a sorter named /16 really does run
+     * at 16 bits.
+     * <p>
+     * The same sentinel as {@link RadixHuskySort#AUTO_DIGIT_BITS}, and the rule behind it lives
+     * there, since it applies to both sorters -- this class's case is just the one where the chunk
+     * count is greater than one.
+     */
+    public static final int AUTO_DIGIT_BITS = RadixHuskySort.AUTO_DIGIT_BITS;
+
+    /**
      * Primary constructor.
+     *
+     * @param name         the name of the sorter (used by the helper).
+     * @param n            the number of elements to be sorted (may be 0 if unknown).
+     * @param digitBits    the width, in bits, of each radix-sort digit/pass (e.g. 8, 11, 16), or
+     *                     {@link #AUTO_DIGIT_BITS} to have it derived from n and the chunk count.
+     * @param minChunkSize the smallest number of elements a chunk may be given; the chunk count is
+     *                     reduced below "parallelism" as far as necessary to respect it. See
+     *                     {@link #MIN_CHUNK_SIZE} for what it trades off.
+     * @param huskyCoder   the Husky coder.
+     * @param postSorter   the post-sorter which will fix any remaining inversions.
+     * @param config       the configuration.
+     * @param parallelism  the number of chunks (and worker threads) to use for each digit pass.
+     */
+    public ParallelRadixHuskySort(final String name, final int n, final int digitBits, final int minChunkSize, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config, final int parallelism) {
+        super(name, n, huskyCoder, postSorter, config);
+        if (digitBits != AUTO_DIGIT_BITS && (digitBits < 1 || digitBits > 20)) throw new IllegalArgumentException("digitBits must be between 1 and 20, or AUTO_DIGIT_BITS: " + digitBits);
+        if (parallelism < 1) throw new IllegalArgumentException("parallelism must be at least 1: " + parallelism);
+        if (minChunkSize < 1) throw new IllegalArgumentException("minChunkSize must be at least 1: " + minChunkSize);
+        this.digitBits = digitBits;
+        this.minChunkSize = minChunkSize;
+        this.parallelism = parallelism;
+    }
+
+    /**
+     * Secondary constructor which takes the default minimum chunk size
+     * ({@value #MIN_CHUNK_SIZE} elements).
      *
      * @param name        the name of the sorter (used by the helper).
      * @param n           the number of elements to be sorted (may be 0 if unknown).
@@ -73,11 +111,7 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
      * @param parallelism the number of chunks (and worker threads) to use for each digit pass.
      */
     public ParallelRadixHuskySort(final String name, final int n, final int digitBits, final HuskyCoder<X> huskyCoder, final Consumer<X[]> postSorter, final Config config, final int parallelism) {
-        super(name, n, huskyCoder, postSorter, config);
-        if (digitBits < 1 || digitBits > 20) throw new IllegalArgumentException("digitBits must be between 1 and 20: " + digitBits);
-        if (parallelism < 1) throw new IllegalArgumentException("parallelism must be at least 1: " + parallelism);
-        this.digitBits = digitBits;
-        this.parallelism = parallelism;
+        this(name, n, digitBits, MIN_CHUNK_SIZE, huskyCoder, postSorter, config, parallelism);
     }
 
     /**
@@ -91,12 +125,100 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
      * @param config     the configuration.
      */
     public ParallelRadixHuskySort(final int digitBits, final HuskyCoder<X> huskyCoder, final Config config) {
-        this("ParallelRadixHuskySort/" + digitBits, 0, digitBits, huskyCoder, defaultPostSorter(huskyCoder), config, Runtime.getRuntime().availableProcessors());
+        this("ParallelRadixHuskySort/" + (digitBits == AUTO_DIGIT_BITS ? "auto" : digitBits), 0, digitBits, huskyCoder, defaultPostSorter(huskyCoder), config, Runtime.getRuntime().availableProcessors());
     }
 
     private static <Y extends Comparable<Y>> Consumer<Y[]> defaultPostSorter(final HuskyCoder<Y> huskyCoder) {
         final Collator collator = huskyCoder.getCollator();
         return collator == null ? Arrays::sort : xs -> Arrays.sort(xs, collator);
+    }
+
+    /**
+     * The cleanup pass on the common {@link java.util.concurrent.ForkJoinPool} instead of on the
+     * calling thread: step 3 of four, and as of 2026-09-22 the only one still serial.
+     * <p>
+     * <b>This is opt-in, and deliberately not the default, because it can lose.</b> Robin's
+     * objection when the idea was first raised was that the elements are not independent --- there
+     * is a direction of processing, so whole chunks cannot be treated separately. That is right,
+     * and it is why chop-sort-concatenate does not work; but the dependence is confined to the
+     * merge, and merging parallelizes, which is exactly what {@code Arrays.parallelSort} does
+     * (Timsort the leaves, then merge them in parallel). What the objection correctly predicts is
+     * that the speed-up is badly sublinear and can go negative: on a nearly ordered array serial
+     * Timsort finds long runs and stops, while {@code parallelSort} still cuts into about
+     * {@code 4p} blocks and pays some {@code log(4p)} merge levels --- roughly four times the work,
+     * divided by p. Where the cleanup is already cheap, the division does not cover it.
+     * <p>
+     * Measured on the hand-over arrays themselves, eight cores (seven pool workers), one corpus per
+     * JVM so the comparator call site stays monomorphic --- which matters, an earlier run that
+     * timed all three corpora together read 1.33x where this reads 2.54x:
+     * <pre>
+     *     corpus         n          runs   mean run   serial   parallel   speed-up
+     *     english      200,000     2,000      100.0    10.82      10.36      1.04x
+     *     english    1,000,000    16,061       62.3    42.38      22.72      1.87x
+     *     chinese      200,000     3,107       64.4     4.99       9.38      0.53x   <-- loses
+     *     chinese    1,000,000    16,790       59.6    12.47       8.34      1.50x
+     *     chinesenames 200,000    30,462        6.6    70.71      20.93      3.38x
+     *     chinesenames 1,000,000 162,690        6.1   290.82     114.64      2.54x
+     * </pre>
+     * So it pays in proportion to the work there is to do, and it pays most where the coder has
+     * done worst: chinesenames gains most because its radix phase cuts the run count only 3.1x
+     * (500,269 -> 162,690) against english's 62x. Treating that cell by parallelizing its cleanup
+     * is treating a symptom --- the cause is the pinyin coder, TODO items 10 and 11.
+     * <p>
+     * No guard rule is encoded here, because n alone cannot express one: chinese and chinesenames
+     * at n = 200,000 are the same size and want opposite answers. The rule should come from
+     * {@code CleanupPassBenchmarks.parallelTimsortCleanup} on the machine of record, not from a
+     * threshold guessed on a loaded laptop. Until then the caller chooses.
+     * <p>
+     * NOTE: this uses the common pool, unlike the digit passes, which use {@link #EXECUTOR} for the
+     * reason given there. That is safe --- the cleanup runs after the last barrier, so nothing is
+     * blocked waiting on a worker the common pool has not scheduled --- and it is also the fair
+     * comparison, since {@code Arrays.parallelSort} as a baseline gets the same pool.
+     *
+     * @param huskyCoder the Husky coder, consulted for a Collator exactly as in
+     *                   {@link #defaultPostSorter}.
+     * @return a post-sorter that sorts in parallel, in Collator order where the coder supplies one.
+     */
+    private static <Y extends Comparable<Y>> Consumer<Y[]> parallelPostSorter(final HuskyCoder<Y> huskyCoder) {
+        final Collator collator = huskyCoder.getCollator();
+        return collator == null ? Arrays::parallelSort : xs -> Arrays.parallelSort(xs, collator);
+    }
+
+    /**
+     * As {@link #ParallelRadixHuskySort(int, HuskyCoder, Config, int)}, but choosing whether the
+     * cleanup pass runs in parallel. See {@link #parallelPostSorter} for what that buys and what it
+     * costs; the short version is that it is worth 1.9x to 3.4x where the cleanup is expensive and
+     * about 0.5x where it is cheap, so it is a choice rather than an improvement.
+     *
+     * @param digitBits       the width, in bits, of each digit pass, or {@link #AUTO_DIGIT_BITS}.
+     * @param huskyCoder      the Husky coder.
+     * @param config          the configuration.
+     * @param parallelism     the number of chunks (and worker threads) for each digit pass.
+     * @param parallelCleanup true to run step 3 on the common pool rather than the calling thread.
+     */
+    public ParallelRadixHuskySort(final int digitBits, final HuskyCoder<X> huskyCoder, final Config config, final int parallelism, final boolean parallelCleanup) {
+        this("ParallelRadixHuskySort/" + (digitBits == AUTO_DIGIT_BITS ? "auto" : digitBits) + "/p" + parallelism + (parallelCleanup ? "/parallelCleanup" : ""),
+                0, digitBits, huskyCoder,
+                parallelCleanup ? parallelPostSorter(huskyCoder) : defaultPostSorter(huskyCoder),
+                config, parallelism);
+    }
+
+    /**
+     * Secondary constructor taking an explicit chunk count while still deriving the post-sorter
+     * from the coder, as the two-argument constructor does -- so that a coder supplying a Collator
+     * (e.g. HuskyCoderChinesePinyin) gets a cleanup pass in Collator order rather than natural
+     * order. Without this, a caller wanting a specific thread count had to reach for the primary
+     * constructor and name a post-sorter itself, which is how a pinyin-ordered sort acquires a
+     * natural-order cleanup pass and quietly produces the wrong answer.
+     *
+     * @param digitBits   the width, in bits, of each radix-sort digit/pass, or
+     *                    {@link #AUTO_DIGIT_BITS}.
+     * @param huskyCoder  the Husky coder.
+     * @param config      the configuration.
+     * @param parallelism the number of chunks (and worker threads) to use for each digit pass.
+     */
+    public ParallelRadixHuskySort(final int digitBits, final HuskyCoder<X> huskyCoder, final Config config, final int parallelism) {
+        this("ParallelRadixHuskySort/" + (digitBits == AUTO_DIGIT_BITS ? "auto" : digitBits) + "/p" + parallelism, 0, digitBits, huskyCoder, defaultPostSorter(huskyCoder), config, parallelism);
     }
 
     /**
@@ -109,19 +231,59 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
         this(DEFAULT_DIGIT_BITS, huskyCoder, config);
     }
 
+    /**
+     * Worker threads, shared across every instance and every sort: created on demand, reused from
+     * one sort to the next, and retired after the pool's own idle timeout. This replaces a
+     * per-sort {@code Executors.newFixedThreadPool}, whose construction was charged to every
+     * measurement -- where {@code Arrays.parallelSort}, the baseline we are measured against, gets
+     * the already-running common {@link java.util.concurrent.ForkJoinPool} for free.
+     * <p>
+     * NOTE: deliberately NOT {@code ForkJoinPool.commonPool()}. These workers block on a
+     * {@link CyclicBarrier} until every chunk arrives, and the common pool runs only
+     * {@code availableProcessors - 1} threads; a sort asking for more chunks than that would
+     * deadlock, with the unscheduled chunks never reaching the barrier. A cached pool is
+     * unbounded, which also keeps working the deliberately-oversized chunk counts that
+     * ParallelRadixHuskySortTest sweeps.
+     * <p>
+     * The threads are daemons, so holding the pool open for the life of the JVM never delays exit.
+     */
+    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool(runnable -> {
+        final Thread thread = new Thread(runnable, "ParallelRadixHuskySort-worker");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    /**
+     * Encode across the same worker threads the digit passes use, rather than sequentially.
+     * <p>
+     * Encoding is a pure function of each element, so it is the most straightforwardly parallel
+     * phase of the whole sort -- and it is about a quarter of the running time on the corpora
+     * measured, which made leaving it sequential in the parallel variant hard to justify. The chunk
+     * count is the same {@code parallelism} the digit passes are given, subject to
+     * {@link #MIN_CHUNK_SIZE}; note that the array length here is the whole array, whereas the digit
+     * passes see only the range they are asked to sort, so the two counts can differ for a
+     * sub-range sort.
+     * <p>
+     * Every other husky sorter keeps the sequential form in {@link AbstractHuskySort#doCoding},
+     * which is what the published serial figures were measured with.
+     *
+     * @param xs the array to be coded.
+     */
+    @Override
+    protected void doCoding(final X[] xs) {
+        getHelper().doCoding(xs, Math.max(1, Math.min(parallelism, xs.length / MIN_CHUNK_SIZE)), EXECUTOR);
+    }
+
     @Override
     public void sort(final X[] xs, final int from, final int to) {
         final int n = to - from;
         if (n < 2) return;
         final long[] longs = getHelper().getLongs();
-        final int chunks = Math.max(1, Math.min(parallelism, n / MIN_CHUNK_SIZE));
-        final ExecutorService executor = Executors.newFixedThreadPool(chunks);
-        try {
-            final int[] permutation = radixSortIndices(longs, from, n, digitBits, chunks, executor);
-            applyPermutation(xs, longs, from, n, permutation);
-        } finally {
-            executor.shutdown();
-        }
+        final int chunks = Math.max(1, Math.min(parallelism, n / minChunkSize));
+        // The automatic width depends on the chunk count, so it can only be settled here.
+        final int passDigitBits = digitBits == AUTO_DIGIT_BITS ? RadixHuskySort.chooseDigitBits(n, chunks) : digitBits;
+        final int[] permutation = radixSortIndices(longs, from, n, passDigitBits, chunks, EXECUTOR);
+        applyPermutation(xs, from, n, permutation);
     }
 
     /**
@@ -155,11 +317,11 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
             chunkEnd[c] = cursor;
         }
 
+        // NOTE: neither "biased" nor "index" is pre-filled. Pass 0 below reads its keys straight
+        // from "longs", applying the sign bias as it goes, and writes the identity index as it
+        // scatters -- so the two setup passes over n that used to stand here (n reads and n writes
+        // each) are absorbed into a pass that was already reading and writing every element.
         final PassState state = new PassState(n);
-        for (int i = 0; i < n; i++) {
-            state.biased[i] = longs[from + i] ^ Long.MIN_VALUE;
-            state.index[i] = i;
-        }
 
         // Reused across every pass: one histogram row per chunk, and the corresponding
         // per-(chunk, bucket) starting offsets, both sized once, refilled every pass.
@@ -195,22 +357,45 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
             workers.add(() -> {
                 for (int pass = 0; pass < numPasses; pass++) {
                     final int shift = state.shift;
+                    // Pass 0 has no biased array to read yet: it takes its keys from "longs",
+                    // biasing each one as it is read, and supplies the identity index itself.
+                    final boolean fromSource = pass == 0;
+                    // The keys written by the last pass would never be read: only the index is
+                    // returned. digitBits is capped at 20, so numPasses is always at least four,
+                    // which is why the last-pass branch below can assume it is not also the first.
+                    final boolean lastPass = pass == numPasses - 1;
                     final long[] biasedIn = state.biased;
                     final int[] localCount = localCounts[chunkIndex];
                     Arrays.fill(localCount, 0);
-                    for (int i = start; i < end; i++) localCount[(int) ((biasedIn[i] >>> shift) & mask)]++;
+                    if (fromSource)
+                        for (int i = start; i < end; i++) localCount[(int) (((longs[from + i] ^ Long.MIN_VALUE) >>> shift) & mask)]++;
+                    else
+                        for (int i = start; i < end; i++) localCount[(int) ((biasedIn[i] >>> shift) & mask)]++;
                     awaitUninterruptibly(afterHistogram);
 
                     final long[] biasedOut = state.biasedBuffer;
                     final int[] indexIn = state.index;
                     final int[] indexOut = state.indexBuffer;
-                    final int[] chunkCursor = chunkBucketOffset[chunkIndex].clone();
-                    for (int i = start; i < end; i++) {
-                        final int b = (int) ((biasedIn[i] >>> shift) & mask);
-                        final int pos = chunkCursor[b]++;
-                        biasedOut[pos] = biasedIn[i];
-                        indexOut[pos] = indexIn[i];
-                    }
+                    // NOTE: mutated in place rather than cloned. The afterHistogram action above
+                    // rewrites every element of every row before the next scatter reads it, so a
+                    // chunk advancing its own cursors here destroys nothing that is read again.
+                    // Cloning cost an allocation and a buckets-sized copy per chunk per pass.
+                    final int[] chunkCursor = chunkBucketOffset[chunkIndex];
+                    if (lastPass)
+                        for (int i = start; i < end; i++) indexOut[chunkCursor[(int) ((biasedIn[i] >>> shift) & mask)]++] = indexIn[i];
+                    else if (fromSource)
+                        for (int i = start; i < end; i++) {
+                            final long biased = longs[from + i] ^ Long.MIN_VALUE;
+                            final int pos = chunkCursor[(int) ((biased >>> shift) & mask)]++;
+                            biasedOut[pos] = biased;
+                            indexOut[pos] = i;
+                        }
+                    else
+                        for (int i = start; i < end; i++) {
+                            final int pos = chunkCursor[(int) ((biasedIn[i] >>> shift) & mask)]++;
+                            biasedOut[pos] = biasedIn[i];
+                            indexOut[pos] = indexIn[i];
+                        }
                     awaitUninterruptibly(afterScatter);
                 }
                 return null;
@@ -285,29 +470,28 @@ public final class ParallelRadixHuskySort<X extends Comparable<X>> extends Abstr
     }
 
     /**
-     * Method to apply the given permutation to xs[from..from+n) (and, for consistency, to the
-     * corresponding range of longs) in a single O(N) pass. Not parallelized: this single pass is
-     * cheap relative to the digit passes above, and payload types are arbitrary objects, so a
-     * parallel version would need to reason about safe concurrent writes to an Object[] -- not
-     * worth the complexity for an O(N) pass that already runs once, not once per digit.
+     * Method to apply the given permutation to xs[from..from+n) in a single O(N) pass. Not
+     * parallelized: this single pass is cheap relative to the digit passes above, and payload types
+     * are arbitrary objects, so a parallel version would need to reason about safe concurrent
+     * writes to an Object[] -- not worth the complexity for an O(N) pass that already runs once,
+     * not once per digit.
+     * <p>
+     * NOTE: the helper's long array is deliberately not permuted to match -- see the fuller note on
+     * {@link RadixHuskySort}'s equivalent method. After this sort, getLongs() holds the codes in
+     * their original input order and is not meaningful.
      *
      * @param xs          the payload array to be permuted in place.
-     * @param longs       the array of longs corresponding to xs (kept in sync for consistency).
      * @param from        the index of the first element to permute.
      * @param n           the number of elements to permute.
      * @param permutation an array of n indices (each relative to "from") such that, for each i,
      *                    the element currently at from + permutation[i] should end up at from + i.
      */
-    private static <Y> void applyPermutation(final Y[] xs, final long[] longs, final int from, final int n, final int[] permutation) {
+    private static <Y> void applyPermutation(final Y[] xs, final int from, final int n, final int[] permutation) {
         final Y[] sourceObjects = Arrays.copyOfRange(xs, from, from + n);
-        final long[] sourceLongs = Arrays.copyOfRange(longs, from, from + n);
-        for (int i = 0; i < n; i++) {
-            final int sourceIndex = permutation[i];
-            xs[from + i] = sourceObjects[sourceIndex];
-            longs[from + i] = sourceLongs[sourceIndex];
-        }
+        for (int i = 0; i < n; i++) xs[from + i] = sourceObjects[permutation[i]];
     }
 
     private final int digitBits;
+    private final int minChunkSize;
     private final int parallelism;
 }

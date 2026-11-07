@@ -63,7 +63,45 @@ public class StringSortBenchmarks {
             switch (corpus) {
                 case "english":
                     corpusWords = HuskySortBenchmarkHelper.getWords("eng-uk_web_2002_1M-sentences.txt", StringSortBenchmarks::getLeipzigWords);
-                    coder = AbstractHuskySort.UNICODE_CODER;
+                    // englishCoder: ten characters at six bits, masking. Two separate decisions
+                    // are packed into that, and they were taken eleven days apart.
+                    //
+                    // FIRST, ten characters rather than UNICODE_CODER's four. This is the dominant
+                    // lever and is not in doubt. Natural runs after the radix phase at
+                    // n = 1,000,000, which is what the cleanup pass has to merge and so what its
+                    // cost follows:
+                    //     UNICODE_CODER          4x16 mask      366,865 runs (mean length 2.7)
+                    //     asciiMasking           9x7  mask       30,520
+                    //     asciiSaturating        9x7  saturate   29,327
+                    //     englishMasking        10x6  mask       17,305
+                    //     englishSaturating     10x6  saturate   16,061
+                    // The Unicode coder captures only four characters, so it collapses a
+                    // 304,905-word vocabulary into 75,181 codes. Four characters against ten is
+                    // worth 21x in runs. See TODO.md item 36.
+                    //
+                    // SECOND, masking rather than saturating -- reverted on 2026-09-28, having been
+                    // the other way since item 37. Both narrow to the same 64..127 window, so they
+                    // differ only on the 1,843 words of this corpus (0.604%) that reach outside it,
+                    // every one of them by holding a non-ASCII letter: this corpus has no
+                    // apostrophes, hyphens or digits at all, the word splitter emitting letter-only
+                    // tokens. Item 37 chose saturating on the grounds that it is order-preserving
+                    // where masking is not, and that a tie costs the cleanup less than a
+                    // mis-ordering. Yunlu's requests 11c and 11d (PR #69) undid both grounds:
+                    //   - the cleanup does not care. 1,637x the inversions cost timsortCleanup
+                    //     1.06x, because Timsort's cost follows runs and the two run counts are 7%
+                    //     apart. The tie-versus-mis-ordering distinction is real and almost free.
+                    //   - saturating is not order-preserving either, only monotonic per character.
+                    //     Saturation ties at the window edge, and a tie at position i lets position
+                    //     i+1 decide: "NÂº" sorts before "NÃ" and encodes above it.
+                    // What remains is the encode cost, and there masking is 73.8 ms per million
+                    // words ahead on the serial components. So the choice is now made on the one
+                    // ground that survived measurement. See TODO.md items 37, 44 and 48.
+                    //
+                    // Every one of these coders is imperfect on this corpus -- 0.604% of it lies
+                    // outside the window -- so the cleanup pass runs and fixes the ordering
+                    // regardless. This is a performance choice, not a correctness one, and
+                    // RadixHuskySortTest asserts as much against the real corpus.
+                    coder = HuskyCoderFactory.englishCoder;
                     break;
                 case "chinese":
                     corpusWords = HuskySortBenchmarkHelper.getWords("zho-simp-tw_web_2014_10K-sentences.txt", StringSortBenchmarks::getLeipzigWords);
@@ -72,11 +110,37 @@ public class StringSortBenchmarks {
                 case "chinesenames":
                     // Chinese personal names, ordered by pinyin (TODO.md item 4) rather than
                     // the Unicode coder used for the Leipzig "chinese" corpus above.
+                    //
+                    // chineseEncoderPinyinRank, not chineseEncoderPinyin, since 2026-09-28. The
+                    // ordinal coder packs a 9-bit syllable and a 3-bit tone, which is two of the
+                    // three levels NAME_ORDER compares on; it omits the code-point tie-break, and
+                    // that omission accounted for ALL of the disorder its cleanup pass then had to
+                    // remove. The rank coder packs one 15-bit rank in pinyin order instead --
+                    // derived from the comparator's own key -- and is exactly order-preserving for
+                    // any name of at most four CJK characters, which is every name in this corpus.
+                    //
+                    // Yunlu measured it in request 11d (PR #69): serial 4.18x / 4.43x faster than
+                    // the ordinal coder at n = 200,000 / 1,000,000, and 15.21x / 18.51x faster than
+                    // systemSortPinyin; in parallel 5.72x / 6.79x faster than Arrays.parallelSort
+                    // where the ordinal coder was 0.43x. It reports perfect, so the cleanup pass
+                    // does not run at all. See TODO.md item 44.
+                    //
+                    // radixHuskySortAutoPinyinOrdinal below keeps the old coder as the comparison.
                     corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.CHINESE_NAMES_CORPUS, HuskySortBenchmark::lineAsList);
-                    coder = HuskyCoderFactory.chineseEncoderPinyin;
+                    coder = HuskyCoderFactory.chineseEncoderPinyinRank;
                     break;
                 case "commonwords":
                     corpusWords = HuskySortBenchmarkHelper.getWords(HuskySortBenchmark.COMMON_WORDS_CORPUS, HuskySortBenchmark::lineAsList);
+                    // Masking, for the same reasons as english above, reverted 2026-09-28.
+                    //
+                    // This corpus loads through lineAsList rather than the letter-only word
+                    // splitter, so unlike english it CAN hold punctuation -- and the comment here
+                    // used to justify saturating on exactly that ground, an apostrophe being
+                    // indistinguishable from 'g' under a 6-bit mask. Counted: 6 of its 2,998 words
+                    // reach outside the 64..127 window, one apostrophe and five hyphens, and none
+                    // holds a character above 127. So the hazard is real and it affects six words;
+                    // against that, masking encodes materially faster and the cleanup pass fixes
+                    // the six either way.
                     coder = HuskyCoderFactory.englishCoder;
                     break;
                 default:
@@ -119,7 +183,7 @@ public class StringSortBenchmarks {
     // (splitLineIntoStrings, REGEX_STRING_SPLITTER, REGEX_LEIPZIG) are package-private/public
     // and reused as-is; only this one-line wrapper needs duplicating.
     private static List<String> getLeipzigWords(final String line) {
-        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmark.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
+        return HuskySortBenchmarkHelper.splitLineIntoStrings(line, HuskySortBenchmarkHelper.REGEX_LEIPZIG, HuskySortBenchmarkHelper.REGEX_STRING_SPLITTER);
     }
 
     // ---------- Encoding-only cost, isolated from any sort (paper resubmission, Phase A item
@@ -129,6 +193,26 @@ public class StringSortBenchmarks {
     @Benchmark
     public long[] huskyEncodeOnly(final StringState state) {
         return state.coder.huskyEncode(state.master).longs;
+    }
+
+    // ---------- Masking against saturating, encode side only (TODO.md item 37). The saturating
+    // coders resolve words the masking ones cannot -- englishCoder gives "don't" and "dongt" the
+    // same code, since an apostrophe and 'g' both mask to 39 -- and leave ~5% fewer runs for the
+    // cleanup pass on the english corpus. What that costs to encode is the other half of the trade
+    // and is NOT yet known: hand-rolled harnesses put masking anywhere between 41 and 130 ms per
+    // million on the same arithmetic, because a call site with four coder implementations measures
+    // JIT inlining rather than "&" against "min". These two benchmarks are the honest way to settle
+    // it. Meaningful for the english and commonwords corpora; on the Chinese ones a 6-bit coder is
+    // the wrong tool and the figures say nothing. ----------
+
+    @Benchmark
+    public long[] huskyEncodeOnlyEnglishMasking(final StringState state) {
+        return HuskyCoderFactory.englishCoder.huskyEncode(state.master).longs;
+    }
+
+    @Benchmark
+    public long[] huskyEncodeOnlyEnglishSaturating(final StringState state) {
+        return HuskyCoderFactory.englishSaturatingCoder.huskyEncode(state.master).longs;
     }
 
     @Benchmark
@@ -155,6 +239,28 @@ public class StringSortBenchmarks {
         return copy;
     }
 
+    /**
+     * The chinesenames corpus with the <b>ordinal</b> pinyin coder
+     * ({@link HuskyCoderFactory#chineseEncoderPinyin}), which was the default until 2026-09-28.
+     * Pair with {@code radixHuskySortAuto}, now the rank coder, for the before-and-after.
+     * <p>
+     * The roles of this row and the default are the reverse of what they were in request 11d, where
+     * the default was ordinal and the variant was named {@code ...PinyinRank}. To line this suite up
+     * with that data: 11d's {@code radixHuskySortAutoPinyinRank} is this suite's
+     * {@code radixHuskySortAuto}, and 11d's {@code radixHuskySortAuto} is this row.
+     * <p>
+     * Kept rather than deleted because it is the measurement that justifies the change, and because
+     * the paper needs both numbers. See TODO.md item 44.
+     */
+    @Benchmark
+    public String[] radixHuskySortAutoPinyinOrdinal(final StringState state) {
+        if (!state.corpus.equals("chinesenames"))
+            throw new IllegalStateException("radixHuskySortAutoPinyinOrdinal is meaningful only for the"
+                    + " chinesenames corpus, whose order is pinyin. Use -p corpus=chinesenames.");
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, HuskyCoderFactory.chineseEncoderPinyin, state.config).sort(copy);
+    }
+
     // ---------- Three-way radix quicksort / multikey quicksort (Bentley and Sedgewick 1997),
     // as a real empirical baseline for the paper's classic string-sorting literature discussion,
     // replacing a purely theoretical comparison. For the chinesenames corpus, sorts by pinyin
@@ -166,11 +272,25 @@ public class StringSortBenchmarks {
      * Arrays.parallelSort is what a performance-conscious Java programmer reaches for at the sizes
      * where this paper's headline claims live, so it is the honest baseline there -- Arrays.sort is
      * the default, not the informed choice. Added 2026-09-12.
+     * <p>
+     * For the chinesenames corpus this sorts by pinyin (NAME_ORDER), as multikeyQuicksort below
+     * already does and as systemSortPinyin does for the serial case. **Corrected 2026-09-16**: it
+     * previously called the no-Comparator parallelSort for every corpus, so on chinesenames it
+     * ordered by raw UTF-16 code point -- a cheaper task, and the wrong one. Comparing a
+     * pinyin-correct sort against it was not a comparison, exactly as request 6 established for the
+     * serial system sort. Code-point order is also not an ordering Chinese text is actually sorted
+     * in: the real alternative to pinyin is stroke order (see item 10), not code point.
+     * <p>
+     * NOTE: chinesenames figures collected under this benchmark's name before 2026-09-16 --- i.e.
+     * request 9's --- measured the code-point ordering and are not comparable with figures collected
+     * after it. The english and chinese corpora are unaffected, their coder supplying no Collator
+     * and natural order being the correct order for them.
      */
     @Benchmark
     public String[] systemSortParallel(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
-        Arrays.parallelSort(copy);
+        if (state.corpus.equals("chinesenames")) Arrays.parallelSort(copy, HuskyCoderChinesePinyin.NAME_ORDER);
+        else Arrays.parallelSort(copy);
         return copy;
     }
 
@@ -265,6 +385,17 @@ public class StringSortBenchmarks {
     public String[] radixHuskySort11(final StringState state) {
         final String[] copy = Arrays.copyOf(state.master, state.master.length);
         return new RadixHuskySort<>(11, state.coder, state.config).sort(copy);
+    }
+
+    /**
+     * The digit width derived from n rather than fixed -- see TODO.md item 35's second bullet. The
+     * fixed widths above and below are unchanged and still run at exactly the width they name, so
+     * the published digit-width sweep stays reproducible.
+     */
+    @Benchmark
+    public String[] radixHuskySortAuto(final StringState state) {
+        final String[] copy = Arrays.copyOf(state.master, state.master.length);
+        return new RadixHuskySort<>(RadixHuskySort.AUTO_DIGIT_BITS, state.coder, state.config).sort(copy);
     }
 
     @Benchmark

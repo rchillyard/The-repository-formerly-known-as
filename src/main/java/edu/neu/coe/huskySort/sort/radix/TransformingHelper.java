@@ -31,7 +31,6 @@ public interface TransformingHelper<X extends Comparable<X>, T> extends Helper<T
     /**
      * Method to transform an array (xs) of Xs into an array of Ts.
      * This is essentially the inverse of recoverXFromT.
-     * <p>
      *
      * @param clazz     the class of T.
      * @param xs        the input array of Xs.
@@ -49,7 +48,6 @@ public interface TransformingHelper<X extends Comparable<X>, T> extends Helper<T
     /**
      * Method to recover the original X values from a (sorted) array of Ts.
      * This is essentially the inverse of transformXToT.
-     * <p>
      *
      * @param ts   the (sorted) array of Ts.
      * @param xs   an array of Xs which will be over-written starting at index from.

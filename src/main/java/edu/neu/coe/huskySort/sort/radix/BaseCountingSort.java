@@ -20,7 +20,7 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
     /**
      * Method to get a suitable Helper for this TransformingSort.
      * <p>
-     * TEST not currently invoked.
+     * TESTME not currently invoked.
      *
      * @return a TransformingHelper of String and X.
      */
@@ -58,7 +58,7 @@ public abstract class BaseCountingSort<X extends StringComparable<X, Y>, Y exten
     /**
      * Generic, non-mutating sort method which allows for explicit determination of the makeCopy option.
      * <p>
-     * TEST this is not invoked.
+     * TESTME this is not invoked.
      *
      * @param xs       sort the array xs, returning the sorted result, leaving xs unchanged.
      * @param makeCopy if set to true, we make a copy first and sort that.
