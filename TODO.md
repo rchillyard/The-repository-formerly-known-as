@@ -465,7 +465,15 @@ against all four original reviews, plus venue recommendations. It confirmed ever
 reviewer-mapping item above is addressed, flagged three small items, and recommended among SIAM
 ACDA27, SEA 2027, ALENEX (unavailable near-term), and JEA.
 
-19. **Venue decided: SIAM ACDA27. Submitted 2026-09-15.** The requirements that were unpublished
+19. ~~**Venue decided: SIAM ACDA27. Submitted 2026-09-15.**~~ **REJECTED 2026-11-06**, scores
+    -3 / -2 / -2, with a poster invited instead (deadline extended to 2026-11-12 AoE). The reviews,
+    an assessment of each point, and the decisions now open are in
+    `doc/ACDA27 rejection and what follows.md`. **All three reviewers independently criticised the
+    structure and the body's self-containedness**, which is partly a consequence of the page
+    strategy recorded below: the body sat at exactly 12 pages while the appendix grew to 10. The
+    requirements below are kept as the record of what was submitted against.
+
+19a. **The ACDA27 requirements, as submitted against.** The requirements that were unpublished
     when this item was opened are now known, from the submissions page saved at submission time
     as `paper/ACDA27 Submissions | SIAM.pdf` (the SIAM.org page blocks automated fetches, 403, so
     that saved copy is the record):
