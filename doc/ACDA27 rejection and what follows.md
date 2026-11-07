@@ -6,9 +6,42 @@ extended that deadline to **2026-11-12 AoE**.
 
 This document holds two things: the three reviews with an assessment of each point, and the open
 questions left over from the 2026-10-19/20 and 11-05/07 working sessions, which the rejection
-reprioritises rather than cancels. The reviews are quoted as data; where a reviewer states something
-checkable, it has been checked against the **submitted** version (`acda27-submitted`, `8660534`),
-not against the working tree.
+reprioritises rather than cancels. The reviews are quoted as data.
+
+## Which artifact the reviewers actually read --- and it is not the tag
+
+**Checked against the wrong build at first, corrected 2026-11-07 on Robin's challenge.** The
+`acda27-submitted` tag marks `8660534`, the **15 September** build --- the deadline build. But the
+submission was edited afterwards to upload the anonymised PDF, and that file,
+`paper/RadixHuskySort-anon.pdf`, is timestamped **17 September 17:11**. Three commits touched
+`paper/` in between:
+
+| commit | time | what |
+| --- | --- | --- |
+| `36fa361` | 09-17 15:16 | Say in the paper that the advantage is a serial one |
+| `97337ae` | 09-17 16:58 | Say what was parallelized and what that does not prove |
+| `15cc2ff` | 09-17 17:12 | Parallelize the encoding in the parallel sorter |
+
+The anon PDF was built at 17:11, one minute before `15cc2ff`, and its text matches `97337ae`
+(which first introduces "the advantage demonstrated here is a serial one"). **So the reviewed source
+is `97337ae`, not the tag.** `acda27-submitted` marks what we meant to submit, not what was reviewed.
+Worth a second tag, or at minimum do not use the existing one to reconstruct the reviewers' view.
+
+### A defect in the reviewed version that no reviewer named explicitly
+
+The build they read **contradicts itself on the central parallel question**:
+
+> Introduction: "the encoding and the cleanup dominate on the corpora we measure, and **we did not
+> parallelize either**."
+
+> Conclusion: "A proxy-key sort has four phases... **We parallelized two of them, the encoding** and
+> the digit passes."
+
+One says the encoding was not parallelised; the other says it was. This is the seam between
+`36fa361`/`97337ae`, which rewrote the conclusion, and an introduction that was not updated to match
+--- committed in the two hours before the anonymised build went up. It is very likely a contributor
+to R1's "nearly impossible to keep track of the authors' train of thought", and it is more damaging
+than either of the factual errors in R1 below, because it is ours.
 
 ---
 
@@ -39,7 +72,9 @@ the single biggest argument for where to go next.
 ## Two checkable claims in R1 that are wrong
 
 Recorded so that R1 is weighted correctly --- not to dismiss the review, whose structural points are
-echoed by the other two.
+echoed by the other two. **Both were re-verified against `RadixHuskySort-anon.pdf`, the build the
+reviewers read**, after the first pass wrongly used the 15 September tag; both findings survive the
+correction unchanged.
 
 > R1: "Section 4.1 claims that appendix A3 specifies the details of the three machines used in the
 > evaluation. It does not."
