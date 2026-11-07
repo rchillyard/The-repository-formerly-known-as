@@ -22,10 +22,18 @@ submission was edited afterwards to upload the anonymised PDF, and that file,
 | `97337ae` | 09-17 16:58 | Say what was parallelized and what that does not prove |
 | `15cc2ff` | 09-17 17:12 | Parallelize the encoding in the parallel sorter |
 
-The anon PDF was built at 17:11, one minute before `15cc2ff`, and its text matches `97337ae`
-(which first introduces "the advantage demonstrated here is a serial one"). **So the reviewed source
-is `97337ae`, not the tag.** `acda27-submitted` marks what we meant to submit, not what was reviewed.
-Worth a second tag, or at minimum do not use the existing one to reconstruct the reviewers' view.
+The anon PDF was built at 17:11, one minute before `15cc2ff` was committed --- which simply means it
+was built from that working tree just before the commit. It is pinned by its own text: `15cc2ff` is
+the commit that changed "We parallelized **one** of them, the digit passes" to "We parallelized
+**two** of them, the encoding and the digit passes", and the anonymised PDF says *two*.
+
+**So the reviewed source is `15cc2ff`, now tagged `acda27-reviewed`.** `acda27-submitted` marks
+`8660534`, what we meant to submit on the deadline; `acda27-reviewed` marks what the committee
+actually read. Use the latter to reconstruct the reviewers' view.
+
+(Recorded because it took two attempts to get right: the first check used the deadline tag, the
+second wrongly settled on `97337ae` from a timestamp alone. The text is what settles it, not the
+clock.)
 
 ### A defect in the reviewed version that no reviewer named explicitly
 
