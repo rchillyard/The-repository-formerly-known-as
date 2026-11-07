@@ -1818,7 +1818,10 @@ is a defect; all are hardening or generalisation.
     than paper material, and the reasoning is unchanged.
 
 43. **Consolidated paper-revision checklist (opened 2026-09-22, after Yunlu's request-11 run,
-    PR #67).** Items 36--42 each recorded their own paper consequences as they were found, over
+    PR #67).** **SUPERSEDED IN PART 2026-11-07**: ACDA27 rejected the paper, the target is now
+    TALG's Empirical Track, and the plan is `doc/TALG rewrite plan.md`. Read that first. A, B1, C, D
+    and H are done and stand. E, F and G were deferred for page space that TALG does not charge, so
+    reconsider them on merit. All the page-budget arithmetic below is dead. Items 36--42 each recorded their own paper consequences as they were found, over
     about a week, and two of them have since been partly overtaken by measurement. Robin asked for
     one list. This is it: everything the paper needs, in one place, so that whichever of item 39's
     four options is chosen the work is already scoped.
